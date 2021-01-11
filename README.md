@@ -47,7 +47,7 @@ A struct named ```model_data``` is exported.
 
 - ```name::String```: name of a feature
 
-- ```color::Vector{Float64}```: color of a feature
+- ```color::Vector{Float64}```: color of a feature, which should correspond to its color on your images
 
 - ```border::Bool```: allows to train a neural network to recognize borders and better separate objects during post-processing
 
