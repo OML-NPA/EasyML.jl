@@ -164,7 +164,7 @@ options = Options()
 @with_kw mutable struct Processing_training
     mirroring::Bool = true
     num_angles::Int64 = 2
-    min_fr_pix::Float64 = 0.1
+    min_fr_pix::Float64 = 0
 end
 processing_training = Processing_training()
 
@@ -195,12 +195,12 @@ hyperparameters_training = Hyperparameters_training()
 end
 general_training = General_training()
 
-@with_kw mutable struct Options_training
+@with_kw mutable struct Training_options
     General::General_training = general_training
     Processing::Processing_training = processing_training
     Hyperparameters::Hyperparameters_training = hyperparameters_training
 end
-options_training = Options_training()
+training_options = Training_options()
 
 @with_kw mutable struct Design
     width::Float64 = 340
@@ -211,7 +211,7 @@ end
 design = Design()
 
 @with_kw mutable struct Training
-    Options::Options_training = options_training
+    Options::Training_options = training_options
     Design::Design = design
     problem_type::Tuple{String,Int64} = ("Classification",0)
     input_type::Tuple{String,Int64} = ("Image",0)
@@ -224,7 +224,7 @@ end
 training = Training()
 
 # Analysis
-@with_kw mutable struct Options_analysis
+@with_kw mutable struct Analysis_options
     savepath::String = ""
     analyse_by::Tuple{String,Int64} = ("file",0)
     data_type::Int64 = 0
@@ -234,10 +234,10 @@ training = Training()
     scaling::Float64 = 1
     minibatch_size::Int64 = 1
 end
-options_analysis = Options_analysis()
+analysis_options = Analysis_options()
 
 @with_kw mutable struct Analysis
-    Options::Options_analysis = options_analysis
+    Options::Analysis_options = analysis_options
     folder_url::String = ""
     model_url::String = ""
     checked_folders::Vector{String} = String[]

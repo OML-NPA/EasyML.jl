@@ -15,7 +15,7 @@ ApplicationWindow {
     visible: true
     minimumHeight: 1024*pix + margin
     minimumWidth: informationPane.width + 1024*pix + margin
-    title: qsTr("  Open Machine Learning Software")
+    title: qsTr("  Julia Machine Learning GUI")
     color: defaultpalette.window
 
     property double pix: Screen.width/3840

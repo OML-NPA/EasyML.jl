@@ -604,3 +604,14 @@ function train(data_inputs::Vector{Array{Float32,3}},data_labels::Vector{Array{F
         end
     end
 end
+
+function change_training_options()
+    # Launches GUI
+    @qmlfunction(
+        # Data handling
+        set_settings,
+        get_settings
+    )
+    load("GUI/TrainingOptions.qml")
+    exec()
+end
