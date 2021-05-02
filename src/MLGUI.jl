@@ -5,7 +5,7 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 # Import packages
 using
 # Interfacing
-QML, CxxWrap, CUDAapi,
+QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
 # Data structuring
 Parameters, DataFrames, StaticArrays, Dates,
 # Data import/export
@@ -14,18 +14,15 @@ FileIO, ImageIO, JSON, BSON, XLSX,
 Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
 ImageMorphology.FeatureTransform, ImageSegmentation,
 # Machine learning
-Flux, Flux.Losses,
+Flux, Flux.Losses, FluxExtra,
 # Math functions
 Random, StatsBase, Statistics, LinearAlgebra, Combinatorics, Distances,
 # Other
-Plots, Distributed, ParallelDataTransfer
-import Base.any
-import CUDA, CUDA.CuArray, Flux.outdims
-# Other
-CUDA.allowscalar(false)
+Plots
 
-# Import functions
+import CUDA.CuArray, Flux.outdims, .Threads.@threads
 
+# Include functions
 include("data_structures.jl")
 include("handling_channels.jl")
 include("handling_data.jl")

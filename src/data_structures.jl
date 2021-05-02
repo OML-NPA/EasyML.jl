@@ -14,6 +14,8 @@ end
 channels = Channels()
 
 #---Model data
+
+#---Model data
 @with_kw mutable struct Output_mask
     mask::Bool = false
     mask_border::Bool = false
@@ -23,7 +25,8 @@ output_mask = Output_mask()
 
 @with_kw mutable struct Output_area
     area_distribution::Bool = false
-    individual_obj_area::Bool = false
+    obj_area::Bool = false
+    obj_area_sum::Bool = false
     binning::Int64 = 0
     value::Float64 = 10
     normalisation::Int64 = 0
@@ -32,7 +35,8 @@ output_area = Output_area()
 
 @with_kw mutable struct Output_volume
     volume_distribution::Bool = false
-    individual_obj_volume::Bool = false
+    obj_volume::Bool = false
+    obj_volume_sum::Bool = false
     binning::Int64 = 0
     value::Float64 = 10
     normalisation::Int64 = 0
@@ -50,17 +54,22 @@ output_options = Output_options()
     name::String = ""
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
-    parent::String = ""
+    border_thickness::Int64 = 3
+    border_remove_objs::Bool = false
+    min_area::Int64 = 1
+    parents::Vector{String} = ["",""]
+    not_feature::Bool = false
     Output::Output_options = output_options
 end
 feature = Feature()
 
 @with_kw mutable struct Model_data
+    type::Vector{String} = ["Classification","Images"]
     input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
     features::Vector{Feature} = []
-    loss::Function = Losses.crossentropy
+    loss::Function = Flux.Losses.crossentropy
 end
 model_data = Model_data()
 
