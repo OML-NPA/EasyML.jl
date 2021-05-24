@@ -9,7 +9,7 @@ function getlinear(type::String, d, in_size::Tuple{Int64,Int64,Int64})
             stride = d["stride"],
             dilation = d["dilationfactor"]
         )
-        out = (outdims(layer, in_size)..., d["filters"])
+        out = outdims(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Transposed convolution"
         layer = ConvTranspose(
@@ -19,7 +19,7 @@ function getlinear(type::String, d, in_size::Tuple{Int64,Int64,Int64})
             stride = d["stride"],
             dilation = d["dilationfactor"],
         )
-        out = (outdims(layer, in)..., in_size[3])
+        out = outdims(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Dense"
         layer = Dense(in_size, d["filters"])
@@ -54,7 +54,7 @@ function getpooling(type::String, d, in_size::Tuple{Int64,Int64,Int64})
     poolsize = d["poolsize"]
     stride = d["stride"]
     temp_layer = MaxPool(poolsize, stride=2)
-    out = (outdims(Chain(temp_layer),in_size)...,in_size[3])
+    out = outdims(Chain(temp_layer),(in_size...,1))[1:3]
     dif = Int64.(in_size[1:2]./2 .- out[1:2])
     if type == "Max pooling"
         layer = MaxPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
@@ -68,7 +68,7 @@ function getresizing(type::String, d, in_size)
     if type == "Addition"
         out = (in_size[1][1], in_size[1][2], in_size[1][3])
         return (Addition(), out)
-    elseif type == "Catenation"
+    elseif type == "Join"
         new_size = Array{Int64}(undef, length(in_size))
         dim = d["dimension"]
         for i = 1:length(in_size)
@@ -82,8 +82,8 @@ function getresizing(type::String, d, in_size)
         elseif dim == 3
             out = (in_size[1][1], in_size[1][2], new_size)
         end
-        return (Catenation(dim), out)
-    elseif type == "Decatenation"
+        return (Join(dim), out)
+    elseif type == "Split"
         dim = d["dimension"]
         nout = d["outputs"]
         out = Array{Tuple{Int64,Int64,Int64}}(undef, nout)
@@ -100,8 +100,8 @@ function getresizing(type::String, d, in_size)
                 out[i] = (in_size[1], in_size[2], in_size[3] / nout)
             end
         end
-        return (Decatenation(nout, dim), out)
-    elseif type == "Upscaling"
+        return (Split(nout, dim), out)
+    elseif type == "Upsample"
         multiplier = d["multiplier"]
         dims = d["dimensions"]
         out = [in_size...]
@@ -109,10 +109,10 @@ function getresizing(type::String, d, in_size)
             out[i] = out[i] * multiplier
         end
         out = (out...,)
-        return (Upscaling(multiplier, out, dims), out)
+        return (Upsample(scale = multiplier), out)
     elseif type == "Flattening"
         out = (prod(size(x)), 1, 1)
-        return (Flux.flatten(), out)
+        return (x -> Flux.flatten(x), out)
     end
 end
 
@@ -162,7 +162,7 @@ function topology_split(layers_arranged::Vector,inds_arranged::Vector,
         if isempty(inds_temp)
             inds_temp = [0]
         end
-        if (type=="Catenation" || type=="Addition") && inds_temp[1]==nothing
+        if (type=="Join" || type=="Addition") && isnothing(inds_temp[1])
             # Happens if one of input nodes is empty
         else
             par_layers_arranged[i] = layers_temp
@@ -179,7 +179,7 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
         connections_in::Vector{Vector{Int64}},types::Vector{String},ind)
     while !isempty.([ind])[1]
         numk = length(ind)
-        if any(map(x -> x.=="Catenation" ||
+        if any(map(x -> x.=="Join" ||
                 x.=="Addition",types[vcat(vcat(ind...)...)]))
             if all(length.(ind).==1) && allcmp(ind) &&
                     length(ind)==length(connections_in[ind[1][1][1]])
@@ -226,7 +226,6 @@ end
 function get_topology_main(model_data::Model_data)
     layers = model_data.layers
     types = [layers[i]["type"] for i = 1:length(layers)]
-    groups = [layers[i]["group"] for i = 1:length(layers)]
     connections = Vector{Array{Vector{Int64}}}(undef,0)
     connections_in = Vector{Vector{Int64}}(undef,0)
     for i = 1:length(layers)
@@ -290,7 +289,7 @@ function getbranch(layer_params,in_size)
             end
             push!(par_size,temp_size)
         end
-        layer = Parallel((par_layers...,))
+        layer = Parallel(tuple,(par_layers...,))
         if allcmp(par_size)
             in_size = par_size
         else
@@ -301,7 +300,7 @@ function getbranch(layer_params,in_size)
 end
 
 function make_model_main(model_data::Model_data)
-    layers_arranged,inds = get_topology()
+    layers_arranged,_ = get_topology()
     if layers_arranged isa String
         return @info "not supported"
     end
@@ -430,33 +429,4 @@ function get_loss(name::String)
     elseif name == "Tversky"
         return Losses.tversky_loss
     end
-end
-
-function design_network()
-    # Launches GUI
-    @qmlfunction(
-        # Handle features
-        model_count,
-        model_properties,
-        model_get_property,
-        # Model functions
-        reset_layers,
-        update_layers,
-        make_model,
-        save_model,
-        load_model,
-        # Model design
-        arrange,
-        # Data handling
-        get_data,
-        get_settings,
-        set_settings,
-        save_settings,
-        # Other
-        source_dir
-    )
-    load("GUI/Design.qml")
-    exec()
-
-    return model_data
 end

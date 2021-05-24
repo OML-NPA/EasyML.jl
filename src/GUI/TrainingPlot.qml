@@ -1,5 +1,5 @@
 
-import QtQuick 2.12
+import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.2
@@ -13,25 +13,24 @@ import org.julialang 1.0
 ApplicationWindow {
     id: window
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  Open Machine Learning Software")
     minimumWidth: gridLayout.width
     minimumHeight: gridLayout.height
     maximumWidth: gridLayout.width
     maximumHeight: gridLayout.height
-
+    
+    //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
-
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
         "mid": rgbtohtml([220,220,220]),"middark": rgbtohtml([210,210,210]),
         "middark2": rgbtohtml([180,180,180]),"dark2": rgbtohtml([160,160,160]),
         "dark": rgbtohtml([130,130,130])}
-
     property var defaultpalette: {"window": defaultcolors.midlight,
                                   "window2": defaultcolors.midlight3,
                                   "button": defaultcolors.light2,
@@ -43,19 +42,28 @@ ApplicationWindow {
                                   "border": defaultcolors.dark2,
                                   "listview": defaultcolors.light
                                   }
-
-    color: defaultpalette.window
-
-    onClosing: {
-        Julia.put_channel("Training",["stop"])
+    
+    function rgbtohtml(colorRGB) {
+        return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
     }
-
+    //-------------------------------------------------------------------------
+    //---Jield timer block-----------------------------------------------------
     Timer {
         id: yieldTimer
         running: true
         repeat: true
         interval: 1
         onTriggered: {Julia.yield()}
+    }
+    //-------------------------------------------------------------------------
+    
+    color: defaultpalette.window
+
+    onClosing: {
+        Julia.put_channel("Training",["stop"])
+        //trainButton.text = "Train"
+        //progressbar.value = 0
+        //trainingplotLoader.sourceComponent = undefined
     }
 
     Timer {
@@ -65,6 +73,7 @@ ApplicationWindow {
         property int epoch: 0
         property int iterations_per_epoch: 0
         property int max_iterations: 0
+        property bool done: false
         interval: 100
         running: true
         repeat: true
@@ -107,9 +116,11 @@ ApplicationWindow {
                         lossLine.axisY.max = test_loss
                     }
                 }
-                if (iteration===max_iterations && max_iterations!==0) {
-                    running = false
-                    Julia.get_results("Training")
+                if ((iteration===max_iterations && max_iterations!==0) || trainingTimer.done) {
+                    // var state = Julia.get_results("Training")
+                    if (state===true) {
+                        running = false
+                    }
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
                     epoch += 1
@@ -296,7 +307,14 @@ ApplicationWindow {
                                 Layout.preferredWidth: buttonHeight
                                 Layout.preferredHeight: buttonHeight
                                 Layout.leftMargin: 0.3*margin
-                                onClicked: {Julia.put_channel("Training",["stop"])}
+                                onClicked: {
+                                    Julia.put_channel("Training",["stop"])
+                                    /*var stop = false
+                                    while (!stop) {
+                                        stop = Julia.get_results("Training")
+                                        Julia.sleep(0.1)
+                                    }*/
+                                }
                             }
                         }
                         Column {
@@ -405,10 +423,14 @@ ApplicationWindow {
                             Row {
                                 spacing: 0.3*margin
                                 Label {
+                                    visible: Julia.get_settings(
+                                                 ["Training","Options","Hyperparameters","allow_lr_change"])
                                     text: "Learning rate:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    visible: Julia.get_settings(
+                                                 ["Training","Options","Hyperparameters","allow_lr_change"])
                                     from: 1
                                     value: 100000*Julia.get_settings(
                                                ["Training","Options","Hyperparameters","learning_rate"])
@@ -464,9 +486,5 @@ ApplicationWindow {
             onPressAndHold: mouse.accepted = false;
             onClicked: mouse.accepted = false;
         }
-    }
-
-    function rgbtohtml(colorRGB) {
-            return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
     }
 }

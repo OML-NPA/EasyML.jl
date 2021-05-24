@@ -24,14 +24,16 @@ end
 
 #---
 # Returns label colors
-function get_labels_colors(url_labels::Vector{String})
+function get_labels_colors_main(training_data::Training_data,channels::Channels)
+    url_labels = training_data.url_labels
     num = length(url_labels)
+    put!(channels.training_labels_colors,num)
     colors_array = Vector{Vector{Vector{Float32}}}(undef,num)
     labelimgs = Vector{Array{RGB{Normed{UInt8,8}},2}}(undef,0)
     for i=1:num
         push!(labelimgs,RGB.(load(url_labels[i])))
     end
-    Threads.@threads for i=1:num
+    @threads for i=1:num
             labelimg = labelimgs[i]
             unique_colors = unique(labelimg)
             ind = findfirst(unique_colors.==RGB.(0,0,0))
@@ -39,17 +41,25 @@ function get_labels_colors(url_labels::Vector{String})
             colors255 = float.(unique_colors).*255
             colors = map(x->[x.r,x.g,x.b],colors255)
             colors_array[i] = colors
+            put!(channels.training_labels_colors,1)
     end
     colors_out = reduce(vcat,colors_array)
     unique_colors_out = unique(colors_out)
-    return unique_colors_out
+    put!(channels.training_labels_colors,unique_colors_out)
+    return nothing
 end
+function get_labels_colors_main2(training_data::Training_data,channels::Channels)
+    #@everywhere training_data
+    #remote_do(get_labels_colors_main,workers()[end],training_data,channels)
+    Threads.@spawn get_labels_colors_main(training_data,channels)
+end
+get_labels_colors() = get_labels_colors_main2(training_data,channels)
 
 #---Data/settings related functions
 # Allows to read data from GUI
 function get_data_main(data::Master_data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
-    inds = fix_QML_types(inds)
+    inds = convert(Vector{Int64},fix_QML_types(inds))
     for i = 1:length(fields)
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -112,7 +122,6 @@ function set_settings_main(settings::Settings,fields::QML.QListAllocated,args...
         field = Symbol(fields[i])
         data = getproperty(data,field)
     end
-    values = Array{Any}(undef,length(args))
     if length(args)==1
         value = args[1]
     elseif length(args)==2
@@ -162,6 +171,24 @@ function source_dir()
     return fix_slashes(pwd())
 end
 
+function filter_ext(urls::Vector{String},allowed_ext::Vector{String})
+    urls_split = split.(urls,'.')
+    ext = map(x->string(x[end]),urls_split)
+    ext = lowercase.(ext)
+    log_inds = map(x->x in allowed_ext,ext)
+    urls_out = urls[log_inds]
+    return urls_out
+end
+
+function filter_ext(urls::Vector{String},allowed_ext::String)
+    urls_split = split.(urls,'.')
+    ext = map(x->string(x[end]),urls_split)
+    ext = lowercase.(ext)
+    log_inds = map(x->x == allowed_ext,ext)
+    urls = urls[log_inds]
+    return urls
+end
+
 #---Feature output related functions
 # Allows to read feature output options from GUI
 function get_output_main(model_data::Model_data,fields,ind)
@@ -192,6 +219,19 @@ end
 set_output(fields,ind,value) = set_output_main(model_data,fields,ind,value)
 
 #---
+
+function reset_data_field_main(master_data::Master_data,fields)
+    fields::Vector{String} = fix_QML_types(fields)
+    data = master_data
+    for i = 1:length(fields)
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    empty!(data)
+    return nothing
+end
+reset_data_field(fields) = reset_data_field_main(master_data,fields)
+
 # Resets data property
 function resetproperty!(datatype,field)
     var = getproperty(datatype,field)
@@ -207,28 +247,63 @@ function resetproperty!(datatype,field)
 end
 
 #---Image related functions
+
+function bitarray_to_image(array_bool::BitArray{2},color::Vector{Normed{UInt8,8}})
+    s = size(array_bool)
+    array_uint = zeros(N0f8,4,s...)
+    inds = [2,1,4]
+    for i = 1:3
+        ind = inds[i]
+        channel = color[i]
+        if channel>0
+            slice = array_uint[ind,:,:]
+            slice[array_bool] .= channel
+            array_uint[ind,:,:] .= slice
+        end
+    end
+    array_uint[3,:,:] .= 1
+    return collect(colorview(ARGB32,array_uint))
+end
+
+function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}})
+    s = size(array_bool)[2:3]
+    array_uint = zeros(N0f8,4,s...)
+    inds = [2,1,4]
+    for i = 1:3
+        ind = inds[i]
+        channel = color[i]
+        if channel>0
+            slice = array_uint[ind,:,:]
+            slice[array_bool[i,:,:]] .= channel
+            array_uint[ind,:,:] .= slice
+        end
+    end
+    array_uint[3,:,:] .= 1
+    return collect(colorview(ARGB32,array_uint))
+end
+
 # Saves image to the main image storage and returns its size
-function get_image_main(master_data::Master_data,model_data::Model_data,fields,
+function get_image_main(master_data::Master_data,fields,
         img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
-    image = collect(get_data(fields,inds))
-    if isempty(image)
-        master_data.image = ARGB32.(image)
-        return [0,0]
+    image_data = get_data(fields,inds)
+    if image_data isa Array{RGB{N0f8},2}
+        image = image_data
+    else
+        image = bitarray_to_image(image_data...)
     end
-
     inds = findall(img_size.!=0)
     if !isempty(inds)
         r = minimum(map(x-> img_size[x]/size(image,x),inds))
         image = imresize(image, ratio=r)
     end
-    master_data.image = ARGB32.(image)
+    master_data.image = image
     return [size(image)...]
 end
 get_image(fields,img_size,inds...) =
-    get_image_main(master_data,model_data,fields,img_size,inds...)
+    get_image_main(master_data,fields,img_size,inds...)
 
 # Displays image from the main image storage to Julia canvas
 function display_image(buffer::Array{UInt32, 1},
@@ -240,7 +315,7 @@ function display_image(buffer::Array{UInt32, 1},
     buffer = reinterpret(ARGB32, buffer)
     image = master_data.image
     if size(buffer)==reverse(size(image))
-        buffer .= transpose(ARGB32.(image))
+        buffer .= transpose(image)
     end
     return nothing
 end
@@ -250,19 +325,19 @@ end
 model_count() = length(model_data.layers)
 
 # Returns keys for layer properties
-model_properties(index) = [keys(model_data.layers[index])...]
+model_properties(index) = [keys(model_data.layers[Int64(index)])...]
 
 # Returns model layer property value
-function model_get_property_main(model_data::Model_data,index,property_name)
-    layer = model_data.layers[index]
+function model_get_layer_property_main(model_data::Model_data,index,property_name)
+    layer = model_data.layers[Int64(index)]
     property = layer[property_name]
     if  isa(property,Tuple)
         property = join(property,',')
     end
     return property
 end
-model_get_property(index,property_name) =
-    model_get_property_main(model_data,index,property_name)
+model_get_layer_property(index,property_name) =
+    model_get_layer_property_main(model_data,index,property_name)
 
 # Empties model layers
 function reset_layers_main(model_data::Model_data)
@@ -283,7 +358,7 @@ function update_layers_main(model_data::Model_data,keys,values,ext...)
         var = values[i]
         if var isa String
             var_num = tryparse(Float64, var)
-            if var_num == nothing
+            if isnothing(var_num)
               if occursin(",", var) && !occursin("[", var)
                  dict[keys[i]] = str2tuple(Int64,var)
               else
@@ -316,7 +391,8 @@ function fixtypes(dict::Dict)
         "stride",
         "inputs",
         "outputs",
-        "dimension"]
+        "dimension",
+        "multiplier"]
         if haskey(dict, key)
             dict[key] = Int64(dict[key])
         end
@@ -339,6 +415,18 @@ function fixtypes(dict::Dict)
     return dict
 end
 
+# Set model type
+function set_model_type_main(model_data::Model_data,type1,type2)
+    model_data.type = [fix_QML_types(type1),fix_QML_types(type2)]
+end
+set_model_type(type1,type2) = set_model_type_main(model_data,type1,type2)
+
+# Get model type
+function get_model_type_main(model_data::Model_data)
+    return model_data.type
+end
+get_model_type() = get_model_type_main(model_data)
+
 # Resets model features
 function reset_features_main(model_data)
     empty!(model_data.features)
@@ -347,26 +435,40 @@ end
 reset_features() = reset_features_main(model_data::Model_data)
 
 # Appends model features
-function append_features_main(model_data::Model_data,output_options::Output_options,
-        name,colorR,colorG,colorB,border,parent)
-    push!(model_data.features,Feature(String(name),Int64.([colorR,colorG,colorB]),
-        Bool(border),String(parent),output_options))
+function append_features_main(model_data::Model_data,output_options::Segmentation_output_options,
+        name,colorR,colorG,colorB,border,border_thickness,
+        border_remove_objs,min_area,parents,not_feature)
+    push!(model_data.features,Segmentation_feature(String(name),Int64.([colorR,colorG,colorB]),
+        Bool(border),Int64(border_thickness),Bool(border_remove_objs),Int64(min_area),
+        fix_QML_types(parents),Bool(not_feature),output_options))
     return nothing
 end
-append_features(name,colorR,colorG,colorB,border,parent) =
-    append_features_main(model_data,output_options,name,colorR,colorG,colorB,border,parent)
+append_features(name,colorR,colorG,colorB,
+    border,border_thickness,border_remove_objs,
+    min_area,parents,not_feature) = 
+    append_features_main(model_data,output_options,name,colorR,colorG,colorB,
+        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
 
 # Updates model feature with new data
-function update_features_main(model_data,index,name,colorR,colorG,colorB,border,parent)
-    feature = model_data.features[index]
+function update_features_main(model_data,index,name,colorR,colorG,colorB,
+        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
+    feature = model_data.features[Int64(index)]
     feature.name = String(name)
     feature.color = Int64.([colorR,colorG,colorB])
     feature.border = Bool(border)
-    feature.parent = String(parent)
+    feature.border_thickness = Int64(border_thickness)
+    feature.border_remove_objs = Bool(border_remove_objs)
+    feature.min_area = Int64(min_area)
+    feature.parents = fix_QML_types(parents)
+    feature.not_feature = Bool(not_feature)
     feature.Output = feature.Output
 end
-update_features(index,name,colorR,colorG,colorB,border,parent) =
-    update_features_main(model_data,index,name,colorR,colorG,colorB,border,parent)
+update_features(index,name,colorR,colorG,colorB,
+        border,border_thickness,border_remove_objs,
+        min_area,parents,not_feature) =
+    update_features_main(model_data,index,name,colorR,colorG,colorB,
+        border,border_thickness,border_remove_objs,
+        min_area,parents,not_feature)
 
 # Returns the number of features
 function num_features_main(model_data::Model_data)
@@ -376,47 +478,65 @@ num_features() = num_features_main(model_data::Model_data)
 
 # Returns feature value
 function get_feature_main(model_data::Model_data,index,fieldname)
-    return getfield(model_data.features[index], Symbol(String(fieldname)))
+    return getfield(model_data.features[Int64(index)], Symbol(String(fieldname)))
 end
 get_feature_field(index,fieldname) = get_feature_main(model_data,index,fieldname)
 
 #---Model saving/loading
 # Saves ML model
 function save_model_main(model_data,url)
-  BSON.@save(String(url),model_data)
+    names = fieldnames(Model_data)
+    num = length(names)
+    dict = Dict{Symbol,IOBuffer}()
+    sizehint!(dict,num)
+    for name in names
+        field = getfield(model_data,name)
+        BSON_stream = IOBuffer()
+        BSON.@save(BSON_stream, field)
+        dict[name] = BSON_stream
+    end
+    bson(String(url),dict)
   return nothing
 end
 save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
-function load_model_main(url,model_data)
-  data = BSON.load(String(url))
-  if haskey(data,:model_data)
-      imported_model_data = data[:model_data]
-      ks = fieldnames(Model_data)
-      for i = 1:length(ks)
-        value = getproperty(imported_model_data,ks[i])
-        setproperty!(model_data,ks[i],value)
-      end
-      return true
-  else
-      return false
-  end
+function load_model_main(settings,model_data,url)
+    url = MLGUI.fix_QML_types(url)
+    data = BSON.load(url)
+    ks = keys(data)
+    for k in ks
+        try
+            serialized = seekstart(data[k])
+            deserialized = BSON.load(serialized)[:field]
+            if all(k.!=(:loss,:model,:features))
+                type = typeof(getfield(model_data,k))
+                deserialized = convert(type,deserialized)
+            elseif k==:features
+                type = typeof(deserialized[1])
+                deserialized = convert(Vector{type},deserialized)
+            end
+            setfield!(model_data,k,deserialized)
+        catch e
+            @warn string("Loading of ",k," failed. Exception: ",e)
+        end
+    end
+    settings.Application.model_url = url
+    settings.Training.model_url = url
+    return nothing
 end
-load_model(url) = load_model_main(url,model_data)
+load_model(url) = load_model_main(settings,model_data,url)
 
-function load_model()
-    # Launches GUI
-    @qmlfunction(
-        # Handle features
-        model_count,
-        model_properties,
-        model_get_property,
-        # Model functions
-        load_model
-    )
-    load("GUI/FileDialogWindow.qml")
-    exec()
+function empty_field!(str,field::Symbol)
+    val = getfield(str,field)
+    type = typeof(val)
+    new_val = type(undef,zeros(Int64,length(size(val)))...)
+    setfield!(str, field, new_val)
+    return nothing
+end
 
-    return model_data
+function import_image(url)
+    img = load(url)
+    master_data.image = img
+    return [size(img)...]
 end

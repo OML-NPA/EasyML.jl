@@ -55,13 +55,13 @@ function pad(array::Union{AbstractArray{Float32},AbstractArray{Float64}},
     leftpad = Int64.(floor.(div_result))
     rightpad = Int64.(ceil.(div_result))
     if padding[1]!=0
-        vec1 = array[1,:]'
-        vec2 = array[end,:]'
+        vec1 = array[1,:,:,:]'
+        vec2 = array[end,:,:,:]'
         array = vcat(fun(el_type,leftpad[1],size(array,2),vec1),
             array,fun(el_type,rightpad[1],size(array,2),vec2))
-    else
-        vec1 = array[:,1]
-        vec2 = array[:,end]
+    else       
+        vec1 = array[:,1,:,:]
+        vec2 = array[:,end,:,:]
         array = hcat(fun(el_type,size(array,1),leftpad[2],vec1),
             array,fun(el_type,size(array,1),rightpad[2],vec2))
     end
@@ -96,7 +96,7 @@ function allcmp(inds)
     return true
 end
 
-function any(array::BitArray,dim::Int64)
+function anydim(array::BitArray,dim::Int64)
     vec = BitArray(undef, size(array,dim), 1)
     if dim==1
         for i=1:length(vec)
@@ -119,8 +119,7 @@ anynan(x) = any(isnan.(x))
 #---Other
 function arsplit(ar::AbstractArray,dim::Int64)
     type = typeof(ar[1])
-    dim2 = dim==1 ? 2 : 1
-    ar_out = Vector{Vector{typeof(ar[1])}}(undef,size(ar,dim))
+    ar_out = Vector{Vector{type}}(undef,size(ar,dim))
     if dim==1
         for i=1:size(ar,dim)
             push!(ar_out,ar[i,:])
@@ -221,3 +220,31 @@ cat4(A::AbstractArray, B::AbstractArray) = cat(A, B; dims=Val(4))
 cat4(A::AbstractArray...) = cat(A...; dims=Val(4))
 
 gc() = GC.gc()
+
+# Works as fill!, but does not use a reference
+function fill_no_ref!(target::AbstractArray,el)
+    for i = 1:length(target)
+        target[i] = copy(el)
+    end
+end
+
+enable_finalizers(on::Bool) = ccall(:jl_gc_enable_finalizers, Cvoid, (Ptr{Cvoid}, Int32,), Core.getptls(), on)
+
+# Clears workspace
+macro clear()
+    return quote
+        var_list = names(Main)
+        count = 0
+        for var in var_list
+            types = (AbstractArray,Number,String,Bool)
+            var_type = typeof(eval(var))
+            if any((<:).(var_type,types))
+                eval(Meta.parse(string(var," = nothing")))
+                count+=1
+            end
+        end
+        GC.gc()
+        str = string("Cleared ",count," variables")
+        @info str
+    end
+end

@@ -2,7 +2,18 @@
 function areaopen!(im::BitArray{2},area::Int64)
     im_segm = label_components(im)
     num = maximum(im_segm)
-    for i=1:num
+    @threads for i=1:num
+        mask = im_segm.==i
+        if sum(mask)<area
+            im[mask] .= false
+        end
+    end
+    return
+end
+
+function areaopen!(im_segm::Array{Int64},area::Int64)
+    num = maximum(im_segm)
+    @threads for i=1:num
         mask = im_segm.==i
         if sum(mask)<area
             im[mask] .= false
@@ -46,7 +57,7 @@ end
 
 function erode(array::BitArray{2},num::Int64)
     array2 = copy(array)
-    for i=1:num
+    for _ = 1:num
         erode!(array2)
     end
     return(array2)
@@ -54,13 +65,19 @@ end
 
 function dilate(array::BitArray{2},num::Int64)
     array2 = copy(array)
-    for i=1:num
+    for _ = 1:num
         dilate!(array2)
     end
     return(array2)
 end
 
-function perim(array::BitArray{2})
+function outer_perim(array::BitArray{2})
+    array2 = copy(array)
+    dil = dilate(array2,1)
+    return xor.(dil,array2)
+end
+
+function inner_perim(array::BitArray{2})
     array2 = copy(array)
     array2[1:end,1] .= 0
     array2[1:end,end] .= 0

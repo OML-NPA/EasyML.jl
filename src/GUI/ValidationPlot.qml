@@ -1,36 +1,30 @@
 
-
-import QtQuick 2.12
+import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.2
 import Qt.labs.platform 1.1
 import QtQml.Models 2.15
-import QtCharts 2.15
 import "Templates"
 import org.julialang 1.0
 
 ApplicationWindow {
     id: validationWindow
     visible: true
-    minimumHeight: 1024*pix + margin
-    minimumWidth: informationPane.width + 1024*pix + margin
-    title: qsTr("  Julia Machine Learning GUI")
-    color: defaultpalette.window
-
+    title: qsTr("  Open Machine Learning Software")
+    
+    //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
-
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
         "mid": rgbtohtml([220,220,220]),"middark": rgbtohtml([210,210,210]),
         "middark2": rgbtohtml([180,180,180]),"dark2": rgbtohtml([160,160,160]),
         "dark": rgbtohtml([130,130,130])}
-
     property var defaultpalette: {"window": defaultcolors.midlight,
                                   "window2": defaultcolors.midlight3,
                                   "button": defaultcolors.light2,
@@ -42,11 +36,12 @@ ApplicationWindow {
                                   "border": defaultcolors.dark2,
                                   "listview": defaultcolors.light
                                   }
-
-    onClosing: {
-        Julia.put_channel("Validation",["stop"])
+    
+    function rgbtohtml(colorRGB) {
+        return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
     }
-
+    //-------------------------------------------------------------------------
+    //---Jield timer block-----------------------------------------------------
     Timer {
         id: yieldTimer
         running: true
@@ -54,6 +49,8 @@ ApplicationWindow {
         interval: 1
         onTriggered: {Julia.yield()}
     }
+    //-------------------------------------------------------------------------
+    //-Other-------------------------------------------------------------------
 
     JuliaCanvas {
         id: imagetransferCanvas
@@ -61,6 +58,82 @@ ApplicationWindow {
         paintFunction: display_image
         width: 1024
         height: 1024
+    }
+
+    ListModel {
+        id: featureModel
+        Component.onCompleted: {
+            load_model_features(featureModel)
+            for (var i=0;i<featureModel.count;i++) {
+                var feature = featureModel.get(i)
+                if (!feature.notFeature) {
+                    featureselectModel.append(
+                        {"name": feature.name})
+                }
+            }
+            var num = featureselectModel.count
+            for (i=0;i<num;i++) {
+                if (featureModel.get(i).border) {
+                    featureselectModel.append(
+                        {"name": featureModel.get(i).name+" (border)"})
+                }
+            }
+            for (i=0;i<num;i++) {
+                if (featureModel.get(i).border) {
+                    featureselectModel.append(
+                        {"name": featureModel.get(i).name+" (applied border)"})
+                }
+            }
+            featureComboBox.currentIndex = 0
+        }
+    }
+    
+    function load_model_features(featureModel) {
+        var num_features = Julia.num_features()
+        if (featureModel.count!==0) {
+            featureModel.clear()
+        }
+        for (var i=0;i<num_features;i++) {
+            var ind = i+1
+            var color = Julia.get_feature_field(ind,"color")
+            var parents = Julia.get_feature_field(ind,"parents")
+            var feature = {
+                "name": Julia.get_feature_field(ind,"name"),
+                "colorR": color[0],
+                "colorG": color[1],
+                "colorB": color[2],
+                "border": Julia.get_feature_field(ind,"border"),
+                "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
+                "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
+                "min_area": Julia.get_feature_field(ind,"min_area"),
+                "parent": parents[0],
+                "parent2": parents[1],
+                "notFeature": Julia.get_feature_field(ind,"not_feature")}
+            featureModel.append(feature)
+        }
+    }
+
+    function delay(delayTime, cb) {
+        function Timer() {
+            return Qt.createQmlObject("import QtQuick 2.15; Timer {}", validationWindow);
+        }
+        var timer = new Timer();
+        timer.interval = delayTime;
+        timer.repeat = false;
+        timer.triggered.connect(cb);
+        timer.start();
+    }
+    //-------------------------------------------------------------------------
+
+    minimumHeight: 1024*pix + margin
+    minimumWidth: informationPane.width + 1024*pix + margin
+    color: defaultpalette.window
+
+    onClosing: {
+        Julia.put_channel("Validation",["stop"])
+        //validateButton.text = "Validate"
+        //progressbar.value = 0
+        //validationplotLoader.sourceComponent = undefined
     }
 
     Timer {
@@ -78,91 +151,91 @@ ApplicationWindow {
         property double loss_std
         property bool grabDone: false
         onTriggered: {
-            var data = iteration!==max_iterations ? Julia.get_progress("Validation") :
-                                                    Julia.get_results("Validation")
-            if (data===false) {return}
-            if (max_iterations===-1) {
-                max_iterations = data[0]
+            var state = Julia.get_progress("Validation")
+            if (state===false) {
+                return
             }
-            else if (iteration<(max_iterations/2)) {
+            else {
+                var data = Julia.get_results("Validation")
+            }
+            if (max_iterations===-1) {
+                max_iterations = state
+            }
+            else if (iteration<max_iterations) {
+                iteration += 1
+                validationProgressBar.value = iteration/max_iterations
                 var accuracy_temp = data[0]
                 var loss_temp = data[1]
-                var accuracy_std_temp = data[2]
-                var loss_std_temp = data[3]
-                iteration += 1
-                accuracyLabel.text = accuracy_temp.toFixed(2) + " ± " + accuracy_std_temp.toFixed(2)
-                lossLabel.text = loss_temp.toFixed(2) + " ± " + loss_std_temp.toFixed(2)
-                validationProgressBar.value = iteration/max_iterations
-            }
-            else if (iteration>=(max_iterations/2) && iteration!==max_iterations) {
-                iteration += 1
-                validationProgressBar.value = iteration/max_iterations
+                accuracy.push(accuracy_temp)
+                loss.push(loss_temp)
+                //var accuracy_std_temp = data[2]
+                //var loss_std_temp = data[3]
+                //accuracyLabel.text = accuracy_temp.toFixed(2)// + " ± " + accuracy_std_temp.toFixed(2)
+                //lossLabel.text = loss_temp.toFixed(2)// + " ± " + loss_std_temp.toFixed(2)
+                if (iteration==1) {
+                    sampleSpinBox.value = 1
+                    featureComboBox.currentIndex = 0
+                    var ind1 = 1
+                    var ind2 = 1
+                    var size = get_image(originalDisplay,"original",[ind1])
+                    var ratio = size[1]/size[0]
+                    if (ratio>1) {
+                        displayItem.height = displayItem.width/ratio
+                    }
+                    else {
+                        displayItem.width = displayItem.height*ratio
+                    }
+                    imagetransferCanvas.height = size[0]
+                    imagetransferCanvas.width = size[1]
+                    imagetransferCanvas.update()
+                    imagetransferCanvas.grabToImage(function(result) {
+                                               originalDisplay.source = result.url
+                                               validationTimer.grabDone = true;
+                                           });
+                    function upd() {
+                        get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
+                        imagetransferCanvas.update()
+                        imagetransferCanvas.grabToImage(function(result) {
+                                                   resultDisplay.source = result.url;
+                                               });
+                    }
+                    delay(10, upd)
+                    var cond = 1024*pix-margin
+                    if (displayItem.width>=cond) {
+                        displayPane.horizontalPadding = 0.5*margin
+                    }
+                    else {
+                        displayPane.horizontalPadding = (1024*pix+margin -
+                                           displayItem.width - informationPane.width)/2
+                    }
+                    if (displayItem.height>=cond) {
+                        displayPane.verticalPadding = 0.5*margin
+                    }
+                    else {
+                        displayPane.verticalPadding = (1024*pix+margin - displayItem.height)/2
+                    }
+                    displayPane.height = displayItem.height + 2*displayPane.verticalPadding
+                    displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
+                    displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
+                    displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
+                    sizechangeTimer.prevWidth = displayPane.height
+                    sizechangeTimer.running = true
+                    controlsLabel.visible = true
+                    sampleRow.visible = true
+                    featureRow.visible = true
+                    typeRow.visible = true
+                    opacityRow.visible = true
+                    zoomRow.visible = true
+                }
+                else {
+                    sampleSpinBox.to = iteration
+                }
             }
             else if (iteration===max_iterations) {
                 running = false
-                accuracy = data[0]
-                loss = data[1]
-                mean_accuracy = data[2]
-                mean_loss = data[3]
-                accuracy_std = data[4]
-                loss_std = data[5]
-                sampleSpinBox.value = 1
-                featureComboBox.currentIndex = 0
-                var ind1 = 1
-                var ind2 = 1
-                var size = get_image(originalDisplay,"data_input_orig",[ind1])
-                var ratio = size[1]/size[0]
-                if (ratio>1) {
-                    displayItem.height = displayItem.width/ratio
-                }
-                else {
-                    displayItem.width = displayItem.height*ratio
-                }
-                imagetransferCanvas.height = size[0]
-                imagetransferCanvas.width = size[1]
-                imagetransferCanvas.update()
-                imagetransferCanvas.grabToImage(function(result) {
-                                           originalDisplay.source = result.url
-                                           validationTimer.grabDone = true;
-                                       });
-                function upd() {
-                    get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
-                    imagetransferCanvas.update()
-                    imagetransferCanvas.grabToImage(function(result) {
-                                               resultDisplay.source = result.url;
-                                           });
-                }
-                delay(10, upd)
-                var cond = 1024*pix-margin
-                if (displayItem.width>=cond) {
-                    displayPane.horizontalPadding = 0.5*margin
-                }
-                else {
-                    displayPane.horizontalPadding = (1024*pix+margin -
-                                       displayItem.width - informationPane.width)/2
-                }
-                if (displayItem.height>=cond) {
-                    displayPane.verticalPadding = 0.5*margin
-                }
-                else {
-                    displayPane.verticalPadding = (1024*pix+margin - displayItem.height)/2
-                }
-                displayPane.height = displayItem.height + 2*displayPane.verticalPadding
-                displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
-                displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
-                displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
-                sizechangeTimer.prevWidth = displayPane.height
-                sizechangeTimer.running = true
-                controlsLabel.visible = true
-                sampleRow.visible = true
-                featureRow.visible = true
-                typeRow.visible = true
-                opacityRow.visible = true
-                zoomRow.visible = true
             }
         }
     }
-
     Timer {
         id: sizechangeTimer
         interval: 300
@@ -283,11 +356,13 @@ ApplicationWindow {
                     }
                 }
                 Label {
+                    visible: Julia.get_settings(["Validation","use_labels"])
                     topPadding: 0.2*margin
                     text: "Validation information"
                     font.bold: true
                 }
                 Row {
+                    visible: Julia.get_settings(["Validation","use_labels"])
                     spacing: 0.3*margin
                     Label {
                         id: accuracytextLabel
@@ -298,6 +373,7 @@ ApplicationWindow {
                     }
                 }
                 Row {
+                    visible: Julia.get_settings(["Validation","use_labels"])
                     spacing: 0.3*margin
                     Label {
                         text: "Loss:"
@@ -326,19 +402,17 @@ ApplicationWindow {
                         id: sampleSpinBox
                         from: 1
                         value: 1
-                        to: validationTimer.accuracy.length
+                        to: 1
                         stepSize: 1
                         editable: false
                         onValueModified: {
                             var ind1 = sampleSpinBox.value
                             var ind2 = featureComboBox.currentIndex+1
-                            accuracyLabel.text = validationTimer.mean_accuracy.toFixed(2) + " ± " +
-                                validationTimer.accuracy_std.toFixed(2) +
+                            accuracyLabel.text = validationTimer.mean_accuracy.toFixed(2)+
                                 " (" + validationTimer.accuracy[ind1-1].toFixed(2) + ")"
-                            lossLabel.text = validationTimer.mean_loss.toFixed(2) + " ± " +
-                                 validationTimer.loss_std.toFixed(2) +
+                            lossLabel.text = validationTimer.mean_loss.toFixed(2)+
                                  " (" + validationTimer.loss[ind1-1].toFixed(2)+")"
-                            get_image(originalDisplay,"data_input_orig",[ind1])
+                            get_image(originalDisplay,"original",[ind1])
                             imagetransferCanvas.update()
                             imagetransferCanvas.grabToImage(function(result) {
                                                        resultDisplay.visible = false
@@ -372,7 +446,6 @@ ApplicationWindow {
                         model: ListModel {
                             id: featureselectModel
                         }
-                        ListModel {id: featureModel}
                         onActivated: {
                             var ind1 = sampleSpinBox.value
                             var ind2 = featureComboBox.currentIndex+1
@@ -383,10 +456,12 @@ ApplicationWindow {
                                                    });
                         }
                         Component.onCompleted: {
-                            load_model_features()
                             for (var i=0;i<featureModel.count;i++) {
-                                featureselectModel.append(
-                                    {"name": featureModel.get(i).name})
+                                var feature = featureModel.get(i)
+                                if (!feature.notFeature) {
+                                    featureselectModel.append(
+                                        {"name": feature.name})
+                                }
                             }
                             var num = featureselectModel.count
                             for (i=0;i<num;i++) {
@@ -410,13 +485,15 @@ ApplicationWindow {
                     visible: false
                     spacing: 0.3*margin
                     Label {
+                        visible: Julia.get_settings(["Validation","use_labels"])
                         text: "Show:"
                         width: accuracytextLabel.width
                         topPadding: 10*pix
                     }
                     ComboBox {
                         id: typeComboBox
-                        property string type: "data_predicted"
+                        visible: Julia.get_settings(["Validation","use_labels"])
+                        property string type: "predicted_data"
                         editable: false
                         currentIndex: 0
                         width: 0.76*buttonWidth
@@ -428,13 +505,13 @@ ApplicationWindow {
                         }
                         onActivated: {
                             if (typeComboBox.currentIndex==0) {
-                                type = "data_predicted"
+                                type = "predicted_data"
                             }
                             else if  (typeComboBox.currentIndex==1) {
-                                type = "data_error"
+                                type = "target_data"
                             }
                             else {
-                                type = "data_target"
+                                type = "error_data"
                             }
                             get_image(resultDisplay,type,
                                 [sampleSpinBox.value,featureComboBox.currentIndex+1])
@@ -524,42 +601,9 @@ ApplicationWindow {
         onPressAndHold: mouse.accepted = false;
         onClicked: mouse.accepted = false;
     }
-
     function get_image(display,type,inds) {
-        var size = Julia.get_image(["Validation_data","Validation_plot_data",type],
+        var size = Julia.get_image(["Validation_data","Results",type],
             [0,0],inds)
         return size
-    }
-
-    function load_model_features() {
-        var num_features = Julia.num_features()
-        if (num_features!==0 && featureModel.count==0) {
-            for (var i=0;i<num_features;i++) {
-                var color = Julia.get_feature_field(i+1,"color")
-                var feature = {
-                    "name": Julia.get_feature_field(i+1,"name"),
-                    "colorR": color[0],
-                    "colorG": color[1],
-                    "colorB": color[2],
-                    "border": Julia.get_feature_field(i+1,"border"),
-                    "parent": Julia.get_feature_field(i+1,"parent")}
-                featureModel.append(feature)
-            }
-        }
-    }
-
-    function rgbtohtml(colorRGB) {
-            return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
-    }
-
-    function delay(delayTime, cb) {
-        function Timer() {
-            return Qt.createQmlObject("import QtQuick 2.0; Timer {}", validationWindow);
-        }
-        var timer = new Timer();
-        timer.interval = delayTime;
-        timer.repeat = false;
-        timer.triggered.connect(cb);
-        timer.start();
     }
 }

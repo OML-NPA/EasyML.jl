@@ -2,7 +2,11 @@
 # Return values from progress channels without taking the values
 function check_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
-    if field=="Training"
+    if field=="Training data preparation"
+        channel_temp = channels.training_data_progress
+    elseif field=="Validation data preparation"
+        channel_temp = channels.validation_data_progress
+    elseif field=="Training"
         channel_temp = channels.training_progress
     elseif field=="Validation"
         channel_temp = channels.validation_progress
@@ -18,12 +22,18 @@ check_progress(field) = check_progress_main(channels,field)
 # Return values from progress channels by taking the values
 function get_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
-    if field=="Training"
+    if field=="Training data preparation"
+        channel_temp = channels.training_data_progress
+    elseif field=="Validation data preparation"
+        channel_temp = channels.validation_data_progress
+    elseif field=="Application data preparation"
+        channel_temp = channels.application_data_progress
+    elseif field=="Training"
         channel_temp = channels.training_progress
     elseif field=="Validation"
         channel_temp = channels.validation_progress
-    elseif field=="Analysis"
-        channel_temp = channels.analysis_progress
+    elseif field=="Application"
+        channel_temp = channels.application_progress
     end
     if isready(channel_temp)
         return take!(channel_temp)
@@ -37,16 +47,28 @@ get_progress(field) = get_progress_main(channels,field)
 function get_results_main(channels::Channels,master_data::Master_data,
         model_data::Model_data,field)
     field::String = fix_QML_types(field)
-    if field=="Training"
+    if field=="Training data preparation"
+        if isready(channels.training_data_results)
+            data = take!(channels.training_data_results)
+            training_plot_data = master_data.Training_data.Plot_data
+            training_plot_data.data_input = data[1]
+            training_plot_data.data_labels = data[2]
+            return true
+        else
+            return false
+        end
+    elseif field=="Training"
         if isready(channels.training_results)
             data = take!(channels.training_results)
-            if data!=nothing
+            if !isnothing(data)
+                training_results_data = master_data.Training_data.Results
                 model_data.model = data[1]
                 training_results_data.accuracy = data[2]
                 training_results_data.loss = data[3]
                 training_results_data.test_accuracy = data[4]
                 training_results_data.test_loss = data[5]
-                training_results_data.test_iterations = data[6]
+                training_results_data.test_iteration = data[6]
+                save_model(training.model_url)
             end
             return true
         else
@@ -55,14 +77,23 @@ function get_results_main(channels::Channels,master_data::Master_data,
     elseif field=="Validation"
         if isready(channels.validation_results)
             data = take!(channels.validation_results)
-            validation_plot_data.data_predicted = data[1]
-            validation_plot_data.data_error = data[2]
-            validation_plot_data.data_target = data[3]
-            validation_results_data.accuracy = data[4]
-            validation_results_data.loss = data[5]
-            validation_results_data.accuracy_std = data[6]
-            validation_results_data.loss_std = data[7]
-            return [data[4],data[5],mean(data[4]),mean(data[5]),data[6],data[7]]
+            validation_results = master_data.Validation_data.Results
+            original = data[1]
+            image_data = data[2]
+            other_data = data[3]
+            push!(validation_results.original,original)
+            push!(validation_results.predicted_data,image_data[1])
+            push!(validation_results.target_data,image_data[2])
+            push!(validation_results.error_data,image_data[3])
+            push!(validation_results.other_data,other_data)
+            return [other_data...]
+        else
+            return false
+        end
+    elseif field=="Labels colors"
+        if isready(channels.training_labels_colors)
+            data = take!(channels.training_labels_colors)
+            return data
         else
             return false
         end
@@ -75,18 +106,28 @@ get_results(field) = get_results_main(channels,master_data,model_data,field)
 # Empties progress channels
 function empty_progress_channel_main(channels::Channels,field)
     field::String = fix_QML_types(field)
-    if field=="Training"
+    if field=="Training data preparation"
+        channel_temp = channels.training_data_progress
+    elseif field=="Validation data preparation"
+        channel_temp = channels.validation_data_progress
+    elseif field=="Application data preparation"
+        channel_temp = channels.application_data_progress
+    elseif field=="Training data preparation modifiers"
+        channel_temp = channels.training_data_modifiers
+    elseif field=="Validation data preparation modifiers"
+        channel_temp = channels.validation_data_modifiers
+    elseif field=="Training"
         channel_temp = channels.training_progress
     elseif field=="Validation"
         channel_temp = channels.validation_progress
-    elseif field=="Analysis"
-        channel_temp = channels.analysis_progress
+    elseif field=="Application"
+        channel_temp = channels.application_progress
     elseif field=="Training modifiers"
         channel_temp = channels.training_modifiers
     elseif field=="Validation modifiers"
         channel_temp = channels.validation_modifiers
-    elseif field=="Analysis modifiers"
-        channel_temp = channels.analysis_modifiers
+    elseif field=="Application modifiers"
+        channel_temp = channels.application_modifiers
     elseif field=="Labels colors"
         channel_temp = channels.training_labels_colors
     end
@@ -103,8 +144,12 @@ empty_progress_channel(field) = empty_progress_channel_main(channels,field)
 # Empties results channels
 function empty_results_channel_main(channels::Channels,field)
     field::String = fix_QML_types(field)
-    if field=="Analysis data preparation"
-        channel_temp = channels.analysis_data_results
+    if field=="Training data preparation"
+        channel_temp = channels.training_data_results
+    elseif field=="Validation data preparation"
+        channel_temp = channels.validation_data_results
+    elseif field=="Application data preparation"
+        channel_temp = channels.application_data_results
     elseif field=="Training"
         channel_temp = channels.training_results
     elseif field=="Validation"
@@ -125,7 +170,11 @@ empty_results_channel(field) = empty_results_channel_main(channels,field)
 function put_channel_main(channels::Channels,field,value)
     field::String = fix_QML_types(field)
     value = fix_QML_types(value)
-    if field=="Training"
+    if field=="Training data preparation"
+        put!(channels.training_data_modifiers,value)
+    elseif field=="Validation data preparation"
+        put!(channels.validation_data_modifiers,value)
+    elseif field=="Training"
         put!(channels.training_modifiers,value)
     elseif field=="Validation"
         put!(channels.validation_modifiers,value)

@@ -8,6 +8,8 @@ T.Button {
     id: control
 
     property real size: 20*pix
+    property double inner_size: 1.15*size
+    property bool running: false
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
@@ -41,16 +43,40 @@ T.Button {
         implicitHeight: size
         radius: 2*size
         visible: !control.flat || control.down || control.checked || control.highlighted
-        color: control.down ? defaultcolors.mid : defaultcolors.midlight
-        border.color: control.down ? control.palette.dark : rgbtohtml([130,130,130])
+        color: Color.blend(control.checked || control.highlighted ? control.palette.dark : "#fafafa",
+                                                                    control.palette.mid, control.down ? 0.5 : 0.0)
+        border.color: control.palette.dark
         border.width: control.visualFocus ? 4*pix : 2*pix
         Rectangle {
             x: 1.08*size
             y: 1.08*size
-            width: 1.15*size
-            height: 1.15*size
+            width: inner_size
+            height: inner_size
             radius: 0.1*size
-            color: control.down ? rgbtohtml([100,100,100]) : defaultcolors.dark
+            visible: !running
+            color: control.checked || control.highlighted ? "#333333" : defaultcolors.dark
+        }
+        Canvas{
+            id: triangle
+            width:  1.2*inner_size
+            height: 1.2*inner_size
+            x: 1.08*size+2*pix
+            y: 1.08*size
+            visible: running
+            onPaint:{
+                var ctx = getContext("2d");
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(2*pix, 2*pix, 2*pix,
+                               -1.1*Math.PI, -0.45*Math.PI)
+                ctx.arc(22*pix, inner_size/2, 2*pix,
+                               -Math.PI/4, Math.PI/4)
+                ctx.lineTo(2*pix, inner_size);//start point
+                ctx.arc(2*pix, inner_size-2*pix, 2*pix,
+                               0.45*Math.PI,1.1*Math.PI)
+                ctx.fillStyle = control.checked || control.highlighted ? "#333333" : defaultcolors.dark
+                ctx.fill();
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 
+__precompile__(false)
+
 module MLGUI
 # Needed to avoid an endless loop for Julia canvas
 ENV["QSG_RENDER_LOOP"] = "basic"
@@ -18,7 +20,7 @@ Flux, Flux.Losses, FluxExtra,
 # Math functions
 Random, StatsBase, Statistics, LinearAlgebra, Combinatorics, Distances,
 # Other
-Plots
+ProgressMeter
 
 import CUDA.CuArray, Flux.outdims, .Threads.@threads
 
@@ -28,20 +30,34 @@ include("handling_channels.jl")
 include("handling_data.jl")
 include("helper_functions.jl")
 include("image_processing.jl")
-include("layers.jl")
 include("design.jl")
 include("training.jl")
-include("training_common.jl")
+include("common.jl")
 include("validation.jl")
-include("analysis.jl")
+include("application.jl")
+include("extra_functions.jl")
 
-export model_data, training, settings, training_data, training_plot_data,
-    training_results_data, validation_results_data, Model_data, Feature,
-    Output_options, Output_volume, Output_area, Output_mask, change_training_options
-export design_network, load_model, get_urls, prepare_training_data, train,
-    prepare_validation_data, validate, prepare_analysis_data, forward, apply_border_data
-export Parallel, Catenation, Decatenation, Addition, Upscaling, Activation, Identity
+export QML, Flux, FluxExtra, CUDA, NNlib
 
-@everywhere using QML, Flux
+export model_data, Segmentation_feature, training, settings, training_data, training_plot_data,
+    training_results_data, training_options, validation_data, validation_results_data,
+    application_data, application_options
+export design_network, modify, modify_output, save_model, load_model, get_urls_training, prepare_training_data, train,
+    get_urls_validation, validate, get_urls_application, apply, forward, apply_border_data
+export Join, Split, Addition, Activation, Identity
+
+
+function __init__()
+    # Import the configutation file
+    if isfile("config.bson")
+        try
+            load_settings()
+        catch
+            save_settings()
+        end 
+    else
+        save_settings()
+    end
+end
 
 end

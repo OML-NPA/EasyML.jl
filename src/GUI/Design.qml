@@ -13,24 +13,24 @@ import org.julialang 1.0
 ApplicationWindow {
     id: customizationWindow
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  Open Machine Learning Software")
     minimumWidth: 2200*pix
     minimumHeight: 1500*pix
 
+    color: defaultpalette.window
+
+//---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
-    property color defaultcolor: palette.window
-
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
         "mid": rgbtohtml([220,220,220]),"middark": rgbtohtml([210,210,210]),
         "middark2": rgbtohtml([180,180,180]),"dark2": rgbtohtml([160,160,160]),
         "dark": rgbtohtml([130,130,130])}
-
     property var defaultpalette: {"window": defaultcolors.midlight,
                                   "window2": defaultcolors.midlight3,
                                   "button": defaultcolors.light2,
@@ -42,9 +42,7 @@ ApplicationWindow {
                                   "border": defaultcolors.dark2,
                                   "listview": defaultcolors.light
                                   }
-
-
-    color: defaultpalette.window
+//-------------------------------------------------------------------------
 
     property double paneHeight: customizationWindow.height - 4*pix
     property double paneWidth: customizationWindow.width-leftFrame.width-rightFrame.width-4*pix
@@ -53,14 +51,14 @@ ApplicationWindow {
     property bool localtrainingOpen: false
     property double iconSize: 70*pix
 
-    property var model: []
-
-    Component.onCompleted: {
-        importmodel(model)
-        Julia.save_settings()
-    }
-
     Loader { id: designoptionsLoader}
+
+//---Julia package block--------------------------------------------------
+property var model: []
+Component.onCompleted: {
+    importmodel(model)
+}
+//------------------------------------------------------------------------
 
     onWidthChanged: {
         if (layers.children.length>0) {
@@ -69,6 +67,8 @@ ApplicationWindow {
             updateMainPane(layers.children[0])
         }
     }
+
+    //onClosing: { customizationLoader.sourceComponent = undefined }
 
     Item {
         id: cache
@@ -552,27 +552,27 @@ ApplicationWindow {
                                                         inputnum: 2
                                                         outputnum: 1}
                                                       ListElement{
-                                                          type: "Catenation"
+                                                          type: "Join"
                                                           group: "resizing"
-                                                          name: "cat"
+                                                          name: "join"
                                                           colorR: 180
                                                           colorG: 180
                                                           colorB: 180
                                                           inputnum: 2
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "Decatenation"
+                                                          type: "Split"
                                                           group: "resizing"
-                                                          name: "decat"
+                                                          name: "split"
                                                           colorR: 180
                                                           colorG: 180
                                                           colorB: 180
                                                           inputnum: 1
                                                           outputnum: 2}
                                                       ListElement{
-                                                          type: "Upscaling"
+                                                          type: "Upsample"
                                                           group: "resizing"
-                                                          name: "upscaling"
+                                                          name: "upsample"
                                                           colorR: 180
                                                           colorG: 180
                                                           colorB: 180
@@ -931,6 +931,9 @@ ApplicationWindow {
                                         }
                                         else if (object==="downnode") {
                                             var downNodeRectangle = object_data[2]
+                                            if (downNodeRectangle===undefined) {
+                                                return
+                                            }
                                             downNodeRectangle.x = downNodeRectangle.x + adjX
                                             downNodeRectangle.y = downNodeRectangle.y + adjY
                                             updatePosDownNode(object_data[0],
@@ -1050,7 +1053,11 @@ ApplicationWindow {
                     onClicked: {
                        getarchitecture()
                        customizationItem.forceActiveFocus()
+                       var name = Julia.get_settings(["Training","name"])
+                       var url = Julia.source_dir()+"/models/"+name+".model"
+                       // neuralnetworkTextField.text = url
                        Julia.make_model()
+                       Julia.save_model(url)
                        opacity = 1
                     }
                 }
@@ -1257,42 +1264,95 @@ ApplicationWindow {
 
 //--FUNCTIONS--------------------------------------------------------------------
 
+//---Universal function block-------------------------------------------------
+    function abs(ar) {
+        return array.map(Math.abs);
+    }
+
+    function mean(array) {
+        var total = 0
+        for(var i = 0;i<array.length;i++) {
+            total += array[i]
+        }
+        return(total/array.length)
+    }
+
+    function sum(array) {
+        var total = 0
+        for(var i = 0;i<array.length;i++) {
+            total += array[i]
+        }
+        return(total)
+    }
+
+    function rgbtohtml(colorRGB) {
+        return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
+    }
+
     function importmodel(model) {
         model.length = 0
         var skipStringing = ["x","y"]
         var count = Julia.model_count()
-        if (count>0) {
-            for (var i=0;i<count;i++) {
-                var indJ = i+1
-                var unit = {}
-                var properties = Julia.model_properties(indJ)
-                for (var j=0;j<properties.length;j++) {
-                    var prop_name = properties[j]
-                    var prop = Julia.model_get_property(indJ,prop_name)
-                    if (typeof(prop)==='object' && prop.length===2) {
-                        if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
-                           unit[prop_name] = {"text": prop[0],"ind": prop[1]}
-                        }
-                        else {
-                            unit[prop_name] = prop
-                        }
+        for (var i=0;i<count;i++) {
+            var indJ = i+1
+            var unit = {}
+            var properties = Julia.model_properties(indJ)
+            for (var j=0;j<properties.length;j++) {
+                var prop_name = properties[j]
+                var prop = Julia.model_get_layer_property(indJ,prop_name)
+                if (typeof(prop)==='object' && prop.length===2) {
+                    if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
+                        unit[prop_name] = {"text": prop[0],"ind": prop[1]}
                     }
                     else {
-                        if (skipStringing.includes(prop_name) || typeof(prop)==='object') {
-                            if (prop_name==="x" || prop_name==="y") {
-                                prop = prop*pix
-                            }
-                            unit[prop_name] = prop
-                        }
-                        else {
-                            unit[prop_name] = prop.toString()
-                        }
+                        unit[prop_name] = prop
                     }
                 }
-                model.push(unit)
+                else {
+                    if (skipStringing.includes(prop_name) || typeof(prop)==='object') {
+                        if (prop_name==="x" || prop_name==="y") {
+                            prop = prop*pix
+                        }
+                        unit[prop_name] = prop
+                    }
+                    else {
+                        unit[prop_name] = prop.toString()
+                    }
+                }
             }
+            model.push(unit)
         }
     }
+
+    function load_model_features(featureModel) {
+        var num_features = Julia.num_features()
+        if (featureModel.count!==0) {
+            featureModel.clear()
+        }
+        for (var i=0;i<num_features;i++) {
+            var ind = i+1
+            var color = Julia.get_feature_field(ind,"color")
+            var parents = Julia.get_feature_field(ind,"parents")
+            var feature = {
+                "name": Julia.get_feature_field(ind,"name"),
+                "colorR": color[0],
+                "colorG": color[1],
+                "colorB": color[2],
+                "border": Julia.get_feature_field(ind,"border"),
+                "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
+                "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
+                "min_area": Julia.get_feature_field(ind,"min_area"),
+                "parent": parents[0],
+                "parent2": parents[1],
+                "notFeature": Julia.get_feature_field(ind,"not_feature")}
+            featureModel.append(feature)
+        }
+    }
+
+    function stripURL(url) {
+        return url.toString().replace("file:///","")
+    }
+//----------------------------------------------------------------------------
 
     function updatePosDownNode(unit,downNode,downNodeRectangle,mouseAdjust) {
         var outputnum = downNodeRectangle.outputnum
@@ -1545,12 +1605,6 @@ ApplicationWindow {
         return(Qt.rgba(tempRGB[0]/255,tempRGB[1]/255,tempRGB[2]/255))
     }
 
-    function rgbtohtml(colorRGB) {
-        return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
-    }
-
-
-
     function comparelocations(item1,mouseX,mouseY,item2,item) {
         var coor1 = item1.mapToItem(item, mouseX, mouseY)
         var coor2 = item2.mapToItem(item, 10*pix, 10*pix)
@@ -1758,12 +1812,12 @@ ApplicationWindow {
             return pushstack(poolpropertiesComponent,labelColor,group,type,name,unit,datastore)
         case "Addition":
             return pushstack(additionpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Catenation":
+        case "Join":
             return pushstack(catpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Decatenation":
-            return pushstack(decatpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Upscaling":
-            return pushstack(upscalingpropertiesComponent,labelColor,group,type,name,unit,datastore)
+        case "Split":
+            return pushstack(splitpropertiesComponent,labelColor,group,type,name,unit,datastore)
+        case "Upsample":
+            return pushstack(upsamplepropertiesComponent,labelColor,group,type,name,unit,datastore)
         default:
             pushstack(emptypropertiesComponent,labelColor,group,type,name,unit,datastore)
         }
@@ -2328,7 +2382,7 @@ ApplicationWindow {
                                     upNode_other,layers) && (upNode_other.connectedNode===null ||
                                     (upNode_other.connectedNode===downNode &&
                                     upNode_other.connectedItem===downNodeRectangle)) &&
-                                    getUpNodes(unit_other)!==upNodes.children[0]) {
+                                    nodetolayer(upNode_other)!==nodetolayer(downNodeRectangle)) {
                                 if (!getconnections(unit_other,0).up.includes(unitindex(unit))) {
                                     makeConnection(unit,downNode,downNodeRectangle,upNode_other)
                                     return
@@ -2639,7 +2693,11 @@ ApplicationWindow {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
+                    //font.pointSize: 10*pix
                     Layout.alignment: Qt.AlignBottom
+                    Component.onCompleted: {
+                        
+                    }
                 }
             }
         }
@@ -2675,6 +2733,7 @@ ApplicationWindow {
                     defaultHeight: 0.75*buttonHeight
                     defaultWidth: rightFrame.width - 220*pix
                     onEditingFinished: {
+                        nameTextField.text = displayText
                         Julia.set_settings(["Training","name"],displayText)
 
                     }
@@ -3844,7 +3903,7 @@ ApplicationWindow {
     }
 
     Component {
-        id: decatpropertiesComponent
+        id: splitpropertiesComponent
         Column {
             property var unit: null
             property var name: null
@@ -3994,7 +4053,7 @@ ApplicationWindow {
     }
 
     Component {
-        id: upscalingpropertiesComponent
+        id: upsamplepropertiesComponent
         Column {
             property var unit: null
             property var name: null

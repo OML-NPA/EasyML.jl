@@ -3,7 +3,6 @@
         <file>qtquickcontrols2.conf</file>
         <file>Main.qml</file>
         <file>trainingView.qml</file>
-        <file>AnalysisView.qml</file>
         <file>FeatureDialog.qml</file>
         <file>SelectNeuralNetwork.qml</file>
         <file>Templates/Button.qml</file>
@@ -26,14 +25,12 @@
         <file>Templates/SpinBox.qml</file>
         <file>GeneralOptionsView.qml</file>
         <file>VisualisationView.qml</file>
-        <file>AnalysisOptions.qml</file>
         <file>MainView.qml</file>
-        <file>MenuButtonH.qml</file>
         <file>Templates/NewsPanel.qml</file>
         <file>DesignOptions.qml</file>
         <file>ValidationPlot.qml</file>
         <file>Templates/Slider.qml</file>
         <file>OutputDialog.qml</file>
-        <file>FileDialogWindow.qml</file>
+        <file>test.qml</file>
     </qresource>
 </RCC>

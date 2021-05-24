@@ -1,41 +1,59 @@
 
-# Start a distributed process
-using Distributed
-if nprocs() < 2
-    addprocs(1)
-end
-# Add MLGUI module to all workers
-@everywhere include("MLGUI.jl")
-@everywhere using .MLGUI
+using MLGUI
+cd("C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src")
 
-load_model("models/yeast.model")
+# Design
 
-feature1 = Feature(name = "Cell", color = [0,255,0], border = true, parent = "")
-feature2 = Feature(name = "Vacuole", color = [255,0,0], border = false, parent = "Cell")
+load_model("models/new.model")
+
+# save_model("models/new.model")
+
+feature1 = Segmentation_feature(name = "Cell", color = [0,255,0], border = true, 
+    border_thickness = 5, border_remove_objs = true, min_area = 50)
+feature2 = Segmentation_feature(name = "Vacuole",color = [255,0,0], border = false, 
+    border_thickness = 5, border_remove_objs = true, min_area = 5, parents = ["Cell",""])
 features = [feature1,feature2]
 model_data.features = features
 
+modify(model_data.features[1])
+
 design_network()
 
-url_inputs = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/source/Batch/Training/Images"
-url_labels = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/source/Batch/Training/Labels"
-urls_inputs, urls_labels = get_urls(url_inputs,url_labels)
+# Training
+modify(training_options)
 
-data_inputs, data_labels = prepare_training_data(urls_inputs,urls_labels)
+input_dir = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src/Examples/Training/Images"
+label_dir = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src/Examples/Training/Labels"
+get_urls_training(input_dir,label_dir)
 
-results = train(data_inputs,data_labels)
+prepare_training_data()
 
-data = prepare_validation_data(urls_inputs,urls_labels)
+results = train()
 
-results = validate(data)
+# Validation
+input_dir = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src/Examples/Training/Images"
+label_dir = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src/Examples/Training/Labels"
+get_urls_validation(input_dir,label_dir)
 
-data = prepare_analysis_data(urls_inputs)
+results = validate()
 
+# Application
+modify(application_options)
+
+modify_output(model_data.features[2])
+
+input_dir = "C:/Users/a_ill/Documents/GitHub/MLGUI.jl/src/Examples/Training/Images"
+get_urls_application(input_dir)
+
+apply()
+
+# Custom
 model = model_data.model
+data = [ones(Float32,160,160,1,1)]
 results = Vector{BitArray{3}}(undef,0)
 for i = 1:length(data)
-    output_raw = forward(model,data[i],num_parts=10)
+    output_raw = forward(model,data[i],num_parts=1)
     output_bool = output_raw[:,:,:].>0.5
-    output = MLGUI.apply_border_data(output_bool)
+    output = apply_border_data(output_bool,model_data.features)
     push!(results,output)
 end
