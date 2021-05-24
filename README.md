@@ -3,7 +3,7 @@
 
 This package allows to use machine learning in Julia through a graphical user interface.
 
-NB! This is a pre-alpha version. Bugs and rapid changes should be expected! Release is currently scheduled for February 2021. 
+NB! This is a pre-alpha version. Bugs and rapid changes should be expected!
 
 ### Features
 We use Flux.jl neural network library. Currently it is possible to:
