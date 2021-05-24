@@ -17,97 +17,116 @@ Only image data and image segmentation is currently supported.
 ### Usage 
 
 #### Setting up
-Clone the repository and then run
-```
-# Start a distributed process
-using Distributed
-if nprocs() < 2
-    addprocs(1)
-end
-# Add MLGUI module to all workers
-@everywhere include("MLGUI.jl")
-@everywhere using .MLGUI
+Add the package from this repository to Julia using 
 
-```
+`] add https://github.com/OML-NPA/MLGUI.jl`
+
+and then write
+
+`using MLGUI`
+
 #### Model creation
-A struct named ```model_data``` is exported.
+A struct named `model_data` is exported.
 
-- ```input_size::Tuple{Int64,Int64,Int64}```: input size during training (do not change manually)
+- `input_size::Tuple{Int64,Int64,Int64}`: input size during training (do not change manually).
 
-- ```model::Chain```: Flux.jl model (do not change manually)
+- `model::Chain`: Flux.jl model (do not change manually).
 
-- ```layers::Dict```: contains layers and their information for visualisation (do not change manually)
+- `layers::Dict`: contains layers and their information for visualisation (do not change manually).
 
-- ```features::Vector{Feature}```: hold information about features that a neural network outputs and what should be done with them
+- `features::Vector{AbstractFeature}`: hold information about features that a neural network outputs and what should be done with them.
 
-- ```loss::Function```: holds loss that is used during training
+- `loss::Function`: holds loss that is used during training.
 
+Create a new feature using `Segmentation_feature()`.
 
-```Feature``` contains
+Features can be of different types depending on a type of a problem.
 
-- ```name::String```: name of a feature
+`Segmentation_feature` contains
 
-- ```color::Vector{Float64}```: color of a feature, which should correspond to its color on your images
+- `name::String`: name of a feature.
 
-- ```border::Bool```: allows to train a neural network to recognize borders and better separate objects during post-processing
+- `color::Vector{Float64}`: RGB color of a feature, which should correspond to its color on your images. Use 0-255 range.
 
-- ```parent::String```: adds this feature to the specified parent during training
+- `border::Bool`: allows to train a neural network to recognize borders and better separate objects during post-processing.
 
-- ```Output::Output_options```: not used anywhere yet
+- `border_thickness::Int64`: border thickness in pixels.
 
-Run ```design_network()``` to open a GUI for neural network creation. Click a save icon to save your network to the workspace.
+- `min_area::Int64`: minimum area of an object.
+
+- `parents::Vector{String}`: up to two parents can be specified by their name. Objects from a child are added to its parent.
+
+- `Output::Segmentation_output_options`: holds settings for output of application of a model to new data.
+
+Put your features in a vector and write `model_data.features = your_features`.
+
+It is suggested to use `modify_output(model_data.features[n])` to edit a feature, where `n` is an index of a feature.
+
+Run `design_network()` to open a GUI for neural network creation. Click a save icon to save your network to the workspace.
 
 <img  src="docs/screenshots/design.png" height = 340em>
 
-NB! A number of neurons for the final layer should equal to the number of features plus the number of borders.
+NB! A number of neurons for the final layer should equal to the number of features plus the number of borders that should be detected.
 
-```save_model(url::String)```: saves your model, use ```.model``` extension
+`save_model(url::String)`: saves your model, uses `.model` extension.
 
-```load_model(url::String)```: loads your model
-
-```load_model()```: opens file dialog where you can locate your model
+`load_model(url::String)`: loads your model.
 
 #### Training
 
-```urls_inputs::Vector{String}, urls_labels::Vector{String} = get_urls(url_inputs::String,url_labels::String)```: 
-returns urls to all files present in both folders specified by ```url_inputs``` and ```url_labels```.
+Training parameters can be changed by running `modify(training_options)`.
 
-```data_inputs, data_labels = prepare_training_data(urls_inputs,urls_labels)```: prepares your images and corresponding labels for training
+`get_urls_training(input_dir::String,label_dir::String)`: gets URLs to all files present in both folders specified 
+by `url_inputs` and `url_labels`. URLs are automatically saved to `MLGUI.training_data`.
 
-```results = train(data_inputs,data_labels)```: trains your neural network and opens a training window
+`prepare_training_data()`: prepares your images and corresponding labels for training using URLs loaded previously. Saves data to `MLGUI.training_data`.
+
+`results = train()`: opens a training window and trains your neural network. Returns a struct containing loss, accuracy and iterations at which tests were performed.
 
 <img  src="docs/screenshots/training.png" height = 340em>
 
-Training parameters can be changed by running ```change_training_options()```.
-
 #### Validation
 
-```data = prepare_validation_data(urls_inputs,urls_labels)```: prepares your data for validation
+`get_urls_validation(input_dir,label_dir)`: gets URLs to all files present in both folders specified 
+by `url_inputs` and `url_labels`. URLs are automatically saved to `MLGUI.validation_data`.
 
-```results = validate(data)```: opens validation window and returns results with information about accuracies and losses.
+`get_urls_validation(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
+URLs are automatically saved to `MLGUI.validation_data`. Does not require labels.
+
+`prepare_validation_data()`: prepares your data for validation. Saves it to `MLGUI.validation_data`. Progress is reported to REPL.
+
+`results = validate()`: opens a validation window and returns results with predicted masks, target masks and masks with differences between them.
 
 <img  src="docs/screenshots/validation.png" height = 340em>
 
-#### Analysis
+#### Application
 
-```urls_inputs::Vector{String} = get_urls(url_inputs::String)```: 
-returns urls to all files present in a folders specified by ```url_inputs```.
+Application settings can be changed by running `modify(application_options)`.
 
-```data = prepare_analysis_data(urls_inputs)```: prepares your images for analysis
+Output for each feature can be changed by running `modify_output(model_data.features[n])`.
+
+`get_urls_application(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
+URLs are automatically saved to `MLGUI.application_data`.
+
+`apply()`: starts application of your model. Progress is reported to REPL. Results are saved to a folder specified in `application_options`.
+
+
+#### Custom
+
+You can forward any suitable input data through a neural network using the following code
 
 ```
 model = model_data.model
+data_example = [ones(Float32,160,160,1,1),ones(Float32,160,160,1,1)]
 results = Vector{BitArray{3}}(undef,0)
-for i = 1:length(data)
-    output_raw = forward(model,data[i],num_parts=10)
+for i = 1:length(data_example)
+    output_raw = forward(model,data_example[i],num_parts=1)
     output_bool = output_raw[:,:,:].>0.5
-    output = apply_border_data(output_bool)
+    output = apply_border_data(output_bool,model_data.features) 
     push!(results,output)
 end
 ```
-Results contain output data of a neural network. ```num_parts``` specifies in how many part should the image be run thorugh a neural network. 
+`num_parts` specifies in how many parts should an array be run thorugh a neural network. 
 Allows to process images that otherwise cause out of memory error.
 
 ```apply_border_data``` uses borders of objects that a neural network detected in order to separate objects from each other.
-
-
