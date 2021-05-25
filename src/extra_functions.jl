@@ -308,6 +308,27 @@ function get_urls_application(input_dir::String)
     return nothing
 end
 
+function get_urls_application()
+    dir = pwd()
+    @info "Select a directory with input data."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Application",type = "input_dir")
+    exec()
+    sleep(0.1)
+    if application.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(application.input_dir, " was selected.")
+    end
+
+    get_urls_application_main(application,application_data,model_data)
+    return nothing
+end
+
 function apply()
     empty_progress_channel("Application")
     empty_progress_channel("Application modifiers")
