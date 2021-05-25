@@ -256,18 +256,6 @@ function validate()
     return validation_results
 end
 
-function change_training_options()
-    # Launches GUI
-    @qmlfunction(
-        # Data handling
-        set_settings,
-        get_settings
-    )
-    loadqml("GUI/ApplicationOptions.qml")
-    exec()
-    return nothing
-end
-
 # Application
 
 function modify_output(feature::Segmentation_feature)
