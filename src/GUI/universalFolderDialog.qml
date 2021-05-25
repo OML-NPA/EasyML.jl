@@ -22,6 +22,7 @@ ApplicationWindow {
         }
         onRejected: {
             Julia.set_settings([target,type],"")
+            Qt.quit()
         }
     }
 }
