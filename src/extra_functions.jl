@@ -53,9 +53,9 @@ function get_urls_training()
     exec()
 
     if training.input_dir==""
-        @warn "Input data directory is empty. Aborted"
+        @warn "Input data directory URL is empty. Aborted"
     elseif training.label_dir==""
-        @warn "Label data directory is empty. Aborted"
+        @warn "Label data directory URL is empty. Aborted"
     else
         get_urls_training_main(training,training_data,model_data)
     end
@@ -216,7 +216,7 @@ function get_urls_validation()
     exec()
 
     if validation.input_dir==""
-        @warn "Input data directory link is empty. Aborted"
+        @warn "Input data directory URL is empty. Aborted"
     else
         if validation.label_dir==""
             validation.use_labels = true
