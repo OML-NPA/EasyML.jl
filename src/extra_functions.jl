@@ -200,6 +200,34 @@ function get_urls_validation(input_dir::String)
     return nothing
 end
 
+function get_urls_validation()
+    dir = pwd()
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Validation",type = "input_dir")
+    exec()
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Validation",type = "label_dir")
+    exec()
+
+    if validation.input_dir==""
+        @warn "Input data directory link is empty. Aborted"
+    else
+        if validation.label_dir==""
+            validation.use_labels = true
+        else
+            validation.use_labels = false
+        end
+        get_urls_validation_main(validation,validation_data,model_data)
+    end
+    return nothing
+end
+
 function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
