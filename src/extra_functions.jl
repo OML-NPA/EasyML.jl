@@ -39,26 +39,37 @@ end
 
 function get_urls_training()
     dir = pwd()
+    @info "Select a directory with input data."
     @qmlfunction(
         set_settings
     )
     loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
         target = "Training",type = "input_dir")
     exec()
+    sleep(0.1)
+    if training.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(training.input_dir, " was selected.")
+    end
+
+    @info "Select a directory with label data."
     @qmlfunction(
         set_settings
     )
     loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
         target = "Training",type = "label_dir")
     exec()
-
-    if training.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
-    elseif training.label_dir==""
+    sleep(0.1)
+    if training.label_dir==""
         @warn "Label data directory URL is empty. Aborted"
+        return nothing
     else
-        get_urls_training_main(training,training_data,model_data)
+        @info string(training.label_dir, " was selected.")
     end
+    
+    get_urls_training_main(training,training_data,model_data)
     return nothing
 end
 
@@ -202,29 +213,36 @@ end
 
 function get_urls_validation()
     dir = pwd()
+    @info "Select a directory with input data."
     @qmlfunction(
         set_settings
     )
     loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
         target = "Validation",type = "input_dir")
     exec()
+    sleep(0.1)
+    if validation.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(training.input_dir, " was selected.")
+    end
+
+    @info "Select a directory with label data if labels are available."
     @qmlfunction(
         set_settings
     )
     loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
         target = "Validation",type = "label_dir")
     exec()
-
     if validation.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @info string(training.label_dir, " was selected.")
+        validation.use_labels = true
     else
-        if validation.label_dir==""
-            validation.use_labels = true
-        else
-            validation.use_labels = false
-        end
-        get_urls_validation_main(validation,validation_data,model_data)
+        validation.use_labels = false
     end
+
+    get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
 
