@@ -13,7 +13,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: customizationWindow
     visible: true
-    title: qsTr("  Open Machine Learning Software")
+    title: qsTr("  Julia Machine Learning GUI")
     minimumWidth: 2200*pix
     minimumHeight: 1500*pix
 

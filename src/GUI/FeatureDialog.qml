@@ -11,7 +11,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: featuredialogWindow
     visible: true
-    title: qsTr("  Open Machine Learning Software")
+    title: qsTr("  Julia Machine Learning GUI")
     width: columnLayout.width
     height: columnLayout.height
 

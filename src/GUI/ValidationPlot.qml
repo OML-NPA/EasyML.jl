@@ -11,7 +11,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: validationWindow
     visible: true
-    title: qsTr("  Open Machine Learning Software")
+    title: qsTr("  Julia Machine Learning GUI")
     
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
