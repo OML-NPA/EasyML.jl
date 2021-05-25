@@ -37,6 +37,42 @@ function get_urls_training(input_dir::String,label_dir::String)
     return nothing
 end
 
+function get_urls_training()
+    dir = pwd()
+    @info "Select a directory with input data."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Training",type = "input_dir")
+    exec()
+    sleep(0.1)
+    if training.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(training.input_dir, " was selected.")
+    end
+
+    @info "Select a directory with label data."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Training",type = "label_dir")
+    exec()
+    sleep(0.1)
+    if training.label_dir==""
+        @warn "Label data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(training.label_dir, " was selected.")
+    end
+    
+    get_urls_training_main(training,training_data,model_data)
+    return nothing
+end
+
 function prepare_training_data()
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
@@ -175,6 +211,41 @@ function get_urls_validation(input_dir::String)
     return nothing
 end
 
+function get_urls_validation()
+    dir = pwd()
+    @info "Select a directory with input data."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Validation",type = "input_dir")
+    exec()
+    sleep(0.1)
+    if validation.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(training.input_dir, " was selected.")
+    end
+
+    @info "Select a directory with label data if labels are available."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Validation",type = "label_dir")
+    exec()
+    if validation.input_dir==""
+        @info string(training.label_dir, " was selected.")
+        validation.use_labels = true
+    else
+        validation.use_labels = false
+    end
+
+    get_urls_validation_main(validation,validation_data,model_data)
+    return nothing
+end
+
 function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
@@ -201,18 +272,6 @@ function validate()
         display_image = f)
     exec()
     return validation_results
-end
-
-function change_training_options()
-    # Launches GUI
-    @qmlfunction(
-        # Data handling
-        set_settings,
-        get_settings
-    )
-    loadqml("GUI/ApplicationOptions.qml")
-    exec()
-    return nothing
 end
 
 # Application
@@ -246,6 +305,27 @@ function get_urls_application(input_dir::String)
     application.input_dir = input_dir
     get_urls_application_main(application,application_data,model_data)
     application.checked_folders = application_data.folders
+    return nothing
+end
+
+function get_urls_application()
+    dir = pwd()
+    @info "Select a directory with input data."
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Application",type = "input_dir")
+    exec()
+    sleep(0.1)
+    if application.input_dir==""
+        @warn "Input data directory URL is empty. Aborted"
+        return nothing
+    else
+        @info string(application.input_dir, " was selected.")
+    end
+
+    get_urls_application_main(application,application_data,model_data)
     return nothing
 end
 

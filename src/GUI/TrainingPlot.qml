@@ -118,9 +118,9 @@ ApplicationWindow {
                 }
                 if ((iteration===max_iterations && max_iterations!==0) || trainingTimer.done) {
                     // var state = Julia.get_results("Training")
-                    if (state===true) {
+                    //if (state===true) {
                         running = false
-                    }
+                    //}
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
                     epoch += 1

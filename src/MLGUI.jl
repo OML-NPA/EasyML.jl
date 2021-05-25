@@ -1,5 +1,5 @@
 
-__precompile__(false)
+#__precompile__(false)
 
 module MLGUI
 # Needed to avoid an endless loop for Julia canvas
