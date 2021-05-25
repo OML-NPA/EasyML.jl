@@ -37,6 +37,31 @@ function get_urls_training(input_dir::String,label_dir::String)
     return nothing
 end
 
+function get_urls_training()
+    dir = pwd()
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Training",type = "input_dir")
+    exec()
+    @qmlfunction(
+        set_settings
+    )
+    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+        target = "Training",type = "label_dir")
+    exec()
+
+    if training.input_dir==""
+        @warn "Input data directory is empty. Aborted"
+    elseif training.label_dir==""
+        @warn "Label data directory is empty. Aborted"
+    else
+        get_urls_training_main(training,training_data,model_data)
+    end
+    return nothing
+end
+
 function prepare_training_data()
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
