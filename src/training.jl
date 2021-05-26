@@ -49,27 +49,66 @@ end
 training_elapsed_time() = training_elapsed_time_main(training_plot_data)
 
 #---
-# Augments images using rotation and mirroring
-function augment!(data::Vector{Tuple{T1,T2}},img::T1,label::T2,num_angles::Int64,
-        pix_num::Tuple{Int64,Int64},min_fr_pix::Float64) where {T1<:Array{Float32,3},T2<:BitArray{3}}
-    lim = prod(pix_num)*min_fr_pix
+
+# Augments images and labels using rotation and mirroring
+function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angles::Int64)
+    data = Vector{Array{Float32,3}}(undef,0)
+    angles_range = range(0,stop=2*pi,length=num_angles+1)
+    angles = collect(angles_range[1:end-1])
+    num = length(angles)
+    for g = 1:num
+        angle_val = angles[g]
+        img2 = MLGUI.rotate_img(float_img,angle_val)
+        num1 = Int64(floor(size(img2,1)/(size12[1]*0.9)))
+        num2 = Int64(floor(size(img2,2)/(size12[2]*0.9)))
+        step1 = Int64(floor(size(img2,1)/num1))
+        step2 = Int64(floor(size(img2,2)/num2))
+        for i = 1:num1
+            for j = 1:num2
+                ymin = (i-1)*step1+1;
+                xmin = (j-1)*step2+1;
+                I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
+                if MLGUI.std(I1)<0.01
+                    continue
+                else
+                    for h = 1:2
+                        if h==1
+                            I1_out = I1
+                        elseif h==2
+                            I1_out = reverse(I1, dims = 2)
+                        end
+                        data_out = I1_out
+                        push!(data,data_out)
+                    end
+                end
+            end
+        end
+    end
+    return data
+end
+
+# Augments images and labels using rotation and mirroring
+function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{Int64,Int64},
+        num_angles::Int64,min_fr_pix::Float64)
+    data = Vector{Tuple{Array{Float32,3},BitArray{3}}}(undef,0)
+    lim = prod(size12)*min_fr_pix
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
     @threads for g = 1:num
         angle_val = angles[g]
-        img2 = rotate_img(img,angle_val)
+        img2 = rotate_img(float_img,angle_val)
         label2 = rotate_img(label,angle_val)
-        num1 = Int64(floor(size(label2,1)/(pix_num[1]*0.9)))
-        num2 = Int64(floor(size(label2,2)/(pix_num[2]*0.9)))
+        num1 = Int64(floor(size(label2,1)/(size12[1]*0.9)))
+        num2 = Int64(floor(size(label2,2)/(size12[2]*0.9)))
         step1 = Int64(floor(size(label2,1)/num1))
         step2 = Int64(floor(size(label2,2)/num2))
-        @threads for i = 1:num1-1
-            @threads for j = 1:num2-1
+        @threads for i in 1:num1
+            @threads for j in 1:num2
                 ymin = (i-1)*step1+1;
                 xmin = (j-1)*step2+1;
-                I1 = img2[ymin:ymin+pix_num[1]-1,xmin:xmin+pix_num[2]-1,:]
-                I2 = label2[ymin:ymin+pix_num[1]-1,xmin:xmin+pix_num[2]-1,:]
+                I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
+                I2 = label2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
                 if std(I1)<0.01 || sum(I2)<lim 
                     continue
                 else
@@ -88,43 +127,82 @@ function augment!(data::Vector{Tuple{T1,T2}},img::T1,label::T2,num_angles::Int64
             end
         end
     end
-    return nothing
+    return data
 end
 
 # Prepare data for training
-function prepare_training_data_main(training::Training,training_data::Training_data,
-    model_data::Model_data,progress::Channel,results::Channel)
-    # Return of features are empty
-    if isempty(model_data.features)
-        @warn "Empty features."
-        put!(progress, 0)
-        return nothing
-    elseif isempty(training_data.Segmentation_data.input_urls)
-        @warn "Empty urls."
-        put!(progress, 0)
-        return nothing
+function prepare_training_data_classification(classification_data::Classification_data,
+        features::Vector{Classification_feature},options::Training_options,
+        size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
+    num_angles = options.Processing.num_angles
+    # Load images
+    imgs = MLGUI.load_images.(classification_data.input_urls)
+    # Get number of images
+    num = length(imgs)
+    # Initialize accumulators
+    data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
+    data_label = Vector{Vector{Int32}}(undef,num)
+    # Return progress target value
+    put!(progress, num+1)
+    # Make input images
+    for k = 1:num
+        current_imgs = imgs[k]
+        num2 = length(current_imgs)
+        label = convert(Int32,k)
+        data_input_temp = Vector{Vector{Array{Float32,3}}}(undef,num2)
+        data_label_temp = Vector{Vector{Int32}}(undef,num2)
+        for l in 1:num2
+            # Abort if requested
+            if isready(channels.training_data_modifiers)
+                if fetch(channels.training_data_modifiers)[1]=="stop"
+                    take!(channels.training_data_modifiers)
+                    return nothing
+                end
+            end
+            # Get a current image
+            img = current_imgs[l]
+            # Convert to grayscale
+            float_img = image_to_gray_float(img)
+            # Augment images
+            data = augment(float_img,size12,num_angles)
+            data_input_temp[l] = data
+            data_label_temp[l] = label*ones(Int32,length(data_input_temp))
+        end
+        data_input_flat = reduce(vcat,data_input_temp)
+        data_label_flat = reduce(vcat,data_label_temp)
+        data_input[k] = data_input_flat
+        data_label[k] = data_label_flat
+        # Return progress
+        put!(progress, 1)
     end
-    # Initialize
-    features = model_data.features
-    options = training.Options
+    # Flatten input images and labels array
+    data_input_flat = reduce(vcat,data_input)
+    data_label_flat = reduce(vcat,data_label)
+    # Return results
+    put!(results, (data_input_flat,data_label_flat))
+    # Return progress
+    put!(progress, 1)
+    return nothing
+end
+
+function prepare_training_data_segmentation(segmentation_data::Segmentation_data,
+        features::Vector{Segmentation_feature},options::Training_options,
+        size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
-    # Get output image size for dimensions 1 and 2
-    pix_num = model_data.input_size[1:2]
     # Get feature data
     feature_inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
-    # Load images and labels
-    imgs = load_images(training_data.Segmentation_data.input_urls)
-    labels = load_images(training_data.Segmentation_data.label_urls)
+    # Load images
+    imgs = load_images(segmentation_data.input_urls)
+    labels = load_images(segmentation_data.label_urls)
     # Get number of images
     num = length(imgs)
     # Initialize accumulators
     data_all = Vector{Vector{Tuple{Array{Float32,3},BitArray{3}}}}(undef,num)
     # Return progress target value
     put!(progress, num+1)
-    # Make imput images
+    # Make input images
     @threads for k = 1:num
-        data = Vector{Tuple{Array{Float32,3},BitArray{3}}}(undef,0)
         # Abort if requested
         if isready(channels.training_data_modifiers)
             if fetch(channels.training_data_modifiers)[1]=="stop"
@@ -132,7 +210,7 @@ function prepare_training_data_main(training::Training,training_data::Training_d
                 return nothing
             end
         end
-        # Get current image and label
+        # Get current images
         img = imgs[k]
         labelimg = labels[k]
         # Convert to grayscale
@@ -142,7 +220,7 @@ function prepare_training_data_main(training::Training,training_data::Training_d
         # Convert BitArray labels to Array{Float32}
         label = label_to_bool(labelimg,feature_inds,labels_color,labels_incl,border,border_thickness)
         # Augment images
-        augment!(data,img,label,num_angles,pix_num,min_fr_pix)
+        data = augment(img,label,size12,num_angles,min_fr_pix)
         data_all[k] = data
         # Return progress
         put!(progress, 1)
@@ -156,6 +234,29 @@ function prepare_training_data_main(training::Training,training_data::Training_d
     put!(results, (data_input,data_labels))
     # Return progress
     put!(progress, 1)
+    return nothing
+end
+
+function prepare_training_data_main(training::Training,training_data::Training_data,
+    model_data::Model_data,progress::Channel,results::Channel)
+    # Return of features are empty
+    if isempty(model_data.features)
+        @warn "Empty features."
+        put!(progress, 0)
+        return nothing
+    end
+    # Initialize
+    features = model_data.features
+    options = training.Options
+    size12 = model_data.input_size[1:2]
+    if features isa Vector{Classification_feature}
+        prepare_training_data_classification(classification_data,features,options,
+            size12,progress,results) 
+    elseif features isa Vector{Segmentation_feature}
+        segmentation_data = training_data.Segmentation_data
+        prepare_training_data_segmentation(segmentation_data,features,options,
+            size12,progress,results)
+    end
     return nothing
 end
 

@@ -83,8 +83,6 @@ model_data = Model_data()
 
 #---Master data
 @with_kw mutable struct Training_plot_data
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{BitArray{3}} = Vector{BitArray{3}}(undef,0)
     iteration::Int64 = 0
     epoch::Int64 = 0
     iterations_per_epoch::Int64 = 0
@@ -104,12 +102,16 @@ end
 training_results_data = Training_results_data()
 
 @with_kw mutable struct Classification_data
+    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
+    data_labels::Vector{Int32} = Vector{BitArray{3}}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     labels::Vector{String} = Vector{String}(undef,0)
 end
 classification_data = Classification_data()
 
 @with_kw mutable struct Segmentation_data
+    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
+    data_labels::Vector{BitArray{3}} = Vector{BitArray{3}}(undef,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     foldernames::Vector{String} = Vector{String}(undef,0)

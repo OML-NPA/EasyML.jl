@@ -27,7 +27,7 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
         files_input = filter_ext(files_input,allowed_ext)
         # Push urls into an accumulator
         for l = 1:length(files_input)
-            push!(input_urls_temp,string(input_dir,"/",files_input[l]))
+            push!(input_urls_temp,string(input_dir,"/",dir,"/",files_input[l]))
         end
         push!(input_urls,input_urls_temp)
     end
