@@ -56,17 +56,21 @@ function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angl
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
-    for g = 1:num
+    @floop ThreadedEx() for g = 1:num
         angle_val = angles[g]
-        img2 = MLGUI.rotate_img(float_img,angle_val)
-        num1 = Int64(floor(size(img2,1)/(size12[1]*0.9)))
-        num2 = Int64(floor(size(img2,2)/(size12[2]*0.9)))
-        step1 = Int64(floor(size(img2,1)/num1))
-        step2 = Int64(floor(size(img2,2)/num2))
+        img2 = rotate_img(float_img,angle_val)
+        size1_adj = size12[1]*0.9
+        size2_adj = size12[2]*0.9
+        num1 = Int64(floor(size(img2,1)/size1_adj))
+        num2 = Int64(floor(size(img2,2)/size2_adj))
+        step1 = Int64(floor(size1_adj/num1))
+        step2 = Int64(floor(size2_adj/num2))
+        num1 = max(num1-1,1)
+        num2 = max(num2-1,1)
         for i = 1:num1
             for j = 1:num2
-                ymin = (i-1)*step1+1;
-                xmin = (j-1)*step2+1;
+                ymin = (i-1)*step1+1
+                xmin = (j-1)*step2+1
                 I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
                 if MLGUI.std(I1)<0.01
                     continue
@@ -95,18 +99,24 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
-    @threads for g = 1:num
+    @floop ThreadedEx() for g = 1:num
         angle_val = angles[g]
         img2 = rotate_img(float_img,angle_val)
         label2 = rotate_img(label,angle_val)
-        num1 = Int64(floor(size(label2,1)/(size12[1]*0.9)))
-        num2 = Int64(floor(size(label2,2)/(size12[2]*0.9)))
-        step1 = Int64(floor(size(label2,1)/num1))
-        step2 = Int64(floor(size(label2,2)/num2))
-        @threads for i in 1:num1
-            @threads for j in 1:num2
-                ymin = (i-1)*step1+1;
-                xmin = (j-1)*step2+1;
+        size1_adj = size12[1]*0.9
+        size2_adj = size12[2]*0.9
+        num1 = Int64(floor(size(img2,1)/size1_adj))
+        num1 = max(num1,1)
+        num2 = Int64(floor(size(img2,2)/size2_adj))
+        num2 = max(num2,1)
+        step1 = Int64(floor(size(img2,1)/num1))
+        step2 = Int64(floor(size(img2,2)/num2))
+        num1 = max(num1-1,1)
+        num2 = max(num2-1,1)
+        for i in 1:num1
+            for j in 1:num2
+                ymin = (i-1)*step1+1
+                xmin = (j-1)*step2+1
                 I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
                 I2 = label2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
                 if std(I1)<0.01 || sum(I2)<lim 
@@ -135,27 +145,27 @@ function prepare_training_data_classification(classification_data::Classificatio
         features::Vector{Classification_feature},options::Training_options,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
     num_angles = options.Processing.num_angles
-    # Load images
-    imgs = MLGUI.load_images.(classification_data.input_urls)
+    urls = classification_data.input_urls
     # Get number of images
-    num = length(imgs)
+    num = length(urls)
+    # Return progress target value
+    put!(progress, num+2)
+    # Load images
+    imgs = MLGUI.load_images.(urls)
+    put!(progress, 1)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    # Return progress target value
-    put!(progress, num+1)
-    # Make input images
-    for k = 1:num
+    @floop ThreadedEx() for k = 1:num
         current_imgs = imgs[k]
         num2 = length(current_imgs)
         label = convert(Int32,k)
         data_input_temp = Vector{Vector{Array{Float32,3}}}(undef,num2)
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
-        for l in 1:num2
+        @floop ThreadedEx() for l in 1:num2
             # Abort if requested
             if isready(channels.training_data_modifiers)
                 if fetch(channels.training_data_modifiers)[1]=="stop"
-                    take!(channels.training_data_modifiers)
                     return nothing
                 end
             end
@@ -168,10 +178,10 @@ function prepare_training_data_classification(classification_data::Classificatio
             data_input_temp[l] = data
             data_label_temp[l] = label*ones(Int32,length(data_input_temp))
         end
-        data_input_flat = reduce(vcat,data_input_temp)
-        data_label_flat = reduce(vcat,data_label_temp)
-        data_input[k] = data_input_flat
-        data_label[k] = data_label_flat
+        data_input_flat_temp = reduce(vcat,data_input_temp)
+        data_label_flat_temp = reduce(vcat,data_label_temp)
+        data_input[k] = data_input_flat_temp
+        data_label[k] = data_label_flat_temp
         # Return progress
         put!(progress, 1)
     end
@@ -190,23 +200,26 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
+    input_urls = segmentation_data.input_urls
+    # Get number of images
+    num = length(input_urls)
+    # Return progress target value
+    put!(progress, num+2)
     # Get feature data
     feature_inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
     # Load images
-    imgs = load_images(segmentation_data.input_urls)
+    imgs = load_images(input_urls)
     labels = load_images(segmentation_data.label_urls)
-    # Get number of images
-    num = length(imgs)
+    put!(progress, 1)
     # Initialize accumulators
-    data_all = Vector{Vector{Tuple{Array{Float32,3},BitArray{3}}}}(undef,num)
-    # Return progress target value
-    put!(progress, num+1)
+    data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
+    data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
+    tasks = []
     # Make input images
-    @threads for k = 1:num
+    @floop ThreadedEx() for k = 1:num
         # Abort if requested
         if isready(channels.training_data_modifiers)
             if fetch(channels.training_data_modifiers)[1]=="stop"
-                take!(channels.training_data_modifiers)
                 return nothing
             end
         end
@@ -221,17 +234,17 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
         label = label_to_bool(labelimg,feature_inds,labels_color,labels_incl,border,border_thickness)
         # Augment images
         data = augment(img,label,size12,num_angles,min_fr_pix)
-        data_all[k] = data
+        data_input[k] = getfield.(data, 1)
+        data_label[k] = getfield.(data, 2)
         # Return progress
         put!(progress, 1)
     end
+    wait.(tasks)
     # Flatten input images and labels array
-    data_flat = reduce(vcat,data_all)
-    # Separate
-    data_input = getfield.(data_flat, 1)
-    data_labels = getfield.(data_flat, 2)
+    data_input_flat = reduce(vcat,data_input)
+    data_label_flat = reduce(vcat,data_label)
     # Return results
-    put!(results, (data_input,data_labels))
+    put!(results, (data_input_flat,data_label_flat))
     # Return progress
     put!(progress, 1)
     return nothing
@@ -244,6 +257,17 @@ function prepare_training_data_main(training::Training,training_data::Training_d
         @warn "Empty features."
         put!(progress, 0)
         return nothing
+    end
+    if model_data.features isa Vector{Classification_feature}
+        if isempty(training_data.Classification_data.input_urls)
+            @warn "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
+    elseif model_data.features isa Vector{Segmentation_feature}
+        if isempty(training_data.Segmentation_data.input_urls)
+            @warn "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
     end
     # Initialize
     features = model_data.features
@@ -273,10 +297,10 @@ end
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
-function get_train_test(training_plot_data::Training_plot_data,training::Training)
+function get_train_test(training_data::Union{Classification_data,Segmentation_data},training::Training)
     # Get inputs and labels
-    data_input = training_plot_data.data_input
-    data_labels = convert(Vector{Array{Float32,3}},training_plot_data.data_labels)
+    data_input = training_data.data_input
+    data_labels = training_data.data_labels
     # Get the number of elements
     num = length(data_input)
     # Get shuffle indices
@@ -308,9 +332,11 @@ function make_minibatch_inds(num_data::Int64,batch_size::Int64)
     return inds_start,inds_all,num
 end
 
-function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{Array{Float32,3}},
-        batch_size::Int64,inds_start::Vector{Int64},inds_all::Vector{Int64},i::Int64)
+function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{BitArray{3}},
+        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
+    data_labels = convert(Vector{Array{Float32,3}},data_labels)
     # First and last minibatch indices
     ind1 = ind+1
     ind2 = ind+batch_size
@@ -318,6 +344,26 @@ function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector
     current_inds = inds_all[ind1:ind2]
     current_input = data_input[current_inds]
     current_labels = data_labels[current_inds]
+    # Catenating inputs and labels
+    current_input_cat = reduce(cat4,current_input)[:,:,:,:]
+    current_labels_cat = reduce(cat4,current_labels)[:,:,:,:]
+    # Form a minibatch
+    minibatch = (current_input_cat,current_labels_cat)
+    return minibatch
+end
+
+function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
+        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        inds_all::Vector{Int64},i::Int64)
+    ind = inds_start[i]
+    # First and last minibatch indices
+    ind1 = ind+1
+    ind2 = ind+batch_size
+    # Get inputs and labels
+    current_inds = inds_all[ind1:ind2]
+    current_input = data_input[current_inds]
+    current_labels_int32 = map(x->Flux.onehot(x,max_labels),data_labels[current_inds])
+    current_labels = convert.(Vector{Float32},current_labels_int32)
     # Catenating inputs and labels
     current_input_cat = reduce(cat4,current_input)[:,:,:,:]
     current_labels_cat = reduce(cat4,current_labels)[:,:,:,:]
@@ -374,7 +420,7 @@ function get_optimiser(training::Training)
 end
 
 #---
-function minibatch_part(data_input,data_labels,epochs,num,inds_start,inds_all,
+function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,inds_all,
         counter,run_test,data_input_test,data_labels_test,inds_start_test,
         inds_all_test,counter_test,batch_size,minibatch_channel,minibatch_test_channel,abort)
     epoch_idx = 1
@@ -395,7 +441,7 @@ function minibatch_part(data_input,data_labels,epochs,num,inds_start,inds_all,
             while true
                 numel_channel = (iteration_local-counter.iteration)
                 if numel_channel<50
-                    minibatch = make_minibatch(data_input,data_labels,batch_size,
+                    minibatch = make_minibatch(data_input,data_labels,max_labels,batch_size,
                         inds_start_sh,inds_all_sh,i)
                     put!(minibatch_channel,minibatch)
                     break
@@ -407,7 +453,7 @@ function minibatch_part(data_input,data_labels,epochs,num,inds_start,inds_all,
                 numel_test_channel = (iteration_test_local-counter_test.iteration)
                 if numel_test_channel<1
                     iteration_test_local+=1
-                    minibatch = make_minibatch(data_input_test,data_labels_test,batch_size,
+                    minibatch = make_minibatch(data_input_test,data_labels_test,max_labels,batch_size,
                         inds_start_test_sh,inds_all_test_sh,i)
                         put!(minibatch_test_channel,minibatch)
                 end
@@ -634,11 +680,10 @@ function training_part_GPU(model_data,model_name,opt,accuracy,loss,
     return nothing
 end
 
-function train!(model_data::Model_data,training::Training,
+function train!(model_data::Model_data,training_data::Training_data,training::Training,
         args::Hyperparameters_training,opt,accuracy::Function,loss::Function,
-        train_set::Tuple{Vector{Array{Float32,3}},Vector{Array{Float32,3}}},
-        test_set::Tuple{Vector{Array{Float32,3}},Vector{Array{Float32,3}}},
-        testing_times::Float64,use_GPU::Bool,channels::Channels)
+        train_set::Tuple{T1,Union{T1,T2}},test_set::Tuple{T1,Union{T1,T2}},testing_times::Float64,
+        use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},T2<:Vector{Int32}}
     # Initialize constants
     epochs = Threads.Atomic{Int64}(args.epochs)
     batch_size = args.batch_size
@@ -674,11 +719,16 @@ function train!(model_data::Model_data,training::Training,
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
+    if model_data.features isa Vector{Classification_feature}
+        max_labels = length(training_data.Classification_data.labels)
+    else
+        max_labels = Vector{Int32}(undef,0)
+    end
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
     minibatch_test_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
     # Data preparation thread
-    Threads.@spawn minibatch_part(data_input,data_labels,epochs,num,inds_start,
+    Threads.@spawn minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
         inds_all,counter,run_test,data_input_test,data_labels_test,inds_start_test,
         inds_all_test,counter_test,batch_size,minibatch_channel,minibatch_test_channel,abort)
     # Training thread
@@ -765,7 +815,7 @@ function train_main(settings::Settings,training_data::Training_data,
         end
     end
     # Run training
-    data = train!(model_data,training,args,opt,accuracy,loss,
+    data = train!(model_data,training_data,training,args,opt,accuracy,loss,
         train_set,test_set,testing_times,use_GPU,channels)
     # Return training results
     put!(channels.training_results,(model_data.model,data...))
