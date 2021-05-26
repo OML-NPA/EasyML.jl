@@ -2733,9 +2733,8 @@ Component.onCompleted: {
                     defaultHeight: 0.75*buttonHeight
                     defaultWidth: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        nameTextField.text = displayText
+                        // nameTextField.text = displayText
                         Julia.set_settings(["Training","name"],displayText)
-
                     }
                     Component.onCompleted: {
                         var name = Julia.get_settings(["Training","name"])
