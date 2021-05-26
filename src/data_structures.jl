@@ -169,6 +169,15 @@ hardware_resources = Hardware_resources()
 end
 options = Options()
 
+# Design
+@with_kw mutable struct Design
+    width::Float64 = 340
+    height::Float64 = 100
+    min_dist_x::Float64 = 40
+    min_dist_y::Float64 = 40
+end
+design = Design()
+
 # Training
 @with_kw mutable struct Processing_training
     mirroring::Bool = true
@@ -212,17 +221,8 @@ general_training = General_training()
 end
 training_options = Training_options()
 
-@with_kw mutable struct Design
-    width::Float64 = 340
-    height::Float64 = 100
-    min_dist_x::Float64 = 40
-    min_dist_y::Float64 = 40
-end
-design = Design()
-
 @with_kw mutable struct Training
     Options::Training_options = training_options
-    Design::Design = design
     problem_type::Tuple{String,Int64} = ("Segmentation",1)
     input_type::Tuple{String,Int64} = ("Image",0)
     model_url::String = ""
@@ -272,6 +272,7 @@ visualisation = Visualisation()
 @with_kw mutable struct Settings
     Main::Main_s = main
     Options::Options = options
+    Design::Design = design
     Training::Training = training
     Validation::Validation = validation
     Application::Application = application
