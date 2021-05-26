@@ -39,7 +39,7 @@ include("extra_functions.jl")
 
 export QML, Flux, FluxExtra, CUDA, NNlib
 
-export model_data, Segmentation_feature, training, settings, training_data, training_plot_data,
+export model_data, Classification_feature,Segmentation_feature, training, settings, training_data, training_plot_data,
     training_results_data, training_options, validation_data, validation_results_data,
     application_data, application_options
 export design_network, modify, modify_output, save_model, load_model, get_urls_training, prepare_training_data, train,

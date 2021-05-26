@@ -13,14 +13,46 @@ ApplicationWindow {
     visible: true
     minimumHeight: 1024*pix + margin
     minimumWidth: informationPane.width + 1024*pix + margin
-    title: qsTr("  Open Machine Learning Software")
+    title: qsTr("  Julia Machine Learning GUI")
+
+    //---Universal property block-----------------------------------------------
+    property double pix: Screen.width/3840
+    property double margin: 78*pix
+    property double tabmargin: 0.5*margin
+    property double buttonWidth: 384*pix
+    property double buttonHeight: 65*pix
+    property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
+        "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
+        "midlight3": rgbtohtml([235,235,235]),
+        "mid": rgbtohtml([220,220,220]),"middark": rgbtohtml([210,210,210]),
+        "middark2": rgbtohtml([180,180,180]),"dark2": rgbtohtml([160,160,160]),
+        "dark": rgbtohtml([130,130,130])}
+    property var defaultpalette: {"window": defaultcolors.midlight,
+                                  "window2": defaultcolors.midlight3,
+                                  "button": defaultcolors.light2,
+                                  "buttonhovered": defaultcolors.mid,
+                                  "buttonpressed": defaultcolors.middark,
+                                  "buttonborder": defaultcolors.dark2,
+                                  "controlbase": defaultcolors.light,
+                                  "controlborder": defaultcolors.middark2,
+                                  "border": defaultcolors.dark2,
+                                  "listview": defaultcolors.light
+                                  }
+    //-------------------------------------------------------------------------
+    //---Jield timer block-----------------------------------------------------
+    Timer {
+        id: yieldTimer
+        running: true
+        repeat: true
+        interval: 1
+        onTriggered: {Julia.yield()}
+    }
+    //-------------------------------------------------------------------------
+
     color: defaultpalette.window
-    property double margin: 0.02*Screen.width
-    property double buttonWidth: 0.1*Screen.width
-    property double buttonHeight: 0.03*Screen.height
 
     onClosing: {
-        dataplotLoader.sourceComponent = undefined
+        //dataplotLoader.sourceComponent = undefined
     }
 
     Timer {

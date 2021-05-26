@@ -2,14 +2,22 @@
 # Get urls of files in selected folders
 function get_urls_training_main(training::Training,training_data::Training_data,
         model_data::Model_data)
-    if model_data.features[1] isa Segmentation_feature
-        allowed_ext = ["png","jpg","jpeg"]
+    if isempty(model_data.features)
+        @warn "Features are empty."
     end
-    input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
-    training_data.input_urls = reduce(vcat,input_urls)
-    training_data.label_urls = reduce(vcat,label_urls)
-    training_data.filenames = filenames
-    training_data.fileindices = fileindices
+    if model_data.features[1] isa Classification_feature
+        allowed_ext = ["png","jpg","jpeg"]
+        input_urls,dirs = get_urls1(training,allowed_ext)
+        training_data.Classification_data.input_urls = input_urls
+        training_data.Classification_data.labels = dirs
+    elseif model_data.features[1] isa Segmentation_feature
+        allowed_ext = ["png","jpg","jpeg"]
+        input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
+        training_data.Segmentation_data.input_urls = reduce(vcat,input_urls)
+        training_data.Segmentation_data.label_urls = reduce(vcat,label_urls)
+        training_data.Segmentation_data.filenames = filenames
+        training_data.Segmentation_data.fileindices = fileindices
+    end
     return nothing
 end
 #get_urls_training() = get_urls_training_main(training,training_data,model_data)
@@ -91,7 +99,7 @@ function prepare_training_data_main(training::Training,training_data::Training_d
         @warn "Empty features."
         put!(progress, 0)
         return nothing
-    elseif isempty(training_data.input_urls)
+    elseif isempty(training_data.Segmentation_data.input_urls)
         @warn "Empty urls."
         put!(progress, 0)
         return nothing
@@ -106,8 +114,8 @@ function prepare_training_data_main(training::Training,training_data::Training_d
     # Get feature data
     feature_inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
     # Load images and labels
-    imgs = load_images(training_data.input_urls)
-    labels = load_images(training_data.label_urls)
+    imgs = load_images(training_data.Segmentation_data.input_urls)
+    labels = load_images(training_data.Segmentation_data.label_urls)
     # Get number of images
     num = length(imgs)
     # Initialize accumulators

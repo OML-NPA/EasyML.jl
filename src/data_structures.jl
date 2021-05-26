@@ -67,12 +67,10 @@ end
     not_feature::Bool = false
     Output::Segmentation_output_options = Segmentation_output_options()
 end
-segmentation_feature = Segmentation_feature()
 
 @with_kw mutable struct Classification_feature<:AbstractFeature
     name::String = ""
 end
-classification_feature = Classification_feature()
 
 @with_kw mutable struct Model_data
     input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
@@ -105,14 +103,26 @@ training_plot_data = Training_plot_data()
 end
 training_results_data = Training_results_data()
 
-@with_kw mutable struct Training_data
-    Plot_data::Training_plot_data = training_plot_data
-    Results::Training_results_data = training_results_data
+@with_kw mutable struct Classification_data
+    input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
+    labels::Vector{String} = Vector{String}(undef,0)
+end
+classification_data = Classification_data()
+
+@with_kw mutable struct Segmentation_data
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     foldernames::Vector{String} = Vector{String}(undef,0)
     filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     fileindices::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+end
+segmentation_data = Segmentation_data()
+
+@with_kw mutable struct Training_data
+    Plot_data::Training_plot_data = training_plot_data
+    Results::Training_results_data = training_results_data
+    Classification_data::Classification_data = classification_data
+    Segmentation_data::Segmentation_data = segmentation_data
 end
 training_data = Training_data()
 
