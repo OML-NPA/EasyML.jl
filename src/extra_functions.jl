@@ -33,6 +33,24 @@ end
 function get_urls_training(input_dir::String,label_dir::String)
     training.input_dir = input_dir
     training.label_dir = label_dir
+    if !isdir(input_dir)
+        @warn string(input_dir," does not exist.")
+        return nothing
+    end
+    if !isdir(label_dir)
+        @warn string(label_dir," does not exist.")
+        return nothing
+    end
+    get_urls_training_main(training,training_data,model_data)
+    return nothing
+end
+
+function get_urls_training(input_dir::String)
+    training.input_dir = input_dir
+    if !isdir(input_dir)
+        @warn string(input_dir," does not exist.")
+        return nothing
+    end
     get_urls_training_main(training,training_data,model_data)
     return nothing
 end
@@ -197,6 +215,14 @@ end
 # Validation
 
 function get_urls_validation(input_dir::String,label_dir::String)
+    if !isdir(input_dir)
+        @info string(input_dir," does not exist.")
+        return nothing
+    end
+    if !isdir(label_dir)
+        @info string(label_dir," does not exist.")
+        return nothing
+    end
     validation.input_dir = input_dir
     validation.label_dir = label_dir
     validation.use_labels = false
@@ -205,6 +231,9 @@ function get_urls_validation(input_dir::String,label_dir::String)
 end
 
 function get_urls_validation(input_dir::String)
+    if !isdir(input_dir)
+        @warn string(input_dir," does not exist.")
+    end
     validation.input_dir = input_dir
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
@@ -302,6 +331,10 @@ function modify_output(feature::Segmentation_feature)
 end
 
 function get_urls_application(input_dir::String)
+    if !isdir(input_dir)
+        @warn string(input_dir," does not exist.")
+        return nothing
+    end
     application.input_dir = input_dir
     get_urls_application_main(application,application_data,model_data)
     application.checked_folders = application_data.folders
