@@ -20,9 +20,9 @@ Flux, Flux.Losses, FluxExtra,
 # Math functions
 Random, StatsBase, Statistics, LinearAlgebra, Combinatorics, Distances,
 # Other
-ProgressMeter
+ProgressMeter, FLoops
 
-import CUDA.CuArray, Flux.outdims, .Threads.@threads
+import CUDA.CuArray, Flux.outdims
 
 # Include functions
 include("data_structures.jl")

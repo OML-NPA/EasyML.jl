@@ -67,7 +67,7 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
     target_data = Vector{Tuple{BitArray{2},Vector{N0f8}}}(undef,num)
     error_data = Vector{Tuple{BitArray{3},Vector{N0f8}}}(undef,num)
     color_error = ones(N0f8,3)
-    @threads for i = 1:num
+    @floop ThreadedEx() for i = 1:num
         color = labels_color[i]
         predicted_bool_feat = predicted_bool[:,:,i]
         predicted_data[i] = (predicted_bool_feat,color)
@@ -102,7 +102,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
         predicted_bool = cat3(predicted_bool,border_bool)
     end
     predicted_bool_final = predicted_bool
-    @threads for i=1:num_border
+    @floop ThreadedEx() for i=1:num_border
         min_area = model_data.features[inds_border[i]].min_area
         ind = num_feat + i
         if min_area>1
