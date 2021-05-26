@@ -4,13 +4,14 @@ function get_urls_training_main(training::Training,training_data::Training_data,
         model_data::Model_data)
     if isempty(model_data.features)
         @warn "Features are empty."
+        return nothing
     end
-    if model_data.features[1] isa Classification_feature
+    if model_data.features isa Vector{Classification_feature}
         allowed_ext = ["png","jpg","jpeg"]
         input_urls,dirs = get_urls1(training,allowed_ext)
         training_data.Classification_data.input_urls = input_urls
         training_data.Classification_data.labels = dirs
-    elseif model_data.features[1] isa Segmentation_feature
+    elseif model_data.features isa Vector{Segmentation_feature}
         allowed_ext = ["png","jpg","jpeg"]
         input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
         training_data.Segmentation_data.input_urls = reduce(vcat,input_urls)
@@ -800,7 +801,11 @@ function train_main(settings::Settings,training_data::Training_data,
     end
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
-    train_set, test_set = get_train_test(training_plot_data,training)
+    if model_data.features isa Vector{Classification_feature}
+        train_set, test_set = get_train_test(training_data.Classification,training)
+    elseif model_data.features isa Vector{Segmentaion_feature}
+        train_set, test_set = get_train_test(training_data.Segmentation,training)
+    end
     # Setting functions and parameters
     opt = get_optimiser(training)
     accuracy = get_accuracy_func(training)
