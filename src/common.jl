@@ -3,7 +3,6 @@
 function get_urls1(settings::Union{Training,Validation,Application},allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
-    input_folders = Vector{String}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
     # Get directories containing data and labels
