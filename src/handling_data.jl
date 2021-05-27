@@ -434,41 +434,52 @@ function reset_features_main(model_data)
 end
 reset_features() = reset_features_main(model_data::Model_data)
 
-# Appends model features
-function append_features_main(model_data::Model_data,output_options::Segmentation_output_options,
-        name,colorR,colorG,colorB,border,border_thickness,
-        border_remove_objs,min_area,parents,not_feature)
-    push!(model_data.features,Segmentation_feature(String(name),Int64.([colorR,colorG,colorB]),
-        Bool(border),Int64(border_thickness),Bool(border_remove_objs),Int64(min_area),
-        fix_QML_types(parents),Bool(not_feature),output_options))
+# Resets model output options
+function reset_output_options_main(model_data)
+    empty!(model_data.output_options)
     return nothing
 end
-append_features(name,colorR,colorG,colorB,
-    border,border_thickness,border_remove_objs,
-    min_area,parents,not_feature) = 
-    append_features_main(model_data,output_options,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
+reset_output_options() = reset_output_options_main(model_data::Model_data)
 
-# Updates model feature with new data
-function update_features_main(model_data,index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
-    feature = model_data.features[Int64(index)]
-    feature.name = String(name)
-    feature.color = Int64.([colorR,colorG,colorB])
-    feature.border = Bool(border)
-    feature.border_thickness = Int64(border_thickness)
-    feature.border_remove_objs = Bool(border_remove_objs)
-    feature.min_area = Int64(min_area)
-    feature.parents = fix_QML_types(parents)
-    feature.not_feature = Bool(not_feature)
-    feature.Output = feature.Output
+# Appends model features
+function append_features_main(model_data::Model_data,design_data::Design_data,id,data)
+    data = fix_QML_types(data)
+    id = convert(Int64,id)
+    type = eltype(model_data.features)
+    
+    if type==Classification_feature
+        feature = Classification_feature()
+        feature.name = data[1]
+    elseif type==Segmentation_feature
+        @info data[9]
+        feature = Segmentation_feature()
+        feature.name = String(data[1])
+        feature.color = Int64.([data[2],data[3],data[4]])
+        feature.border = Bool(data[5])
+        feature.border_thickness = Int64(data[6])
+        feature.border_remove_objs = Bool(data[7])
+        feature.min_area = Int64(data[8])
+        feature.parents = data[9]
+        feature.not_feature = Bool(data[10])
+    end
+    push!(model_data.features,feature)
+
+    if type==Classification_feature
+        type_output = Classification_output_options
+    elseif type==Segmentation_feature
+        type_output = Segmentation_output_options
+    end
+    if eltype(model_data.output_options)!=type_output
+        model_data.output_options = Vector{type_output}(undef,0)
+    end
+    if id in 1:length(design_data.output_options_backup)
+        push!(model_data.output_options,design_data.output_options_backup[id])
+    else
+        push!(model_data.output_options,type_output())
+    end
+    return nothing
 end
-update_features(index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,
-        min_area,parents,not_feature) =
-    update_features_main(model_data,index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,
-        min_area,parents,not_feature)
+append_features(id,data) = append_features_main(model_data,design_data,id,data)
 
 # Returns the number of features
 function num_features_main(model_data::Model_data)
@@ -481,6 +492,11 @@ function get_feature_main(model_data::Model_data,index,fieldname)
     return getfield(model_data.features[Int64(index)], Symbol(String(fieldname)))
 end
 get_feature_field(index,fieldname) = get_feature_main(model_data,index,fieldname)
+
+function backup_options_main(model_data::Model_data)
+    design_data.output_options_backup = deepcopy(model_data.output_options)
+end
+backup_options() = backup_options_main(model_data)
 
 #---Model saving/loading
 # Saves ML model
@@ -513,7 +529,8 @@ function load_model_main(settings,model_data,url)
                 type = typeof(getfield(model_data,k))
                 deserialized = convert(type,deserialized)
             elseif k==:features
-                type = typeof(deserialized[1])
+                deserialized = [deserialized...]
+                type = eltype(deserialized)
                 deserialized = convert(Vector{type},deserialized)
             end
             setfield!(model_data,k,deserialized)

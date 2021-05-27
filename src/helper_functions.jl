@@ -118,7 +118,7 @@ anynan(x) = any(isnan.(x))
 
 #---Other
 function arsplit(ar::AbstractArray,dim::Int64)
-    type = typeof(ar[1])
+    type = eltype(ar)
     ar_out = Vector{Vector{type}}(undef,size(ar,dim))
     if dim==1
         for i=1:size(ar,dim)
@@ -150,7 +150,7 @@ function make_tuple(array::AbstractArray)
 end
 
 function replace_nan!(x)
-    type = typeof(x[1])
+    type = eltype(x)
     for i = eachindex(x)
         if isnan(x[i])
             x[i] = zero(type)
