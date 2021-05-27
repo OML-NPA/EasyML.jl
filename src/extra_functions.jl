@@ -36,18 +36,21 @@ function modify_features()
         return nothing
     end
     if !(features isa Vector{Segmentation_feature})
-        @warn string("There is nothing to change in a ",typeof(features[1]))
+        @warn string("There is nothing to change in a ",eltype(features))
         return nothing
     end
     @qmlfunction(
         get_feature_field,
         num_features,
-        update_features,
+        append_features,
+        reset_features,
+        reset_output_options,
+        backup_options,
         get_settings,
         set_settings,
         save_settings
     )
-    loadqml("GUI/FeatureDialog.qml",JindTree = 0)
+    loadqml("GUI/FeatureDialog.qml",JindTree = 0, ids = 1:length(features))
     exec()
     return nothing
 end
@@ -173,30 +176,6 @@ function modify(data)
             fix_slashes
         )
         loadqml("GUI/ApplicationOptions.qml")
-        exec()
-
-    elseif typeof(data)==Segmentation_feature
-        @qmlfunction(
-            get_feature_field,
-            num_features,
-            update_features,
-            get_settings,
-            set_settings,
-            save_settings
-        )
-
-        indTree = -1
-        for i = 1:length(model_data.features)
-            if model_data.features[i]==data
-                indTree = i-1
-            end
-        end
-        if indTree==-1
-            @info "Feature does not exist in 'model_data'. Add the feature to the 'model_data'."
-            return nothing
-        end
-
-        loadqml("GUI/FeatureDialog.qml",indTree = indTree)
         exec()
     end
     return nothing

@@ -15,6 +15,7 @@ ApplicationWindow {
     width: rowLayout.width
     height: rowLayout.height + applyButton.height + 0.75*margin
     property double indTree: JindTree
+    property double max_id: Math.max(...ids)
 
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
@@ -58,12 +59,22 @@ ApplicationWindow {
         if (featureModel.count!==0) {
             featureModel.clear()
         }
+        var cnt = 1
         for (var i=0;i<num_features;i++) {
             var ind = i+1
             var color = Julia.get_feature_field(ind,"color")
             var parents = Julia.get_feature_field(ind,"parents")
+            var l = ids.length
+            if (i<l) {
+                var id = ids[i]
+            }
+            else {
+                id = l + cnt
+                cnt += 1
+            }
             var feature = {
                 "name": Julia.get_feature_field(ind,"name"),
+                "id": id,
                 "colorR": color[0],
                 "colorG": color[1],
                 "colorB": color[2],
@@ -82,6 +93,10 @@ ApplicationWindow {
 
         nameTextField.text = featureModel.get(indTree).name
         
+        redTextField.text = featureModel.get(indTree).colorR
+        greenTextField.text = featureModel.get(indTree).colorG
+        blueTextField.text = featureModel.get(indTree).colorB
+
         minareaTextField.text = featureModel.get(indTree).min_area
 
         // parentComboBox
@@ -142,6 +157,11 @@ ApplicationWindow {
         }
     }
 
+    ListModel {
+        id: dummyModel
+    }
+
+
     //-------------------------------------------------------------------------
 
     color: defaultpalette.window
@@ -171,7 +191,7 @@ ApplicationWindow {
             }
             Frame {
                 id: featuresFrame
-                height: 1.37*432*pix
+                height: 1.66*432*pix
                 width: buttonWidth + 0.5*margin
                 backgroundColor: "white"
                 ScrollView {
@@ -191,7 +211,8 @@ ApplicationWindow {
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: featureModel
                                 delegate: TreeButton {
-                                    id: control
+                                    id: treeButton
+                                    x: 1
                                     hoverEnabled: true
                                     width: buttonWidth + 0.5*margin - 24*pix
                                     height: buttonHeight - 2*pix
@@ -199,24 +220,44 @@ ApplicationWindow {
                                         indTree = index
                                         update_fields()
                                     }
-                                    RowLayout {
-                                        anchors.fill: parent.fill
-                                        Rectangle {
-                                            id: colorRectangle
-                                            Layout.leftMargin: 0.2*margin
-                                            Layout.bottomMargin: 6*pix
-                                            Layout.alignment: Qt.AlignBottom
-                                            height: 30*pix
-                                            width: 30*pix
-                                            border.width: 2*pix
-                                            radius: colorRectangle.width
-                                            color: rgbtohtml([colorR,colorG,colorB])
+                                    Rectangle {
+                                        id: colorRectangle
+                                        anchors.left: treeButton.left
+                                        anchors.verticalCenter: treeButton.verticalCenter
+                                        anchors.leftMargin: 15*pix
+                                        height: 30*pix
+                                        width: 30*pix
+                                        border.width: 2*pix
+                                        radius: colorRectangle.width
+                                        color: rgbtohtml([colorR,colorG,colorB])
+                                    }
+                                    Label {
+                                        anchors.left: colorRectangle.left
+                                        anchors.leftMargin: 50*pix
+                                        anchors.verticalCenter: treeButton.verticalCenter
+                                        text: name
+                                    }
+                                    Button {
+                                        id: trashcanButton
+                                        visible: treeButton.hovered
+                                        hoverEnabled: true
+                                        height: 55*pix
+                                        width: 55*pix
+                                        background: Rectangle {
+                                            opacity: 0
                                         }
-                                        Label {
-                                            topPadding: 0.15*margin
-                                            leftPadding: 0.10*margin
-                                            text: name
-                                            Layout.alignment: Qt.AlignBottom
+                                        anchors.verticalCenter: treeButton.verticalCenter
+                                        anchors.right: treeButton.right
+                                        anchors.rightMargin: 5*pix
+                                        Image {
+                                            opacity: trashcanButton.hovered ? 1 : 0.2
+                                            source: "Icons/trash_can.png"
+                                            height: 55*pix
+                                            width: 55*pix
+                                            fillMode: Image.PreserveAspectFit
+                                        }
+                                        onClicked: {
+                                            featureModel.remove(index)
                                         }
                                     }
                                 }
@@ -231,66 +272,166 @@ ApplicationWindow {
             Layout.margins: 0.75*margin
             Layout.leftMargin: 0*margin
             spacing: 0.4*margin
-            RowLayout {
-                spacing: 0.34*margin
-                ColumnLayout {
-                    Layout.alignment : Qt.AlignHCenter
-                    spacing: 0.40*margin
-                    Label {
-                        Layout.alignment : Qt.AlignLeft
-                        text: "Name:"
-                        bottomPadding: 0.06*margin
-                    }
-                    Label {
-                        id: parentLabel
-                        Layout.alignment : Qt.AlignLeft
-                        Layout.row: 1
-                        text: "Parent:"
-                        bottomPadding: 0.06*margin
-                    }
-                    Label {
-                        id: parent2Label
-                        Layout.alignment : Qt.AlignLeft
-                        Layout.row: 1
-                        text: "Parent 2:"
-                        bottomPadding: 0.06*margin
-                    }
-
+            Row {
+                Label {
+                    id: nameLabel
+                    text: "Name:"
+                    width: 130*pix
+                    topPadding: 0.14*margin
                 }
-                ColumnLayout {
-                    TextField {
-                        id: nameTextField
-                        Layout.alignment : Qt.AlignLeft
-                        Layout.preferredWidth: 400*pix
-                        Layout.preferredHeight: buttonHeight
-                    }
-                    ComboBox {
-                        id: parentComboBox
-                        Layout.preferredWidth: 400*pix
-                        editable: false
-                        model: nameModel
-                        ListModel {
-                            id: nameModel
-                        }
-                        onActivated: {
-                            if (index!==0) {
-                                parent2Label.visible = true
-                                parent2ComboBox.visible = true
-                            }
-                            else {
-                                parent2Label.visible = false
-                                parent2ComboBox.visible = false
+                TextField {
+                    id: nameTextField
+                    width: 400*pix
+                    height: buttonHeight
+                    onEditingFinished: {
+                        var prev_name = featureModel.get(indTree).name
+                        var new_name = nameTextField.text
+                        if (prev_name!==new_name) {
+                            for (var i=0;i<featureModel.count;i++) {
+                                var element = featureModel.get(i)
+                                if (element.parent===prev_name) {
+                                    element.parent = new_name
+                                }
                             }
                         }
+                        featureModel.setProperty(indTree, "name", text)
                     }
-                    ComboBox {
-                        id: parent2ComboBox
-                        Layout.preferredWidth: 400*pix
-                        editable: false
-                        model: name2Model
-                        ListModel {
-                            id: name2Model
+                    
+                }
+            }
+            Row {
+                Label {
+                    id: parentLabel
+                    width: nameLabel.width
+                    text: "Parent:"
+                    topPadding: 0.14*margin
+                }
+                ComboBox {
+                    id: parentComboBox
+                    width: 400*pix
+                    editable: false
+                    model: nameModel
+                    ListModel {
+                        id: nameModel
+                    }
+                    onActivated: {
+                        if (index!==0 && featureModel.count>2) {
+                            parent2Label.visible = true
+                            parent2ComboBox.visible = true
                         }
+                        else {
+                            parent2Label.visible = false
+                            parent2ComboBox.visible = false
+                        }
+                        featureModel.setProperty(indTree, "parent", currentValue)
+                    }
+                }
+            }
+            Row {
+                Label {
+                    id: parent2Label
+                    width: nameLabel.width
+                    text: "Parent 2:"
+                    topPadding: 0.14*margin
+                }
+                ComboBox {
+                    id: parent2ComboBox
+                    width: 400*pix
+                    editable: false
+                    model: name2Model
+                    ListModel {
+                        id: name2Model
+                    }
+                    onActivated: {
+                        featureModel.setProperty(indTree, "parent2", currentValue)
+                    }
+                }
+            }
+            Label {
+                text: "Color (RGB):"
+            }
+            Row {
+                spacing: 0.3*margin
+                bottomPadding: 0.2*margin
+                Label {
+                    text: "Red:"
+                    anchors.verticalCenter: redTextField.verticalCenter
+                }
+                TextField {
+                    id: redTextField
+                    text: "0"
+                    width: 0.25*buttonWidth
+                    height: buttonHeight
+                    validator: IntValidator { bottom: 0; top: 999;}
+                    onEditingFinished: {
+                        var val = parseFloat(redTextField.text)
+                        if (val>255) {
+                            val = 255
+                            redTextField.text = "255"
+                        }
+                        featureModel.setProperty(indTree, "colorR", val)
+                    }
+                    onAccepted: {
+                        backgroundMouseArea.focus = true
+                    }
+                }
+                Label {
+                    text: "Green:"
+                    anchors.verticalCenter: greenTextField.verticalCenter
+                }
+                TextField {
+                    id: greenTextField
+                    text: "0"
+                    width: 0.25*buttonWidth
+                    height: buttonHeight
+                    validator: IntValidator { bottom: 0; top: 999;}
+                    onEditingFinished: {
+                        var val = parseFloat(greenTextField.text)
+                        if (val>255) {
+                            val = 255
+                            greenTextField.text = "255"
+                        }
+                        featureModel.setProperty(indTree, "colorR", val)
+                        featureModel.get(indTree).colorR = val
+                    }
+                    onAccepted: {
+                        var val = parseFloat(greenTextField.text)
+                        if (val>255) {
+                            val = 255
+                            greenTextField.text = "255"
+                        }
+                        featureModel.setProperty(indTree, "colorR", val)
+                        backgroundMouseArea.focus = true
+                    }
+                }
+                Label {
+                    text: "Blue:"
+                    anchors.verticalCenter: blueTextField.verticalCenter
+                }
+                TextField {
+                    id: blueTextField
+                    text: "0"
+                    width: 0.25*buttonWidth
+                    height: buttonHeight
+                    maximumLength: 3
+                    validator: IntValidator { bottom: 0; top: 999;}
+                    onEditingFinished: {
+                        var val = parseFloat(blueTextField.text)
+                        if (val>255) {
+                            val = 255
+                            blueTextField.text = "255"
+                        }
+                        featureModel.setProperty(indTree, "colorR", val)
+                        featureModel.get(indTree).colorR = val
+                    }
+                    onAccepted: {
+                        var val = parseFloat(blueTextField.text)
+                        if (val>255) {
+                            val = 255
+                            blueTextField.text = "255"
+                        }
+                        featureModel.setProperty(indTree, "colorR", val)
+                        backgroundMouseArea.focus = true
                     }
                 }
             }
@@ -359,10 +500,11 @@ ApplicationWindow {
                     visible: borderCheckBox.checkState==Qt.Checked
                     width: 350*pix
                     wrapMode: Label.WordWrap
-                    text: "Ignore objects with broken border:"
+                    text: "Ignore objects with a broken border:"
                 }
                 CheckBox {
                     id: borderremoveobjsCheckBox
+                    anchors.verticalCenter: borderremoveobjsLabel.verticalCenter
                     visible: borderCheckBox.checkState==Qt.Checked
                     onClicked: {
                         if (checkState==Qt.Checked) {
@@ -393,7 +535,39 @@ ApplicationWindow {
             }
             
         }
-        MouseArea {
+    }
+    Button {
+        id: applyButton
+        text: "Apply"
+        anchors.horizontalCenter: rowLayout.horizontalCenter
+        anchors.top: rowLayout.bottom
+        width: buttonWidth/2
+        height: 1.2*buttonHeight
+        onClicked: {
+            Julia.backup_options()
+            Julia.reset_features()
+            Julia.reset_output_options()
+            for (var i=0;i<featureModel.count;i++) {
+                var feature = featureModel.get(i)
+                Julia.append_features(feature.id,
+                    [feature.name,
+                    feature.colorR,
+                    feature.colorG,
+                    feature.colorB,
+                    feature.border,
+                    feature.border_thickness,
+                    feature.borderRemoveObjs,
+                    feature.min_area,
+                    [feature.parent,feature.parent2],
+                    feature.notFeature])
+            }
+            // featuredialogLoader.sourceComponent = null
+            featuredialogWindow.close()
+        }
+    }
+
+    MouseArea {
+            id: backgroundMouseArea
             width: featuredialogWindow.width
             height: featuredialogWindow.height
             onPressed: {
@@ -406,45 +580,12 @@ ApplicationWindow {
             onPressAndHold: mouse.accepted = false;
             onClicked: mouse.accepted = false;
         }
+
+    function debug(el) {
+        console.log(el)
+        return el
     }
-    Button {
-        id: applyButton
-        text: "Apply"
-        anchors.horizontalCenter: rowLayout.horizontalCenter
-        anchors.top: rowLayout.bottom
-        width: buttonWidth/2
-        height: 1.2*buttonHeight
-        onClicked: {
-            var prev_name = featureModel.get(indTree).name
-            var new_name = nameTextField.text
-            if (prev_name!==new_name) {
-                for (var i=0;i<featureModel.count;i++) {
-                    var element = featureModel.get(i)
-                    if (element.parent===prev_name) {
-                        element.parent = new_name
-                    }
-                }
-            }
-            var feature = featureModel.get(indTree)
-            feature.name = new_name
-            feature.parent = parentComboBox.currentText
-            feature.parent2 = parent2ComboBox.currentText
-            var parents = [feature.parent,feature.parent2]
-            Julia.update_features(indTree+1,
-                                    feature.name,
-                                    feature.colorR,
-                                    feature.colorG,
-                                    feature.colorB,
-                                    feature.border,
-                                    feature.border_thickness,
-                                    feature.borderRemoveObjs,
-                                    feature.min_area,
-                                    [feature.parent,feature.parent2],
-                                    feature.notFeature)
-            // featuredialogLoader.sourceComponent = null
-            featuredialogWindow.close()
-        }
-    }
+
 }
 
 

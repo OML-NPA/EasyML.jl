@@ -25,6 +25,7 @@ channels = Channels()
 #---Model data
 
 abstract type AbstractFeature end
+abstract type AbstractOutputOptions end
 
 @with_kw mutable struct Output_mask
     mask::Bool = false
@@ -50,10 +51,14 @@ end
     normalisation::Int64 = 0
 end
 
-@with_kw mutable struct Segmentation_output_options
+@with_kw mutable struct Segmentation_output_options<:AbstractOutputOptions
     Mask::Output_mask = Output_mask()
     Area::Output_area = Output_area()
     Volume::Output_volume = Output_volume()
+end
+
+@with_kw mutable struct Classification_output_options<:AbstractOutputOptions
+    temp::Bool = false
 end
 
 @with_kw mutable struct Segmentation_feature<:AbstractFeature
@@ -65,7 +70,6 @@ end
     min_area::Int64 = 1
     parents::Vector{String} = ["",""]
     not_feature::Bool = false
-    Output::Segmentation_output_options = Segmentation_output_options()
 end
 
 @with_kw mutable struct Classification_feature<:AbstractFeature
@@ -77,11 +81,17 @@ end
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
     features::Vector{<:AbstractFeature} = Vector{Classification_feature}(undef,0)
+    output_options::Vector{<:AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
     loss::Function = Flux.Losses.crossentropy
 end
 model_data = Model_data()
 
 #---Master data
+@with_kw mutable struct Design_data
+    output_options_backup::Vector{AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
+end
+design_data = Design_data()
+
 @with_kw mutable struct Training_plot_data
     iteration::Int64 = 0
     epoch::Int64 = 0
@@ -156,6 +166,7 @@ end
 application_data = Application_data()
 
 @with_kw mutable struct Master_data
+    Design_data::Design_data = design_data
     Training_data::Training_data = training_data
     Validation_data::Validation_data = validation_data
     Application_data::Application_data = application_data
