@@ -183,6 +183,10 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
+    if model_data.features isa Vector{Classification_feature}
+        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
+        training.Options.General.weight_accuracy = false
+    end
     train_main2(settings,training_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
