@@ -235,14 +235,14 @@ Component.onCompleted: {
                     Frame {
                         id: layersFrame
                         y: layersLabel.height -2*pix
-                        height: 0.6*(customizationWindow.height - 2*layersLabel.height)
+                        height: 1*(customizationWindow.height - 1*layersLabel.height)
                         width: leftFrame.width
                         padding: 0
                         backgroundColor: defaultpalette.listview
                         ScrollableItem {
                             y: 2*pix
                             id: layersFlickable
-                            height: 0.6*(customizationWindow.height - 2*layersLabel.height)-4*pix
+                            height: layersFrame.height-4*pix
                             width: leftFrame.width-2*pix
                             contentHeight: 1.25*buttonHeight*(inoutlayerView.count + linearlayerView.count +
                                 normlayerView.count + activationlayerView.count + poolinglayerView.count +
@@ -596,6 +596,7 @@ Component.onCompleted: {
                 }
                 Item {
                     id: layergroupsItem
+                    visible: false
                     y: layersLabel.height + layersFrame.height - 2*pix
                     Label {
                         id: layergroupsLabel
