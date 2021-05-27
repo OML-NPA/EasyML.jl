@@ -12,8 +12,9 @@ ApplicationWindow {
     id: featuredialogWindow
     visible: true
     title: qsTr("  Julia Machine Learning GUI")
-    width: columnLayout.width
-    height: columnLayout.height
+    width: rowLayout.width
+    height: rowLayout.height + applyButton.height + 0.75*margin
+    property double indTree: JindTree
 
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
@@ -46,6 +47,14 @@ ApplicationWindow {
     //--------------------------------------------------------------------------
     function load_model_features(featureModel) {
         var num_features = Julia.num_features()
+            if (num_features<3) {
+            parent2ComboBox.visible = false
+            parent2Label.visible = false
+            if (Julia.num_features()<2) {
+                parentComboBox.visible = false
+                parentLabel.visible = false
+            }
+        }
         if (featureModel.count!==0) {
             featureModel.clear()
         }
@@ -69,70 +78,67 @@ ApplicationWindow {
         }
     }
 
+    function update_fields() {
+
+        nameTextField.text = featureModel.get(indTree).name
+        
+        minareaTextField.text = featureModel.get(indTree).min_area
+
+        // parentComboBox
+        // parentComboBox 1
+        nameModel.clear()
+        var name = featureModel.get(indTree).parent
+        nameModel.append({"name": ""})
+        for (var i=0;i<featureModel.count;i++) {
+            if (i===indTree) continue
+            nameModel.append({"name": featureModel.get(i).name})
+        }
+        if (name!=="") {
+            for (var i=0;i<parentComboBox.model.count;i++) {
+                if (parentComboBox.model.get(i).name===name) {
+                    parentComboBox.currentIndex = i
+                }
+            }
+        }
+        // parentComboBox 2
+        name2Model.clear()
+        var name1 = parentComboBox.currentText
+        name2Model.append({"name": ""})
+        for (i=0;i<featureModel.count;i++) {
+            name = featureModel.get(i).name
+            if (i===indTree || name1===name) continue
+            name2Model.append({"name": name})
+        }
+        var parentName = featureModel.get(indTree).parent2
+        if (parentName!=="") {
+            for (i=0;i<name2Model.count;i++) {
+                if (name2Model.get(i).name===parentName) {
+                    parent2ComboBox.currentIndex = i
+                }
+            }
+        }
+
+        // notfeatureCheckBox
+        notfeatureCheckBox.checkState = featureModel.get(indTree).notFeature ?
+                        Qt.Checked : Qt.Unchecked
+
+        // borderCheckBox
+        borderCheckBox.checkState = featureModel.get(indTree).border ?
+                        Qt.Checked : Qt.Unchecked
+
+        // bordernumpixelsSpinBox
+        bordernumpixelsSpinBox.value = featureModel.get(indTree).border_thickness
+
+        // borderremoveobjsLabel
+        borderremoveobjsCheckBox.checkState = featureModel.get(indTree).borderRemoveObjs ?
+                        Qt.Checked : Qt.Unchecked
+    }
+
     ListModel {
         id: featureModel
         Component.onCompleted: {
             load_model_features(featureModel)
-
-            if (Julia.num_features()<3) {
-                parent2ComboBox.visible = false
-                parent2Label.visible = false
-                if (Julia.num_features()<2) {
-                    parentComboBox.visible = false
-                    parentLabel.visible = false
-                }
-            }
-
-            nameTextField.text = featureModel.get(indTree).name
-            
-            minareaTextField.text = featureModel.get(indTree).min_area
-
-            // parentComboBox
-            // parentComboBox 1
-            parentComboBox.model.append({"name": ""})
-            for (var i=0;i<featureModel.count;i++) {
-                if (i===indTree) continue
-                parentComboBox.model.append({"name": featureModel.get(i).name})
-            }
-            var name = featureModel.get(indTree).parent
-            if (name!=="") {
-                for (i=0;i<parentComboBox.model.count;i++) {
-                    if (parentComboBox.model.get(i).name===name) {
-                        parentComboBox.currentIndex = i
-                    }
-                }
-            }
-            // parentComboBox 2
-            var name1 = parentComboBox.currentText
-            name2Model.append({"name": ""})
-            for (i=0;i<featureModel.count;i++) {
-                name = featureModel.get(i).name
-                if (i===indTree || name1===name) continue
-                name2Model.append({"name": name})
-            }
-            var parentName = featureModel.get(indTree).parent2
-            if (parentName!=="") {
-                for (i=0;i<name2Model.count;i++) {
-                    if (name2Model.get(i).name===parentName) {
-                        parent2ComboBox.currentIndex = i
-                    }
-                }
-            }
-
-            // notfeatureCheckBox
-            notfeatureCheckBox.checkState = featureModel.get(indTree).notFeature ?
-                            Qt.Checked : Qt.Unchecked
-
-            // borderCheckBox
-            borderCheckBox.checkState = featureModel.get(indTree).border ?
-                            Qt.Checked : Qt.Unchecked
-
-            // bordernumpixelsSpinBox
-            bordernumpixelsSpinBox.value = featureModel.get(indTree).border_thickness
-
-            // borderremoveobjsLabel
-            borderremoveobjsCheckBox.checkState = featureModel.get(indTree).borderRemoveObjs ?
-                            Qt.Checked : Qt.Unchecked
+            update_fields()
         }
     }
 
@@ -142,10 +148,88 @@ ApplicationWindow {
 
     // onClosing: {featuredialogLoader.sourceComponent = null}
 
-    ColumnLayout {
-        id: columnLayout
+    RowLayout {
+        id: rowLayout
+        spacing: 0.75*margin
         Column {
-            Layout.margins: margin
+            id: featuresColumn
+            Layout.alignment: Qt.AlignTop
+            Layout.margins: 0.75*margin
+            Layout.rightMargin: 0*margin
+            spacing: -2
+            Label {
+                width: buttonWidth + 0.5*margin
+                text: "Features:"
+                padding: 0.1*margin
+                leftPadding: 0.2*margin
+                background: Rectangle {
+                    anchors.fill: parent.fill
+                    color: "transparent"
+                    border.color: defaultpalette.border
+                    border.width: 2*pix
+                }
+            }
+            Frame {
+                id: featuresFrame
+                height: 1.37*432*pix
+                width: buttonWidth + 0.5*margin
+                backgroundColor: "white"
+                ScrollView {
+                    clip: true
+                    anchors.fill: parent
+                    padding: 0
+                    spacing: 0
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    Flickable {
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentHeight: featureView.height+buttonHeight-2*pix
+                        Item {
+                            ListView {
+                                id: featureView
+                                height: childrenRect.height
+                                spacing: 0
+                                boundsBehavior: Flickable.StopAtBounds
+                                model: featureModel
+                                delegate: TreeButton {
+                                    id: control
+                                    hoverEnabled: true
+                                    width: buttonWidth + 0.5*margin - 24*pix
+                                    height: buttonHeight - 2*pix
+                                    onClicked: {
+                                        indTree = index
+                                        update_fields()
+                                    }
+                                    RowLayout {
+                                        anchors.fill: parent.fill
+                                        Rectangle {
+                                            id: colorRectangle
+                                            Layout.leftMargin: 0.2*margin
+                                            Layout.bottomMargin: 6*pix
+                                            Layout.alignment: Qt.AlignBottom
+                                            height: 30*pix
+                                            width: 30*pix
+                                            border.width: 2*pix
+                                            radius: colorRectangle.width
+                                            color: rgbtohtml([colorR,colorG,colorB])
+                                        }
+                                        Label {
+                                            topPadding: 0.15*margin
+                                            leftPadding: 0.10*margin
+                                            text: name
+                                            Layout.alignment: Qt.AlignBottom
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Column {
+            Layout.alignment: Qt.AlignTop
+            Layout.margins: 0.75*margin
+            Layout.leftMargin: 0*margin
             spacing: 0.4*margin
             RowLayout {
                 spacing: 0.34*margin
@@ -307,43 +391,7 @@ ApplicationWindow {
                     }
                 }
             }
-            Button {
-                id: applyButton
-                text: "Apply"
-                x: columnLayout.width/2 -applyButton.width/1.20
-                width: buttonWidth/2
-                height: buttonHeight
-                onClicked: {
-                    var prev_name = featureModel.get(indTree).name
-                    var new_name = nameTextField.text
-                    if (prev_name!==new_name) {
-                        for (var i=0;i<featureModel.count;i++) {
-                            var element = featureModel.get(i)
-                            if (element.parent===prev_name) {
-                                element.parent = new_name
-                            }
-                        }
-                    }
-                    var feature = featureModel.get(indTree)
-                    feature.name = new_name
-                    feature.parent = parentComboBox.currentText
-                    feature.parent2 = parent2ComboBox.currentText
-                    var parents = [feature.parent,feature.parent2]
-                    Julia.update_features(indTree+1,
-                                          feature.name,
-                                          feature.colorR,
-                                          feature.colorG,
-                                          feature.colorB,
-                                          feature.border,
-                                          feature.border_thickness,
-                                          feature.borderRemoveObjs,
-                                          feature.min_area,
-                                          [feature.parent,feature.parent2],
-                                          feature.notFeature)
-                    // featuredialogLoader.sourceComponent = null
-                    featuredialogWindow.close()
-                }
-            }
+            
         }
         MouseArea {
             width: featuredialogWindow.width
@@ -357,6 +405,44 @@ ApplicationWindow {
             onPositionChanged: mouse.accepted = false;
             onPressAndHold: mouse.accepted = false;
             onClicked: mouse.accepted = false;
+        }
+    }
+    Button {
+        id: applyButton
+        text: "Apply"
+        anchors.horizontalCenter: rowLayout.horizontalCenter
+        anchors.top: rowLayout.bottom
+        width: buttonWidth/2
+        height: 1.2*buttonHeight
+        onClicked: {
+            var prev_name = featureModel.get(indTree).name
+            var new_name = nameTextField.text
+            if (prev_name!==new_name) {
+                for (var i=0;i<featureModel.count;i++) {
+                    var element = featureModel.get(i)
+                    if (element.parent===prev_name) {
+                        element.parent = new_name
+                    }
+                }
+            }
+            var feature = featureModel.get(indTree)
+            feature.name = new_name
+            feature.parent = parentComboBox.currentText
+            feature.parent2 = parent2ComboBox.currentText
+            var parents = [feature.parent,feature.parent2]
+            Julia.update_features(indTree+1,
+                                    feature.name,
+                                    feature.colorR,
+                                    feature.colorG,
+                                    feature.colorB,
+                                    feature.border,
+                                    feature.border_thickness,
+                                    feature.borderRemoveObjs,
+                                    feature.min_area,
+                                    [feature.parent,feature.parent2],
+                                    feature.notFeature)
+            // featuredialogLoader.sourceComponent = null
+            featuredialogWindow.close()
         }
     }
 }
