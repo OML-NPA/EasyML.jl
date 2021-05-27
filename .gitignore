@@ -8,3 +8,4 @@ source/GUI/qml.qrc
 *.bson
 .vscode/settings.json
 config.bson
+src/test.jl
