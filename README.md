@@ -19,7 +19,7 @@ Only image data and image segmentation is currently supported.
 #### Setting up
 Add the package from this repository to Julia using 
 
-`] add https://github.com/OML-NPA/MLGUI.jl`
+`] add https://github.com/OML-NPA/EasyML.jl`
 
 and then write
 
