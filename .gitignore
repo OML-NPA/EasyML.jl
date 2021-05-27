@@ -9,3 +9,4 @@ source/GUI/qml.qrc
 .vscode/settings.json
 config.bson
 src/test.jl
+*.docx
