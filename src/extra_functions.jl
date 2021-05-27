@@ -101,20 +101,20 @@ function prepare_training_data()
     p = Progress(0)
     while true
         if max_value!=0
-            temp_value = MLGUI.get_progress("Training data preparation")
+            temp_value = get_progress("Training data preparation")
             if temp_value!=false
                 value += temp_value
                 # handle progress here
                 next!(p)
             elseif value==max_value
-                state = MLGUI.get_results("Training data preparation")
+                state = get_results("Training data preparation")
                 if state==true
                     # reset progress here
                     break
                 end
             end
         else
-            temp_value = MLGUI.get_progress("Training data preparation")
+            temp_value = get_progress("Training data preparation")
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value
@@ -180,10 +180,10 @@ function modify(data)
 end
 
 function train()
-    MLGUI.empty_progress_channel("Training")
-    MLGUI.empty_results_channel("Training")
-    MLGUI.empty_progress_channel("Training modifiers")
-    MLGUI.train_main2(settings,MLGUI.training_data,model_data,MLGUI.channels)
+    empty_progress_channel("Training")
+    empty_results_channel("Training")
+    empty_progress_channel("Training modifiers")
+    train_main2(settings,training_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
         # Data handling
@@ -371,7 +371,7 @@ function apply()
     p = Progress(0)
     while true
         if max_value!=0
-            temp_value = MLGUI.get_progress("Application")
+            temp_value = get_progress("Application")
             if temp_value!=false
                 value += temp_value
                 # handle progress here
@@ -381,7 +381,7 @@ function apply()
                 break
             end
         else
-            temp_value = MLGUI.get_progress("Application")
+            temp_value = get_progress("Application")
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value

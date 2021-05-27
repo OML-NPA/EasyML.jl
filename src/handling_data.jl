@@ -502,7 +502,7 @@ save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
 function load_model_main(settings,model_data,url)
-    url = MLGUI.fix_QML_types(url)
+    url = fix_QML_types(url)
     data = BSON.load(url)
     ks = keys(data)
     for k in ks
