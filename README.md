@@ -1,4 +1,4 @@
-# MLGUI.jl
+# EasyML.jl
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=EJ2J3BVKYPJPY)
 
 This package allows to use machine learning in Julia through a graphical user interface.
