@@ -57,7 +57,7 @@ function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angl
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
-    @floop ThreadedEx() for g = 1:num
+    for g = 1:num
         angle_val = angles[g]
         img2 = rotate_img(float_img,angle_val)
         size1_adj = size12[1]*0.9
@@ -73,16 +73,20 @@ function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angl
                 ymin = (i-1)*step1+1
                 xmin = (j-1)*step2+1
                 I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
-                if MLGUI.std(I1)<0.01
+                if std(I1)<0.01
                     continue
                 else
                     for h = 1:2
                         if h==1
                             I1_out = I1
-                        elseif h==2
+                        else
                             I1_out = reverse(I1, dims = 2)
                         end
                         data_out = I1_out
+                        if !isassigned(data_out)
+                            @info (g,i,j,h)
+                            return nothing
+                        end
                         push!(data,data_out)
                     end
                 end
@@ -152,7 +156,7 @@ function prepare_training_data_classification(classification_data::Classificatio
     # Return progress target value
     put!(progress, num+2)
     # Load images
-    imgs = MLGUI.load_images.(urls)
+    imgs = load_images.(urls)
     put!(progress, 1)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
@@ -163,7 +167,7 @@ function prepare_training_data_classification(classification_data::Classificatio
         label = convert(Int32,k)
         data_input_temp = Vector{Vector{Array{Float32,3}}}(undef,num2)
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
-        @floop ThreadedEx() for l in 1:num2
+        for l = 1:num2
             # Abort if requested
             if isready(channels.training_data_modifiers)
                 if fetch(channels.training_data_modifiers)[1]=="stop"
@@ -177,7 +181,7 @@ function prepare_training_data_classification(classification_data::Classificatio
             # Augment images
             data = augment(float_img,size12,num_angles)
             data_input_temp[l] = data
-            data_label_temp[l] = label*ones(Int32,length(data_input_temp))
+            data_label_temp[l] = label*ones(Int32,length(data))
         end
         data_input_flat_temp = reduce(vcat,data_input_temp)
         data_label_flat_temp = reduce(vcat,data_label_temp)
@@ -298,10 +302,10 @@ end
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
-function get_train_test(training_data::Union{Classification_data,Segmentation_data},training::Training)
+function get_train_test(data::Union{Classification_data,Segmentation_data},training::Training)
     # Get inputs and labels
-    data_input = training_data.data_input
-    data_labels = training_data.data_labels
+    data_input = data.data_input
+    data_labels = data.data_labels
     # Get the number of elements
     num = length(data_input)
     # Get shuffle indices
@@ -333,6 +337,27 @@ function make_minibatch_inds(num_data::Int64,batch_size::Int64)
     return inds_start,inds_all,num
 end
 
+function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
+        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        inds_all::Vector{Int64},i::Int64)
+    ind = inds_start[i]
+    # First and last minibatch indices
+    ind1 = ind+1
+    ind2 = ind+batch_size
+    # Get inputs and labels
+    current_inds = inds_all[ind1:ind2]
+    current_input = data_input[current_inds]
+    f = x -> permutedims(reshape(Flux.onehot(x,max_labels),:,1,1,1),[3,2,1,4])
+    current_labels_int32 = map(x->f(x),data_labels[current_inds])
+    current_labels = convert.(Array{Float32,4},current_labels_int32)
+    # Catenating inputs and labels
+    current_input_cat = reduce(cat4,current_input)
+    current_labels_cat = reduce(cat4,current_labels)
+    # Form a minibatch
+    minibatch = (current_input_cat,current_labels_cat)
+    return minibatch
+end
+
 function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{BitArray{3}},
         max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
@@ -346,28 +371,10 @@ function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector
     current_input = data_input[current_inds]
     current_labels = data_labels[current_inds]
     # Catenating inputs and labels
-    current_input_cat = reduce(cat4,current_input)[:,:,:,:]
-    current_labels_cat = reduce(cat4,current_labels)[:,:,:,:]
-    # Form a minibatch
-    minibatch = (current_input_cat,current_labels_cat)
-    return minibatch
-end
-
-function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
-        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
-        inds_all::Vector{Int64},i::Int64)
-    ind = inds_start[i]
-    # First and last minibatch indices
-    ind1 = ind+1
-    ind2 = ind+batch_size
-    # Get inputs and labels
-    current_inds = inds_all[ind1:ind2]
-    current_input = data_input[current_inds]
-    current_labels_int32 = map(x->Flux.onehot(x,max_labels),data_labels[current_inds])
-    current_labels = convert.(Vector{Float32},current_labels_int32)
-    # Catenating inputs and labels
-    current_input_cat = reduce(cat4,current_input)[:,:,:,:]
-    current_labels_cat = reduce(cat4,current_labels)[:,:,:,:]
+    temp_input = reduce(cat4,current_input)
+    current_input_cat = reshape(temp_input,size(temp_input)...,1)
+    temp_labels = reduce(cat4,current_labels)
+    current_labels_cat = reshape(temp_labels,size(temp_labels)...,1)
     # Form a minibatch
     minibatch = (current_input_cat,current_labels_cat)
     return minibatch
@@ -721,7 +728,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     if model_data.features isa Vector{Classification_feature}
-        max_labels = length(training_data.Classification_data.labels)
+        max_labels = convert(Vector{Int32},1:length(training_data.Classification_data.labels))
     else
         max_labels = Vector{Int32}(undef,0)
     end
@@ -802,9 +809,9 @@ function train_main(settings::Settings,training_data::Training_data,
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
     if model_data.features isa Vector{Classification_feature}
-        train_set, test_set = get_train_test(training_data.Classification,training)
+        train_set, test_set = get_train_test(training_data.Classification_data,training)
     elseif model_data.features isa Vector{Segmentaion_feature}
-        train_set, test_set = get_train_test(training_data.Segmentation,training)
+        train_set, test_set = get_train_test(training_data.Segmentation_data,training)
     end
     # Setting functions and parameters
     opt = get_optimiser(training)
