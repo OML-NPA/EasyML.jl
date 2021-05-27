@@ -1,7 +1,7 @@
 
 #__precompile__(false)
 
-module MLGUI
+module EasyML
 # Needed to avoid an endless loop for Julia canvas
 ENV["QSG_RENDER_LOOP"] = "basic"
 # Import packages
