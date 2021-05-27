@@ -24,7 +24,7 @@ for i in 0:9
 end
 model_data.features = features
 
-modify(model_data.features[1])
+modify_feature(1)
 
 design_network()
 
@@ -36,7 +36,7 @@ label_dir = "C:/Users/a_ill/Documents/GitHub/EasyML.jl/src/Examples/Segmentation
 get_urls_training(input_dir,label_dir)
 
 input_dir = "C:/Users/a_ill/Documents/GitHub/EasyML.jl/src/Examples/Classification/Train"
-get_urls_training(input_dir)
+
 
 prepare_training_data()
 

@@ -29,6 +29,36 @@ function design_network()
     return nothing
 end
 
+function modify_feature(ind::Int64)
+    if isempty(model_data.features)
+        @warn "Features are empty. Add features to the 'model_data'."
+        return nothing
+    end
+    if typeof(model_data.features)==Vector{Segmentation_feature}
+        if ind<1
+            @warn "Input must be a positive integer."
+            return nothing
+        end
+        l = length(model_data.features)
+        if ind>l
+            @warn "There are only ",l," features."
+            return nothing
+        end
+
+        @qmlfunction(
+            get_feature_field,
+            num_features,
+            update_features,
+            get_settings,
+            set_settings,
+            save_settings
+        )
+        loadqml("GUI/FeatureDialog.qml",indTree = ind-1)
+        exec()
+    end
+    return nothing
+end
+
 # Training
 function get_urls_training(input_dir::String,label_dir::String)
     training.input_dir = input_dir
