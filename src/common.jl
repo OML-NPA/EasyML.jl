@@ -117,7 +117,8 @@ end
 
 # Convert images to grayscale Array{Float32,2}
 function image_to_gray_float(image::Array{RGB{Normed{UInt8,8}},2})
-    return collect(channelview(float.(Gray.(image))))[:,:,:]
+    img_temp = channelview(float.(Gray.(image)))
+    return collect(reshape(img_temp,size(img_temp)...,1))
 end
 
 # Convert images to RGB Array{Float32,3}
@@ -318,7 +319,6 @@ function accuracy_weighted(predicted::Array{Float32,4},actual::Array{Float32,4})
     # Calculate correct and incorrect feature pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
     dif_bool = xor.(predicted_bool,actual_bool)
-    #@info size(predicted_bool), size(dif_bool), size(actual)
     # Calculate correct and incorrect background pixels as a BitArray
     correct_background_bool = (!).(dif_bool .| actual_bool)
     dif_background_bool = dif_bool-actual_bool
