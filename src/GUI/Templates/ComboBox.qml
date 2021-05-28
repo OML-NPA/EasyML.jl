@@ -39,7 +39,7 @@ T.ComboBox {
         inputMethodHints: control.inputMethodHints
         validator: control.validator
 
-        font.family: control.font.family
+        font.family: "Proxima Nova"//control.font.family
         font.pointSize: 10
         color: control.editable ? control.palette.text : control.palette.buttonText
         selectionColor: control.palette.highlight
