@@ -123,6 +123,20 @@ function get_urls_training()
 end
 
 function prepare_training_data()
+    fields = fieldnames(Classification_data)
+    for i in fields
+        empty!(getfield(classification_data,i))
+    end
+    fields = fieldnames(Segmentation_data)
+    for i in fields
+        empty!(getfield(segmentation_data,i))
+    end
+    empty!(training_data.Classification_data.data_input)
+    empty!(training_data.Classification_data.data_labels)
+    empty!(training_data.Classification_data.input_urls)
+    empty!(training_data.Classification_data.labels)
+    empty!(training_data.Segmentation_data.data_input)
+    empty!(training_data.Segmentation_data.data_labels)
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
     prepare_training_data_main2(training,training_data,model_data,
@@ -152,8 +166,7 @@ function prepare_training_data()
                     p.n = convert(Int64,max_value)
                 else
                     break
-                    @warn "No data to process"
-                    # No training data
+                    @error "No data to process."
                 end
             end
         end
