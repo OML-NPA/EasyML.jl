@@ -32,11 +32,11 @@ end
 function modify_features()
     features = model_data.features
     if isempty(features)
-        @warn "Features are empty. Add features to the 'model_data'."
+        @error "Features are empty. Add features to the 'model_data'."
         return nothing
     end
     if !(features isa Vector{Segmentation_feature})
-        @warn string("There is nothing to change in a ",eltype(features))
+        @error string("There is nothing to change in a ",eltype(features))
         return nothing
     end
     @qmlfunction(
@@ -61,11 +61,11 @@ function get_urls_training(input_dir::String,label_dir::String)
     training.input_dir = input_dir
     training.label_dir = label_dir
     if !isdir(input_dir)
-        @warn string(input_dir," does not exist.")
+        @error string(input_dir," does not exist.")
         return nothing
     end
     if !isdir(label_dir)
-        @warn string(label_dir," does not exist.")
+        @error string(label_dir," does not exist.")
         return nothing
     end
     get_urls_training_main(training,training_data,model_data)
@@ -74,12 +74,12 @@ end
 
 function get_urls_training(input_dir::String)
     if eltype(model_data.features)!=Classification_feature
-        @warn "Label data directory URL was not given. Aborted"
+        @error "Label data directory URL was not given."
         return nothing
     end
     training.input_dir = input_dir
     if !isdir(input_dir)
-        @warn string(input_dir," does not exist.")
+        @error string(input_dir," does not exist.")
         return nothing
     end
     get_urls_training_main(training,training_data,model_data)
@@ -97,7 +97,7 @@ function get_urls_training()
     exec()
     sleep(0.1)
     if training.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty."
         return nothing
     else
         @info string(training.input_dir, " was selected.")
@@ -112,7 +112,7 @@ function get_urls_training()
     exec()
     sleep(0.1)
     if training.label_dir==""
-        @warn "Label data directory URL is empty. Aborted"
+        @error "Label data directory URL is empty."
         return nothing
     else
         @info string(training.label_dir, " was selected.")
@@ -227,11 +227,11 @@ end
 
 function get_urls_validation(input_dir::String,label_dir::String)
     if !isdir(input_dir)
-        @info string(input_dir," does not exist.")
+        @error string(input_dir," does not exist.")
         return nothing
     end
     if !isdir(label_dir)
-        @info string(label_dir," does not exist.")
+        @error string(label_dir," does not exist.")
         return nothing
     end
     validation.input_dir = input_dir
@@ -243,7 +243,8 @@ end
 
 function get_urls_validation(input_dir::String)
     if !isdir(input_dir)
-        @warn string(input_dir," does not exist.")
+        @error string(input_dir," does not exist.")
+        return nothing
     end
     validation.input_dir = input_dir
     validation.use_labels = true
@@ -262,7 +263,7 @@ function get_urls_validation()
     exec()
     sleep(0.1)
     if validation.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty. Aborted"
         return nothing
     else
         @info string(training.input_dir, " was selected.")
@@ -343,7 +344,7 @@ end
 
 function get_urls_application(input_dir::String)
     if !isdir(input_dir)
-        @warn string(input_dir," does not exist.")
+        @error string(input_dir," does not exist.")
         return nothing
     end
     application.input_dir = input_dir
@@ -363,7 +364,7 @@ function get_urls_application()
     exec()
     sleep(0.1)
     if application.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty."
         return nothing
     else
         @info string(application.input_dir, " was selected.")
@@ -399,7 +400,7 @@ function apply()
                     p.n = convert(Int64,max_value)
                 else
                     break
-                    @warn "No data to process."
+                    @error "No data to process."
                     # No data
                 end
             end
