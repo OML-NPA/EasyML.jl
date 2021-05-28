@@ -498,6 +498,14 @@ function backup_options_main(model_data::Model_data)
 end
 backup_options() = backup_options_main(model_data)
 
+function get_problem_type()
+    if eltype(model_data.features)==Classification_feature
+        return 0
+    elseif eltype(model_data.features)==Segmentation_feature
+        return 1
+    end
+end
+
 #---Model saving/loading
 # Saves ML model
 function save_model_main(model_data,url)

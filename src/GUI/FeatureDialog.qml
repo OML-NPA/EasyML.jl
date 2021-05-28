@@ -47,10 +47,10 @@ ApplicationWindow {
 
     //--------------------------------------------------------------------------
     function load_model_features(featureModel) {
+        problemComboBox.currentIndex = Julia.get_problem_type()
         var num_features = Julia.num_features()
             if (num_features<3) {
-            parent2ComboBox.visible = false
-            parent2Label.visible = false
+            parent2Row.visible = false
             if (Julia.num_features()<2) {
                 parentComboBox.visible = false
                 parentLabel.visible = false
@@ -61,8 +61,6 @@ ApplicationWindow {
         }
         for (var i=0;i<num_features;i++) {
             var ind = i+1
-            var color = Julia.get_feature_field(ind,"color")
-            var parents = Julia.get_feature_field(ind,"parents")
             if (i+1<max_id) {
                 var id = ids[i]
             }
@@ -70,24 +68,64 @@ ApplicationWindow {
                 max_id += 1
                 id = max_id
             }
-            var feature = {
-                "name": Julia.get_feature_field(ind,"name"),
-                "id": id,
-                "colorR": color[0],
-                "colorG": color[1],
-                "colorB": color[2],
-                "border": Julia.get_feature_field(ind,"border"),
-                "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
-                "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
-                "min_area": Julia.get_feature_field(ind,"min_area"),
-                "parent": parents[0],
-                "parent2": parents[1],
-                "notFeature": Julia.get_feature_field(ind,"not_feature")}
+            if (problemComboBox.currentIndex==0) {
+                var feature = {
+                    "id": id,
+                    "name": Julia.get_feature_field(ind,"name")
+                }
+                featureModel.append(feature)
+            }
+            else if (problemComboBox.currentIndex==1) {
+                var color = Julia.get_feature_field(ind,"color")
+                var parents = Julia.get_feature_field(ind,"parents")
+                feature = {
+                    "id": id,
+                    "name": Julia.get_feature_field(ind,"name"),
+                    "colorR": color[0],
+                    "colorG": color[1],
+                    "colorB": color[2],
+                    "border": Julia.get_feature_field(ind,"border"),
+                    "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
+                    "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
+                    "min_area": Julia.get_feature_field(ind,"min_area"),
+                    "parent": parents[0],
+                    "parent2": parents[1],
+                    "notFeature": Julia.get_feature_field(ind,"not_feature")
+                }
+            }
             featureModel.append(feature)
         }
     }
 
+    function update_visibility() {
+        nameTextField.visible = false
+        colorLabel.visible = false
+        colorRow.visible = false
+        minareaRow.visible = false
+        parentRow.visible = false
+        notfeatureRow.visible = false
+        borderRow.visible = false
+        bordernumpixelsRow.visible = false
+        borderremoveobjsRow.visible = false
+    }
+
     function update_fields() {
+        
+        nameTextField.visible = true
+        if (problemComboBox.currentIndex==0) {
+
+        }
+        else if (problemComboBox.currentIndex==1) {
+            colorLabel.visible = true
+            colorRow.visible = true
+            minareaRow.visible = true
+            parentRow.visible = true
+            notfeatureRow.visible = true
+            borderRow.visible = true
+            bordernumpixelsRow.visible = true
+            borderremoveobjsRow.visible = true
+        }
+        
         if (indTree<0) {
             parametersColumn.opacity = 0
             return
@@ -95,65 +133,77 @@ ApplicationWindow {
         else {
             parametersColumn.opacity = 1
         }
-
         featureView.itemAtIndex(indTree).borderForceVisible = true
 
         nameTextField.text = featureModel.get(indTree).name
         
-        redTextField.text = featureModel.get(indTree).colorR
-        greenTextField.text = featureModel.get(indTree).colorG
-        blueTextField.text = featureModel.get(indTree).colorB
+        if (problemComboBox.currentIndex==0) {
 
-        minareaTextField.text = featureModel.get(indTree).min_area
-
-        // parentComboBox
-        // parentComboBox 1
-        nameModel.clear()
-        var name = featureModel.get(indTree).parent
-        nameModel.append({"name": ""})
-        for (var i=0;i<featureModel.count;i++) {
-            if (i===indTree) continue
-            nameModel.append({"name": featureModel.get(i).name})
         }
-        if (name!=="") {
-            for (var i=0;i<parentComboBox.model.count;i++) {
-                if (parentComboBox.model.get(i).name===name) {
-                    parentComboBox.currentIndex = i
+        else if (problemComboBox.currentIndex==1) {
+            colorLabel.visible = true
+            colorRow.visible = true
+            minareaRow.visible = true
+            parentRow.visible = true
+            notfeatureRow.visible = true
+            borderRow.visible = true
+            bordernumpixelsRow.visible = true
+            borderremoveobjsRow.visible = true
+
+            redTextField.text = featureModel.get(indTree).colorR
+            greenTextField.text = featureModel.get(indTree).colorG
+            blueTextField.text = featureModel.get(indTree).colorB
+
+            minareaTextField.text = featureModel.get(indTree).min_area
+
+            // parentComboBox 1
+            nameModel.clear()
+            var name = featureModel.get(indTree).parent
+            nameModel.append({"name": ""})
+            for (var i=0;i<featureModel.count;i++) {
+                if (i===indTree) continue
+                nameModel.append({"name": featureModel.get(i).name})
+            }
+            if (name!=="") {
+                for (var i=0;i<parentComboBox.model.count;i++) {
+                    if (parentComboBox.model.get(i).name===name) {
+                        parentComboBox.currentIndex = i
+                    }
                 }
             }
-        }
-        // parentComboBox 2
-        name2Model.clear()
-        var name1 = parentComboBox.currentText
-        name2Model.append({"name": ""})
-        for (i=0;i<featureModel.count;i++) {
-            name = featureModel.get(i).name
-            if (i===indTree || name1===name) continue
-            name2Model.append({"name": name})
-        }
-        var parentName = featureModel.get(indTree).parent2
-        if (parentName!=="") {
-            for (i=0;i<name2Model.count;i++) {
-                if (name2Model.get(i).name===parentName) {
-                    parent2ComboBox.currentIndex = i
+            // parentComboBox 2
+            name2Model.clear()
+            var name1 = parentComboBox.currentText
+            name2Model.append({"name": ""})
+            for (i=0;i<featureModel.count;i++) {
+                name = featureModel.get(i).name
+                if (i===indTree || name1===name) continue
+                name2Model.append({"name": name})
+            }
+            var parentName = featureModel.get(indTree).parent2
+            if (parentName!=="") {
+                for (i=0;i<name2Model.count;i++) {
+                    if (name2Model.get(i).name===parentName) {
+                        parent2ComboBox.currentIndex = i
+                    }
                 }
             }
+
+            // notfeatureCheckBox
+            notfeatureCheckBox.checkState = featureModel.get(indTree).notFeature ?
+                            Qt.Checked : Qt.Unchecked
+
+            // borderCheckBox
+            borderCheckBox.checkState = featureModel.get(indTree).border ?
+                            Qt.Checked : Qt.Unchecked
+
+            // bordernumpixelsSpinBox
+            bordernumpixelsSpinBox.value = featureModel.get(indTree).border_thickness
+
+            // borderremoveobjsLabel
+            borderremoveobjsCheckBox.checkState = featureModel.get(indTree).borderRemoveObjs ?
+                            Qt.Checked : Qt.Unchecked
         }
-
-        // notfeatureCheckBox
-        notfeatureCheckBox.checkState = featureModel.get(indTree).notFeature ?
-                        Qt.Checked : Qt.Unchecked
-
-        // borderCheckBox
-        borderCheckBox.checkState = featureModel.get(indTree).border ?
-                        Qt.Checked : Qt.Unchecked
-
-        // bordernumpixelsSpinBox
-        bordernumpixelsSpinBox.value = featureModel.get(indTree).border_thickness
-
-        // borderremoveobjsLabel
-        borderremoveobjsCheckBox.checkState = featureModel.get(indTree).borderRemoveObjs ?
-                        Qt.Checked : Qt.Unchecked
     }
 
     ListModel {
@@ -164,11 +214,6 @@ ApplicationWindow {
             update_fields()
         }
     }
-
-    ListModel {
-        id: dummyModel
-    }
-
 
     //-------------------------------------------------------------------------
 
@@ -185,8 +230,35 @@ ApplicationWindow {
             Layout.margins: 0.75*margin
             Layout.rightMargin: 0*margin
             spacing: -2
+            Row {
+                id: problemRow
+                spacing: 0.3*margin
+                bottomPadding: 0.5*margin
+                Label {
+                    id: problemtypeLabel
+                    text: "Problem:"
+                    anchors.verticalCenter: problemComboBox.verticalCenter
+                }
+                ComboBox {
+                    id: problemComboBox
+                    editable: false
+                    width: 0.69*buttonWidth-1*pix
+                    model: ListModel {
+                        id: problemtypeModel
+                        ListElement {text: "Classification"}
+                        ListElement {text: "Segmentation"}
+                        ListElement {text: "Regression"}
+                    }
+                    onActivated: {
+                        featureModel.clear()
+                        indTree = -1
+                        update_fields()
+                    }
+                }
+            }
             Label {
-                width: buttonWidth + 0.5*margin
+                id: featuresLabel
+                width: buttonWidth + 0.5*margin - 5*pix
                 text: "Features:"
                 padding: 0.1*margin
                 leftPadding: 0.2*margin
@@ -199,8 +271,8 @@ ApplicationWindow {
             }
             Frame {
                 id: featuresFrame
-                height: 1.66*432*pix
-                width: buttonWidth + 0.5*margin
+                height: Math.max(parametersColumn.height - problemRow.height - featuresLabel.height,300*pix)
+                width: buttonWidth + 0.5*margin - 5*pix
                 backgroundColor: "white"
                 ScrollView {
                     clip: true
@@ -222,7 +294,7 @@ ApplicationWindow {
                                     id: treeButton
                                     x: 1
                                     hoverEnabled: true
-                                    width: buttonWidth + 0.5*margin - 24*pix
+                                    width: featuresFrame.width - 24*pix
                                     height: buttonHeight - 2*pix
                                     onClicked: {
                                         for (var i=0;i<featureModel.count;i++) {
@@ -234,6 +306,7 @@ ApplicationWindow {
                                     }
                                     Rectangle {
                                         id: colorRectangle
+                                        visible: problemComboBox.currentIndex==1
                                         anchors.left: treeButton.left
                                         anchors.verticalCenter: treeButton.verticalCenter
                                         anchors.leftMargin: 15*pix
@@ -241,11 +314,14 @@ ApplicationWindow {
                                         width: 30*pix
                                         border.width: 2*pix
                                         radius: colorRectangle.width
-                                        color: rgbtohtml([colorR,colorG,colorB])
+                                        color: problemComboBox.currentIndex==1 ? 
+                                            rgbtohtml([colorR,colorG,colorB]) :
+                                            "transparent"
                                     }
                                     Label {
                                         anchors.left: colorRectangle.left
-                                        anchors.leftMargin: 50*pix
+                                        anchors.leftMargin: problemComboBox.currentIndex==1 ? 
+                                            50*pix : 10*pix
                                         anchors.verticalCenter: treeButton.verticalCenter
                                         text: name
                                     }
@@ -289,7 +365,7 @@ ApplicationWindow {
                                 hoverEnabled: true
                                 anchors.top: featureView.bottom
                                 x: 1
-                                width: buttonWidth + 0.5*margin - 24*pix
+                                width: featuresFrame.width - 24*pix
                                 height: buttonHeight - 2*pix
                                 background: Rectangle {
                                     color: "transparent"
@@ -301,37 +377,47 @@ ApplicationWindow {
                                     var name = "Feature "+cnt.toString()
                                     while (true) {
                                         for (var i=0;i<featureModel.count;i++) {
-                                            console.log(featureModel.get(i).name,name)
                                             if (featureModel.get(i).name==name) {
                                                 cnt += 1
                                                 name = "Feature "+cnt.toString()
                                                 break
                                             }
                                         }
-                                        console.log(i,(featureModel.count))
                                         if(i==(featureModel.count)) {
                                             break
                                         }
                                     }
                                     max_id += 1
                                     var id = max_id
-                                    var feature = {
-                                        "name": name,
-                                        "id": id,
-                                        "colorR": Math.floor(Math.random()*255)+1,
-                                        "colorG": Math.floor(Math.random()*255)+1,
-                                        "colorB": Math.floor(Math.random()*255)+1,
-                                        "border": false,
-                                        "border_thickness": 3,
-                                        "borderRemoveObjs": false,
-                                        "min_area": 0,
-                                        "parent": "",
-                                        "parent2": "",
-                                        "notFeature": false}
+                                    if (problemComboBox.currentIndex==0) {
+                                        var feature = {
+                                            "name": name,
+                                            "id": id
+                                        }
+                                    }
+                                    else if (problemComboBox.currentIndex==1) {
+                                        var feature = {
+                                            "name": name,
+                                            "id": id,
+                                            "colorR": Math.floor(Math.random()*255)+1,
+                                            "colorG": Math.floor(Math.random()*255)+1,
+                                            "colorB": Math.floor(Math.random()*255)+1,
+                                            "border": false,
+                                            "border_thickness": 3,
+                                            "borderRemoveObjs": false,
+                                            "min_area": 0,
+                                            "parent": "",
+                                            "parent2": "",
+                                            "notFeature": false
+                                        }
+                                    }
+                                    
                                     featureModel.append(feature)
                                     if (indTree<0) {
                                         indTree = 0
                                     }
+                                    featureView.forceLayout()
+                                    update_visibility()
                                     update_fields()
                                 }
                                 Item {
@@ -395,6 +481,7 @@ ApplicationWindow {
             Layout.leftMargin: 0*margin
             spacing: 0.4*margin
             Row {
+                id: nameRow
                 Label {
                     id: nameLabel
                     text: "Name:"
@@ -422,6 +509,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: parentRow
+                visible: false
                 Label {
                     id: parentLabel
                     width: nameLabel.width
@@ -438,18 +527,18 @@ ApplicationWindow {
                     }
                     onActivated: {
                         if (index!==0 && featureModel.count>2) {
-                            parent2Label.visible = true
-                            parent2ComboBox.visible = true
+                            parent2Row.visible = true
                         }
                         else {
-                            parent2Label.visible = false
-                            parent2ComboBox.visible = false
+                            parent2Row.visible = false
                         }
                         featureModel.setProperty(indTree, "parent", currentValue)
                     }
                 }
             }
             Row {
+                id: parent2Row
+                visible: false
                 Label {
                     id: parent2Label
                     width: nameLabel.width
@@ -470,9 +559,13 @@ ApplicationWindow {
                 }
             }
             Label {
+                id: colorLabel
+                visible: false
                 text: "Color (RGB):"
             }
             Row {
+                id: colorRow
+                visible: false
                 spacing: 0.3*margin
                 bottomPadding: 0.2*margin
                 Label {
@@ -558,6 +651,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: notfeatureRow
+                visible: false
                 Label {
                     id: notfeatureLabel
                     width: 350*pix
@@ -576,6 +671,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: borderRow
+                visible: false
                 Label {
                     id: borderLabel
                     width: 350*pix
@@ -594,6 +691,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: bordernumpixelsRow
+                visible: false
                 spacing: 0.3*margin
                 Label {
                     visible: borderCheckBox.checkState==Qt.Checked
@@ -617,6 +716,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: borderremoveobjsRow
+                visible: false
                 Label {
                     id: borderremoveobjsLabel
                     visible: borderCheckBox.checkState==Qt.Checked
@@ -639,6 +740,8 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: minareaRow
+                visible: false
                 spacing: 0.3*margin
                 Label {
                     id: minareaLabel
@@ -702,12 +805,6 @@ ApplicationWindow {
         onPressAndHold: mouse.accepted = false;
         onClicked: mouse.accepted = false;
     }
-
-    function debug(el) {
-        console.log(el)
-        return el
-    }
-
 }
 
 

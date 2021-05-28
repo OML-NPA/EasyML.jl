@@ -46,6 +46,7 @@ function modify_features()
         reset_features,
         reset_output_options,
         backup_options,
+        get_problem_type,
         get_settings,
         set_settings,
         save_settings
