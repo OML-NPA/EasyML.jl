@@ -213,6 +213,26 @@ ApplicationWindow {
                     id: processingView
                     Column {
                         spacing: 0.4*margin
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                text: "Convert to grayscale:"
+                                width: minfrpixLabel.width
+                            }
+                            CheckBox {
+                                padding: 0
+                                width: height
+                                checkState : Julia.get_settings(
+                                           ["Training","Options","Processing","grayscale"]) ?
+                                           Qt.Checked : Qt.Unchecked
+                                onClicked: {
+                                    var value = checkState==Qt.Checked ? true : false
+                                    Julia.set_settings(
+                                        ["Training","Options","Processing","grayscale"],
+                                        value)
+                                }
+                            }
+                        }
                         Label {
                             text: "Augmentation"
                             font.bold: true

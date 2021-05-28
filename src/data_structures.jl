@@ -203,6 +203,7 @@ design = Design()
 
 # Training
 @with_kw mutable struct Processing_training
+    grayscale::Bool = false
     mirroring::Bool = true
     num_angles::Int64 = 2
     min_fr_pix::Float64 = 0.1

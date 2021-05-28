@@ -84,7 +84,6 @@ function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angl
                         end
                         data_out = I1_out
                         if !isassigned(data_out)
-                            @info (g,i,j,h)
                             return nothing
                         end
                         push!(data,data_out)
@@ -231,8 +230,11 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
         # Get current images
         img = imgs[k]
         labelimg = labels[k]
-        # Convert to grayscale
-        img = image_to_gray_float(img)
+        if options.Processing.grayscale
+            img = image_to_gray_float(img)
+        else
+            img = image_to_color_float(img)
+        end
         # Crope to remove black background
         # img,label = correct_view(img,label)
         # Convert BitArray labels to Array{Float32}
@@ -358,25 +360,23 @@ function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector
     return minibatch
 end
 
-function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{BitArray{3}},
+function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels_bool::Vector{BitArray{3}},
         max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
-    data_labels = convert(Vector{Array{Float32,3}},data_labels)
     # First and last minibatch indices
     ind1 = ind+1
     ind2 = ind+batch_size
     # Get inputs and labels
     current_inds = inds_all[ind1:ind2]
     current_input = data_input[current_inds]
-    current_labels = data_labels[current_inds]
+    current_labels_bool = data_labels_bool[current_inds]
+    current_labels = convert(Vector{Array{Float32,3}},current_labels_bool)
     # Catenating inputs and labels
-    temp_input = reduce(cat4,current_input)
-    current_input_cat = reshape(temp_input,size(temp_input)...,1)
-    temp_labels = reduce(cat4,current_labels)
-    current_labels_cat = reshape(temp_labels,size(temp_labels)...,1)
+    input_cat = reduce(cat4,current_input)[:,:,:,:]
+    labels_cat = reduce(cat4,current_labels)[:,:,:,:]
     # Form a minibatch
-    minibatch = (current_input_cat,current_labels_cat)
+    minibatch = (input_cat,labels_cat)
     return minibatch
 end
 
@@ -444,11 +444,10 @@ function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
             inds_all_test_sh = shuffle!(inds_all_test)
         end
         for i=1:num
-            #@info "Iteration DP" i
             iteration_local+=1
             while true
                 numel_channel = (iteration_local-counter.iteration)
-                if numel_channel<50
+                if numel_channel<10
                     minibatch = make_minibatch(data_input,data_labels,max_labels,batch_size,
                         inds_start_sh,inds_all_sh,i)
                     put!(minibatch_channel,minibatch)
@@ -467,8 +466,7 @@ function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
                 end
             end
             if abort[]
-                @info "Aborted"
-                return
+                return nothing
             end
         end
         # Update epoch counter
@@ -492,7 +490,6 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
                 model_data.model = model
             end
             save_model_main(model_data,model_name)
-            @info "Aborted"
             break
         elseif modif1=="learning rate"
             if allow_lr_change
@@ -688,10 +685,19 @@ function training_part_GPU(model_data,model_name,opt,accuracy,loss,
     return nothing
 end
 
+function check_lr_change(opt,composite)
+    if !composite
+        allow_lr_change = hasproperty(opt, :eta)
+    else
+        allow_lr_change = hasproperty(opt2, :eta)
+    end
+    return convert(Bool,allow_lr_change)
+end
+
 function train!(model_data::Model_data,training_data::Training_data,training::Training,
         args::Hyperparameters_training,opt,accuracy::Function,loss::Function,
-        train_set::Tuple{T1,Union{T1,T2}},test_set::Tuple{T1,Union{T1,T2}},testing_times::Float64,
-        use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},T2<:Vector{Int32}}
+        train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
+        use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},T2<:Union{Vector{BitArray{3}},Vector{Int32}}}
     # Initialize constants
     epochs = Threads.Atomic{Int64}(args.epochs)
     batch_size = args.batch_size
@@ -705,11 +711,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     counter_test = Counter()
     run_test = length(test_set[1])!=0
     composite = hasproperty(opt, :os)
-    if !composite
-        allow_lr_change = hasproperty(opt, :eta)
-    else
-        allow_lr_change = hasproperty(opt[1], :eta)
-    end
+    allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     model_name = string("models/",training.name,".model")
     # Initialize data
@@ -727,10 +729,9 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
+    max_labels = Vector{Int32}(undef,0)
     if model_data.features isa Vector{Classification_feature}
-        max_labels = convert(Vector{Int32},1:length(training_data.Classification_data.labels))
-    else
-        max_labels = Vector{Int32}(undef,0)
+        push!(max_labels,(1:length(training_data.Classification_data.labels))...)
     end
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
@@ -810,7 +811,7 @@ function train_main(settings::Settings,training_data::Training_data,
     # Preparing train and test sets
     if model_data.features isa Vector{Classification_feature}
         train_set, test_set = get_train_test(training_data.Classification_data,training)
-    elseif model_data.features isa Vector{Segmentaion_feature}
+    elseif model_data.features isa Vector{Segmentation_feature}
         train_set, test_set = get_train_test(training_data.Segmentation_data,training)
     end
     # Setting functions and parameters
