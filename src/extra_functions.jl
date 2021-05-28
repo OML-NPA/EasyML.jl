@@ -73,6 +73,10 @@ function get_urls_training(input_dir::String,label_dir::String)
 end
 
 function get_urls_training(input_dir::String)
+    if eltype(model_data.features)!=Classification_feature
+        @warn "Label data directory URL was not given. Aborted"
+        return nothing
+    end
     training.input_dir = input_dir
     if !isdir(input_dir)
         @warn string(input_dir," does not exist.")
