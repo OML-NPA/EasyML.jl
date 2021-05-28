@@ -139,6 +139,24 @@ function prepare_training_data()
     empty!(training_data.Segmentation_data.data_labels)
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
+
+    if isempty(model_data.features)
+        @error "Empty features."
+        put!(progress, 0)
+        return nothing
+    end
+    if model_data.features isa Vector{Classification_feature}
+        if isempty(training_data.Classification_data.input_urls)
+            @error "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
+    elseif model_data.features isa Vector{Segmentation_feature}
+        if isempty(training_data.Segmentation_data.input_urls)
+            @error "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
+    end
+
     prepare_training_data_main2(training,training_data,model_data,
         channels.training_data_progress,channels.training_data_results)
     max_value = 0

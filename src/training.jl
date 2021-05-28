@@ -259,23 +259,6 @@ end
 
 function prepare_training_data_main(training::Training,training_data::Training_data,
     model_data::Model_data,progress::Channel,results::Channel)
-    # Return of features are empty
-    if isempty(model_data.features)
-        @warn "Empty features."
-        put!(progress, 0)
-        return nothing
-    end
-    if model_data.features isa Vector{Classification_feature}
-        if isempty(training_data.Classification_data.input_urls)
-            @warn "No input urls. Run 'get_urls_training'."
-            return nothing
-        end
-    elseif model_data.features isa Vector{Segmentation_feature}
-        if isempty(training_data.Segmentation_data.input_urls)
-            @warn "No input urls. Run 'get_urls_training'."
-            return nothing
-        end
-    end
     # Initialize
     features = model_data.features
     options = training.Options
