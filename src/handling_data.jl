@@ -548,6 +548,8 @@ function load_model_main(settings,model_data,url)
     end
     settings.Application.model_url = url
     settings.Training.model_url = url
+    url_split = split(url,('/','.'))
+    settings.Training.name = url_split[end-1]
     return nothing
 end
 load_model(url) = load_model_main(settings,model_data,url)
