@@ -7,7 +7,7 @@ import QtQuick.Window 2.2
 
 T.Button {
     id: control
-
+    property bool borderForceVisible: false
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
@@ -38,8 +38,8 @@ T.Button {
     background: Rectangle {
         anchors.fill: parent.fill
         visible: !control.flat || control.down || control.checked || control.highlighted
-        color: control.pressed ? defaultcolors.light2 : "white"
+        color: control.pressed ? defaultcolors.light2 : "transparent"
         border.color: control.palette.dark
-        border.width: control.hovered ? 2*pix : 0
+        border.width: control.hovered || borderForceVisible ? 2*pix : 0
     }
 }

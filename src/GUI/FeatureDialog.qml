@@ -59,18 +59,16 @@ ApplicationWindow {
         if (featureModel.count!==0) {
             featureModel.clear()
         }
-        var cnt = 1
         for (var i=0;i<num_features;i++) {
             var ind = i+1
             var color = Julia.get_feature_field(ind,"color")
             var parents = Julia.get_feature_field(ind,"parents")
-            var l = ids.length
-            if (i<l) {
+            if (i+1<max_id) {
                 var id = ids[i]
             }
             else {
-                id = l + cnt
-                cnt += 1
+                max_id += 1
+                id = max_id
             }
             var feature = {
                 "name": Julia.get_feature_field(ind,"name"),
@@ -90,6 +88,15 @@ ApplicationWindow {
     }
 
     function update_fields() {
+        if (indTree<0) {
+            parametersColumn.opacity = 0
+            return
+        }
+        else {
+            parametersColumn.opacity = 1
+        }
+
+        featureView.itemAtIndex(indTree).borderForceVisible = true
 
         nameTextField.text = featureModel.get(indTree).name
         
@@ -153,6 +160,7 @@ ApplicationWindow {
         id: featureModel
         Component.onCompleted: {
             load_model_features(featureModel)
+            featureView.forceLayout()
             update_fields()
         }
     }
@@ -207,7 +215,7 @@ ApplicationWindow {
                             ListView {
                                 id: featureView
                                 height: childrenRect.height
-                                spacing: 0
+                                spacing: -2*pix
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: featureModel
                                 delegate: TreeButton {
@@ -217,6 +225,10 @@ ApplicationWindow {
                                     width: buttonWidth + 0.5*margin - 24*pix
                                     height: buttonHeight - 2*pix
                                     onClicked: {
+                                        for (var i=0;i<featureModel.count;i++) {
+                                            featureView.itemAtIndex(i).borderForceVisible = false
+                                        }
+                                        borderForceVisible = true
                                         indTree = index
                                         update_fields()
                                     }
@@ -257,8 +269,117 @@ ApplicationWindow {
                                             fillMode: Image.PreserveAspectFit
                                         }
                                         onClicked: {
+                                            if (indTree==index) {
+                                                indTree = index - 1
+                                                if (indTree<0 && featureModel.count!=1) {
+                                                    indTree = 0
+                                                }
+                                            }
+                                            if (indTree==(featureModel.count-1)) {
+                                                indTree -= 1
+                                            }
                                             featureModel.remove(index)
+                                            update_fields()
                                         }
+                                    }
+                                }
+                            }
+                            Button {
+                                id: addButton
+                                hoverEnabled: true
+                                anchors.top: featureView.bottom
+                                x: 1
+                                width: buttonWidth + 0.5*margin - 24*pix
+                                height: buttonHeight - 2*pix
+                                background: Rectangle {
+                                    color: "transparent"
+                                    border.color: defaultpalette.border
+                                    border.width: addButton.hovered ? 2*pix : 0
+                                }
+                                onClicked: {
+                                    var cnt = featureModel.count+1
+                                    var name = "Feature "+cnt.toString()
+                                    while (true) {
+                                        for (var i=0;i<featureModel.count;i++) {
+                                            console.log(featureModel.get(i).name,name)
+                                            if (featureModel.get(i).name==name) {
+                                                cnt += 1
+                                                name = "Feature "+cnt.toString()
+                                                break
+                                            }
+                                        }
+                                        console.log(i,(featureModel.count))
+                                        if(i==(featureModel.count)) {
+                                            break
+                                        }
+                                    }
+                                    max_id += 1
+                                    var id = max_id
+                                    var feature = {
+                                        "name": name,
+                                        "id": id,
+                                        "colorR": Math.floor(Math.random()*255)+1,
+                                        "colorG": Math.floor(Math.random()*255)+1,
+                                        "colorB": Math.floor(Math.random()*255)+1,
+                                        "border": false,
+                                        "border_thickness": 3,
+                                        "borderRemoveObjs": false,
+                                        "min_area": 0,
+                                        "parent": "",
+                                        "parent2": "",
+                                        "notFeature": false}
+                                    featureModel.append(feature)
+                                    if (indTree<0) {
+                                        indTree = 0
+                                    }
+                                    update_fields()
+                                }
+                                Item {
+                                    id: plusItem
+                                    anchors.horizontalCenter: addButton.horizontalCenter
+                                    anchors.top: addButton.top
+                                    anchors.topMargin: 10*pix
+                                    property color colorOuter1: defaultcolors.dark
+                                    property color colorOuter2: defaultcolors.middark
+                                    property color colorInner1: defaultcolors.midlight3
+                                    property color colorInner2: defaultcolors.midlight
+                                    Rectangle {
+                                        id: plusotline1Rectangle
+                                        color: addButton.hovered ? plusItem.colorOuter1 : plusItem.colorOuter2
+                                        height: plus1Rectangle.height + 4*pix
+                                        width: plus1Rectangle.width + 4*pix
+                                        border.width: 0*pix
+                                        radius: 5*pix
+                                    }
+                                    Rectangle {
+                                        id: plusoutline2Rectangle
+                                        anchors.horizontalCenter: plusotline1Rectangle.horizontalCenter
+                                        anchors.verticalCenter: plusotline1Rectangle.verticalCenter
+                                        color: addButton.hovered ? plusItem.colorOuter1 : plusItem.colorOuter2
+                                        height: plus1Rectangle.width + 4*pix
+                                        width: plus1Rectangle.height + 4*pix
+                                        border.width: 0*pix
+                                        radius: 5*pix
+                                    }
+                                    Rectangle {
+                                        id: plus1Rectangle
+                                        anchors.horizontalCenter: plusotline1Rectangle.horizontalCenter
+                                        anchors.verticalCenter: plusotline1Rectangle.verticalCenter
+                                        color: addButton.hovered ? plusItem.colorInner1 : plusItem.colorInner2
+                                        height: 40*pix
+                                        width: 6*pix
+                                        border.width: 0*pix
+                                        radius: 5*pix
+                                    }
+                                    Rectangle {
+                                        id: plus2Rectangle
+                                        anchors.horizontalCenter: plusotline1Rectangle.horizontalCenter
+                                        anchors.verticalCenter: plusotline1Rectangle.verticalCenter
+                                        color: addButton.hovered ? plusItem.colorInner1 : plusItem.colorInner2
+                                        height: 6*pix
+                                        width: 40*pix
+                                        border.width: 0*pix
+                                        radius: 5*pix
                                     }
                                 }
                             }
@@ -268,6 +389,7 @@ ApplicationWindow {
             }
         }
         Column {
+            id: parametersColumn
             Layout.alignment: Qt.AlignTop
             Layout.margins: 0.75*margin
             Layout.leftMargin: 0*margin
@@ -276,7 +398,7 @@ ApplicationWindow {
                 Label {
                     id: nameLabel
                     text: "Name:"
-                    width: 130*pix
+                    width: 160*pix
                     topPadding: 0.14*margin
                 }
                 TextField {
@@ -360,7 +482,7 @@ ApplicationWindow {
                 TextField {
                     id: redTextField
                     text: "0"
-                    width: 0.25*buttonWidth
+                    width: 0.18*buttonWidth
                     height: buttonHeight
                     validator: IntValidator { bottom: 0; top: 999;}
                     onEditingFinished: {
@@ -382,7 +504,7 @@ ApplicationWindow {
                 TextField {
                     id: greenTextField
                     text: "0"
-                    width: 0.25*buttonWidth
+                    width: 0.18*buttonWidth
                     height: buttonHeight
                     validator: IntValidator { bottom: 0; top: 999;}
                     onEditingFinished: {
@@ -411,7 +533,7 @@ ApplicationWindow {
                 TextField {
                     id: blueTextField
                     text: "0"
-                    width: 0.25*buttonWidth
+                    width: 0.18*buttonWidth
                     height: buttonHeight
                     maximumLength: 3
                     validator: IntValidator { bottom: 0; top: 999;}
@@ -567,19 +689,19 @@ ApplicationWindow {
     }
 
     MouseArea {
-            id: backgroundMouseArea
-            width: featuredialogWindow.width
-            height: featuredialogWindow.height
-            onPressed: {
-                focus = true
-                mouse.accepted = false
-            }
-            onReleased: mouse.accepted = false;
-            onDoubleClicked: mouse.accepted = false;
-            onPositionChanged: mouse.accepted = false;
-            onPressAndHold: mouse.accepted = false;
-            onClicked: mouse.accepted = false;
+        id: backgroundMouseArea
+        width: featuredialogWindow.width
+        height: featuredialogWindow.height
+        onPressed: {
+            focus = true
+            mouse.accepted = false
         }
+        onReleased: mouse.accepted = false;
+        onDoubleClicked: mouse.accepted = false;
+        onPositionChanged: mouse.accepted = false;
+        onPressAndHold: mouse.accepted = false;
+        onClicked: mouse.accepted = false;
+    }
 
     function debug(el) {
         console.log(el)
