@@ -306,18 +306,14 @@ get_image(fields,img_size,inds...) =
     get_image_main(master_data,fields,img_size,inds...)
 
 # Displays image from the main image storage to Julia canvas
-function display_image(buffer::Array{UInt32, 1},
-                      width32::Int32,
-                      height32::Int32)
-    width = width32
-    height = height32
-    buffer = reshape(buffer, width, height)
+function display_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+    buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
     image = master_data.image
     if size(buffer)==reverse(size(image))
         buffer .= transpose(image)
     end
-    return nothing
+    return
 end
 
 #---Model related functions

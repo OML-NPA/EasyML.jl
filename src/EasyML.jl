@@ -14,7 +14,7 @@ Parameters, DataFrames, StaticArrays, Dates,
 FileIO, ImageIO, JSON, BSON, XLSX,
 # Image manipulation
 Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
-ImageMorphology.FeatureTransform, ImageSegmentation,
+ImageMorphology.FeatureTransform, ImageSegmentation, ColorTypes,
 # Machine learning
 Flux, Flux.Losses, FluxExtra,
 # Math functions
@@ -37,7 +37,7 @@ include("validation.jl")
 include("application.jl")
 include("extra_functions.jl")
 
-export QML, Flux, FluxExtra, CUDA, NNlib
+export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
 
 export model_data, Classification_feature, Segmentation_feature, training, settings, training_data, training_plot_data,
     training_results_data, training_options, validation_data, validation_results_data,

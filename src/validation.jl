@@ -28,10 +28,14 @@ function reset_validation_data(validation_results::Validation_results)
 end
 
 function prepare_validation_data(validation::Validation,
-        validation_data::Validation_data,features::Vector{Segmentation_feature},ind::Int64)
+        validation_data::Validation_data,options::Processing_training, features::Vector{Segmentation_feature},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
     original = load_image(validation_data.input_urls[ind])
-    data_input = image_to_gray_float(original)[:,:,:,:]
+    if options.grayscale
+        data_input = image_to_gray_float(original)[:,:,:,:]
+    else
+        data_input = image_to_color_float(original)[:,:,:,:]
+    end
     if validation.use_labels
         label = load_image(validation_data.label_urls[ind])
         label_bool = label_to_bool(label,inds,labels_color,
@@ -67,7 +71,7 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
     target_data = Vector{Tuple{BitArray{2},Vector{N0f8}}}(undef,num)
     error_data = Vector{Tuple{BitArray{3},Vector{N0f8}}}(undef,num)
     color_error = ones(N0f8,3)
-    @floop ThreadedEx() for i = 1:num
+    for i = 1:num
         color = labels_color[i]
         predicted_bool_feat = predicted_bool[:,:,i]
         predicted_data[i] = (predicted_bool_feat,color)
@@ -86,8 +90,7 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
 end
 
 function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
-        model_data::Model_data,validation::Validation)
-    features = model_data.features
+        features::Vector{<:AbstractFeature},validation::Validation)
     feature_inds,labels_color, _ ,border = get_feature_data(features)
     labels_color = labels_color[feature_inds]
     labels_color_uint = convert(Vector{Vector{N0f8}},labels_color/255)
@@ -101,18 +104,17 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
         border_bool = apply_border_data(predicted_bool,features)
         predicted_bool = cat3(predicted_bool,border_bool)
     end
-    predicted_bool_final = predicted_bool
-    @floop ThreadedEx() for i=1:num_border
-        min_area = model_data.features[inds_border[i]].min_area
+    for i=1:num_border 
+        min_area = features[inds_border[i]].min_area
         ind = num_feat + i
         if min_area>1
-            temp_array = predicted_bool_final[:,:,ind]
+            temp_array = predicted_bool[:,:,ind]
             areaopen!(temp_array,min_area)
-            predicted_bool_final[:,:,ind] .= temp_array
+            predicted_bool[:,:,ind] .= temp_array
         end
     end
     predicted_data,target_data,error_data = compute(validation,
-        predicted_bool_final,label_bool,labels_color_uint,num_feat)
+        predicted_bool,label_bool,labels_color_uint,num_feat)
     return predicted_data,target_data,error_data
 end
 
@@ -148,7 +150,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
         end
         # Preparing data
         original,data_input,data_label = prepare_validation_data(validation,
-            validation_data,features,i)
+            validation_data,settings.Training.Options.Processing,features,i)
         predicted = forward(model,data_input,use_GPU=use_GPU)
         if use_labels
             accuracy_array[i] = accuracy(predicted,data_label)
@@ -166,7 +168,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
         GC.gc()
         # Get images
         predicted_data,target_data,error_data = 
-            output_images(predicted_bool,label_bool,model_data,validation)
+            output_images(predicted_bool,label_bool,features,validation)
         image_data = (predicted_data,target_data,error_data)
         data = (original,image_data,other_data)
         # Return data
@@ -179,7 +181,7 @@ function validate_main2(settings::Settings,validation_data::Validation_data,
     model_data::Model_data,channels::Channels)
     #@everywhere settings,validation_data,model_data
     #remote_do(validate_main,workers()[end],settings,validation_data,model_data,channels)
-
     Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+    return nothing
 end
 # validate() = validate_main2(settings,validation_data,model_data,channels)

@@ -339,7 +339,7 @@ function validate()
         yield
     )
     f = CxxWrap.@safe_cfunction(display_image, Cvoid,
-                                        (Array{UInt32,1}, Int32, Int32))
+                                    (Array{UInt32,1}, Int32, Int32))
     loadqml("GUI/ValidationPlot.qml",
         display_image = f)
     exec()

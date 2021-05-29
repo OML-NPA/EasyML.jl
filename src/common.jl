@@ -263,7 +263,7 @@ function apply_border_data(data_in::BitArray{3},features::Vector{Segmentation_fe
     num_border = length(inds_border)
     num_feat = length(feature_inds)
     data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
-    @floop ThreadedEx() for i = 1:num_border
+    for i = 1:num_border #@floop ThreadedEx() 
         border_num_pixels = border_thickness[i]
         ind_feat = inds_border[i]
         ind_border = num_feat + ind_feat

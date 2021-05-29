@@ -41,7 +41,8 @@ ApplicationWindow {
         return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
     }
     //-------------------------------------------------------------------------
-    //---Jield timer block-----------------------------------------------------
+    //---Yield timer block-----------------------------------------------------
+    
     Timer {
         id: yieldTimer
         running: true
@@ -51,7 +52,7 @@ ApplicationWindow {
     }
     //-------------------------------------------------------------------------
     //-Other-------------------------------------------------------------------
-
+    
     JuliaCanvas {
         id: imagetransferCanvas
         visible: false
@@ -59,7 +60,7 @@ ApplicationWindow {
         width: 1024
         height: 1024
     }
-
+    
     ListModel {
         id: featureModel
         Component.onCompleted: {
@@ -124,7 +125,7 @@ ApplicationWindow {
         timer.start();
     }
     //-------------------------------------------------------------------------
-
+    
     minimumHeight: 1024*pix + margin
     minimumWidth: informationPane.width + 1024*pix + margin
     color: defaultpalette.window

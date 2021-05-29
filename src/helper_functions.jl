@@ -31,17 +31,17 @@ function copystruct!(struct1,struct2)
 end
 
 #---Padding
-same(el_type::Type,row::Int64,col::Int64,vect::Array) = ones(el_type,row,col).*vect
-same(el_type::Type,row::Int64,col::Int64,vect::CUDA.CuArray) =
-    CUDA.ones(el_type,row,col).*vect
+same(el_type::Type,row::Int64,col::Int64,channel::Int64,vect::Array) = ones(el_type,row,col,channel).*vect
+same(el_type::Type,row::Int64,col::Int64,channel::Int64,vect::CUDA.CuArray) =
+    CUDA.ones(el_type,row,col,channel).*vect
 function pad(array::Array,padding::Vector,fun::Union{typeof(zeros),typeof(ones)})
     el_type = eltype(array)
     div_result = padding./2
     leftpad = Int64.(floor.(div_result))
     rightpad = Int64.(ceil.(div_result))
     if padding[1]!=0
-        array = vcat(fun(el_type,leftpad[1],size(array,2)),
-            array,fun(el_type,rightpad[1],size(array,2)))
+        array = vcat(fun(el_type,leftpad[1],size(array,2),size(array,3)),
+            array,fun(el_type,rightpad[1],size(array,2),size(array,3)))
     end
     if padding[2]!=0
         array = hcat(fun(el_type,size(array,1),leftpad[2]),
@@ -57,13 +57,13 @@ function pad(array::Union{AbstractArray{Float32},AbstractArray{Float64}},
     if padding[1]!=0
         vec1 = array[1,:,:,:]'
         vec2 = array[end,:,:,:]'
-        array = vcat(fun(el_type,leftpad[1],size(array,2),vec1),
-            array,fun(el_type,rightpad[1],size(array,2),vec2))
+        array = vcat(fun(el_type,leftpad[1],size(array,2),size(array,3),vec1),
+            array,fun(el_type,rightpad[1],size(array,2),size(array,3),vec2))
     else       
         vec1 = array[:,1,:,:]
         vec2 = array[:,end,:,:]
-        array = hcat(fun(el_type,size(array,1),leftpad[2],vec1),
-            array,fun(el_type,size(array,1),rightpad[2],vec2))
+        array = hcat(fun(el_type,size(array,1),leftpad[2],size(array,3),vec1),
+            array,fun(el_type,size(array,1),rightpad[2],size(array,3),vec2))
     end
     return array
 end
