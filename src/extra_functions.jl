@@ -123,11 +123,10 @@ function get_urls_training()
 end
 
 function prepare_training_data()
-    fields = fieldnames(Classification_data)
+    fields = [:data_input,:data_labels]
     for i in fields
         empty!(getfield(classification_data,i))
     end
-    fields = fieldnames(Segmentation_data)
     for i in fields
         empty!(getfield(segmentation_data,i))
     end
