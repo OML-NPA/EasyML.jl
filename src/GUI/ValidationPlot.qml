@@ -200,7 +200,7 @@ ApplicationWindow {
                                                    resultDisplay.source = result.url;
                                                });
                     }
-                    delay(10, upd)
+                    delay(50, upd)
                     var cond = 1024*pix-margin
                     if (displayItem.width>=cond) {
                         displayPane.horizontalPadding = 0.5*margin
@@ -427,7 +427,7 @@ ApplicationWindow {
                                                            resultDisplay.visible = true
                                                        });
                             }
-                            delay(10, upd)
+                            delay(50, upd)
                         }
                     }
                 }

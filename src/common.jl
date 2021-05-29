@@ -444,7 +444,7 @@ function prepare_data(input_data::Union{Array{Float32,4},CuArray{Float32,4}},ind
     temp_data = input_data[:,start_ind:end_ind,:,:]
     max_dim_size = size(temp_data,ind_max)
     offset_add = Int64(ceil(max_dim_size/16)*16) - max_dim_size
-    temp_data = pad(temp_data,[0,offset_add],same)
+    temp_data = pad(temp_data,(0,offset_add),same)
     output_data = (temp_data,correct_size,offset_add)
     return output_data
 end

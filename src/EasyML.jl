@@ -2,8 +2,6 @@
 #__precompile__(false)
 
 module EasyML
-# Needed to avoid an endless loop for Julia canvas
-ENV["QSG_RENDER_LOOP"] = "basic"
 # Import packages
 using
 # Interfacing
@@ -48,6 +46,8 @@ export Join, Split, Addition, Activation, Identity
 
 
 function __init__()
+    # Needed to avoid an endless loop for Julia canvas
+    ENV["QSG_RENDER_LOOP"] = "basic"
     # Import the configutation file
     if isfile("config.bson")
         try
