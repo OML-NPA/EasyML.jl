@@ -171,7 +171,7 @@ function run_iteration(features::Vector{Segmentation_feature},output_options::Ve
         filename = filenames[j]
         mask = masks[j]
         # Make and export images
-        mask_to_img(mask,features,labels_color,border,savepath,filename,img_ext,img_sym_ext)
+        mask_to_img(mask,features,output_options,labels_color,border,savepath,filename,img_ext,img_sym_ext)
         # Make data out of masks
         mask_to_data(objs_area,objs_volume,cnt,mask,output_options,labels_incl,border,
             num_feat,num_border,scaling)
@@ -557,11 +557,13 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
             ind = l + num_border + num_feat
         end
         mask_current = mask[:,:,ind]
+        
         if area_dist_cond || area_obj_cond || area_sum_obj_cond
             temp_objs_area2 = temp_objs_area[l]
             area_values = [0]
             area_values = objects_area(mask_current,
                 components_vector,labels_incl,scaling,l)
+            
             if area_obj_cond || area_sum_obj_cond
                 push!(temp_objs_area2,area_values...)
             end
@@ -688,7 +690,8 @@ function export_objs(type_name::String,objs_area::Vector,
 end
 
 #---Image related functions
-function get_save_image_info(num_dims::Int64,features::Vector{Segmentation_feature},border::Vector{Bool})
+function get_save_image_info(num_dims::Int64,features::Vector{Segmentation_feature},
+        output_options::Vector{Segmentation_output_options},border::Vector{Bool})
     num_feat = length(border)
     num_border = sum(border)
     logical_inds = BitArray{1}(undef,num_dims)
@@ -718,10 +721,11 @@ function get_save_image_info(num_dims::Int64,features::Vector{Segmentation_featu
 end
 
 function mask_to_img(mask::BitArray{3},features::Vector{Segmentation_feature},
+        output_options::Vector{Segmentation_output_options},
         labels_color::Vector{Vector{Float64}},border::Vector{Bool},
         savepath::String,filename::String,ext::String,sym_ext::Symbol)
     num_dims = size(mask)[3]
-    inds,img_names = get_save_image_info(num_dims,features,border)
+    inds,img_names = get_save_image_info(num_dims,features,output_options,border)
     if isempty(inds)
         return nothing
     end
