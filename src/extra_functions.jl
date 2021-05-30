@@ -347,27 +347,18 @@ end
 
 # Application
 
-function modify_output(feature::Segmentation_feature)
+function modify_output()
     @qmlfunction(
         save_model,
+        get_feature_field,
         get_settings,
         get_output,
         set_output,
-        get_feature_field
+        get_feature_field,
+        get_problem_type,
+        num_features
     )
-
-    indTree = -1
-    for i = 1:length(model_data.features)
-        if model_data.features[i]==feature
-            indTree = i-1
-        end
-    end
-    if indTree==-1
-        @info "Feature does not exist in 'model_data'. Add the feature to the 'model_data'."
-        return nothing
-    end
-
-    loadqml("GUI/OutputDialog.qml",indTree = indTree)
+    loadqml("GUI/OutputDialog.qml",indTree = 0)
     exec()
     return nothing
 end
@@ -407,7 +398,7 @@ end
 function apply()
     empty_progress_channel("Application")
     empty_progress_channel("Application modifiers")
-    apply_main2(settings,application_data,model_data,channels)
+    apply_main2(settings,training,application_data,model_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)

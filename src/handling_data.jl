@@ -194,7 +194,7 @@ end
 function get_output_main(model_data::Model_data,fields,ind)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
-    data = model_data.features[ind].Output
+    data = model_data.output_options[ind]
     for i = 1:length(fields)
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -208,7 +208,7 @@ function set_output_main(model_data::Model_data,fields,ind,value)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
     value = fix_QML_types(value)
-    data = model_data.features[ind].Output
+    data = model_data.output_options[ind]
     for i = 1:length(fields)-1
         field = Symbol(fields[i])
         data = getproperty(data,field)
