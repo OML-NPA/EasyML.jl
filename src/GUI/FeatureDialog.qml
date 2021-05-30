@@ -294,7 +294,7 @@ ApplicationWindow {
                                     id: treeButton
                                     x: 1
                                     hoverEnabled: true
-                                    width: featuresFrame.width - 24*pix
+                                    width: featuresFrame.width - 25*pix
                                     height: buttonHeight - 2*pix
                                     onClicked: {
                                         for (var i=0;i<featureModel.count;i++) {
@@ -365,7 +365,7 @@ ApplicationWindow {
                                 hoverEnabled: true
                                 anchors.top: featureView.bottom
                                 x: 1
-                                width: featuresFrame.width - 24*pix
+                                width: featuresFrame.width - 25*pix
                                 height: buttonHeight - 2*pix
                                 background: Rectangle {
                                     color: "transparent"
