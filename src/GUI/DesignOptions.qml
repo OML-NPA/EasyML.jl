@@ -33,7 +33,10 @@ ApplicationWindow {
         }
     }
 
-    onClosing: {designoptionsLoader.sourceComponent = null}
+    onClosing: {
+        Julia.save_settings()
+        //designoptionsLoader.sourceComponent = null
+    }
 
     Item {
         id: mainItem
