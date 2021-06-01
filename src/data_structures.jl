@@ -138,9 +138,15 @@ segmentation_data = Segmentation_data()
 end
 training_data = Training_data()
 
-@with_kw mutable struct Validation_results
-    original::Vector{Array{RGB{N0f8},2}} = 
-        Vector{Array{RGB{N0f8},2}}(undef,0)
+@with_kw mutable struct Validation_classification_results
+    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
+    predicted_labels::Vector{Int64} = Vector{Int64}(undef,0)
+    target_labels::Vector{Int64} = Vector{Int64}(undef,0)
+end
+validation_classification_results = Validation_classification_results()
+
+@with_kw mutable struct Validation_segmentation_results
+    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
     target_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
@@ -150,12 +156,14 @@ training_data = Training_data()
     other_data::Vector{Tuple{Float32,Float32}} = 
         Vector{Tuple{Float32,Float32}}(undef,0)
 end
-validation_results = Validation_results()
+validation_segmentation_results = Validation_segmentation_results()
 
 @with_kw mutable struct Validation_data
-    Results::Validation_results = validation_results
+    Results_classification::Validation_classification_results = validation_classification_results
+    Results_segmentation::Validation_segmentation_results = validation_segmentation_results
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
+    labels::Vector{Int64} = Vector{Int64}(undef,0)
 end
 validation_data = Validation_data()
 

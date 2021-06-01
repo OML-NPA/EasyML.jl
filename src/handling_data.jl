@@ -283,8 +283,7 @@ function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}
 end
 
 # Saves image to the main image storage and returns its size
-function get_image_main(master_data::Master_data,fields,
-        img_size,inds)
+function get_image_main(master_data::Master_data,fields,img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)

@@ -18,17 +18,22 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
 end
 #get_urls_validation() = get_urls_validation_main(validation,model_data)
 
-function reset_validation_data(validation_results::Validation_results)
-    empty_field!(validation_results,:original)
-    empty_field!(validation_results,:predicted_data)
-    empty_field!(validation_results,:target_data)
-    empty_field!(validation_results,:error_data)
-    empty_field!(validation_results,:other_data)
+function reset_validation_results(validation_data::Validation_data)
+    results_classification = validation_data.Results_classification
+    fields = fieldnames(Validation_classification_results)
+    for field in fields
+        empty_field!(results_classification,field)
+    end
+    results_segmentation = validation_data.Results_segmentation
+    fields = fieldnames(Validation_segmentation_results)
+    for field in fields
+        empty_field!(results_segmentation,field)
+    end
     return nothing
 end
 
-function prepare_validation_data(validation::Validation,
-        validation_data::Validation_data,options::Processing_training, features::Vector{Segmentation_feature},ind::Int64)
+function prepare_validation_data(validation::Validation,validation_data::Validation_data,
+        options::Processing_training, features::Vector{Segmentation_feature},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
@@ -44,7 +49,23 @@ function prepare_validation_data(validation::Validation,
     else
         data_label = Array{Float32,4}(undef,size(data_input))
     end
-    return original,data_input,data_label
+    return data_input,data_label,original
+end
+
+function prepare_validation_data(validation::Validation,validation_data::Validation_data,
+        options::Processing_training, features::Vector{Classification_feature},ind::Int64)
+    original = load_image(validation_data.input_urls[ind])
+    if options.grayscale
+        data_input = image_to_gray_float(original)[:,:,:,:]
+    else
+        data_input = image_to_color_float(original)[:,:,:,:]
+    end
+    if validation.use_labels
+        labels = validation_data.labels
+    else
+        labels = Vector{Int64}(undef,0)
+    end
+    return data_input,data_label,original
 end
 
 #---Makes output images
@@ -118,27 +139,35 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     return predicted_data,target_data,error_data
 end
 
+function process_output(validation::Validation,predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},features::Vector{Segmentation_feature},channels::Channels)
+    predicted_bool = predicted[:,:,:,1].>0.5
+    label_bool = data_label[:,:,:,1].>0.5
+    # Get images
+    predicted_data,target_data,error_data = 
+        output_images(predicted_bool,label_bool,features,validation)
+    image_data = (predicted_data,target_data,error_data)
+    data = (image_data,other_data,original)
+    # Return data
+    put!(channels.validation_results,data)
+    put!(channels.validation_progress,1)
+    return nothing
+end
+
 # Main validation function
 function validate_main(settings::Settings,validation_data::Validation_data,
         model_data::Model_data,channels::Channels)
     # Initialisation
     validation = settings.Validation
-    validation_results = validation_data.Results
-    reset_validation_data(validation_results)
+    reset_validation_results(validation_data)
     num = length(validation_data.input_urls)
     put!(channels.validation_progress,num)
     use_labels = validation.use_labels
     features = model_data.features
-    if isempty(features)
-        @warn "Empty features."
-        return nothing
-    end
     model = model_data.model
     loss = model_data.loss
     accuracy = get_accuracy_func(settings.Training)
     use_GPU = settings.Options.Hardware_resources.allow_GPU && has_cuda()
-    accuracy_array = Vector{Float32}(undef,num)
-    loss_array = Vector{Float32}(undef,num)
     GC.gc()
     for i = 1:num
         if isready(channels.validation_modifiers)
@@ -148,39 +177,22 @@ function validate_main(settings::Settings,validation_data::Validation_data,
                 break
             end
         end
-        # Preparing data
-        original,data_input,data_label = prepare_validation_data(validation,
+        data_input,data_label,other = prepare_validation_data(validation,
             validation_data,settings.Training.Options.Processing,features,i)
         predicted = forward(model,data_input,use_GPU=use_GPU)
         if use_labels
-            accuracy_array[i] = accuracy(predicted,data_label)
-            loss_array[i] = loss(predicted,data_label)
-            other_data = (accuracy_array[i],loss_array[i])
+            accuracy_val = accuracy(predicted,data_label)
+            loss_val = loss(predicted,data_label)
+            other_data = (accuracy_val,loss_val)
         else
             other_data = (0.f0,0.f0)
         end
-        predicted_bool = predicted[:,:,:,1].>0.5
-        label_bool = data_label[:,:,:,1].>0.5
-        # Clean up
-        data_input = nothing
-        data_label = nothing
-        predicted = nothing
-        GC.gc()
-        # Get images
-        predicted_data,target_data,error_data = 
-            output_images(predicted_bool,label_bool,features,validation)
-        image_data = (predicted_data,target_data,error_data)
-        data = (original,image_data,other_data)
-        # Return data
-        put!(channels.validation_results,data)
-        put!(channels.validation_progress,1)
+        process_output(validation,predicted,data_label,other,other_data,features,channels)
     end
     return nothing
 end
 function validate_main2(settings::Settings,validation_data::Validation_data,
-    model_data::Model_data,channels::Channels)
-    #@everywhere settings,validation_data,model_data
-    #remote_do(validate_main,workers()[end],settings,validation_data,model_data,channels)
+        model_data::Model_data,channels::Channels)
     Threads.@spawn validate_main(settings,validation_data,model_data,channels)
     return nothing
 end

@@ -83,16 +83,18 @@ function get_results_main(channels::Channels,master_data::Master_data,
         end
     elseif field=="Validation"
         if isready(channels.validation_results)
-            data = take!(channels.validation_results)
-            validation_results = master_data.Validation_data.Results
-            original = data[1]
-            image_data = data[2]
-            other_data = data[3]
-            push!(validation_results.original,original)
-            push!(validation_results.predicted_data,image_data[1])
-            push!(validation_results.target_data,image_data[2])
-            push!(validation_results.error_data,image_data[3])
-            push!(validation_results.other_data,other_data)
+            if model_data.features isa Vector{Segmentation_feature}
+                data = take!(channels.validation_results)
+                validation_results = master_data.Validation_data.Results_segmentation
+                image_data = data[1]
+                other_data = data[2]
+                original = data[3]
+                push!(validation_results.original,original)
+                push!(validation_results.predicted_data,image_data[1])
+                push!(validation_results.target_data,image_data[2])
+                push!(validation_results.error_data,image_data[3])
+                push!(validation_results.other_data,other_data)
+            end
             return [other_data...]
         else
             return false

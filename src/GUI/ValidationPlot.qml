@@ -603,7 +603,7 @@ ApplicationWindow {
         onClicked: mouse.accepted = false;
     }
     function get_image(display,type,inds) {
-        var size = Julia.get_image(["Validation_data","Results",type],
+        var size = Julia.get_image(["Validation_data","Results_segmentation",type],
             [0,0],inds)
         return size
     }
