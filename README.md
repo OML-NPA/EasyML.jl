@@ -34,19 +34,29 @@ A struct named `model_data` is exported.
 
 - `layers::Dict`: contains layers and their information for visualisation (do not change manually).
 
-- `features::Vector{AbstractFeature}`: hold information about features that a neural network outputs and what should be done with them.
+- `classes::Vector{AbstractClass}`: hold information about classes that a neural network outputs and what should be done with them.
 
 - `loss::Function`: holds loss that is used during training.
 
-Create a new feature using `Segmentation_feature()`.
+It is suggested to use `modify_classes()` to modify classes.
 
-Features can be of different types depending on a type of a problem.
+However, it can also be done manually.
 
-`Segmentation_feature` contains
+Create a new class using `Segmentation_class()`.
 
-- `name::String`: name of a feature.
+Classes can be of different types depending on a type of a problem.
 
-- `color::Vector{Float64}`: RGB color of a feature, which should correspond to its color on your images. Use 0-255 range.
+`Classification_class` contains
+
+- `name::String`: name of a class.
+
+- `Output::Classification_output_options`: holds settings for output of application of a model to new data.
+
+`Segmentation_class` contains
+
+- `name::String`: name of a class.
+
+- `color::Vector{Float64}`: RGB color of a class, which should correspond to its color on your images. Use 0-255 range.
 
 - `border::Bool`: allows to train a neural network to recognize borders and better separate objects during post-processing.
 
@@ -58,15 +68,13 @@ Features can be of different types depending on a type of a problem.
 
 - `Output::Segmentation_output_options`: holds settings for output of application of a model to new data.
 
-Put your features in a vector and write `model_data.features = your_features`.
-
-It is suggested to use `modify_output(model_data.features[n])` to edit a feature, where `n` is an index of a feature.
+Put your classes into a vector and write `model_data.classes = your_classes`.
 
 Run `design_network()` to open a GUI for neural network creation. Click a save icon to save your network to the workspace.
 
 <img  src="docs/screenshots/design.png" height = 340em>
 
-NB! A number of neurons for the final layer should equal to the number of features plus the number of borders that should be detected.
+NB! A number of neurons for the final layer should equal to the number of classes plus the number of borders that should be detected in case of segmentation.
 
 `save_model(url::String)`: saves your model, uses `.model` extension.
 
@@ -107,7 +115,7 @@ URLs are automatically saved to `MLGUI.validation_data`. Does not require labels
 
 Application settings can be changed by running `modify(application_options)`.
 
-Output for each feature can be changed by running `modify_output(model_data.features[n])`.
+Output for each class can be changed by running `modify_output()`.
 
 `get_urls_application(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
 URLs are automatically saved to `MLGUI.application_data`.
@@ -127,7 +135,7 @@ results = Vector{BitArray{3}}(undef,0)
 for i = 1:length(data_example)
     output_raw = forward(model,data_example[i],num_parts=1)
     output_bool = output_raw[:,:,:].>0.5
-    output = apply_border_data(output_bool,model_data.features) 
+    output = apply_border_data(output_bool,model_data.classes) 
     push!(results,output)
 end
 ```
