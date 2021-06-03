@@ -47,15 +47,15 @@ get_progress(field) = get_progress_main(channels,field)
 function get_results_main(channels::Channels,master_data::Master_data,
         model_data::Model_data,field)
     field::String = fix_QML_types(field)
-    features = model_data.features
+    classes = model_data.classes
     if field=="Training data preparation"
         if isready(channels.training_data_results)
             data = take!(channels.training_data_results)
-            if features isa Vector{Classification_feature}
+            if classes isa Vector{Classification_class}
                 classification_data = master_data.Training_data.Classification_data
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
-            elseif features isa Vector{Segmentation_feature}
+            elseif classes isa Vector{Segmentation_class}
                 segmentation_data = master_data.Training_data.Segmentation_data
                 segmentation_data.data_input = data[1]
                 segmentation_data.data_labels = data[2]
@@ -83,7 +83,7 @@ function get_results_main(channels::Channels,master_data::Master_data,
         end
     elseif field=="Validation"
         if isready(channels.validation_results)
-            if model_data.features isa Vector{Segmentation_feature}
+            if model_data.classes isa Vector{Segmentation_class}
                 data = take!(channels.validation_results)
                 validation_results = master_data.Validation_data.Results_segmentation
                 image_data = data[1]

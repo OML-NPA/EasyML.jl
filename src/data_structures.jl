@@ -24,7 +24,7 @@ channels = Channels()
 
 #---Model data
 
-abstract type AbstractFeature end
+abstract type AbstractClass end
 abstract type AbstractOutputOptions end
 
 @with_kw mutable struct Output_mask
@@ -61,7 +61,7 @@ end
     temp::Bool = false
 end
 
-@with_kw mutable struct Segmentation_feature<:AbstractFeature
+@with_kw mutable struct Segmentation_class<:AbstractClass
     name::String = ""
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
@@ -69,10 +69,10 @@ end
     border_remove_objs::Bool = false
     min_area::Int64 = 1
     parents::Vector{String} = ["",""]
-    not_feature::Bool = false
+    not_class::Bool = false
 end
 
-@with_kw mutable struct Classification_feature<:AbstractFeature
+@with_kw mutable struct Classification_class<:AbstractClass
     name::String = ""
 end
 
@@ -80,7 +80,7 @@ end
     input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
-    features::Vector{<:AbstractFeature} = Vector{Classification_feature}(undef,0)
+    classes::Vector{<:AbstractClass} = Vector{Classification_class}(undef,0)
     output_options::Vector{<:AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
     loss::Function = Flux.Losses.crossentropy
 end

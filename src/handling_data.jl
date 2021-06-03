@@ -189,8 +189,8 @@ function filter_ext(urls::Vector{String},allowed_ext::String)
     return urls
 end
 
-#---Feature output related functions
-# Allows to read feature output options from GUI
+#---Class output related functions
+# Allows to read class output options from GUI
 function get_output_main(model_data::Model_data,fields,ind)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
@@ -203,7 +203,7 @@ function get_output_main(model_data::Model_data,fields,ind)
 end
 get_output(fields,ind) = get_output_main(model_data,fields,ind)
 
-# Allows to write to feature output options from GUI
+# Allows to write to class output options from GUI
 function set_output_main(model_data::Model_data,fields,ind,value)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
@@ -422,12 +422,12 @@ function get_model_type_main(model_data::Model_data)
 end
 get_model_type() = get_model_type_main(model_data)
 
-# Resets model features
-function reset_features_main(model_data)
-    empty!(model_data.features)
+# Resets model classes
+function reset_classes_main(model_data)
+    empty!(model_data.classes)
     return nothing
 end
-reset_features() = reset_features_main(model_data::Model_data)
+reset_classes() = reset_classes_main(model_data::Model_data)
 
 # Resets model output options
 function reset_output_options_main(model_data)
@@ -436,32 +436,31 @@ function reset_output_options_main(model_data)
 end
 reset_output_options() = reset_output_options_main(model_data::Model_data)
 
-# Appends model features
-function append_features_main(model_data::Model_data,design_data::Design_data,id,data)
+# Appends model classes
+function append_classes_main(model_data::Model_data,design_data::Design_data,id,data)
     data = fix_QML_types(data)
     id = convert(Int64,id)
-    type = eltype(model_data.features)
+    type = eltype(model_data.classes)
     
-    if type==Classification_feature
-        feature = Classification_feature()
-        feature.name = data[1]
-    elseif type==Segmentation_feature
-        @info data[9]
-        feature = Segmentation_feature()
-        feature.name = String(data[1])
-        feature.color = Int64.([data[2],data[3],data[4]])
-        feature.border = Bool(data[5])
-        feature.border_thickness = Int64(data[6])
-        feature.border_remove_objs = Bool(data[7])
-        feature.min_area = Int64(data[8])
-        feature.parents = data[9]
-        feature.not_feature = Bool(data[10])
+    if type==Classification_class
+        class = Classification_class()
+        class.name = data[1]
+    elseif type==Segmentation_class
+        class = Segmentation_class()
+        class.name = String(data[1])
+        class.color = Int64.([data[2],data[3],data[4]])
+        class.border = Bool(data[5])
+        class.border_thickness = Int64(data[6])
+        class.border_remove_objs = Bool(data[7])
+        class.min_area = Int64(data[8])
+        class.parents = data[9]
+        class.not_class = Bool(data[10])
     end
-    push!(model_data.features,feature)
+    push!(model_data.classes,class)
 
-    if type==Classification_feature
+    if type==Classification_class
         type_output = Classification_output_options
-    elseif type==Segmentation_feature
+    elseif type==Segmentation_class
         type_output = Segmentation_output_options
     end
     if eltype(model_data.output_options)!=type_output
@@ -474,19 +473,19 @@ function append_features_main(model_data::Model_data,design_data::Design_data,id
     end
     return nothing
 end
-append_features(id,data) = append_features_main(model_data,design_data,id,data)
+append_classes(id,data) = append_classes_main(model_data,design_data,id,data)
 
-# Returns the number of features
-function num_features_main(model_data::Model_data)
-    return length(model_data.features)
+# Returns the number of classes
+function num_classes_main(model_data::Model_data)
+    return length(model_data.classes)
 end
-num_features() = num_features_main(model_data::Model_data)
+num_classes() = num_classes_main(model_data::Model_data)
 
-# Returns feature value
-function get_feature_main(model_data::Model_data,index,fieldname)
-    return getfield(model_data.features[Int64(index)], Symbol(String(fieldname)))
+# Returns class value
+function get_class_main(model_data::Model_data,index,fieldname)
+    return getfield(model_data.classes[Int64(index)], Symbol(String(fieldname)))
 end
-get_feature_field(index,fieldname) = get_feature_main(model_data,index,fieldname)
+get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
 
 function backup_options_main(model_data::Model_data)
     design_data.output_options_backup = deepcopy(model_data.output_options)
@@ -494,9 +493,9 @@ end
 backup_options() = backup_options_main(model_data)
 
 function get_problem_type()
-    if eltype(model_data.features)==Classification_feature
+    if eltype(model_data.classes)==Classification_class
         return 0
-    elseif eltype(model_data.features)==Segmentation_feature
+    elseif eltype(model_data.classes)==Segmentation_class
         return 1
     end
 end
@@ -528,10 +527,10 @@ function load_model_main(settings,model_data,url)
         try
             serialized = seekstart(data[k])
             deserialized = BSON.load(serialized)[:field]
-            if all(k.!=(:loss,:model,:features,:output_options))
+            if all(k.!=(:loss,:model,:classes,:output_options))
                 type = typeof(getfield(model_data,k))
                 deserialized = convert(type,deserialized)
-            elseif k==:features || k==:output_options
+            elseif k==:classes || k==:output_options
                 deserialized = [deserialized...]
                 type = eltype(deserialized)
                 deserialized = convert(Vector{type},deserialized)

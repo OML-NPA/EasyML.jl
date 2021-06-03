@@ -309,24 +309,24 @@ ApplicationWindow {
                     }
                 }
                 Row {
-                    id: featureRow
+                    id: classRow
                     visible: false
                     spacing: 0.8*margin
                     Label {
-                        text: "Feature:"
+                        text: "Class:"
                         width: 100*pix
                         topPadding: 10*pix
                     }
                     ComboBox {
-                        id: featureComboBox
+                        id: classComboBox
                         editable: false
                         width: 0.85*buttonWidth
                         model: ListModel {
-                            id: featureselectModel
+                            id: classselectModel
                         }
                         onActivated: {
                             /*var ind1 = sampleSpinBox.value
-                            var ind2 = featureComboBox.currentIndex+1
+                            var ind2 = classComboBox.currentIndex+1
                             get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
                             imagetransferCanvas.update()
                             imagetransferCanvas.grabToImage(function(result) {
@@ -334,24 +334,24 @@ ApplicationWindow {
                                                    });*/
                         }
                         Component.onCompleted: {
-                            for (var i=0;i<featureModel.count;i++) {
-                                var feature = featureModel.get(i)
-                                if (!feature.notFeature) {
-                                    featureselectModel.append(
-                                        {"name": feature.name})
+                            for (var i=0;i<classModel.count;i++) {
+                                var class = classModel.get(i)
+                                if (!class.notClass) {
+                                    classselectModel.append(
+                                        {"name": class.name})
                                 }
                             }
-                            var num = featureselectModel.count
+                            var num = classselectModel.count
                             for (i=0;i<num;i++) {
-                                if (featureModel.get(i).border) {
-                                    featureselectModel.append(
-                                        {"name": featureModel.get(i).name+" (border)"})
+                                if (classModel.get(i).border) {
+                                    classselectModel.append(
+                                        {"name": classModel.get(i).name+" (border)"})
                                 }
                             }
                             for (i=0;i<num;i++) {
-                                if (featureModel.get(i).border) {
-                                    featureselectModel.append(
-                                        {"name": featureModel.get(i).name+" (applied border)"})
+                                if (classModel.get(i).border) {
+                                    classselectModel.append(
+                                        {"name": classModel.get(i).name+" (applied border)"})
                                 }
                             }
                             currentIndex = 0

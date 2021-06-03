@@ -3,7 +3,7 @@
 function design_network()
     # Launches GUI
     @qmlfunction(
-        # Handle features
+        # Handle classes
         model_count,
         model_get_layer_property,
         model_properties,
@@ -29,21 +29,21 @@ function design_network()
     return nothing
 end
 
-function modify_features()
-    features = model_data.features
-    if isempty(features)
-        @error "Features are empty. Add features to the 'model_data'."
+function modify_classes()
+    classes = model_data.classes
+    if isempty(classes)
+        @error "Classes are empty. Add classes to the 'model_data'."
         return nothing
     end
-    if !(features isa Vector{Segmentation_feature})
-        @error string("There is nothing to change in a ",eltype(features))
+    if !(classes isa Vector{Segmentation_class})
+        @error string("There is nothing to change in a ",eltype(classes))
         return nothing
     end
     @qmlfunction(
-        get_feature_field,
-        num_features,
-        append_features,
-        reset_features,
+        get_class_field,
+        num_classes,
+        append_classes,
+        reset_classes,
         reset_output_options,
         backup_options,
         get_problem_type,
@@ -51,7 +51,7 @@ function modify_features()
         set_settings,
         save_settings
     )
-    loadqml("GUI/FeatureDialog.qml",JindTree = 0, ids = 1:length(features))
+    loadqml("GUI/ClassDialog.qml",JindTree = 0, ids = 1:length(classes))
     exec()
     return nothing
 end
@@ -73,7 +73,7 @@ function get_urls_training(input_dir::String,label_dir::String)
 end
 
 function get_urls_training(input_dir::String)
-    if eltype(model_data.features)!=Classification_feature
+    if eltype(model_data.classes)!=Classification_class
         @error "Label data directory URL was not given."
         return nothing
     end
@@ -139,17 +139,17 @@ function prepare_training_data()
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
 
-    if isempty(model_data.features)
-        @error "Empty features."
+    if isempty(model_data.classes)
+        @error "Empty classes."
         put!(progress, 0)
         return nothing
     end
-    if model_data.features isa Vector{Classification_feature}
+    if model_data.classes isa Vector{Classification_class}
         if isempty(training_data.Classification_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
-    elseif model_data.features isa Vector{Segmentation_feature}
+    elseif model_data.classes isa Vector{Segmentation_class}
         if isempty(training_data.Segmentation_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
@@ -220,7 +220,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if model_data.features isa Vector{Classification_feature}
+    if model_data.classes isa Vector{Classification_class}
         @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
         training.Options.General.weight_accuracy = false
     end
@@ -322,27 +322,28 @@ function validate()
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
     validate_main2(settings,validation_data,model_data,channels)
-
-    # Launches GUI
-    @qmlfunction(
-        # Handle features
-        num_features,
-        get_feature_field,
-        # Data handling
-        get_settings,
-        get_results,
-        get_progress,
-        put_channel,
-        get_image,
-        # Other
-        yield
-    )
-    f = CxxWrap.@safe_cfunction(display_image, Cvoid,
-                                    (Array{UInt32,1}, Int32, Int32))
-    loadqml("GUI/ValidationPlot.qml",
-        display_image = f)
-    exec()
-    return validation_results
+    if model_data.classes isa Vector{Segmentation_class}
+        # Launches GUI
+        @qmlfunction(
+            # Handle classes
+            num_classes,
+            get_class_field,
+            # Data handling
+            get_settings,
+            get_results,
+            get_progress,
+            put_channel,
+            get_image,
+            # Other
+            yield
+        )
+        f = CxxWrap.@safe_cfunction(display_image, Cvoid,
+                                        (Array{UInt32,1}, Int32, Int32))
+        loadqml("GUI/ValidationPlot.qml",
+            display_image = f)
+        exec()
+        return validation_segmentation_results
+    end
 end
 
 # Application
@@ -350,13 +351,13 @@ end
 function modify_output()
     @qmlfunction(
         save_model,
-        get_feature_field,
+        get_class_field,
         get_settings,
         get_output,
         set_output,
-        get_feature_field,
+        get_class_field,
         get_problem_type,
-        num_features
+        num_classes
     )
     loadqml("GUI/OutputDialog.qml",indTree = 0)
     exec()

@@ -2,16 +2,16 @@
 # Get urls of files in selected folders
 function get_urls_training_main(training::Training,training_data::Training_data,
         model_data::Model_data)
-    if isempty(model_data.features)
-        @warn "Features are empty."
+    if isempty(model_data.classes)
+        @warn "Classes are empty."
         return nothing
     end
-    if model_data.features isa Vector{Classification_feature}
+    if model_data.classes isa Vector{Classification_class}
         allowed_ext = ["png","jpg","jpeg"]
         input_urls,dirs = get_urls1(training,allowed_ext)
         training_data.Classification_data.input_urls = input_urls
         training_data.Classification_data.labels = dirs
-    elseif model_data.features isa Vector{Segmentation_feature}
+    elseif model_data.classes isa Vector{Segmentation_class}
         allowed_ext = ["png","jpg","jpeg"]
         input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
         training_data.Segmentation_data.input_urls = reduce(vcat,input_urls)
@@ -146,7 +146,7 @@ end
 
 # Prepare data for training
 function prepare_training_data_classification(classification_data::Classification_data,
-        features::Vector{Classification_feature},options::Training_options,
+        classes::Vector{Classification_class},options::Training_options,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
     num_angles = options.Processing.num_angles
     urls = classification_data.input_urls
@@ -200,7 +200,7 @@ function prepare_training_data_classification(classification_data::Classificatio
 end
 
 function prepare_training_data_segmentation(segmentation_data::Segmentation_data,
-        features::Vector{Segmentation_feature},options::Training_options,
+        classes::Vector{Segmentation_class},options::Training_options,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
@@ -209,8 +209,8 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
     num = length(input_urls)
     # Return progress target value
     put!(progress, num+2)
-    # Get feature data
-    feature_inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
+    # Get class data
+    class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     # Load images
     imgs = load_images(input_urls)
     labels = load_images(segmentation_data.label_urls)
@@ -238,7 +238,7 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
         # Crope to remove black background
         # img,label = correct_view(img,label)
         # Convert BitArray labels to Array{Float32}
-        label = label_to_bool(labelimg,feature_inds,labels_color,labels_incl,border,border_thickness)
+        label = label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_thickness)
         # Augment images
         data = augment(img,label,size12,num_angles,min_fr_pix)
         data_input[k] = getfield.(data, 1)
@@ -260,15 +260,15 @@ end
 function prepare_training_data_main(training::Training,training_data::Training_data,
     model_data::Model_data,progress::Channel,results::Channel)
     # Initialize
-    features = model_data.features
+    classes = model_data.classes
     options = training.Options
     size12 = model_data.input_size[1:2]
-    if features isa Vector{Classification_feature}
-        prepare_training_data_classification(classification_data,features,options,
+    if classes isa Vector{Classification_class}
+        prepare_training_data_classification(classification_data,classes,options,
             size12,progress,results) 
-    elseif features isa Vector{Segmentation_feature}
+    elseif classes isa Vector{Segmentation_class}
         segmentation_data = training_data.Segmentation_data
-        prepare_training_data_segmentation(segmentation_data,features,options,
+        prepare_training_data_segmentation(segmentation_data,classes,options,
             size12,progress,results)
     end
     return nothing
@@ -713,7 +713,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     max_labels = Vector{Int32}(undef,0)
-    if model_data.features isa Vector{Classification_feature}
+    if model_data.classes isa Vector{Classification_class}
         push!(max_labels,(1:length(training_data.Classification_data.labels))...)
     end
     # Make channels
@@ -792,9 +792,9 @@ function train_main(settings::Settings,training_data::Training_data,
     end
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
-    if model_data.features isa Vector{Classification_feature}
+    if model_data.classes isa Vector{Classification_class}
         train_set, test_set = get_train_test(training_data.Classification_data,training)
-    elseif model_data.features isa Vector{Segmentation_feature}
+    elseif model_data.classes isa Vector{Segmentation_class}
         train_set, test_set = get_train_test(training_data.Segmentation_data,training)
     end
     # Setting functions and parameters

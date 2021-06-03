@@ -47,36 +47,36 @@ ApplicationWindow {
 
     //--------------------------------------------------------------------------
 
-    function load_model_features(featureModel) {
+    function load_model_classes(classModel) {
         var problemType = Julia.get_problem_type()
-        var num_features = Julia.num_features()
-        for (var i=0;i<num_features;i++) {
+        var num_classes = Julia.num_classes()
+        for (var i=0;i<num_classes;i++) {
             var ind = i+1
             if (problemType==0) {
-                var feature = {
-                    "name": Julia.get_feature_field(ind,"name")
+                var class_var = {
+                    "name": Julia.get_class_field(ind,"name")
                 }
-                featureModel.append(feature)
+                classModel.append(class_var)
             }
             else if (problemType==1) {
-                var color = Julia.get_feature_field(ind,"color")
-                feature = {
-                    "name": Julia.get_feature_field(ind,"name"),
+                var color = Julia.get_class_field(ind,"color")
+                class_var = {
+                    "name": Julia.get_class_field(ind,"name"),
                     "colorR": color[0],
                     "colorG": color[1],
                     "colorB": color[2]
                 }
-            featureModel.append(feature)
+            classModel.append(class_var)
             }
         }
     }
 
     ListModel {
-        id: featureModel
+        id: classModel
         Component.onCompleted: {
-            load_model_features(featureModel)
-            featureView.forceLayout()
-            featureView.itemAtIndex(indTree).borderForceVisible = true
+            load_model_classes(classModel)
+            classView.forceLayout()
+            classView.itemAtIndex(indTree).borderForceVisible = true
         }
     }
 
@@ -90,7 +90,7 @@ ApplicationWindow {
     onClosing: {
         var url = Julia.get_settings(["Application","model_url"])
         Julia.save_model(url)
-        // applicationfeaturedialogLoader.sourceComponent = null
+        // applicationclassdialogLoader.sourceComponent = null
     }
 
     RowLayout {
@@ -184,12 +184,12 @@ ApplicationWindow {
                             else if (problemType==1) {
                                 outputmaskCheckBox.checkState = Julia.get_output(["Mask",
                                     "mask"],indTree+1) ? Qt.Checked : Qt.Unchecked
-                                if (Julia.get_feature_field(indTree+1,"border")) {
+                                if (Julia.get_class_field(indTree+1,"border")) {
                                     visible = true
                                     bordermaskCheckBox.checkState = Julia.get_output(["Mask",
                                         "mask_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 }
-                                if (Julia.get_feature_field(indTree+1,"border")) {
+                                if (Julia.get_class_field(indTree+1,"border")) {
                                     visible = true
                                     appliedbordermaskCheckbox.checkState = Julia.get_output(["Mask",
                                         "mask_applied_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
@@ -545,7 +545,7 @@ ApplicationWindow {
                 }
             }
             Pane {
-                id: featuresPane
+                id: classesPane
                 spacing: 0
                 padding: 0.5*margin
                 width: 0.5*buttonWidth
@@ -553,12 +553,12 @@ ApplicationWindow {
                 bottomPadding: tabmargin
                 backgroundColor: defaultpalette.window2
                 Column {
-                    id: featuresColumn
+                    id: classesColumn
                     spacing: -2*pix
                     Label {
-                        id: featuresLabel
+                        id: classesLabel
                         width: buttonWidth + 0.5*margin - 5*pix
-                        text: "Features:"
+                        text: "Classes:"
                         padding: 0.1*margin
                         leftPadding: 0.2*margin
                         background: Rectangle {
@@ -569,9 +569,9 @@ ApplicationWindow {
                         }
                     }
                     Frame {
-                        id: featuresFrame
+                        id: classesFrame
                         height: Math.max(Math.max(parametersColumn.height,menuPane.height) - 
-                            featuresLabel.height - 2*0.75*margin,600*pix)
+                            classesLabel.height - 2*0.75*margin,600*pix)
                         width: buttonWidth + 0.5*margin - 5*pix
                         backgroundColor: "white"
                         ScrollView {
@@ -582,23 +582,23 @@ ApplicationWindow {
                             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                             Flickable {
                                 boundsBehavior: Flickable.StopAtBounds
-                                contentHeight: featureView.height+buttonHeight-2*pix
+                                contentHeight: classView.height+buttonHeight-2*pix
                                 Item {
                                     ListView {
-                                        id: featureView
+                                        id: classView
                                         height: childrenRect.height
                                         spacing: -2*pix
                                         boundsBehavior: Flickable.StopAtBounds
-                                        model: featureModel
+                                        model: classModel
                                         delegate: TreeButton {
                                             id: treeButton
                                             x: 1
                                             hoverEnabled: true
-                                            width: featuresFrame.width - 25*pix
+                                            width: classesFrame.width - 25*pix
                                             height: buttonHeight - 2*pix
                                             onClicked: {
-                                                for (var i=0;i<featureModel.count;i++) {
-                                                    featureView.itemAtIndex(i).borderForceVisible = false
+                                                for (var i=0;i<classModel.count;i++) {
+                                                    classView.itemAtIndex(i).borderForceVisible = false
                                                 }
                                                 borderForceVisible = true
                                                 indTree = index

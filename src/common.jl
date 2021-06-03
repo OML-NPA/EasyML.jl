@@ -128,26 +128,26 @@ function image_to_color_float(image::Array{RGB{Normed{UInt8,8}},2})
 end
 
 # Convert images to BitArray{3}
-function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, feature_inds::Vector{Int64},
+function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vector{Int64},
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},
         border::Vector{Bool},border_thickness::Vector{Int64})
     colors = map(x->RGB((n0f8.(./(x,255)))...),labels_color)
-    num = length(feature_inds)
+    num = length(class_inds)
     num_borders = sum(border)
     inds_borders = findall(border)
     label = fill!(BitArray{3}(undef, size(labelimg)...,
         num + num_borders),0)
-    # Find features based on colors
-    for i in feature_inds
+    # Find classes based on colors
+    for i in class_inds
         colors_current = [colors[i]]
         inds = findall(map(x->issubset(i,x),labels_incl))
-        if !isempty(feature_inds)
+        if !isempty(class_inds)
             push!(colors_current,colors[inds]...)
         end
         bitarrays = map(x -> .==(labelimg,x),colors_current)
         label[:,:,i] = any(reduce(cat3,bitarrays),dims=3)
     end
-    # Make features outlining object borders
+    # Make classes outlining object borders
     for j=1:length(inds_borders)
         ind = inds_borders[j]
         dil = dilate(outer_perim(label[:,:,ind]),border_thickness[ind])
@@ -158,36 +158,36 @@ end
 
 # Returns color for labels, whether should be combined with other
 # labels and whether border data should be obtained
-function get_feature_data(features::Vector{Segmentation_feature})
-    num = length(features)
-    feature_names = Vector{String}(undef,num)
-    feature_parents = Vector{Vector{String}}(undef,num)
+function get_class_data(classes::Vector{Segmentation_class})
+    num = length(classes)
+    class_names = Vector{String}(undef,num)
+    class_parents = Vector{Vector{String}}(undef,num)
     labels_color = Vector{Vector{Float64}}(undef,num)
     labels_incl = Vector{Vector{Int64}}(undef,num)
     for i=1:num
-        feature = features[i]
-        feature_names[i] = features[i].name
-        feature_parents[i] = features[i].parents
-        labels_color[i] = feature.color
+        class = classes[i]
+        class_names[i] = classes[i].name
+        class_parents[i] = classes[i].parents
+        labels_color[i] = class.color
     end
     for i=1:num
-        labels_incl[i] = findall(any.(map(x->x.==feature_parents[i],feature_names)))
+        labels_incl[i] = findall(any.(map(x->x.==class_parents[i],class_names)))
     end
-    feature_inds = Vector{Int64}(undef,0)
+    class_inds = Vector{Int64}(undef,0)
     for i = 1:num
-        if !features[i].not_feature
-            push!(feature_inds,i)
+        if !classes[i].not_class
+            push!(class_inds,i)
         end
     end
-    num = length(feature_inds)
+    num = length(class_inds)
     border = Vector{Bool}(undef,num)
     border_thickness = Vector{Int64}(undef,num)
-    for i in feature_inds
-        feature = features[i]
-        border[i] = feature.border
-        border_thickness[i] = feature.border_thickness
+    for i in class_inds
+        class = classes[i]
+        border[i] = class.border
+        border_thickness[i] = class.border_thickness
     end
-    return feature_inds,labels_color,labels_incl,border,border_thickness
+    return class_inds,labels_color,labels_incl,border,border_thickness
 end
 
 # Removes rows and columns from image sides if they are uniformly black.
@@ -254,14 +254,14 @@ function rotate_img(img::BitArray{3},angle_val::Float64)
 end
 
 # Use border data to better separate objects
-function apply_border_data(data_in::BitArray{3},features::Vector{Segmentation_feature})
-    feature_inds,_,_,border,border_thickness = get_feature_data(features)
+function apply_border_data(data_in::BitArray{3},classes::Vector{Segmentation_class})
+    class_inds,_,_,border,border_thickness = get_class_data(classes)
     inds_border = findall(border)
     if isnothing(inds_border)
         return data_in
     end
     num_border = length(inds_border)
-    num_feat = length(feature_inds)
+    num_feat = length(class_inds)
     data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
     for i = 1:num_border #@floop ThreadedEx() 
         border_num_pixels = border_thickness[i]
@@ -278,7 +278,7 @@ function apply_border_data(data_in::BitArray{3},features::Vector{Segmentation_fe
         background = background1 .| background2
         skel = thinning(border_bool)
         background[skel] .= true
-        if features[i].border_remove_objs
+        if classes[i].border_remove_objs
             components = label_components((!).(border_bool),conn(4))
             intensities = component_intensity(components,data_feat)
             bad_components = findall(intensities.<0.7)
@@ -317,7 +317,7 @@ function accuracy_weighted(predicted::Array{Float32,4},actual::Array{Float32,4})
     # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
-    # Calculate correct and incorrect feature pixels as a BitArray
+    # Calculate correct and incorrect class pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
     dif_bool = xor.(predicted_bool,actual_bool)
     # Calculate correct and incorrect background pixels as a BitArray
@@ -325,29 +325,29 @@ function accuracy_weighted(predicted::Array{Float32,4},actual::Array{Float32,4})
     dif_background_bool = dif_bool-actual_bool
     # Number of elements
     numel = prod(array_size12)
-    # Count number of feature pixels
+    # Count number of class pixels
     pix_sum = sum(actual_bool,dims=(1,2,4))
     pix_sum_perm = permutedims(pix_sum,[3,1,2,4])
-    feature_counts = pix_sum_perm[:,1,1,1]
+    class_counts = pix_sum_perm[:,1,1,1]
     # Calculate weight for each pixel
-    fr = feature_counts./numel./num_batch
+    fr = class_counts./numel./num_batch
     w = 1 ./fr
     w2 = 1 ./(1 .- fr)
     w_sum = w + w2
     w = w./w_sum
     w2 = w2./w_sum
-    w_adj = w./feature_counts
-    w2_adj = w2./(numel*num_batch .- feature_counts)
+    w_adj = w./class_counts
+    w2_adj = w2./(numel*num_batch .- class_counts)
     # Initialize vectors for storing accuracies
-    features_accuracy = Vector{Float32}(undef,num_feat)
+    classes_accuracy = Vector{Float32}(undef,num_feat)
     background_accuracy = Vector{Float32}(undef,num_feat)
     # Calculate accuracies
     for i = 1:num_feat
-        # Calculate accuracy for a feature
+        # Calculate accuracy for a class
         sum_correct = sum(correct_bool[:,:,i,:])
         sum_dif = sum(dif_bool[:,:,i,:])
         sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        features_accuracy[i] = w_adj[i]*sum_comb
+        classes_accuracy[i] = w_adj[i]*sum_comb
         # Calculate accuracy for a background
         sum_correct = sum(correct_background_bool[:,:,i,:])
         sum_dif = sum(dif_background_bool[:,:,i,:])
@@ -355,7 +355,7 @@ function accuracy_weighted(predicted::Array{Float32,4},actual::Array{Float32,4})
         background_accuracy[i] = w2_adj[i]*sum_comb
     end
     # Calculate final accuracy
-    acc = mean(features_accuracy+background_accuracy)
+    acc = mean(classes_accuracy+background_accuracy)
     if acc>1.0
         acc = 1.0f0
     end
@@ -372,7 +372,7 @@ function accuracy_weighted(predicted::CuArray{Float32,4},actual::CuArray{Float32
     # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
-    # Calculate correct and incorrect feature pixels as a BitArray
+    # Calculate correct and incorrect class pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
     dif_bool = xor.(predicted_bool,actual_bool)
     # Calculate correct and incorrect background pixels as a BitArray
@@ -380,29 +380,29 @@ function accuracy_weighted(predicted::CuArray{Float32,4},actual::CuArray{Float32
     dif_background_bool = dif_bool-actual_bool
     # Number of elements
     numel = prod(array_size12)
-    # Count number of feature pixels
+    # Count number of class pixels
     pix_sum::Array{Float32,4} = collect(sum(actual_bool,dims=(1,2,4)))
     pix_sum_perm = permutedims(pix_sum,[3,1,2,4])
-    feature_counts = pix_sum_perm[:,1,1,1]
+    class_counts = pix_sum_perm[:,1,1,1]
     # Calculate weight for each pixel
-    fr = feature_counts./numel./num_batch
+    fr = class_counts./numel./num_batch
     w = 1 ./fr
     w2 = 1 ./(1 .- fr)
     w_sum = w + w2
     w = w./w_sum
     w2 = w2./w_sum
-    w_adj = w./feature_counts
-    w2_adj = w2./(numel*num_batch .- feature_counts)
+    w_adj = w./class_counts
+    w2_adj = w2./(numel*num_batch .- class_counts)
     # Initialize vectors for storing accuracies
-    features_accuracy = Vector{Float32}(undef,num_feat)
+    classes_accuracy = Vector{Float32}(undef,num_feat)
     background_accuracy = Vector{Float32}(undef,num_feat)
     # Calculate accuracies
     for i = 1:num_feat
-        # Calculate accuracy for a feature
+        # Calculate accuracy for a class
         sum_correct = sum(correct_bool[:,:,i,:])
         sum_dif = sum(dif_bool[:,:,i,:])
         sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        features_accuracy[i] = w_adj[i]*sum_comb
+        classes_accuracy[i] = w_adj[i]*sum_comb
         # Calculate accuracy for a background
         sum_correct = sum(correct_background_bool[:,:,i,:])
         sum_dif = sum(dif_background_bool[:,:,i,:])
@@ -410,7 +410,7 @@ function accuracy_weighted(predicted::CuArray{Float32,4},actual::CuArray{Float32
         background_accuracy[i] = w2_adj[i]*sum_comb
     end
     # Calculate final accuracy
-    acc = mean(features_accuracy+background_accuracy)
+    acc = mean(classes_accuracy+background_accuracy)
     if acc>1.0
         acc = 1.0f0
     end

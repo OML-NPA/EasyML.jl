@@ -9,7 +9,7 @@ import org.julialang 1.0
 
 
 ApplicationWindow {
-    id: featuredialogWindow
+    id: classdialogWindow
     visible: true
     title: qsTr("  Julia Machine Learning GUI")
     width: rowLayout.width
@@ -46,20 +46,20 @@ ApplicationWindow {
     }
 
     //--------------------------------------------------------------------------
-    function load_model_features(featureModel) {
+    function load_model_classes(classModel) {
         problemComboBox.currentIndex = Julia.get_problem_type()
-        var num_features = Julia.num_features()
-            if (num_features<3) {
+        var num_classes = Julia.num_classes()
+            if (num_classes<3) {
             parent2Row.visible = false
-            if (Julia.num_features()<2) {
+            if (Julia.num_classes()<2) {
                 parentComboBox.visible = false
                 parentLabel.visible = false
             }
         }
-        if (featureModel.count!==0) {
-            featureModel.clear()
+        if (classModel.count!==0) {
+            classModel.clear()
         }
-        for (var i=0;i<num_features;i++) {
+        for (var i=0;i<num_classes;i++) {
             var ind = i+1
             if (i+1<max_id) {
                 var id = ids[i]
@@ -69,31 +69,33 @@ ApplicationWindow {
                 id = max_id
             }
             if (problemComboBox.currentIndex==0) {
-                var feature = {
+                console.log(id)
+                console.log(Julia.get_class_field(ind,"name"))
+                var class_var = {
                     "id": id,
-                    "name": Julia.get_feature_field(ind,"name")
+                    "name": Julia.get_class_field(ind,"name")
                 }
-                featureModel.append(feature)
+                classModel.append(class_var)
             }
             else if (problemComboBox.currentIndex==1) {
-                var color = Julia.get_feature_field(ind,"color")
-                var parents = Julia.get_feature_field(ind,"parents")
-                feature = {
+                var color = Julia.get_class_field(ind,"color")
+                var parents = Julia.get_class_field(ind,"parents")
+                class_var = {
                     "id": id,
-                    "name": Julia.get_feature_field(ind,"name"),
+                    "name": Julia.get_class_field(ind,"name"),
                     "colorR": color[0],
                     "colorG": color[1],
                     "colorB": color[2],
-                    "border": Julia.get_feature_field(ind,"border"),
-                    "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
-                    "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
-                    "min_area": Julia.get_feature_field(ind,"min_area"),
+                    "border": Julia.get_class_field(ind,"border"),
+                    "border_thickness": Julia.get_class_field(ind,"border_thickness"),
+                    "borderRemoveObjs": Julia.get_class_field(ind,"border_remove_objs"),
+                    "min_area": Julia.get_class_field(ind,"min_area"),
                     "parent": parents[0],
                     "parent2": parents[1],
-                    "notFeature": Julia.get_feature_field(ind,"not_feature")
+                    "notClass": Julia.get_class_field(ind,"not_class")
                 }
             }
-            featureModel.append(feature)
+            classModel.append(class_var)
         }
     }
 
@@ -103,7 +105,7 @@ ApplicationWindow {
         colorRow.visible = false
         minareaRow.visible = false
         parentRow.visible = false
-        notfeatureRow.visible = false
+        notclassRow.visible = false
         borderRow.visible = false
         bordernumpixelsRow.visible = false
         borderremoveobjsRow.visible = false
@@ -120,7 +122,7 @@ ApplicationWindow {
             colorRow.visible = true
             minareaRow.visible = true
             parentRow.visible = true
-            notfeatureRow.visible = true
+            notclassRow.visible = true
             borderRow.visible = true
             bordernumpixelsRow.visible = true
             borderremoveobjsRow.visible = true
@@ -133,9 +135,9 @@ ApplicationWindow {
         else {
             parametersColumn.opacity = 1
         }
-        featureView.itemAtIndex(indTree).borderForceVisible = true
+        classView.itemAtIndex(indTree).borderForceVisible = true
 
-        nameTextField.text = featureModel.get(indTree).name
+        nameTextField.text = classModel.get(indTree).name
         
         if (problemComboBox.currentIndex==0) {
 
@@ -145,24 +147,24 @@ ApplicationWindow {
             colorRow.visible = true
             minareaRow.visible = true
             parentRow.visible = true
-            notfeatureRow.visible = true
+            notclassRow.visible = true
             borderRow.visible = true
             bordernumpixelsRow.visible = true
             borderremoveobjsRow.visible = true
 
-            redTextField.text = featureModel.get(indTree).colorR
-            greenTextField.text = featureModel.get(indTree).colorG
-            blueTextField.text = featureModel.get(indTree).colorB
+            redTextField.text = classModel.get(indTree).colorR
+            greenTextField.text = classModel.get(indTree).colorG
+            blueTextField.text = classModel.get(indTree).colorB
 
-            minareaTextField.text = featureModel.get(indTree).min_area
+            minareaTextField.text = classModel.get(indTree).min_area
 
             // parentComboBox 1
             nameModel.clear()
-            var name = featureModel.get(indTree).parent
+            var name = classModel.get(indTree).parent
             nameModel.append({"name": ""})
-            for (var i=0;i<featureModel.count;i++) {
+            for (var i=0;i<classModel.count;i++) {
                 if (i===indTree) continue
-                nameModel.append({"name": featureModel.get(i).name})
+                nameModel.append({"name": classModel.get(i).name})
             }
             if (name!=="") {
                 for (var i=0;i<parentComboBox.model.count;i++) {
@@ -175,12 +177,12 @@ ApplicationWindow {
             name2Model.clear()
             var name1 = parentComboBox.currentText
             name2Model.append({"name": ""})
-            for (i=0;i<featureModel.count;i++) {
-                name = featureModel.get(i).name
+            for (i=0;i<classModel.count;i++) {
+                name = classModel.get(i).name
                 if (i===indTree || name1===name) continue
                 name2Model.append({"name": name})
             }
-            var parentName = featureModel.get(indTree).parent2
+            var parentName = classModel.get(indTree).parent2
             if (parentName!=="") {
                 for (i=0;i<name2Model.count;i++) {
                     if (name2Model.get(i).name===parentName) {
@@ -189,28 +191,28 @@ ApplicationWindow {
                 }
             }
 
-            // notfeatureCheckBox
-            notfeatureCheckBox.checkState = featureModel.get(indTree).notFeature ?
+            // notclassCheckBox
+            notclassCheckBox.checkState = classModel.get(indTree).notClass ?
                             Qt.Checked : Qt.Unchecked
 
             // borderCheckBox
-            borderCheckBox.checkState = featureModel.get(indTree).border ?
+            borderCheckBox.checkState = classModel.get(indTree).border ?
                             Qt.Checked : Qt.Unchecked
 
             // bordernumpixelsSpinBox
-            bordernumpixelsSpinBox.value = featureModel.get(indTree).border_thickness
+            bordernumpixelsSpinBox.value = classModel.get(indTree).border_thickness
 
             // borderremoveobjsLabel
-            borderremoveobjsCheckBox.checkState = featureModel.get(indTree).borderRemoveObjs ?
+            borderremoveobjsCheckBox.checkState = classModel.get(indTree).borderRemoveObjs ?
                             Qt.Checked : Qt.Unchecked
         }
     }
 
     ListModel {
-        id: featureModel
+        id: classModel
         Component.onCompleted: {
-            load_model_features(featureModel)
-            featureView.forceLayout()
+            load_model_classes(classModel)
+            classView.forceLayout()
             update_fields()
         }
     }
@@ -219,13 +221,13 @@ ApplicationWindow {
 
     color: defaultpalette.window
 
-    // onClosing: {featuredialogLoader.sourceComponent = null}
+    // onClosing: {classdialogLoader.sourceComponent = null}
 
     RowLayout {
         id: rowLayout
         spacing: 0.75*margin
         Column {
-            id: featuresColumn
+            id: classesColumn
             Layout.alignment: Qt.AlignTop
             Layout.margins: 0.75*margin
             Layout.rightMargin: 0*margin
@@ -250,16 +252,16 @@ ApplicationWindow {
                         ListElement {text: "Regression"}
                     }
                     onActivated: {
-                        featureModel.clear()
+                        classModel.clear()
                         indTree = -1
                         update_fields()
                     }
                 }
             }
             Label {
-                id: featuresLabel
+                id: classesLabel
                 width: buttonWidth + 0.5*margin - 5*pix
-                text: "Features:"
+                text: "Classes:"
                 padding: 0.1*margin
                 leftPadding: 0.2*margin
                 background: Rectangle {
@@ -270,8 +272,8 @@ ApplicationWindow {
                 }
             }
             Frame {
-                id: featuresFrame
-                height: Math.max(parametersColumn.height - problemRow.height - featuresLabel.height,300*pix)
+                id: classesFrame
+                height: Math.max(parametersColumn.height - problemRow.height - classesLabel.height,300*pix)
                 width: buttonWidth + 0.5*margin - 5*pix
                 backgroundColor: "white"
                 ScrollView {
@@ -282,23 +284,23 @@ ApplicationWindow {
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                     Flickable {
                         boundsBehavior: Flickable.StopAtBounds
-                        contentHeight: featureView.height+buttonHeight-2*pix
+                        contentHeight: classView.height+buttonHeight-2*pix
                         Item {
                             ListView {
-                                id: featureView
+                                id: classView
                                 height: childrenRect.height
                                 spacing: -2*pix
                                 boundsBehavior: Flickable.StopAtBounds
-                                model: featureModel
+                                model: classModel
                                 delegate: TreeButton {
                                     id: treeButton
                                     x: 1
                                     hoverEnabled: true
-                                    width: featuresFrame.width - 25*pix
+                                    width: classesFrame.width - 25*pix
                                     height: buttonHeight - 2*pix
                                     onClicked: {
-                                        for (var i=0;i<featureModel.count;i++) {
-                                            featureView.itemAtIndex(i).borderForceVisible = false
+                                        for (var i=0;i<classModel.count;i++) {
+                                            classView.itemAtIndex(i).borderForceVisible = false
                                         }
                                         borderForceVisible = true
                                         indTree = index
@@ -347,14 +349,14 @@ ApplicationWindow {
                                         onClicked: {
                                             if (indTree==index) {
                                                 indTree = index - 1
-                                                if (indTree<0 && featureModel.count!=1) {
+                                                if (indTree<0 && classModel.count!=1) {
                                                     indTree = 0
                                                 }
                                             }
-                                            if (indTree==(featureModel.count-1)) {
+                                            if (indTree==(classModel.count-1)) {
                                                 indTree -= 1
                                             }
-                                            featureModel.remove(index)
+                                            classModel.remove(index)
                                             update_fields()
                                         }
                                     }
@@ -363,9 +365,9 @@ ApplicationWindow {
                             Button {
                                 id: addButton
                                 hoverEnabled: true
-                                anchors.top: featureView.bottom
+                                anchors.top: classView.bottom
                                 x: 1
-                                width: featuresFrame.width - 25*pix
+                                width: classesFrame.width - 25*pix
                                 height: buttonHeight - 2*pix
                                 background: Rectangle {
                                     color: "transparent"
@@ -373,30 +375,30 @@ ApplicationWindow {
                                     border.width: addButton.hovered ? 2*pix : 0
                                 }
                                 onClicked: {
-                                    var cnt = featureModel.count+1
-                                    var name = "Feature "+cnt.toString()
+                                    var cnt = classModel.count+1
+                                    var name = "Class "+cnt.toString()
                                     while (true) {
-                                        for (var i=0;i<featureModel.count;i++) {
-                                            if (featureModel.get(i).name==name) {
+                                        for (var i=0;i<classModel.count;i++) {
+                                            if (classModel.get(i).name==name) {
                                                 cnt += 1
-                                                name = "Feature "+cnt.toString()
+                                                name = "Class "+cnt.toString()
                                                 break
                                             }
                                         }
-                                        if(i==(featureModel.count)) {
+                                        if(i==(classModel.count)) {
                                             break
                                         }
                                     }
                                     max_id += 1
                                     var id = max_id
                                     if (problemComboBox.currentIndex==0) {
-                                        var feature = {
+                                        var class_var = {
                                             "name": name,
                                             "id": id
                                         }
                                     }
                                     else if (problemComboBox.currentIndex==1) {
-                                        var feature = {
+                                        var class_var = {
                                             "name": name,
                                             "id": id,
                                             "colorR": Math.floor(Math.random()*255)+1,
@@ -408,15 +410,15 @@ ApplicationWindow {
                                             "min_area": 0,
                                             "parent": "",
                                             "parent2": "",
-                                            "notFeature": false
+                                            "notClass": false
                                         }
                                     }
                                     
-                                    featureModel.append(feature)
+                                    classModel.append(class_var)
                                     if (indTree<0) {
                                         indTree = 0
                                     }
-                                    featureView.forceLayout()
+                                    classView.forceLayout()
                                     update_visibility()
                                     update_fields()
                                 }
@@ -493,17 +495,17 @@ ApplicationWindow {
                     width: 400*pix
                     height: buttonHeight
                     onEditingFinished: {
-                        var prev_name = featureModel.get(indTree).name
+                        var prev_name = classModel.get(indTree).name
                         var new_name = nameTextField.text
                         if (prev_name!==new_name) {
-                            for (var i=0;i<featureModel.count;i++) {
-                                var element = featureModel.get(i)
+                            for (var i=0;i<classModel.count;i++) {
+                                var element = classModel.get(i)
                                 if (element.parent===prev_name) {
                                     element.parent = new_name
                                 }
                             }
                         }
-                        featureModel.setProperty(indTree, "name", text)
+                        classModel.setProperty(indTree, "name", text)
                     }
                     
                 }
@@ -526,13 +528,13 @@ ApplicationWindow {
                         id: nameModel
                     }
                     onActivated: {
-                        if (index!==0 && featureModel.count>2) {
+                        if (index!==0 && classModel.count>2) {
                             parent2Row.visible = true
                         }
                         else {
                             parent2Row.visible = false
                         }
-                        featureModel.setProperty(indTree, "parent", currentValue)
+                        classModel.setProperty(indTree, "parent", currentValue)
                     }
                 }
             }
@@ -554,7 +556,7 @@ ApplicationWindow {
                         id: name2Model
                     }
                     onActivated: {
-                        featureModel.setProperty(indTree, "parent2", currentValue)
+                        classModel.setProperty(indTree, "parent2", currentValue)
                     }
                 }
             }
@@ -584,7 +586,7 @@ ApplicationWindow {
                             val = 255
                             redTextField.text = "255"
                         }
-                        featureModel.setProperty(indTree, "colorR", val)
+                        classModel.setProperty(indTree, "colorR", val)
                     }
                     onAccepted: {
                         backgroundMouseArea.focus = true
@@ -606,8 +608,8 @@ ApplicationWindow {
                             val = 255
                             greenTextField.text = "255"
                         }
-                        featureModel.setProperty(indTree, "colorR", val)
-                        featureModel.get(indTree).colorR = val
+                        classModel.setProperty(indTree, "colorR", val)
+                        classModel.get(indTree).colorR = val
                     }
                     onAccepted: {
                         var val = parseFloat(greenTextField.text)
@@ -615,7 +617,7 @@ ApplicationWindow {
                             val = 255
                             greenTextField.text = "255"
                         }
-                        featureModel.setProperty(indTree, "colorR", val)
+                        classModel.setProperty(indTree, "colorR", val)
                         backgroundMouseArea.focus = true
                     }
                 }
@@ -636,8 +638,8 @@ ApplicationWindow {
                             val = 255
                             blueTextField.text = "255"
                         }
-                        featureModel.setProperty(indTree, "colorR", val)
-                        featureModel.get(indTree).colorR = val
+                        classModel.setProperty(indTree, "colorR", val)
+                        classModel.get(indTree).colorR = val
                     }
                     onAccepted: {
                         var val = parseFloat(blueTextField.text)
@@ -645,27 +647,27 @@ ApplicationWindow {
                             val = 255
                             blueTextField.text = "255"
                         }
-                        featureModel.setProperty(indTree, "colorR", val)
+                        classModel.setProperty(indTree, "colorR", val)
                         backgroundMouseArea.focus = true
                     }
                 }
             }
             Row {
-                id: notfeatureRow
+                id: notclassRow
                 visible: false
                 Label {
-                    id: notfeatureLabel
+                    id: notclassLabel
                     width: 350*pix
-                    text: "Not a feature:"
+                    text: "Not a class_var:"
                 }
                 CheckBox {
-                    id: notfeatureCheckBox
+                    id: notclassCheckBox
                     onClicked: {
                         if (checkState==Qt.Checked) {
-                            featureModel.get(indTree).notFeature = true
+                            classModel.get(indTree).notClass = true
                         }
                         if (checkState==Qt.Unchecked) {
-                            featureModel.get(indTree).notFeature = false
+                            classModel.get(indTree).notClass = false
                         }
                     }
                 }
@@ -682,10 +684,10 @@ ApplicationWindow {
                     id: borderCheckBox
                     onClicked: {
                         if (checkState==Qt.Checked) {
-                            featureModel.get(indTree).border = true
+                            classModel.get(indTree).border = true
                         }
                         if (checkState==Qt.Unchecked) {
-                            featureModel.get(indTree).border = false
+                            classModel.get(indTree).border = false
                         }
                     }
                 }
@@ -711,7 +713,7 @@ ApplicationWindow {
                         return realValue.toLocaleString(locale,'f',0)
                     }
                     onValueModified: {
-                        featureModel.get(indTree).border_thickness = value
+                        classModel.get(indTree).border_thickness = value
                     }
                 }
             }
@@ -731,10 +733,10 @@ ApplicationWindow {
                     visible: borderCheckBox.checkState==Qt.Checked
                     onClicked: {
                         if (checkState==Qt.Checked) {
-                            featureModel.get(indTree).borderRemoveObjs = true
+                            classModel.get(indTree).borderRemoveObjs = true
                         }
                         if (checkState==Qt.Unchecked) {
-                            featureModel.get(indTree).borderRemoveObjs = false
+                            classModel.get(indTree).borderRemoveObjs = false
                         }
                     }
                 }
@@ -754,7 +756,7 @@ ApplicationWindow {
                     width: 140*pix
                     validator: RegExpValidator { regExp: /([1-9]\d{0,5})/ }
                     onEditingFinished: {
-                        featureModel.get(indTree).min_area = parseInt(text)
+                        classModel.get(indTree).min_area = parseInt(text)
                     }
                 }
             }
@@ -770,31 +772,31 @@ ApplicationWindow {
         height: 1.2*buttonHeight
         onClicked: {
             Julia.backup_options()
-            Julia.reset_features()
+            Julia.reset_classes()
             Julia.reset_output_options()
-            for (var i=0;i<featureModel.count;i++) {
-                var feature = featureModel.get(i)
-                Julia.append_features(feature.id,
-                    [feature.name,
-                    feature.colorR,
-                    feature.colorG,
-                    feature.colorB,
-                    feature.border,
-                    feature.border_thickness,
-                    feature.borderRemoveObjs,
-                    feature.min_area,
-                    [feature.parent,feature.parent2],
-                    feature.notFeature])
+            for (var i=0;i<classModel.count;i++) {
+                var class_var = classModel.get(i)
+                Julia.append_classes(class_var.id,
+                    [class_var.name,
+                    class_var.colorR,
+                    class_var.colorG,
+                    class_var.colorB,
+                    class_var.border,
+                    class_var.border_thickness,
+                    class_var.borderRemoveObjs,
+                    class_var.min_area,
+                    [class_var.parent,class_var.parent2],
+                    class_var.notClass])
             }
-            // featuredialogLoader.sourceComponent = null
-            featuredialogWindow.close()
+            // classdialogLoader.sourceComponent = null
+            classdialogWindow.close()
         }
     }
 
     MouseArea {
         id: backgroundMouseArea
-        width: featuredialogWindow.width
-        height: featuredialogWindow.height
+        width: classdialogWindow.width
+        height: classdialogWindow.height
         onPressed: {
             focus = true
             mouse.accepted = false

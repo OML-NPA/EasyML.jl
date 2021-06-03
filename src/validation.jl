@@ -4,7 +4,7 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::Validation_data,model_data::Model_data)
-    if model_data.features[1] isa Segmentation_feature
+    if model_data.classes[1] isa Segmentation_class
         allowed_ext = ["png","jpg","jpeg"]
     end
     if validation.use_labels==true
@@ -33,8 +33,8 @@ function reset_validation_results(validation_data::Validation_data)
 end
 
 function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, features::Vector{Segmentation_feature},ind::Int64)
-    inds,labels_color,labels_incl,border,border_thickness = get_feature_data(features)
+        options::Processing_training, classes::Vector{Segmentation_class},ind::Int64)
+    inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
@@ -53,7 +53,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
 end
 
 function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, features::Vector{Classification_feature},ind::Int64)
+        options::Processing_training, classes::Vector{Classification_class},ind::Int64)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
@@ -111,9 +111,9 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
 end
 
 function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
-        features::Vector{<:AbstractFeature},validation::Validation)
-    feature_inds,labels_color, _ ,border = get_feature_data(features)
-    labels_color = labels_color[feature_inds]
+        classes::Vector{<:AbstractClass},validation::Validation)
+    class_inds,labels_color, _ ,border = get_class_data(classes)
+    labels_color = labels_color[class_inds]
     labels_color_uint = convert(Vector{Vector{N0f8}},labels_color/255)
     inds_border = findall(border)
     border_colors = labels_color_uint[findall(border)]
@@ -122,11 +122,11 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     num_feat = array_size[3]
     num_border = sum(border)
     if num_border>0
-        border_bool = apply_border_data(predicted_bool,features)
+        border_bool = apply_border_data(predicted_bool,classes)
         predicted_bool = cat3(predicted_bool,border_bool)
     end
     for i=1:num_border 
-        min_area = features[inds_border[i]].min_area
+        min_area = classes[inds_border[i]].min_area
         ind = num_feat + i
         if min_area>1
             temp_array = predicted_bool[:,:,ind]
@@ -140,12 +140,12 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
 end
 
 function process_output(validation::Validation,predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},features::Vector{Segmentation_feature},channels::Channels)
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{Segmentation_class},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
     # Get images
     predicted_data,target_data,error_data = 
-        output_images(predicted_bool,label_bool,features,validation)
+        output_images(predicted_bool,label_bool,classes,validation)
     image_data = (predicted_data,target_data,error_data)
     data = (image_data,other_data,original)
     # Return data
@@ -163,7 +163,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
     num = length(validation_data.input_urls)
     put!(channels.validation_progress,num)
     use_labels = validation.use_labels
-    features = model_data.features
+    classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
     accuracy = get_accuracy_func(settings.Training)
@@ -178,7 +178,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
             end
         end
         data_input,data_label,other = prepare_validation_data(validation,
-            validation_data,settings.Training.Options.Processing,features,i)
+            validation_data,settings.Training.Options.Processing,classes,i)
         predicted = forward(model,data_input,use_GPU=use_GPU)
         if use_labels
             accuracy_val = accuracy(predicted,data_label)
@@ -187,7 +187,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
         else
             other_data = (0.f0,0.f0)
         end
-        process_output(validation,predicted,data_label,other,other_data,features,channels)
+        process_output(validation,predicted,data_label,other,other_data,classes,channels)
     end
     return nothing
 end
