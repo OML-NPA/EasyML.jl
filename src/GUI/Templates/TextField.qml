@@ -11,6 +11,9 @@ T.TextField {
     property double defaultWidth: 384*pix
     property double defaultHeight: buttonHeight
 
+    font.family: "Proxima Nova"//control.font.family
+    font.pixelSize: 33*pix
+
     implicitWidth: defaultWidth
     implicitHeight: defaultHeight
 
@@ -29,10 +32,6 @@ T.TextField {
     placeholderTextColor: Color.transparent(control.color, 0.5)
     verticalAlignment: TextInput.AlignVCenter
 
-    font.family: control.font.family
-    font.pointSize: 9
-
-
     PlaceholderText {
         id: placeholder
         x: control.leftPadding
@@ -42,7 +41,7 @@ T.TextField {
 
         text: control.placeholderText
         font.family: "Proxima Nova"//control.font.family
-        font.pointSize: 10
+        font.pixelSize: 33*pix
         color: control.placeholderTextColor
         verticalAlignment: control.verticalAlignment
         visible: !control.length && !control.preeditText && (!control.activeFocus || control.horizontalAlignment !== Qt.AlignHCenter)

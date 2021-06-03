@@ -35,7 +35,7 @@ T.Button {
         icon: control.icon
         text: control.text
         font.family: "Proxima Nova"//control.font.family
-        font.pointSize: 10
+        font.pixelSize: 33*pix
         color: control.checked || control.highlighted ? control.palette.brightText :
                control.flat && !control.down ? (control.visualFocus ? control.palette.highlight : control.palette.windowText) : control.palette.buttonText
     }

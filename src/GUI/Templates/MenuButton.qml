@@ -40,8 +40,6 @@ T.Button {
         Label {
             id: textText
             text: control.text
-            font.family: "Proxima Nova"//control.font.family
-            font.pointSize: font_size
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignLeft
             leftPadding: horizontal ? 0 : tabmargin

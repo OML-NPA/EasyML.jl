@@ -52,8 +52,8 @@ T.CheckBox {
         rightPadding: 0.9*(control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0)
 
         text: control.text
-        font.family: control.font.family
-        font.pointSize: 10
+        font.family: "Proxima Nova"
+        font.pixelSize: 33*pix
         color: control.palette.windowText
     }
 }
