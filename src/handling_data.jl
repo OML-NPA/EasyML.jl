@@ -33,7 +33,7 @@ function get_labels_colors_main(training_data::Training_data,channels::Channels)
     for i=1:num
         push!(labelimgs,RGB.(load(url_labels[i])))
     end
-    @threads for i=1:num
+    @floop ThreadedEx() for i=1:num
             labelimg = labelimgs[i]
             unique_colors = unique(labelimg)
             ind = findfirst(unique_colors.==RGB.(0,0,0))
@@ -189,12 +189,12 @@ function filter_ext(urls::Vector{String},allowed_ext::String)
     return urls
 end
 
-#---Feature output related functions
-# Allows to read feature output options from GUI
+#---Class output related functions
+# Allows to read class output options from GUI
 function get_output_main(model_data::Model_data,fields,ind)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
-    data = model_data.features[ind].Output
+    data = model_data.output_options[ind]
     for i = 1:length(fields)
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -203,12 +203,12 @@ function get_output_main(model_data::Model_data,fields,ind)
 end
 get_output(fields,ind) = get_output_main(model_data,fields,ind)
 
-# Allows to write to feature output options from GUI
+# Allows to write to class output options from GUI
 function set_output_main(model_data::Model_data,fields,ind,value)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
     value = fix_QML_types(value)
-    data = model_data.features[ind].Output
+    data = model_data.output_options[ind]
     for i = 1:length(fields)-1
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -283,8 +283,7 @@ function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}
 end
 
 # Saves image to the main image storage and returns its size
-function get_image_main(master_data::Master_data,fields,
-        img_size,inds)
+function get_image_main(master_data::Master_data,fields,img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
@@ -306,18 +305,14 @@ get_image(fields,img_size,inds...) =
     get_image_main(master_data,fields,img_size,inds...)
 
 # Displays image from the main image storage to Julia canvas
-function display_image(buffer::Array{UInt32, 1},
-                      width32::Int32,
-                      height32::Int32)
-    width = width32
-    height = height32
-    buffer = reshape(buffer, width, height)
+function display_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+    buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
     image = master_data.image
     if size(buffer)==reverse(size(image))
         buffer .= transpose(image)
     end
-    return nothing
+    return
 end
 
 #---Model related functions
@@ -427,60 +422,83 @@ function get_model_type_main(model_data::Model_data)
 end
 get_model_type() = get_model_type_main(model_data)
 
-# Resets model features
-function reset_features_main(model_data)
-    empty!(model_data.features)
+# Resets model classes
+function reset_classes_main(model_data)
+    empty!(model_data.classes)
     return nothing
 end
-reset_features() = reset_features_main(model_data::Model_data)
+reset_classes() = reset_classes_main(model_data::Model_data)
 
-# Appends model features
-function append_features_main(model_data::Model_data,output_options::Segmentation_output_options,
-        name,colorR,colorG,colorB,border,border_thickness,
-        border_remove_objs,min_area,parents,not_feature)
-    push!(model_data.features,Segmentation_feature(String(name),Int64.([colorR,colorG,colorB]),
-        Bool(border),Int64(border_thickness),Bool(border_remove_objs),Int64(min_area),
-        fix_QML_types(parents),Bool(not_feature),output_options))
+# Resets model output options
+function reset_output_options_main(model_data)
+    empty!(model_data.output_options)
     return nothing
 end
-append_features(name,colorR,colorG,colorB,
-    border,border_thickness,border_remove_objs,
-    min_area,parents,not_feature) = 
-    append_features_main(model_data,output_options,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
+reset_output_options() = reset_output_options_main(model_data::Model_data)
 
-# Updates model feature with new data
-function update_features_main(model_data,index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,min_area,parents,not_feature)
-    feature = model_data.features[Int64(index)]
-    feature.name = String(name)
-    feature.color = Int64.([colorR,colorG,colorB])
-    feature.border = Bool(border)
-    feature.border_thickness = Int64(border_thickness)
-    feature.border_remove_objs = Bool(border_remove_objs)
-    feature.min_area = Int64(min_area)
-    feature.parents = fix_QML_types(parents)
-    feature.not_feature = Bool(not_feature)
-    feature.Output = feature.Output
-end
-update_features(index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,
-        min_area,parents,not_feature) =
-    update_features_main(model_data,index,name,colorR,colorG,colorB,
-        border,border_thickness,border_remove_objs,
-        min_area,parents,not_feature)
+# Appends model classes
+function append_classes_main(model_data::Model_data,design_data::Design_data,id,data)
+    data = fix_QML_types(data)
+    id = convert(Int64,id)
+    type = eltype(model_data.classes)
+    
+    if type==Classification_class
+        class = Classification_class()
+        class.name = data[1]
+    elseif type==Segmentation_class
+        class = Segmentation_class()
+        class.name = String(data[1])
+        class.color = Int64.([data[2],data[3],data[4]])
+        class.border = Bool(data[5])
+        class.border_thickness = Int64(data[6])
+        class.border_remove_objs = Bool(data[7])
+        class.min_area = Int64(data[8])
+        class.parents = data[9]
+        class.not_class = Bool(data[10])
+    end
+    push!(model_data.classes,class)
 
-# Returns the number of features
-function num_features_main(model_data::Model_data)
-    return length(model_data.features)
+    if type==Classification_class
+        type_output = Classification_output_options
+    elseif type==Segmentation_class
+        type_output = Segmentation_output_options
+    end
+    if eltype(model_data.output_options)!=type_output
+        model_data.output_options = Vector{type_output}(undef,0)
+    end
+    if id in 1:length(design_data.output_options_backup)
+        push!(model_data.output_options,design_data.output_options_backup[id])
+    else
+        push!(model_data.output_options,type_output())
+    end
+    return nothing
 end
-num_features() = num_features_main(model_data::Model_data)
+append_classes(id,data) = append_classes_main(model_data,design_data,id,data)
 
-# Returns feature value
-function get_feature_main(model_data::Model_data,index,fieldname)
-    return getfield(model_data.features[Int64(index)], Symbol(String(fieldname)))
+# Returns the number of classes
+function num_classes_main(model_data::Model_data)
+    return length(model_data.classes)
 end
-get_feature_field(index,fieldname) = get_feature_main(model_data,index,fieldname)
+num_classes() = num_classes_main(model_data::Model_data)
+
+# Returns class value
+function get_class_main(model_data::Model_data,index,fieldname)
+    return getfield(model_data.classes[Int64(index)], Symbol(String(fieldname)))
+end
+get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
+
+function backup_options_main(model_data::Model_data)
+    design_data.output_options_backup = deepcopy(model_data.output_options)
+end
+backup_options() = backup_options_main(model_data)
+
+function get_problem_type()
+    if eltype(model_data.classes)==Classification_class
+        return 0
+    elseif eltype(model_data.classes)==Segmentation_class
+        return 1
+    end
+end
 
 #---Model saving/loading
 # Saves ML model
@@ -502,18 +520,19 @@ save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
 function load_model_main(settings,model_data,url)
-    url = MLGUI.fix_QML_types(url)
+    url = fix_QML_types(url)
     data = BSON.load(url)
     ks = keys(data)
     for k in ks
         try
             serialized = seekstart(data[k])
             deserialized = BSON.load(serialized)[:field]
-            if all(k.!=(:loss,:model,:features))
+            if all(k.!=(:loss,:model,:classes,:output_options))
                 type = typeof(getfield(model_data,k))
                 deserialized = convert(type,deserialized)
-            elseif k==:features
-                type = typeof(deserialized[1])
+            elseif k==:classes || k==:output_options
+                deserialized = [deserialized...]
+                type = eltype(deserialized)
                 deserialized = convert(Vector{type},deserialized)
             end
             setfield!(model_data,k,deserialized)
@@ -523,6 +542,8 @@ function load_model_main(settings,model_data,url)
     end
     settings.Application.model_url = url
     settings.Training.model_url = url
+    url_split = split(url,('/','.'))
+    settings.Training.name = url_split[end-1]
     return nothing
 end
 load_model(url) = load_model_main(settings,model_data,url)

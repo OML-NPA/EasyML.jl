@@ -33,7 +33,10 @@ ApplicationWindow {
         }
     }
 
-    onClosing: {designoptionsLoader.sourceComponent = null}
+    onClosing: {
+        Julia.save_settings()
+        //designoptionsLoader.sourceComponent = null
+    }
 
     Item {
         id: mainItem
@@ -61,13 +64,13 @@ ApplicationWindow {
                             id: heightTextField
                             property bool need_update: false
                             property double value: 0
-                            text: Julia.get_settings(["Training","Design","height"])
+                            text: Julia.get_settings(["Design","height"])
                             width: 140*pix
                             validator: RegExpValidator { regExp: /([1-2]\d{2})|([5-9]\d{1}|^$)/ }
                             onEditingFinished: {
                                 value = parseFloat(text)
                                 if (text.length===0) {
-                                    text = Julia.get_settings(["Training","Design","height"])
+                                    text = Julia.get_settings(["Design","height"])
                                 }
                                 else {
                                     need_update = true
@@ -87,13 +90,13 @@ ApplicationWindow {
                             id: widthTextField
                             property bool need_update: false
                             property double value: 0
-                            text: Julia.get_settings(["Training","Design","width"])
+                            text: Julia.get_settings(["Design","width"])
                             width: 140*pix
                             validator: RegExpValidator { regExp: /([1-5]\d{2})|^$/ }
                             onEditingFinished: {
                                 value = parseFloat(text)
                                 if (text.length===0) {
-                                    text = Julia.get_settings(["Training","Design","width"])
+                                    text = Julia.get_settings(["Design","width"])
                                 }
                                 else {
                                     need_update = true
@@ -120,13 +123,13 @@ ApplicationWindow {
                             id: horizontaldistanceTextField
                             property bool need_update: false
                             property double value: 0
-                            text: Julia.get_settings(["Training","Design","min_dist_x"])
+                            text: Julia.get_settings(["Design","min_dist_x"])
                             width: 140*pix
                             validator: RegExpValidator { regExp: /([1-9]\d{0,2})|0/ }
                             onEditingFinished: {
                                 value = parseFloat(text)
                                 if (text.length===0) {
-                                    text = Julia.get_settings(["Training","Design","min_dist_x"])
+                                    text = Julia.get_settings(["Design","min_dist_x"])
                                 }
                                 else {
                                     need_update = true
@@ -146,13 +149,13 @@ ApplicationWindow {
                             id: verticaldistanceTextField
                             property bool need_update: false
                             property double value: 0
-                            text: Julia.get_settings(["Training","Design","min_dist_y"])
+                            text: Julia.get_settings(["Design","min_dist_y"])
                             width: 140*pix
                             validator: RegExpValidator { regExp: /([1-9]\d{0,2})|0/ }
                             onEditingFinished: {
                                 value = parseFloat(text)
                                 if (text.length===0) {
-                                    text = Julia.get_settings(["Training","Design","min_dist_y"])
+                                    text = Julia.get_settings(["Design","min_dist_y"])
                                 }
                                 else {
                                     need_update = true

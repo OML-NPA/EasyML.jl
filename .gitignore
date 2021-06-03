@@ -6,3 +6,7 @@ source/GUI/qml.qrc
 *.png
 *.bson
 *.bson
+.vscode/settings.json
+config.bson
+src/test.jl
+*.docx

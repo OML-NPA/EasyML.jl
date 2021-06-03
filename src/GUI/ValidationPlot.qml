@@ -41,7 +41,8 @@ ApplicationWindow {
         return(Qt.rgba(colorRGB[0]/255,colorRGB[1]/255,colorRGB[2]/255))
     }
     //-------------------------------------------------------------------------
-    //---Jield timer block-----------------------------------------------------
+    //---Yield timer block-----------------------------------------------------
+    
     Timer {
         id: yieldTimer
         running: true
@@ -51,7 +52,7 @@ ApplicationWindow {
     }
     //-------------------------------------------------------------------------
     //-Other-------------------------------------------------------------------
-
+    
     JuliaCanvas {
         id: imagetransferCanvas
         visible: false
@@ -59,57 +60,57 @@ ApplicationWindow {
         width: 1024
         height: 1024
     }
-
+    
     ListModel {
-        id: featureModel
+        id: classModel
         Component.onCompleted: {
-            load_model_features(featureModel)
-            for (var i=0;i<featureModel.count;i++) {
-                var feature = featureModel.get(i)
-                if (!feature.notFeature) {
-                    featureselectModel.append(
-                        {"name": feature.name})
+            load_model_classes(classModel)
+            for (var i=0;i<classModel.count;i++) {
+                var class_var = classModel.get(i)
+                if (!class_var.notClass) {
+                    classeselectModel.append(
+                        {"name": class_var.name})
                 }
             }
-            var num = featureselectModel.count
+            var num = classeselectModel.count
             for (i=0;i<num;i++) {
-                if (featureModel.get(i).border) {
-                    featureselectModel.append(
-                        {"name": featureModel.get(i).name+" (border)"})
+                if (classModel.get(i).border) {
+                    classeselectModel.append(
+                        {"name": classModel.get(i).name+" (border)"})
                 }
             }
             for (i=0;i<num;i++) {
-                if (featureModel.get(i).border) {
-                    featureselectModel.append(
-                        {"name": featureModel.get(i).name+" (applied border)"})
+                if (classModel.get(i).border) {
+                    classeselectModel.append(
+                        {"name": classModel.get(i).name+" (applied border)"})
                 }
             }
-            featureComboBox.currentIndex = 0
+            classComboBox.currentIndex = 0
         }
     }
     
-    function load_model_features(featureModel) {
-        var num_features = Julia.num_features()
-        if (featureModel.count!==0) {
-            featureModel.clear()
+    function load_model_classes(classModel) {
+        var num_classes = Julia.num_classes()
+        if (classModel.count!==0) {
+            classModel.clear()
         }
-        for (var i=0;i<num_features;i++) {
+        for (var i=0;i<num_classes;i++) {
             var ind = i+1
-            var color = Julia.get_feature_field(ind,"color")
-            var parents = Julia.get_feature_field(ind,"parents")
-            var feature = {
-                "name": Julia.get_feature_field(ind,"name"),
+            var color = Julia.get_class_field(ind,"color")
+            var parents = Julia.get_class_field(ind,"parents")
+            var class_var = {
+                "name": Julia.get_class_field(ind,"name"),
                 "colorR": color[0],
                 "colorG": color[1],
                 "colorB": color[2],
-                "border": Julia.get_feature_field(ind,"border"),
-                "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
-                "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
-                "min_area": Julia.get_feature_field(ind,"min_area"),
+                "border": Julia.get_class_field(ind,"border"),
+                "border_thickness": Julia.get_class_field(ind,"border_thickness"),
+                "borderRemoveObjs": Julia.get_class_field(ind,"border_remove_objs"),
+                "min_area": Julia.get_class_field(ind,"min_area"),
                 "parent": parents[0],
                 "parent2": parents[1],
-                "notFeature": Julia.get_feature_field(ind,"not_feature")}
-            featureModel.append(feature)
+                "notClass": Julia.get_class_field(ind,"not_class")}
+            classModel.append(class_var)
         }
     }
 
@@ -124,7 +125,7 @@ ApplicationWindow {
         timer.start();
     }
     //-------------------------------------------------------------------------
-
+    
     minimumHeight: 1024*pix + margin
     minimumWidth: informationPane.width + 1024*pix + margin
     color: defaultpalette.window
@@ -174,7 +175,7 @@ ApplicationWindow {
                 //lossLabel.text = loss_temp.toFixed(2)// + " ± " + loss_std_temp.toFixed(2)
                 if (iteration==1) {
                     sampleSpinBox.value = 1
-                    featureComboBox.currentIndex = 0
+                    classComboBox.currentIndex = 0
                     var ind1 = 1
                     var ind2 = 1
                     var size = get_image(originalDisplay,"original",[ind1])
@@ -199,7 +200,7 @@ ApplicationWindow {
                                                    resultDisplay.source = result.url;
                                                });
                     }
-                    delay(10, upd)
+                    delay(50, upd)
                     var cond = 1024*pix-margin
                     if (displayItem.width>=cond) {
                         displayPane.horizontalPadding = 0.5*margin
@@ -222,7 +223,7 @@ ApplicationWindow {
                     sizechangeTimer.running = true
                     controlsLabel.visible = true
                     sampleRow.visible = true
-                    featureRow.visible = true
+                    classRow.visible = true
                     typeRow.visible = true
                     opacityRow.visible = true
                     zoomRow.visible = true
@@ -257,7 +258,7 @@ ApplicationWindow {
             if (check>0 || (displayPane.width + 2*displayPane.x)!==(validationWindow.width - 580*pix) ||
                     displayPane.height!==(validationWindow.height)) {
                 var ind1 = sampleSpinBox.value
-                var ind2 = featureComboBox.currentIndex+1
+                var ind2 = classComboBox.currentIndex+1
                 var new_width = validationWindow.width - 580*pix
                 var modif1 = new_width/displayPane.width
                 var new_heigth = Math.min(Screen.height-1.75*margin,displayScrollableItem.height*modif1)
@@ -407,7 +408,7 @@ ApplicationWindow {
                         editable: false
                         onValueModified: {
                             var ind1 = sampleSpinBox.value
-                            var ind2 = featureComboBox.currentIndex+1
+                            var ind2 = classComboBox.currentIndex+1
                             accuracyLabel.text = validationTimer.mean_accuracy.toFixed(2)+
                                 " (" + validationTimer.accuracy[ind1-1].toFixed(2) + ")"
                             lossLabel.text = validationTimer.mean_loss.toFixed(2)+
@@ -426,29 +427,29 @@ ApplicationWindow {
                                                            resultDisplay.visible = true
                                                        });
                             }
-                            delay(10, upd)
+                            delay(50, upd)
                         }
                     }
                 }
                 Row {
-                    id: featureRow
+                    id: classRow
                     visible: false
                     spacing: 0.3*margin
                     Label {
-                        text: "Feature:"
+                        text: "Class:"
                         width: accuracytextLabel.width
                         topPadding: 10*pix
                     }
                     ComboBox {
-                        id: featureComboBox
+                        id: classComboBox
                         editable: false
                         width: 0.76*buttonWidth
                         model: ListModel {
-                            id: featureselectModel
+                            id: classeselectModel
                         }
                         onActivated: {
                             var ind1 = sampleSpinBox.value
-                            var ind2 = featureComboBox.currentIndex+1
+                            var ind2 = classComboBox.currentIndex+1
                             get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
                             imagetransferCanvas.update()
                             imagetransferCanvas.grabToImage(function(result) {
@@ -456,24 +457,24 @@ ApplicationWindow {
                                                    });
                         }
                         Component.onCompleted: {
-                            for (var i=0;i<featureModel.count;i++) {
-                                var feature = featureModel.get(i)
-                                if (!feature.notFeature) {
-                                    featureselectModel.append(
-                                        {"name": feature.name})
+                            for (var i=0;i<classModel.count;i++) {
+                                var class_var = classModel.get(i)
+                                if (!class_var.notClass) {
+                                    classeselectModel.append(
+                                        {"name": class_var.name})
                                 }
                             }
-                            var num = featureselectModel.count
+                            var num = classeselectModel.count
                             for (i=0;i<num;i++) {
-                                if (featureModel.get(i).border) {
-                                    featureselectModel.append(
-                                        {"name": featureModel.get(i).name+" (border)"})
+                                if (classModel.get(i).border) {
+                                    classeselectModel.append(
+                                        {"name": classModel.get(i).name+" (border)"})
                                 }
                             }
                             for (i=0;i<num;i++) {
-                                if (featureModel.get(i).border) {
-                                    featureselectModel.append(
-                                        {"name": featureModel.get(i).name+" (applied border)"})
+                                if (classModel.get(i).border) {
+                                    classeselectModel.append(
+                                        {"name": classModel.get(i).name+" (applied border)"})
                                 }
                             }
                             currentIndex = 0
@@ -514,7 +515,7 @@ ApplicationWindow {
                                 type = "error_data"
                             }
                             get_image(resultDisplay,type,
-                                [sampleSpinBox.value,featureComboBox.currentIndex+1])
+                                [sampleSpinBox.value,classComboBox.currentIndex+1])
                             imagetransferCanvas.update()
                             imagetransferCanvas.grabToImage(function(result) {
                                                        resultDisplay.source = result.url
@@ -602,7 +603,7 @@ ApplicationWindow {
         onClicked: mouse.accepted = false;
     }
     function get_image(display,type,inds) {
-        var size = Julia.get_image(["Validation_data","Results",type],
+        var size = Julia.get_image(["Validation_data","Results_segmentation",type],
             [0,0],inds)
         return size
     }

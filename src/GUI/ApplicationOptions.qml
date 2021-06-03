@@ -14,8 +14,8 @@ ApplicationWindow {
     title: qsTr("  Julia Machine Learning GUI")
     minimumWidth: 1480*pix
     minimumHeight: 800*pix
-    maximumWidth: gridLayout.width
-    maximumHeight: gridLayout.height
+    maximumWidth: rowLayout.width
+    maximumHeight: rowLayout.height
     
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
@@ -48,10 +48,13 @@ ApplicationWindow {
 
     color: defaultpalette.window
 
-    // onClosing: { applicationoptionsLoader.sourceComponent = null }
+     onClosing: { 
+        Julia.save_settings()
+        //applicationoptionsLoader.sourceComponent = null
+     }
 
-    GridLayout {
-        id: gridLayout
+    RowLayout {
+        id: rowLayout
         RowLayout {
             id: rowlayout
             Pane {

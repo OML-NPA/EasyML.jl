@@ -3,7 +3,7 @@
 function design_network()
     # Launches GUI
     @qmlfunction(
-        # Handle features
+        # Handle classes
         model_count,
         model_get_layer_property,
         model_properties,
@@ -29,10 +29,59 @@ function design_network()
     return nothing
 end
 
+function modify_classes()
+    classes = model_data.classes
+    if isempty(classes)
+        @error "Classes are empty. Add classes to the 'model_data'."
+        return nothing
+    end
+    if !(classes isa Vector{Segmentation_class})
+        @error string("There is nothing to change in a ",eltype(classes))
+        return nothing
+    end
+    @qmlfunction(
+        get_class_field,
+        num_classes,
+        append_classes,
+        reset_classes,
+        reset_output_options,
+        backup_options,
+        get_problem_type,
+        get_settings,
+        set_settings,
+        save_settings
+    )
+    loadqml("GUI/ClassDialog.qml",JindTree = 0, ids = 1:length(classes))
+    exec()
+    return nothing
+end
+
 # Training
 function get_urls_training(input_dir::String,label_dir::String)
     training.input_dir = input_dir
     training.label_dir = label_dir
+    if !isdir(input_dir)
+        @error string(input_dir," does not exist.")
+        return nothing
+    end
+    if !isdir(label_dir)
+        @error string(label_dir," does not exist.")
+        return nothing
+    end
+    get_urls_training_main(training,training_data,model_data)
+    return nothing
+end
+
+function get_urls_training(input_dir::String)
+    if eltype(model_data.classes)!=Classification_class
+        @error "Label data directory URL was not given."
+        return nothing
+    end
+    training.input_dir = input_dir
+    if !isdir(input_dir)
+        @error string(input_dir," does not exist.")
+        return nothing
+    end
     get_urls_training_main(training,training_data,model_data)
     return nothing
 end
@@ -48,7 +97,7 @@ function get_urls_training()
     exec()
     sleep(0.1)
     if training.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty."
         return nothing
     else
         @info string(training.input_dir, " was selected.")
@@ -63,7 +112,7 @@ function get_urls_training()
     exec()
     sleep(0.1)
     if training.label_dir==""
-        @warn "Label data directory URL is empty. Aborted"
+        @error "Label data directory URL is empty."
         return nothing
     else
         @info string(training.label_dir, " was selected.")
@@ -74,8 +123,39 @@ function get_urls_training()
 end
 
 function prepare_training_data()
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(classification_data,i))
+    end
+    for i in fields
+        empty!(getfield(segmentation_data,i))
+    end
+    empty!(training_data.Classification_data.data_input)
+    empty!(training_data.Classification_data.data_labels)
+    empty!(training_data.Classification_data.input_urls)
+    empty!(training_data.Classification_data.labels)
+    empty!(training_data.Segmentation_data.data_input)
+    empty!(training_data.Segmentation_data.data_labels)
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
+
+    if isempty(model_data.classes)
+        @error "Empty classes."
+        put!(progress, 0)
+        return nothing
+    end
+    if model_data.classes isa Vector{Classification_class}
+        if isempty(training_data.Classification_data.input_urls)
+            @error "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
+    elseif model_data.classes isa Vector{Segmentation_class}
+        if isempty(training_data.Segmentation_data.input_urls)
+            @error "No input urls. Run 'get_urls_training'."
+            return nothing
+        end
+    end
+
     prepare_training_data_main2(training,training_data,model_data,
         channels.training_data_progress,channels.training_data_results)
     max_value = 0
@@ -83,28 +163,27 @@ function prepare_training_data()
     p = Progress(0)
     while true
         if max_value!=0
-            temp_value = MLGUI.get_progress("Training data preparation")
+            temp_value = get_progress("Training data preparation")
             if temp_value!=false
                 value += temp_value
                 # handle progress here
                 next!(p)
             elseif value==max_value
-                state = MLGUI.get_results("Training data preparation")
+                state = get_results("Training data preparation")
                 if state==true
                     # reset progress here
                     break
                 end
             end
         else
-            temp_value = MLGUI.get_progress("Training data preparation")
+            temp_value = get_progress("Training data preparation")
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value
                     p.n = convert(Int64,max_value)
                 else
                     break
-                    @warn "No data to process"
-                    # No training data
+                    @error "No data to process."
                 end
             end
         end
@@ -133,39 +212,19 @@ function modify(data)
         )
         loadqml("GUI/ApplicationOptions.qml")
         exec()
-
-    elseif typeof(data)==Segmentation_feature
-        @qmlfunction(
-            get_feature_field,
-            num_features,
-            update_features,
-            get_settings,
-            set_settings,
-            save_settings
-        )
-
-        indTree = -1
-        for i = 1:length(model_data.features)
-            if model_data.features[i]==data
-                indTree = i-1
-            end
-        end
-        if indTree==-1
-            @info "Feature does not exist in 'model_data'. Add the feature to the 'model_data'."
-            return nothing
-        end
-
-        loadqml("GUI/FeatureDialog.qml",indTree = indTree)
-        exec()
     end
     return nothing
 end
 
 function train()
-    MLGUI.empty_progress_channel("Training")
-    MLGUI.empty_results_channel("Training")
-    MLGUI.empty_progress_channel("Training modifiers")
-    MLGUI.train_main2(settings,MLGUI.training_data,model_data,MLGUI.channels)
+    empty_progress_channel("Training")
+    empty_results_channel("Training")
+    empty_progress_channel("Training modifiers")
+    if model_data.classes isa Vector{Classification_class}
+        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
+        training.Options.General.weight_accuracy = false
+    end
+    train_main2(settings,training_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
         # Data handling
@@ -197,6 +256,14 @@ end
 # Validation
 
 function get_urls_validation(input_dir::String,label_dir::String)
+    if !isdir(input_dir)
+        @error string(input_dir," does not exist.")
+        return nothing
+    end
+    if !isdir(label_dir)
+        @error string(label_dir," does not exist.")
+        return nothing
+    end
     validation.input_dir = input_dir
     validation.label_dir = label_dir
     validation.use_labels = false
@@ -205,6 +272,10 @@ function get_urls_validation(input_dir::String,label_dir::String)
 end
 
 function get_urls_validation(input_dir::String)
+    if !isdir(input_dir)
+        @error string(input_dir," does not exist.")
+        return nothing
+    end
     validation.input_dir = input_dir
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
@@ -222,7 +293,7 @@ function get_urls_validation()
     exec()
     sleep(0.1)
     if validation.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty. Aborted"
         return nothing
     else
         @info string(training.input_dir, " was selected.")
@@ -251,57 +322,53 @@ function validate()
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
     validate_main2(settings,validation_data,model_data,channels)
-
-    # Launches GUI
-    @qmlfunction(
-        # Handle features
-        num_features,
-        get_feature_field,
-        # Data handling
-        get_settings,
-        get_results,
-        get_progress,
-        put_channel,
-        get_image,
-        # Other
-        yield
-    )
-    f = CxxWrap.@safe_cfunction(display_image, Cvoid,
+    if model_data.classes isa Vector{Segmentation_class}
+        # Launches GUI
+        @qmlfunction(
+            # Handle classes
+            num_classes,
+            get_class_field,
+            # Data handling
+            get_settings,
+            get_results,
+            get_progress,
+            put_channel,
+            get_image,
+            # Other
+            yield
+        )
+        f = CxxWrap.@safe_cfunction(display_image, Cvoid,
                                         (Array{UInt32,1}, Int32, Int32))
-    loadqml("GUI/ValidationPlot.qml",
-        display_image = f)
-    exec()
-    return validation_results
+        loadqml("GUI/ValidationPlot.qml",
+            display_image = f)
+        exec()
+        return validation_segmentation_results
+    end
 end
 
 # Application
 
-function modify_output(feature::Segmentation_feature)
+function modify_output()
     @qmlfunction(
         save_model,
+        get_class_field,
         get_settings,
         get_output,
         set_output,
-        get_feature_field
+        get_class_field,
+        get_problem_type,
+        num_classes
     )
-
-    indTree = -1
-    for i = 1:length(model_data.features)
-        if model_data.features[i]==feature
-            indTree = i-1
-        end
-    end
-    if indTree==-1
-        @info "Feature does not exist in 'model_data'. Add the feature to the 'model_data'."
-        return nothing
-    end
-
-    loadqml("GUI/OutputDialog.qml",indTree = indTree)
+    loadqml("GUI/OutputDialog.qml",indTree = 0)
     exec()
     return nothing
 end
 
 function get_urls_application(input_dir::String)
+    if !isdir(input_dir)
+        @error string(input_dir," does not exist.")
+        return nothing
+    end
     application.input_dir = input_dir
     get_urls_application_main(application,application_data,model_data)
     application.checked_folders = application_data.folders
@@ -319,7 +386,7 @@ function get_urls_application()
     exec()
     sleep(0.1)
     if application.input_dir==""
-        @warn "Input data directory URL is empty. Aborted"
+        @error "Input data directory URL is empty."
         return nothing
     else
         @info string(application.input_dir, " was selected.")
@@ -332,13 +399,13 @@ end
 function apply()
     empty_progress_channel("Application")
     empty_progress_channel("Application modifiers")
-    apply_main2(settings,application_data,model_data,channels)
+    apply_main2(settings,training,application_data,model_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
     while true
         if max_value!=0
-            temp_value = MLGUI.get_progress("Application")
+            temp_value = get_progress("Application")
             if temp_value!=false
                 value += temp_value
                 # handle progress here
@@ -348,14 +415,14 @@ function apply()
                 break
             end
         else
-            temp_value = MLGUI.get_progress("Application")
+            temp_value = get_progress("Application")
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value
                     p.n = convert(Int64,max_value)
                 else
                     break
-                    @warn "No data to process."
+                    @error "No data to process."
                     # No data
                 end
             end

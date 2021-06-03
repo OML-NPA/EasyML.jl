@@ -235,14 +235,14 @@ Component.onCompleted: {
                     Frame {
                         id: layersFrame
                         y: layersLabel.height -2*pix
-                        height: 0.6*(customizationWindow.height - 2*layersLabel.height)
+                        height: 1*(customizationWindow.height - 1*layersLabel.height)
                         width: leftFrame.width
                         padding: 0
                         backgroundColor: defaultpalette.listview
                         ScrollableItem {
                             y: 2*pix
                             id: layersFlickable
-                            height: 0.6*(customizationWindow.height - 2*layersLabel.height)-4*pix
+                            height: layersFrame.height-4*pix
                             width: leftFrame.width-2*pix
                             contentHeight: 1.25*buttonHeight*(inoutlayerView.count + linearlayerView.count +
                                 normlayerView.count + activationlayerView.count + poolinglayerView.count +
@@ -596,6 +596,7 @@ Component.onCompleted: {
                 }
                 Item {
                     id: layergroupsItem
+                    visible: false
                     y: layersLabel.height + layersFrame.height - 2*pix
                     Label {
                         id: layergroupsLabel
@@ -1324,28 +1325,28 @@ Component.onCompleted: {
         }
     }
 
-    function load_model_features(featureModel) {
-        var num_features = Julia.num_features()
-        if (featureModel.count!==0) {
-            featureModel.clear()
+    function load_model_classes(classModel) {
+        var num_classes = Julia.num_classes()
+        if (classModel.count!==0) {
+            classModel.clear()
         }
-        for (var i=0;i<num_features;i++) {
+        for (var i=0;i<num_classes;i++) {
             var ind = i+1
-            var color = Julia.get_feature_field(ind,"color")
-            var parents = Julia.get_feature_field(ind,"parents")
-            var feature = {
-                "name": Julia.get_feature_field(ind,"name"),
+            var color = Julia.get_class_field(ind,"color")
+            var parents = Julia.get_class_field(ind,"parents")
+            var class_var = {
+                "name": Julia.get_class_field(ind,"name"),
                 "colorR": color[0],
                 "colorG": color[1],
                 "colorB": color[2],
-                "border": Julia.get_feature_field(ind,"border"),
-                "border_thickness": Julia.get_feature_field(ind,"border_thickness"),
-                "borderRemoveObjs": Julia.get_feature_field(ind,"border_remove_objs"),
-                "min_area": Julia.get_feature_field(ind,"min_area"),
+                "border": Julia.get_class_field(ind,"border"),
+                "border_thickness": Julia.get_class_field(ind,"border_thickness"),
+                "borderRemoveObjs": Julia.get_class_field(ind,"border_remove_objs"),
+                "min_area": Julia.get_class_field(ind,"min_area"),
                 "parent": parents[0],
                 "parent2": parents[1],
-                "notFeature": Julia.get_feature_field(ind,"not_feature")}
-            featureModel.append(feature)
+                "notClass": Julia.get_class_field(ind,"not_class")}
+            classModel.append(class_var)
         }
     }
 
@@ -2733,9 +2734,8 @@ Component.onCompleted: {
                     defaultHeight: 0.75*buttonHeight
                     defaultWidth: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        nameTextField.text = displayText
+                        // nameTextField.text = displayText
                         Julia.set_settings(["Training","name"],displayText)
-
                     }
                     Component.onCompleted: {
                         var name = Julia.get_settings(["Training","name"])

@@ -2,7 +2,7 @@
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application::Application,
         application_data::Application_data,model_data::Model_data)
-    if model_data.features[1] isa Segmentation_feature
+    if model_data.classes[1] isa Segmentation_class
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application,allowed_ext)
@@ -13,13 +13,17 @@ end
 #get_urls_application() =
 #    get_urls_application_main(application,application_data,model_data)
 
-function prepare_application_data(urls::Vector{String})
+function prepare_application_data(urls::Vector{String},processing::Processing_training)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
         url = urls[i]
         image = load_image(url)
-        data[i] = image_to_gray_float(image)[:,:,:,:]
+        if processing.grayscale
+            data[i] = image_to_gray_float(image)[:,:,:,:]
+        else
+            data[i] = image_to_color_float(image)[:,:,:,:]
+        end
     end
     data_out = reduce(cat4,data)
     return data_out
@@ -76,7 +80,7 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_masks(model_data::Model_data,num::Int64,urls_batched::Vector{Vector{Vector{String}}},
+function get_masks(model_data::Model_data,processing::Processing_training,num::Int64,urls_batched::Vector{Vector{Vector{String}}},
     use_GPU::Bool,abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -95,7 +99,7 @@ function get_masks(model_data::Model_data,num::Int64,urls_batched::Vector{Vector
                 return
             end
             # Get neural network output
-            input_data = prepare_application_data(urls_batch[l])
+            input_data = prepare_application_data(urls_batch[l],processing)
             input_size = model_data.input_size[1:2]
             s = size(input_data)
             s12 = s[1:2]
@@ -104,7 +108,7 @@ function get_masks(model_data::Model_data,num::Int64,urls_batched::Vector{Vector
             if change_size
                 new_s = convert.(Int64,ceil.(r).*input_size)
                 new_data = zeros(Float32,(new_s...,size(input_data)[3:4]...))
-                new_data[1:s[1],1:s[2],s[3],s[4]] = input_data
+                new_data[1:s[1],1:s[2],1:s[3],s[4]] = input_data
                 input_data = new_data
             end
             predicted = forward(model_data.model,input_data,use_GPU=use_GPU)
@@ -119,11 +123,12 @@ function get_masks(model_data::Model_data,num::Int64,urls_batched::Vector{Vector
     return nothing
 end
 
-function run_iteration(features::Vector{Segmentation_feature},num_feat::Int64,num_border::Int64,
-        savepath::String,filenames_batch::Vector{Vector{String}},objs_area::Vector{Vector{Vector{Float64}}},
-        objs_volume::Vector{Vector{Vector{Float64}}},labels_color::Vector{Vector{Float64}},
-        labels_incl::Vector{Vector{Int64}},apply_border::Bool,border::Vector{Bool},img_ext::String,img_sym_ext::Symbol,
-        scaling::Float64,apply_by_file::Bool,abort::Threads.Atomic{Bool},data_taken::Threads.Atomic{Bool},
+function run_iteration(classes::Vector{Segmentation_class},output_options::Vector{Segmentation_output_options},
+        num_feat::Int64,num_border::Int64,savepath::String,filenames_batch::Vector{Vector{String}},
+        objs_area::Vector{Vector{Vector{Float64}}},objs_volume::Vector{Vector{Vector{Float64}}},
+        labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,
+        border::Vector{Bool},img_ext::String,img_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
+        abort::Threads.Atomic{Bool},data_taken::Threads.Atomic{Bool},
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     # Get neural network output
     l,predicted_bool = take!(data_channel)
@@ -134,11 +139,11 @@ function run_iteration(features::Vector{Segmentation_feature},num_feat::Int64,nu
     for j = 1:size_dim4
         temp_mask = predicted_bool[:,:,:,j]
         if apply_border
-            border_mask = apply_border_data(temp_mask,features)
+            border_mask = apply_border_data(temp_mask,classes)
             temp_mask = cat3(temp_mask,border_mask)
         end
         for i=1:num_feat
-            min_area = features[i].min_area
+            min_area = classes[i].min_area
             if min_area>1
                 if border[i]
                     ind = i + num_feat + num_border
@@ -166,16 +171,16 @@ function run_iteration(features::Vector{Segmentation_feature},num_feat::Int64,nu
         filename = filenames[j]
         mask = masks[j]
         # Make and export images
-        mask_to_img(mask,features,labels_color,border,savepath,filename,img_ext,img_sym_ext)
+        mask_to_img(mask,classes,output_options,labels_color,border,savepath,filename,img_ext,img_sym_ext)
         # Make data out of masks
-        mask_to_data(objs_area,objs_volume,cnt,mask,features,labels_incl,border,
+        mask_to_data(objs_area,objs_volume,cnt,mask,output_options,labels_incl,border,
             num_feat,num_border,scaling)
     end
     put!(channels.application_progress,1)
 end
 
-function process_masks(features::Vector{Segmentation_feature},num_feat::Int64,num_border::Int64,
-        savepath_main::String,folder::String,filenames_batch::Vector{Vector{String}},
+function process_masks(classes::Vector{Segmentation_class},output_options::Vector{Segmentation_output_options},
+        num_feat::Int64,num_border::Int64,savepath_main::String,folder::String,filenames_batch::Vector{Vector{String}},
         log_area_obj::Vector{Bool},log_area_obj_sum::Vector{Bool},log_area_dist::Vector{Bool},
         log_volume_obj::Vector{Bool},log_volume_obj_sum::Vector{Bool},log_volume_dist::Vector{Bool},
         num_obj_area::Int64,num_obj_area_sum::Int64,num_dist_area::Int64,num_obj_volume::Int64,
@@ -227,7 +232,7 @@ function process_masks(features::Vector{Segmentation_feature},num_feat::Int64,nu
                 sleep(0.1)
             end
         end
-        t = Threads.@spawn run_iteration(features,num_feat,num_border,savepath,filenames_batch,
+        t = Threads.@spawn run_iteration(classes,output_options,num_feat,num_border,savepath,filenames_batch,
             objs_area,objs_volume,labels_color,labels_incl,apply_border,
             border,img_ext,img_sym_ext,scaling,apply_by_file,abort,data_taken,
             data_channel,channels)
@@ -242,7 +247,7 @@ function process_masks(features::Vector{Segmentation_feature},num_feat::Int64,nu
     if num_obj_area_sum>0 
         for i = 1:num_init
             for j = 1:num_feat
-                if features[j].Output.Area.obj_area_sum
+                if output_options[j].Area.obj_area_sum
                     objs_area_sum[i][j] = sum(objs_area[i][j])
                 end
             end
@@ -251,27 +256,27 @@ function process_masks(features::Vector{Segmentation_feature},num_feat::Int64,nu
     if num_obj_volume_sum>0 
         for i = 1:num_init
             for j = 1:num_feat
-                if features[j].Output.Volume.obj_volume_sum
+                if output_options[j].Volume.obj_volume_sum
                     objs_volume_sum[i][j] = sum(objs_volume[i][j])
                 end
             end
         end
     end
     data_to_histograms(histograms_area,histograms_volume,objs_area,objs_volume,
-    features,num_init,num_feat,num_border,border)
+    output_options,num_init,num_feat,num_border,border)
     # Export data
     if apply_by_file
         filenames = reduce(vcat,filenames_batch)
     else
         filenames = [folder]
     end
-    export_histograms(histograms_area,histograms_volume,features,num_init,num_dist_area,
+    export_histograms(histograms_area,histograms_volume,classes,num_init,num_dist_area,
         num_dist_volume,log_area_dist,log_volume_dist,
         savepath,filenames,data_ext,data_sym_ext)
-    export_objs("Objects",objs_area,objs_volume,features,num_init,num_obj_area,
+    export_objs("Objects",objs_area,objs_volume,classes,num_init,num_obj_area,
         num_obj_volume,log_area_obj,log_volume_obj,
         savepath,filenames,data_ext,data_sym_ext)
-    export_objs("Objects sum",objs_area_sum,objs_volume_sum,features,num_init,num_obj_area_sum,
+    export_objs("Objects sum",objs_area_sum,objs_volume_sum,classes,num_init,num_obj_area_sum,
         num_obj_volume_sum,log_area_obj_sum,log_volume_obj_sum,
         savepath,filenames,data_ext,data_sym_ext)
     put!(channels.application_progress,1)
@@ -279,18 +284,20 @@ function process_masks(features::Vector{Segmentation_feature},num_feat::Int64,nu
 end
 
 # Main function that performs application
-function apply_main(settings::Settings,application_data::Application_data,
+function apply_main(settings::Settings,training::Training,application_data::Application_data,
         model_data::Model_data,channels::Channels)
     # Initialize constants
     application = settings.Application
     application_options = application.Options
+    processing = training.Options.Processing
     apply_by_file = application_options.apply_by[1]=="file"
-    features = model_data.features
+    classes = model_data.classes
+    output_options = model_data.output_options
     use_GPU = settings.Options.Hardware_resources.allow_GPU && has_cuda()
-    feature_inds,labels_color,labels_incl,border = get_feature_data(features)
-    features = features[feature_inds]
-    labels_color = labels_color[feature_inds]
-    labels_incl = labels_incl[feature_inds]
+    class_inds,labels_color,labels_incl,border = get_class_data(classes)
+    classes = classes[class_inds]
+    labels_color = labels_color[class_inds]
+    labels_incl = labels_incl[class_inds]
     num_feat = length(border)
     num_border = sum(border)
     apply_border = num_border>0
@@ -299,12 +306,12 @@ function apply_main(settings::Settings,application_data::Application_data,
     data_channel = Channel{Tuple{Int64,BitArray{4}}}(Inf)
     abort = Threads.Atomic{Bool}(false)
     # Output information
-    log_area_obj = map(x->x.Output.Area.obj_area,features)
-    log_area_obj_sum = map(x->x.Output.Area.obj_area_sum,features)
-    log_area_dist = map(x->x.Output.Area.area_distribution,features)
-    log_volume_obj = map(x->x.Output.Volume.obj_volume,features)
-    log_volume_obj_sum = map(x->x.Output.Volume.obj_volume_sum,features)
-    log_volume_dist = map(x->x.Output.Volume.volume_distribution,features)
+    log_area_obj = map(x->x.Area.obj_area,output_options)
+    log_area_obj_sum = map(x->x.Area.obj_area_sum,output_options)
+    log_area_dist = map(x->x.Area.area_distribution,output_options)
+    log_volume_obj = map(x->x.Volume.obj_volume,output_options)
+    log_volume_obj_sum = map(x->x.Volume.obj_volume_sum,output_options)
+    log_volume_dist = map(x->x.Volume.volume_distribution,output_options)
     num_obj_area = count(log_area_obj)
     num_obj_area_sum = count(log_area_obj_sum)
     num_dist_area = count(log_area_dist)
@@ -338,12 +345,13 @@ function apply_main(settings::Settings,application_data::Application_data,
     put!(channels.application_progress,sum(length.(urls_batched))+length(urls_batched))
     GC.gc()
     # Prepare masks
-    Threads.@spawn get_masks(model_data,num,urls_batched,use_GPU,abort,data_channel,channels)
+    # Threads.@spawn 
+    get_masks(model_data,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
     # Process masks and save data
     for k=1:num
         folder = folders[k]
         filenames_batch = filenames_batched[k]
-        process_masks(features,num_feat,num_border,savepath_main,folder,filenames_batch,
+        process_masks(classes,output_options,num_feat,num_border,savepath_main,folder,filenames_batch,
             log_area_obj,log_area_obj_sum,log_area_dist,log_volume_obj,log_volume_obj_sum,
             log_volume_dist,num_obj_area,num_obj_area_sum,num_dist_area,num_obj_volume,
             num_obj_volume_sum,num_dist_volume,labels_color,labels_incl,apply_border,border,img_ext,
@@ -351,11 +359,11 @@ function apply_main(settings::Settings,application_data::Application_data,
     end
     return nothing
 end
-function apply_main2(settings::Settings,application_data::Application_data,
+function apply_main2(settings::Settings,training::Training,application_data::Application_data,
         model_data::Model_data,channels::Channels)
     #@everywhere settings,application_data,model_data
     #remote_do(apply_main,workers()[end],settings,application_data,model_data,channels)
-    Threads.@spawn apply_main(settings,application_data,model_data,channels)
+    Threads.@spawn apply_main(settings,training,application_data,model_data,channels)
 end
 #apply() = apply_main2(settings,application_data,
 #    model_data,channels)
@@ -490,26 +498,27 @@ end
 function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
         histograms_volume::Vector{Vector{Histogram}},
         objs_area::Vector{Vector{Vector{Float64}}},
-        objs_volume::Array{Vector{Vector{Float64}}},features::Vector{Segmentation_feature},num_batch::Int64,
+        objs_volume::Array{Vector{Vector{Float64}}},
+        output_options::Vector{Segmentation_output_options},num_batch::Int64,
         num_feat::Int64,num_border::Int64,border::Vector{Bool})
     for i = 1:num_batch
         temp_histograms_area = histograms_area[i]
         temp_histograms_volume = histograms_volume[i]
         for l = 1:num_feat
-            output_options = features[l].Output
-            area_dist_cond = output_options.Area.area_distribution
-            volume_dist_cond = output_options.Volume.volume_distribution
+            current_options = output_options[l]
+            area_dist_cond = current_options.Area.area_distribution
+            volume_dist_cond = current_options.Volume.volume_distribution
             ind = l
             if border[l]==true
                 ind = l + num_border + num_feat
             end
             if area_dist_cond
-                area_options = output_options.Area
+                area_options = current_options.Area
                 area_values = objs_area[i][l]
                 temp_histograms_area[l] = make_histogram(area_values,area_options)
             end
             if volume_dist_cond
-                volume_options = output_options.Volume
+                volume_options = current_options.Volume
                 volume_values = objs_volume[i][l]
                 temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
             end
@@ -520,8 +529,9 @@ end
 
 function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
-        features::Vector{Segmentation_feature},labels_incl::Vector{Vector{Int64}},
-        border::Vector{Bool},num_feat::Int64,num_border::Int64,scaling::Float64)
+        output_options::Vector{Segmentation_output_options},
+        labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_feat::Int64,
+        num_border::Int64,scaling::Float64)
     temp_objs_area = objs_area[cnt]
     temp_objs_volume = objs_volume[cnt]
     components_vector = Vector{Array{Int64,2}}(undef,num_feat)
@@ -535,23 +545,25 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         components_vector[l] = components
     end
     for l = 1:num_feat
-        output_options = features[l].Output
-        area_dist_cond = output_options.Area.area_distribution
-        area_obj_cond = output_options.Area.obj_area
-        area_sum_obj_cond = output_options.Area.obj_area_sum
-        volume_dist_cond = output_options.Volume.volume_distribution
-        volume_obj_cond = output_options.Volume.obj_volume
-        volume_sum_obj_cond = output_options.Volume.obj_volume_sum
+        current_options = output_options[l]
+        area_dist_cond = current_options.Area.area_distribution
+        area_obj_cond = current_options.Area.obj_area
+        area_sum_obj_cond = current_options.Area.obj_area_sum
+        volume_dist_cond = current_options.Volume.volume_distribution
+        volume_obj_cond = current_options.Volume.obj_volume
+        volume_sum_obj_cond = current_options.Volume.obj_volume_sum
         ind = l
         if border[l]==true
             ind = l + num_border + num_feat
         end
         mask_current = mask[:,:,ind]
+        
         if area_dist_cond || area_obj_cond || area_sum_obj_cond
             temp_objs_area2 = temp_objs_area[l]
             area_values = [0]
             area_values = objects_area(mask_current,
                 components_vector,labels_incl,scaling,l)
+            
             if area_obj_cond || area_sum_obj_cond
                 push!(temp_objs_area2,area_values...)
             end
@@ -595,7 +607,7 @@ function make_histogram(values::Vector{<:Real}, options::Union{Output_area,Outpu
 end
 
 function export_histograms(histograms_area::Vector{Vector{Histogram}},
-        histograms_volume::Vector{Vector{Histogram}},features::Vector{Segmentation_feature},num::Int64,
+        histograms_volume::Vector{Vector{Histogram}},classes::Vector{Segmentation_class},num::Int64,
         num_dist_area::Int64,num_dist_volume::Int64,
         log_area_dist::Vector{Bool},log_volume_dist::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -624,7 +636,7 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
         histograms_to_dataframe(df_dists,histogram_area,num_dist_area,0)
         offset = 2*num_dist_area
         histograms_to_dataframe(df_dists,histogram_volume,num_dist_volume,offset)
-        names = map(x->x.name,features)
+        names = map(x->x.name,classes)
         names_area = get_dataframe_names(names,"area",log_area_dist,:dists)
         names_volume = get_dataframe_names(names,"volume",log_volume_dist,:dists)
         names_all = vcat(names_area,names_volume)
@@ -637,7 +649,7 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
 end
 
 function export_objs(type_name::String,objs_area::Vector,
-        objs_volume::Vector,features::Vector{Segmentation_feature},
+        objs_volume::Vector,classes::Vector{Segmentation_class},
         num::Int64,num_obj_area::Int64,num_obj_volume::Int64,
         log_area_obj::Vector{Bool},log_volume_obj::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -665,7 +677,7 @@ function export_objs(type_name::String,objs_area::Vector,
         objs_to_dataframe(df_objs,obj_area,num_obj_area,0)
         offset = num_obj_area
         objs_to_dataframe(df_objs,obj_volume,num_obj_volume,offset)
-        names = map(x->x.name,features)
+        names = map(x->x.name,classes)
         names_area = get_dataframe_names(names,"area",log_area_obj,:objs)
         names_volume = get_dataframe_names(names,"volume",log_volume_obj,:objs)
         names_all = vcat(names_area,names_volume)
@@ -678,28 +690,29 @@ function export_objs(type_name::String,objs_area::Vector,
 end
 
 #---Image related functions
-function get_save_image_info(num_dims::Int64,features::Vector{Segmentation_feature},border::Vector{Bool})
+function get_save_image_info(num_dims::Int64,classes::Vector{Segmentation_class},
+        output_options::Vector{Segmentation_output_options},border::Vector{Bool})
     num_feat = length(border)
     num_border = sum(border)
     logical_inds = BitArray{1}(undef,num_dims)
     img_names = Vector{String}(undef,num_feat+num_border*2)
     for a = 1:num_feat
-        feature = features[a]
-        feature_name = feature.name
-        if feature.Output.Mask.mask
+        class = classes[a]
+        class_name = class.name
+        if output_options[a].Mask.mask
             logical_inds[a] = true
-            img_names[a] = feature_name
+            img_names[a] = class_name
         end
-        if feature.border
-            if features[a].Output.Mask.mask_border
+        if class.border
+            if output_options[a].Mask.mask_border
                 ind = a + num_feat
                 logical_inds[ind] = true
-                img_names[ind] = string(feature_name," (border)")
+                img_names[ind] = string(class_name," (border)")
             end
-            if features[a].Output.Mask.mask_applied_border
+            if output_options[a].Mask.mask_applied_border
                 ind = num_feat + num_border + a
                 logical_inds[ind] = true
-                img_names[ind] = string(feature_name," (applied border)")
+                img_names[ind] = string(class_name," (applied border)")
             end
         end
     end
@@ -707,11 +720,12 @@ function get_save_image_info(num_dims::Int64,features::Vector{Segmentation_featu
     return inds,img_names
 end
 
-function mask_to_img(mask::BitArray{3},features::Vector{Segmentation_feature},
+function mask_to_img(mask::BitArray{3},classes::Vector{Segmentation_class},
+        output_options::Vector{Segmentation_output_options},
         labels_color::Vector{Vector{Float64}},border::Vector{Bool},
         savepath::String,filename::String,ext::String,sym_ext::Symbol)
     num_dims = size(mask)[3]
-    inds,img_names = get_save_image_info(num_dims,features,border)
+    inds,img_names = get_save_image_info(num_dims,classes,output_options,border)
     if isempty(inds)
         return nothing
     end
