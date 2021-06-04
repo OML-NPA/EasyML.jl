@@ -139,11 +139,23 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     return predicted_data,target_data,error_data
 end
 
-function process_output(validation::Validation,predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{Image_segmentation_class},channels::Channels)
+function process_output(validation::Validation,predicted::AbstractArray{Float32},
+        data_label::Int32,original::Array{RGB{N0f8},2},
+        other_data::NTuple{2, Float32},classes::Vector{Image_classification_class},channels::Channels)
+    predicted_label = findall(predicted .== maximum(predicted))
+    image_data = (predicted_label,data_label)
+    data = (image_data,other_data,original)
+    # Return data
+    put!(channels.validation_results,data)
+    put!(channels.validation_progress,1)
+    return nothing
+end
+
+function process_output(validation::Validation,predicted::AbstractArray{Float32},
+        data_label::AbstractArray{Float32},original::Array{RGB{N0f8},2},
+        other_data::NTuple{2, Float32},classes::Vector{Image_segmentation_class},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
-    # Get images
     predicted_data,target_data,error_data = 
         output_images(predicted_bool,label_bool,classes,validation)
     image_data = (predicted_data,target_data,error_data)
@@ -159,6 +171,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
         model_data::Model_data,channels::Channels)
     # Initialisation
     validation = settings.Validation
+    processing = settings.Training.Options.Processing
     reset_validation_results(validation_data)
     num = length(validation_data.input_urls)
     put!(channels.validation_progress,num)
@@ -177,8 +190,8 @@ function validate_main(settings::Settings,validation_data::Validation_data,
                 break
             end
         end
-        data_input,data_label,other = prepare_validation_data(validation,
-            validation_data,settings.Training.Options.Processing,classes,i)
+        data_input,data_label,other = prepare_validation_data(validation,validation_data,
+            processing,classes,i)
         predicted = forward(model,data_input,use_GPU=use_GPU)
         if use_labels
             accuracy_val = accuracy(predicted,data_label)
