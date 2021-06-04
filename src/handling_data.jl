@@ -544,6 +544,12 @@ function load_model_main(settings,model_data,url)
     settings.Training.model_url = url
     url_split = split(url,('/','.'))
     settings.Training.name = url_split[end-1]
+    if model_data.classes isa Image_classification_class
+        settings.Training.input_type = ("Image",0)
+        settings.Training.problem_type = ("Classification",0)
+    elseif model_data.classes isa Image_segmentation_class
+        settings.Training.input_type = ("Image",0)
+        settings.Training.problem_type = ("Segmentation",1)
     return nothing
 end
 load_model(url) = load_model_main(settings,model_data,url)
