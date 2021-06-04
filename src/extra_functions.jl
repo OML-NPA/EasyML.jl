@@ -35,7 +35,7 @@ function modify_classes()
         @error "Classes are empty. Add classes to the 'model_data'."
         return nothing
     end
-    if !(classes isa Vector{Segmentation_class})
+    if !(classes isa Vector{Image_segmentation_class})
         @error string("There is nothing to change in a ",eltype(classes))
         return nothing
     end
@@ -73,7 +73,7 @@ function get_urls_training(input_dir::String,label_dir::String)
 end
 
 function get_urls_training(input_dir::String)
-    if eltype(model_data.classes)!=Classification_class
+    if eltype(model_data.classes)!=Image_classification_class
         @error "Label data directory URL was not given."
         return nothing
     end
@@ -130,12 +130,12 @@ function prepare_training_data()
     for i in fields
         empty!(getfield(segmentation_data,i))
     end
-    empty!(training_data.Classification_data.data_input)
-    empty!(training_data.Classification_data.data_labels)
-    empty!(training_data.Classification_data.input_urls)
-    empty!(training_data.Classification_data.labels)
-    empty!(training_data.Segmentation_data.data_input)
-    empty!(training_data.Segmentation_data.data_labels)
+    empty!(training_data.Image_classification_data.data_input)
+    empty!(training_data.Image_classification_data.data_labels)
+    empty!(training_data.Image_classification_data.input_urls)
+    empty!(training_data.Image_classification_data.labels)
+    empty!(training_data.Image_segmentation_data.data_input)
+    empty!(training_data.Image_segmentation_data.data_labels)
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
 
@@ -144,13 +144,13 @@ function prepare_training_data()
         put!(progress, 0)
         return nothing
     end
-    if model_data.classes isa Vector{Classification_class}
-        if isempty(training_data.Classification_data.input_urls)
+    if model_data.classes isa Vector{Image_classification_class}
+        if isempty(training_data.Image_classification_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
-    elseif model_data.classes isa Vector{Segmentation_class}
-        if isempty(training_data.Segmentation_data.input_urls)
+    elseif model_data.classes isa Vector{Image_segmentation_class}
+        if isempty(training_data.Image_segmentation_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
@@ -220,7 +220,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if model_data.classes isa Vector{Classification_class}
+    if model_data.classes isa Vector{Image_classification_class}
         @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
         training.Options.General.weight_accuracy = false
     end
@@ -322,7 +322,7 @@ function validate()
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
     validate_main2(settings,validation_data,model_data,channels)
-    if model_data.classes isa Vector{Segmentation_class}
+    if model_data.classes isa Vector{Image_segmentation_class}
         # Launches GUI
         @qmlfunction(
             # Handle classes

@@ -4,7 +4,7 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::Validation_data,model_data::Model_data)
-    if model_data.classes[1] isa Segmentation_class
+    if model_data.classes[1] isa Image_segmentation_class
         allowed_ext = ["png","jpg","jpeg"]
     end
     if validation.use_labels==true
@@ -33,7 +33,7 @@ function reset_validation_results(validation_data::Validation_data)
 end
 
 function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Segmentation_class},ind::Int64)
+        options::Processing_training, classes::Vector{Image_segmentation_class},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
@@ -53,7 +53,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
 end
 
 function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Classification_class},ind::Int64)
+        options::Processing_training, classes::Vector{Image_classification_class},ind::Int64)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
@@ -140,7 +140,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
 end
 
 function process_output(validation::Validation,predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{Segmentation_class},channels::Channels)
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{Image_segmentation_class},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
     # Get images

@@ -51,17 +51,21 @@ end
     normalisation::Int64 = 0
 end
 
-@with_kw mutable struct Segmentation_output_options<:AbstractOutputOptions
+@with_kw mutable struct Image_segmentation_output_options<:AbstractOutputOptions
     Mask::Output_mask = Output_mask()
     Area::Output_area = Output_area()
     Volume::Output_volume = Output_volume()
 end
 
-@with_kw mutable struct Classification_output_options<:AbstractOutputOptions
+@with_kw mutable struct Image_classification_output_options<:AbstractOutputOptions
     temp::Bool = false
 end
 
-@with_kw mutable struct Segmentation_class<:AbstractClass
+@with_kw mutable struct Image_classification_class<:AbstractClass
+    name::String = ""
+end
+
+@with_kw mutable struct Image_segmentation_class<:AbstractClass
     name::String = ""
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
@@ -72,23 +76,19 @@ end
     not_class::Bool = false
 end
 
-@with_kw mutable struct Classification_class<:AbstractClass
-    name::String = ""
-end
-
 @with_kw mutable struct Model_data
     input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
-    classes::Vector{<:AbstractClass} = Vector{Classification_class}(undef,0)
-    output_options::Vector{<:AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
+    classes::Vector{<:AbstractClass} = Vector{Image_classification_class}(undef,0)
+    output_options::Vector{<:AbstractOutputOptions} = Vector{Image_classification_output_options}(undef,0)
     loss::Function = Flux.Losses.crossentropy
 end
 model_data = Model_data()
 
 #---Master data
 @with_kw mutable struct Design_data
-    output_options_backup::Vector{AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
+    output_options_backup::Vector{AbstractOutputOptions} = Vector{Image_classification_output_options}(undef,0)
 end
 design_data = Design_data()
 

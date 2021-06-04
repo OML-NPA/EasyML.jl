@@ -442,11 +442,11 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     id = convert(Int64,id)
     type = eltype(model_data.classes)
     
-    if type==Classification_class
-        class = Classification_class()
+    if type==Image_classification_class
+        class = Image_classification_class()
         class.name = data[1]
-    elseif type==Segmentation_class
-        class = Segmentation_class()
+    elseif type==Image_segmentation_class
+        class = Image_segmentation_class()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
         class.border = Bool(data[5])
@@ -458,10 +458,10 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     end
     push!(model_data.classes,class)
 
-    if type==Classification_class
-        type_output = Classification_output_options
-    elseif type==Segmentation_class
-        type_output = Segmentation_output_options
+    if type==Image_classification_class
+        type_output = Image_classification_output_options
+    elseif type==Image_segmentation_class
+        type_output = Image_segmentation_output_options
     end
     if eltype(model_data.output_options)!=type_output
         model_data.output_options = Vector{type_output}(undef,0)
@@ -493,9 +493,9 @@ end
 backup_options() = backup_options_main(model_data)
 
 function get_problem_type()
-    if eltype(model_data.classes)==Classification_class
+    if eltype(model_data.classes)==Image_classification_class
         return 0
-    elseif eltype(model_data.classes)==Segmentation_class
+    elseif eltype(model_data.classes)==Image_segmentation_class
         return 1
     end
 end

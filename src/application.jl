@@ -2,7 +2,7 @@
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application::Application,
         application_data::Application_data,model_data::Model_data)
-    if model_data.classes[1] isa Segmentation_class
+    if model_data.classes[1] isa Image_segmentation_class
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application,allowed_ext)
@@ -123,7 +123,7 @@ function get_masks(model_data::Model_data,processing::Processing_training,num::I
     return nothing
 end
 
-function run_iteration(classes::Vector{Segmentation_class},output_options::Vector{Segmentation_output_options},
+function run_iteration(classes::Vector{Image_segmentation_class},output_options::Vector{Image_segmentation_output_options},
         num_feat::Int64,num_border::Int64,savepath::String,filenames_batch::Vector{Vector{String}},
         objs_area::Vector{Vector{Vector{Float64}}},objs_volume::Vector{Vector{Vector{Float64}}},
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,
@@ -179,7 +179,7 @@ function run_iteration(classes::Vector{Segmentation_class},output_options::Vecto
     put!(channels.application_progress,1)
 end
 
-function process_masks(classes::Vector{Segmentation_class},output_options::Vector{Segmentation_output_options},
+function process_masks(classes::Vector{Image_segmentation_class},output_options::Vector{Image_segmentation_output_options},
         num_feat::Int64,num_border::Int64,savepath_main::String,folder::String,filenames_batch::Vector{Vector{String}},
         log_area_obj::Vector{Bool},log_area_obj_sum::Vector{Bool},log_area_dist::Vector{Bool},
         log_volume_obj::Vector{Bool},log_volume_obj_sum::Vector{Bool},log_volume_dist::Vector{Bool},
@@ -499,7 +499,7 @@ function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
         histograms_volume::Vector{Vector{Histogram}},
         objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Array{Vector{Vector{Float64}}},
-        output_options::Vector{Segmentation_output_options},num_batch::Int64,
+        output_options::Vector{Image_segmentation_output_options},num_batch::Int64,
         num_feat::Int64,num_border::Int64,border::Vector{Bool})
     for i = 1:num_batch
         temp_histograms_area = histograms_area[i]
@@ -529,7 +529,7 @@ end
 
 function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
-        output_options::Vector{Segmentation_output_options},
+        output_options::Vector{Image_segmentation_output_options},
         labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_feat::Int64,
         num_border::Int64,scaling::Float64)
     temp_objs_area = objs_area[cnt]
@@ -607,7 +607,7 @@ function make_histogram(values::Vector{<:Real}, options::Union{Output_area,Outpu
 end
 
 function export_histograms(histograms_area::Vector{Vector{Histogram}},
-        histograms_volume::Vector{Vector{Histogram}},classes::Vector{Segmentation_class},num::Int64,
+        histograms_volume::Vector{Vector{Histogram}},classes::Vector{Image_segmentation_class},num::Int64,
         num_dist_area::Int64,num_dist_volume::Int64,
         log_area_dist::Vector{Bool},log_volume_dist::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -649,7 +649,7 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
 end
 
 function export_objs(type_name::String,objs_area::Vector,
-        objs_volume::Vector,classes::Vector{Segmentation_class},
+        objs_volume::Vector,classes::Vector{Image_segmentation_class},
         num::Int64,num_obj_area::Int64,num_obj_volume::Int64,
         log_area_obj::Vector{Bool},log_volume_obj::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -690,8 +690,8 @@ function export_objs(type_name::String,objs_area::Vector,
 end
 
 #---Image related functions
-function get_save_image_info(num_dims::Int64,classes::Vector{Segmentation_class},
-        output_options::Vector{Segmentation_output_options},border::Vector{Bool})
+function get_save_image_info(num_dims::Int64,classes::Vector{Image_segmentation_class},
+        output_options::Vector{Image_segmentation_output_options},border::Vector{Bool})
     num_feat = length(border)
     num_border = sum(border)
     logical_inds = BitArray{1}(undef,num_dims)
@@ -720,8 +720,8 @@ function get_save_image_info(num_dims::Int64,classes::Vector{Segmentation_class}
     return inds,img_names
 end
 
-function mask_to_img(mask::BitArray{3},classes::Vector{Segmentation_class},
-        output_options::Vector{Segmentation_output_options},
+function mask_to_img(mask::BitArray{3},classes::Vector{Image_segmentation_class},
+        output_options::Vector{Image_segmentation_output_options},
         labels_color::Vector{Vector{Float64}},border::Vector{Bool},
         savepath::String,filename::String,ext::String,sym_ext::Symbol)
     num_dims = size(mask)[3]
