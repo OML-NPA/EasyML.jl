@@ -28,49 +28,21 @@ and then write
 #### Model creation
 A struct named `model_data` is exported.
 
-- `input_size::Tuple{Int64,Int64,Int64}`: input size during training (do not change manually).
+- `input_size::Tuple{Int64,Int64,Int64}`: input size during training.
 
-- `model::Chain`: Flux.jl model (do not change manually).
+- `model::Chain`: Flux.jl model.
 
-- `layers::Dict`: contains layers and their information for visualisation (do not change manually).
+- `layers::Dict`: contains layers and their information for visualisation.
 
 - `classes::Vector{AbstractClass}`: hold information about classes that a neural network outputs and what should be done with them.
 
 - `loss::Function`: holds loss that is used during training.
 
-It is suggested to use `modify_classes()` to modify classes.
+The fields can be modified using a GUI. 
 
-However, it can also be done manually.
+`modify_classes()` allows to modify classes.
 
-Create a new class using `Segmentation_class()`.
-
-Classes can be of different types depending on a type of a problem.
-
-`Classification_class` contains
-
-- `name::String`: name of a class.
-
-- `Output::Classification_output_options`: holds settings for output of application of a model to new data.
-
-`Segmentation_class` contains
-
-- `name::String`: name of a class.
-
-- `color::Vector{Float64}`: RGB color of a class, which should correspond to its color on your images. Use 0-255 range.
-
-- `border::Bool`: allows to train a neural network to recognize borders and better separate objects during post-processing.
-
-- `border_thickness::Int64`: border thickness in pixels.
-
-- `min_area::Int64`: minimum area of an object.
-
-- `parents::Vector{String}`: up to two parents can be specified by their name. Objects from a child are added to its parent.
-
-- `Output::Segmentation_output_options`: holds settings for output of application of a model to new data.
-
-Put your classes into a vector and write `model_data.classes = your_classes`.
-
-Run `design_network()` to open a GUI for neural network creation. Click a save icon to save your network to the workspace.
+`design_network()` opens a GUI for neural network creation. Click a save icon to save your network.
 
 <img  src="docs/screenshots/design.png" height = 340em>
 
@@ -126,7 +98,41 @@ URLs are automatically saved to `MLGUI.application_data`.
 
 #### Custom
 
+##### Assigning classes
+
+Classes can be modified manually.
+
+Create a new class using `Segmentation_class()`.
+
+Classes can be of different types depending on a type of a problem.
+
+`Classification_class` contains
+
+- `name::String`: name of a class.
+
+- `Output::Classification_output_options`: holds settings for output of application of a model to new data.
+
+`Segmentation_class` contains
+
+- `name::String`: name of a class.
+
+- `color::Vector{Float64}`: RGB color of a class, which should correspond to its color on your images. Use 0-255 range.
+
+- `border::Bool`: allows to train a neural network to recognize borders and better separate objects during post-processing.
+
+- `border_thickness::Int64`: border thickness in pixels.
+
+- `min_area::Int64`: minimum area of an object.
+
+- `parents::Vector{String}`: up to two parents can be specified by their name. Objects from a child are added to its parent.
+
+- `Output::Segmentation_output_options`: holds settings for output of application of a model to new data.
+
+Put your classes into a vector and write `model_data.classes = your_classes`.
+
 You can forward any suitable input data through a neural network using the following code
+
+##### Custom loop
 
 ```
 model = model_data.model
