@@ -441,7 +441,7 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     data = fix_QML_types(data)
     id = convert(Int64,id)
     type = eltype(model_data.classes)
-    
+    backup = design_data.output_options_backup
     if type==Image_classification_class
         class = Image_classification_class()
         class.name = data[1]
@@ -466,7 +466,7 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     if eltype(model_data.output_options)!=type_output
         model_data.output_options = Vector{type_output}(undef,0)
     end
-    if id in 1:length(design_data.output_options_backup)
+    if id in 1:length(backup) && eltype(backup)==type_output
         push!(model_data.output_options,design_data.output_options_backup[id])
     else
         push!(model_data.output_options,type_output())
@@ -550,6 +550,7 @@ function load_model_main(settings,model_data,url)
     elseif model_data.classes isa Image_segmentation_class
         settings.Training.input_type = ("Image",0)
         settings.Training.problem_type = ("Segmentation",1)
+    end
     return nothing
 end
 load_model(url) = load_model_main(settings,model_data,url)

@@ -69,13 +69,10 @@ ApplicationWindow {
                 id = max_id
             }
             if (problemComboBox.currentIndex==0) {
-                console.log(id)
-                console.log(Julia.get_class_field(ind,"name"))
                 var class_var = {
                     "id": id,
                     "name": Julia.get_class_field(ind,"name")
                 }
-                classModel.append(class_var)
             }
             else if (problemComboBox.currentIndex==1) {
                 var color = Julia.get_class_field(ind,"color")
