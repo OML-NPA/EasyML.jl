@@ -155,14 +155,16 @@ end
 set_settings(fields,value,args...) = set_settings_main(settings,fields,value,args...)
 
 function save_settings_main(settings::Settings)
-    BSON.@save("config.bson",settings)
+    dict = Dict{Symbol,Any}()
+    struct_to_dict!(dict,settings)
+    BSON.@save("config.bson",dict)
     return nothing
 end
 save_settings() = save_settings_main(settings)
 
 function load_settings!(settings::Settings)
     data = BSON.load("config.bson")
-    copystruct!(settings,data[:settings])
+    dict_to_struct!(settings,data[:dict])
     return nothing
 end
 load_settings() = load_settings!(settings)
