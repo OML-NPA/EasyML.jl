@@ -69,13 +69,16 @@ function get_data_main(data::Master_data,fields,inds)
             data = data[inds[i]]
         end
     end
+    if data isa Symbol
+        data = string(data)
+    end
     return data
 end
 get_data(fields,inds=[]) = get_data_main(master_data,fields,inds)
 
 # Allows to write to data from GUI
 function set_data_main(master_data::Master_data,fields,args...)
-    data = settings
+    data = master_data
     fields::Vector{String} = fix_QML_types(fields)
     args = fix_QML_types(args)
     for i = 1:length(fields)-1
@@ -91,7 +94,11 @@ function set_data_main(master_data::Master_data,fields,args...)
         value = getproperty(data,Symbol(fields[end]))
         value[args[1]][args[2]] = args[3]
     end
-    setproperty!(data, Symbol(fields[end]), value)
+    field = Symbol(fields[end])
+    if getproperty(data,field) isa Symbol
+        data = Symbol(data)
+    end
+    setproperty!(data, field, value)
     return nothing
 end
 set_data(fields,value,args...) = set_data_main(master_data,fields,value,args...)
@@ -108,6 +115,9 @@ function get_settings_main(data::Settings,fields,inds...)
         for i = 1:length(inds)
             data = data[inds[i]]
         end
+    end
+    if data isa Symbol
+        data = string(data)
     end
     return data
 end
@@ -163,8 +173,13 @@ end
 save_settings() = save_settings_main(settings)
 
 function load_settings!(settings::Settings)
-    data = BSON.load("config.bson")
-    dict_to_struct!(settings,data[:dict])
+    try
+        data = BSON.load("config.bson")
+        dict_to_struct!(settings,data[:dict])
+    catch e
+        save_settings()
+        @warn string("Loading of settings failed. Exception: ",e)
+    end
     return nothing
 end
 load_settings() = load_settings!(settings)
@@ -494,10 +509,20 @@ function backup_options_main(model_data::Model_data)
 end
 backup_options() = backup_options_main(model_data)
 
+function set_problem_type(ind)
+    ind = fix_QML_types(ind)
+    if ind==0 
+        settings.problem_type = :Classification
+    elseif ind==1
+        settings.problem_type = :Segmentation
+    end
+    return nothing
+end
+
 function get_problem_type()
-    if eltype(model_data.classes)==Image_classification_class
+    if settings.problem_type==:Classification
         return 0
-    elseif eltype(model_data.classes)==Image_segmentation_class
+    elseif settings.problem_type==:Segmentation
         return 1
     end
 end
@@ -547,11 +572,11 @@ function load_model_main(settings,model_data,url)
     url_split = split(url,('/','.'))
     settings.Training.name = url_split[end-1]
     if model_data.classes isa Image_classification_class
-        settings.Training.input_type = ("Image",0)
-        settings.Training.problem_type = ("Classification",0)
+        settings.input_type = :Image
+        settings.problem_type = :Classification
     elseif model_data.classes isa Image_segmentation_class
-        settings.Training.input_type = ("Image",0)
-        settings.Training.problem_type = ("Segmentation",1)
+        settings.input_type = :Image
+        settings.problem_type = :Segmentation
     end
     return nothing
 end

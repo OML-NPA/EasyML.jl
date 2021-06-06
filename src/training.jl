@@ -713,7 +713,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     max_labels = Vector{Int32}(undef,0)
-    if model_data.classes isa Vector{Image_classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         push!(max_labels,(1:length(training_data.Classification_data.labels))...)
     end
     # Make channels
@@ -792,9 +792,9 @@ function train_main(settings::Settings,training_data::Training_data,
     end
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
-    if model_data.classes isa Vector{Image_classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         train_set, test_set = get_train_test(training_data.Classification_data,training)
-    elseif model_data.classes isa Vector{Image_segmentation_class}
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
         train_set, test_set = get_train_test(training_data.Segmentation_data,training)
     end
     # Setting functions and parameters

@@ -249,6 +249,7 @@ ApplicationWindow {
                         ListElement {text: "Regression"}
                     }
                     onActivated: {
+                        Julia.set_problem_type(currentIndex)
                         classModel.clear()
                         indTree = -1
                         update_fields()

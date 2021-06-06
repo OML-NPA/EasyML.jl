@@ -8,7 +8,6 @@ T.Button {
     id: control
 
     property double tabmargin: 0.5*margin
-    property double font_size: 11
     property bool buttonfocus: false
     property bool horizontal: false
 
@@ -43,6 +42,7 @@ T.Button {
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignLeft
             leftPadding: horizontal ? 0 : tabmargin
+            font.pixelSize: 33*pix
             Component.onCompleted: {
                 if (horizontal) {
                     var text_width = fontMetrics.advanceWidth(text)*pix

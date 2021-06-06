@@ -2,7 +2,7 @@
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application::Application,
         application_data::Application_data,model_data::Model_data)
-    if model_data.classes[1] isa Image_segmentation_class
+    if settings.problem_type==:Segmentation && settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application,allowed_ext)
