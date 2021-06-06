@@ -138,14 +138,15 @@ segmentation_data = Segmentation_data()
 end
 training_data = Training_data()
 
-@with_kw mutable struct Validation_classification_results
+@with_kw mutable struct Validation_image_classification_results
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
-    predicted_labels::Vector{Int64} = Vector{Int64}(undef,0)
-    target_labels::Vector{Int64} = Vector{Int64}(undef,0)
+    predicted_labels::Vector{String} = Vector{String}(undef,0)
+    target_labels::Vector{String} = Vector{String}(undef,0)
+    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
 end
-validation_classification_results = Validation_classification_results()
+validation_image_classification_results = Validation_image_classification_results()
 
-@with_kw mutable struct Validation_segmentation_results
+@with_kw mutable struct Validation_image_segmentation_results
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
@@ -156,14 +157,14 @@ validation_classification_results = Validation_classification_results()
     other_data::Vector{Tuple{Float32,Float32}} = 
         Vector{Tuple{Float32,Float32}}(undef,0)
 end
-validation_segmentation_results = Validation_segmentation_results()
+validation_image_segmentation_results = Validation_image_segmentation_results()
 
 @with_kw mutable struct Validation_data
-    Results_classification::Validation_classification_results = validation_classification_results
-    Results_segmentation::Validation_segmentation_results = validation_segmentation_results
+    Image_classification_results::Validation_image_classification_results = validation_image_classification_results
+    Image_segmentation_results::Validation_image_segmentation_results = validation_image_segmentation_results
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
-    labels::Vector{Int64} = Vector{Int64}(undef,0)
+    labels::Vector{Int32} = Vector{Int32}(undef,0)
 end
 validation_data = Validation_data()
 
@@ -183,11 +184,6 @@ end
 master_data = Master_data()
 
 #---Settings
-# Main
-@with_kw mutable struct Main_s
-    a::Int = 0
-end
-main = Main_s()
 
 # Options
 @with_kw mutable struct Hardware_resources
@@ -255,8 +251,6 @@ training_options = Training_options()
 
 @with_kw mutable struct Training
     Options::Training_options = training_options
-    problem_type::Tuple{String,Int64} = ("Segmentation",1)
-    input_type::Tuple{String,Int64} = ("Image",0)
     model_url::String = ""
     input_dir::String = ""
     label_dir::String = ""
@@ -296,13 +290,14 @@ application = Application()
 
 # Visualisation
 @with_kw mutable struct Visualisation
-    a::Int = 0
+    a::Bool = false
 end
 visualisation = Visualisation()
 
 # Settings
 @with_kw mutable struct Settings
-    Main::Main_s = main
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
     Options::Options = options
     Design::Design = design
     Training::Training = training

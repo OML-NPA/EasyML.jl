@@ -35,10 +35,10 @@ function modify_classes()
         @error "Classes are empty. Add classes to the 'model_data'."
         return nothing
     end
-    if !(classes isa Vector{Image_segmentation_class})
+    #=if !(classes isa Vector{Image_segmentation_class})
         @error string("There is nothing to change in a ",eltype(classes))
         return nothing
-    end
+    end=#
     @qmlfunction(
         get_class_field,
         num_classes,
@@ -47,6 +47,7 @@ function modify_classes()
         reset_output_options,
         backup_options,
         get_problem_type,
+        set_problem_type,
         get_settings,
         set_settings,
         save_settings
@@ -144,7 +145,7 @@ function prepare_training_data()
         put!(progress, 0)
         return nothing
     end
-    if model_data.classes isa Vector{Image_classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         if isempty(training_data.Image_classification_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
@@ -220,7 +221,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if model_data.classes isa Vector{Image_classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
         training.Options.General.weight_accuracy = false
     end
@@ -266,7 +267,7 @@ function get_urls_validation(input_dir::String,label_dir::String)
     end
     validation.input_dir = input_dir
     validation.label_dir = label_dir
-    validation.use_labels = false
+    validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
@@ -277,7 +278,7 @@ function get_urls_validation(input_dir::String)
         return nothing
     end
     validation.input_dir = input_dir
-    validation.use_labels = true
+    validation.use_labels = false
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
@@ -321,28 +322,35 @@ function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
+    if settings.problem_type==:Classification && settings.input_type==:Image && training.Options.General.weight_accuracy
+        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
+        training.Options.General.weight_accuracy = false
+    end
     validate_main2(settings,validation_data,model_data,channels)
-    if model_data.classes isa Vector{Image_segmentation_class}
-        # Launches GUI
-        @qmlfunction(
-            # Handle classes
-            num_classes,
-            get_class_field,
-            # Data handling
-            get_settings,
-            get_results,
-            get_progress,
-            put_channel,
-            get_image,
-            # Other
-            yield
-        )
-        f = CxxWrap.@safe_cfunction(display_image, Cvoid,
-                                        (Array{UInt32,1}, Int32, Int32))
-        loadqml("GUI/ValidationPlot.qml",
-            display_image = f)
-        exec()
-        return validation_segmentation_results
+    # Launches GUI
+    @qmlfunction(
+        # Handle classes
+        num_classes,
+        get_class_field,
+        # Data handling
+        get_settings,
+        get_results,
+        get_progress,
+        put_channel,
+        get_image,
+        get_data,
+        # Other
+        yield
+    )
+    f = CxxWrap.@safe_cfunction(display_image, Cvoid,
+                                    (Array{UInt32,1}, Int32, Int32))
+    loadqml("GUI/ValidationPlot.qml",
+        display_image = f)
+    exec()
+    if settings.problem_type==:Classification && settings.input_type==:Image
+        return validation_image_classification_results
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
+        return validation_image_segmentation_results
     end
 end
 
