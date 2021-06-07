@@ -161,8 +161,19 @@ end
 save_settings() = save_settings_main(settings)
 
 function load_settings!(settings::Settings)
-    data = BSON.load("config.bson")
-    copystruct!(settings,data[:settings])
+    # Import the configutation file
+    if isfile("config.bson")
+        try
+            data = BSON.load("config.bson")
+            copystruct!(settings,data[:settings])
+        catch e
+            @error string("Settings were not loaded. Error: ",e)
+            save_settings()
+        end 
+    else
+        save_settings()
+    end
+    
     return nothing
 end
 load_settings() = load_settings!(settings)

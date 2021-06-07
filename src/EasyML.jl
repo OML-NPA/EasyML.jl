@@ -48,16 +48,8 @@ export Join, Split, Addition, Activation, Identity
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
     ENV["QSG_RENDER_LOOP"] = "basic"
-    # Import the configutation file
-    if isfile("config.bson")
-        try
-            load_settings()
-        catch
-            save_settings()
-        end 
-    else
-        save_settings()
-    end
+    # Import a configutation file
+    load_settings()
 end
 
 end
