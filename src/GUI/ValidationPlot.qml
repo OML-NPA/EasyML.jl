@@ -189,10 +189,6 @@ ApplicationWindow {
                 var loss_temp = data[1]
                 accuracy.push(accuracy_temp)
                 loss.push(loss_temp)
-                //var accuracy_std_temp = data[2]
-                //var loss_std_temp = data[3]
-                //accuracyLabel.text = accuracy_temp.toFixed(2)// + " ± " + accuracy_std_temp.toFixed(2)
-                //lossLabel.text = loss_temp.toFixed(2)// + " ± " + loss_std_temp.toFixed(2)
                 if (iteration==1) {
                     sampleSpinBox.value = 1
                     classComboBox.currentIndex = 0
@@ -253,7 +249,7 @@ ApplicationWindow {
                     displayPane.height = displayItem.height + 2*displayPane.verticalPadding
                     displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
                     displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
-                    displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding - classLabel.height
+                    displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
                     sizechangeTimer.prevWidth = displayPane.height
                     sizechangeTimer.running = true
                     controlsLabel.visible = true
@@ -308,9 +304,9 @@ ApplicationWindow {
                 var ind2 = classComboBox.currentIndex+1
                 var new_width = validationWindow.width - 580*pix
                 var modif1 = new_width/displayPane.width
-                var new_heigth = Math.min(Screen.height-1.75*margin,(displayScrollableItem.height - classLabel.height)*modif1)
-                var modif2 = new_heigth/(displayScrollableItem.height - classLabel.height)
-                var modif = Math.max(modif1,modif2)
+                var new_heigth = Math.min(Screen.height-1.75*margin,(displayScrollableItem.height)*modif1)
+                var modif2 = new_heigth/(displayScrollableItem.height)
+                var modif = Math.min(modif1,modif2)
                 displayItem.width = displayItem.width*modif
                 displayItem.height = displayItem.height*modif
                 displayScrollableItem.width = displayScrollableItem.width*modif
@@ -321,7 +317,7 @@ ApplicationWindow {
                 displayPane.horizontalPadding = Math.max(0.5*margin,
                     (cond - displayScrollableItem.width)/2)
                 displayPane.verticalPadding = Math.max(0.5*margin,
-                    (cond - (displayScrollableItem.height - classLabel.height))/2)
+                    (cond - (displayScrollableItem.height))/2)
                 if (validationWindow.width===Screen.width) {
                     displayPane.height = validationWindow.height
                     displayPane.width = displayScrollableItem.width
