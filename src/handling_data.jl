@@ -571,10 +571,10 @@ function load_model_main(settings,model_data,url)
     settings.Training.model_url = url
     url_split = split(url,('/','.'))
     settings.Training.name = url_split[end-1]
-    if model_data.classes isa Image_classification_class
+    if model_data.classes isa Vector{Image_classification_class}
         settings.input_type = :Image
         settings.problem_type = :Classification
-    elseif model_data.classes isa Image_segmentation_class
+    elseif model_data.classes isa Vector{Image_segmentation_class}
         settings.input_type = :Image
         settings.problem_type = :Segmentation
     end
