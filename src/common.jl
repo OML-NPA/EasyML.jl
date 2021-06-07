@@ -53,7 +53,7 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
     label_dir = settings.label_dir
     # Return if no directories
     if isempty(input_dir) || isempty(label_dir)
-        @info "empty urls"
+        @error "Empty urls."
         return nothing,nothing,nothing
     end
     # Get directories containing our images and labels
@@ -158,7 +158,7 @@ end
 
 # Returns color for labels, whether should be combined with other
 # labels and whether border data should be obtained
-function get_class_data(classes::Vector{Segmentation_class})
+function get_class_data(classes::Vector{Image_segmentation_class})
     num = length(classes)
     class_names = Vector{String}(undef,num)
     class_parents = Vector{Vector{String}}(undef,num)
@@ -254,7 +254,7 @@ function rotate_img(img::BitArray{3},angle_val::Float64)
 end
 
 # Use border data to better separate objects
-function apply_border_data(data_in::BitArray{3},classes::Vector{Segmentation_class})
+function apply_border_data(data_in::BitArray{3},classes::Vector{Image_segmentation_class})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
     inds_border = findall(border)
     if isnothing(inds_border)
@@ -301,14 +301,33 @@ end
 
 #---
 # Accuracy based on RMSE
-function accuracy_regular(predicted::Union{Array,CuArray},actual::Union{Array,CuArray})
-    dif = predicted - actual
-    acc = 1-mean(mean.(map(x->abs.(x),dif)))
-    return acc
+function accuracy_regular(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+    # Convert to BitArray
+    actual_bool = actual.>0
+    predicted_bool = predicted.>0.5
+    # Calculate accuracy
+    correct_bool = predicted_bool .& actual_bool
+    num_correct = sum(correct_bool)
+    acc = num_correct/prod(size(predicted)[1:2])
+    return convert(Float32,acc)
+end
+
+function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+    acc = Vector{Float32}(undef,0)
+    for i in 1:size(predicted,4)
+        _ , actual_ind = findmax(actual[1,1,:,i])
+        _ , predicted_ind = findmax(predicted[1,1,:,i])
+        if actual_ind==predicted_ind
+            push!(acc,1)
+        else
+            push!(acc,0)
+        end
+    end
+    return mean(acc)
 end
 
 # Weight accuracy using inverse frequency (CPU)
-function accuracy_weighted(predicted::Array{Float32,4},actual::Array{Float32,4})
+function accuracy_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
     # Get input dimensions
     array_size = size(actual)
     array_size12 = array_size[1:2]
@@ -419,10 +438,14 @@ end
 
 # Returns an accuracy function
 function get_accuracy_func(training::Training)
-    if training.Options.General.weight_accuracy
-        return accuracy_weighted
+    if settings.problem_type==:Classification
+        return accuracy_classification
     else
-        return accuracy_regular
+        if training.Options.General.weight_accuracy
+            return accuracy_weighted
+        else
+            return accuracy_regular
+        end
     end
 end
 
@@ -489,8 +512,7 @@ function accum_parts(model::Chain,input_data::Array{Float32,4},
         temp_data,correct_size,offset_add =
             prepare_data(input_data,ind_max,max_value,num_parts,offset,ind_split,j)
         temp_predicted::Array{Float32,4} = model(temp_data)
-        temp_predicted =
-            fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
+        temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
         push!(predicted,temp_predicted)
     end
     if ind_max==1
@@ -513,8 +535,7 @@ function accum_parts(model::Chain,input_data::CuArray{Float32,4},
         temp_data,correct_size,offset_add =
             prepare_data(input_data,ind_max,max_value,offset,num_parts,ind_split,j)
         temp_predicted = model(temp_data)
-        temp_predicted =
-            fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
+        temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
         push!(predicted,collect(temp_predicted))
         CUDA.unsafe_free!(temp_predicted)
     end

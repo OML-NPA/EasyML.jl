@@ -2,7 +2,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
-import QtQuick.Layouts 1.2
+import QtQuick.Layouts 1.1
 import Qt.labs.platform 1.1
 import QtQml.Models 2.15
 import QtQuick.Shapes 1.15
@@ -222,7 +222,7 @@ Component.onCompleted: {
                         id: layersLabel
                         width: leftFrame.width
                         text: "Layers:"
-                        font.pointSize: 12
+                        font.pixelSize: 33*1.1*pix
                         padding: 0.2*margin
                         leftPadding: 0.2*margin
                         background: Rectangle {
@@ -255,7 +255,8 @@ Component.onCompleted: {
                                     id: inoutLabel
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*linearLabel.height
                                     text: "Input and output layers"
@@ -301,7 +302,7 @@ Component.onCompleted: {
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
                                     anchors.top: inoutlayerView.bottom
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*linearLabel.height
                                     text: "Linear layers"
@@ -356,7 +357,7 @@ Component.onCompleted: {
                                     anchors.top: linearlayerView.bottom
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*activationLabel.height
                                     text: "Normalisation layers"
@@ -402,7 +403,7 @@ Component.onCompleted: {
                                     anchors.top: normlayerView.bottom
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*activationLabel.height
                                     text: "Activation layers"
@@ -475,7 +476,7 @@ Component.onCompleted: {
                                     anchors.top: activationlayerView.bottom
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*poolingLabel.height
                                     text: "Pooling layers"
@@ -522,7 +523,7 @@ Component.onCompleted: {
                                     anchors.top: poolinglayerView.bottom
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*activationLabel.height
                                     text: "Resizing layers"
@@ -602,7 +603,7 @@ Component.onCompleted: {
                         id: layergroupsLabel
                         width: leftFrame.width
                         text: "Layer groups:"
-                        font.pointSize: 12
+                        font.pixelSize: 33*pix*1.1
                         padding: 0.2*margin
                         leftPadding: 0.2*margin
                         background: Rectangle {
@@ -633,7 +634,7 @@ Component.onCompleted: {
                                     id: defaultLabel
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pointSize: 12
+                                    font.pixelSize: 33*pix*1.1
                                     color: "#777777"
                                     topPadding: 0.10*defaultLabel.height
                                     text: "Default layer groups"
@@ -1141,7 +1142,7 @@ Component.onCompleted: {
                         id: propertiesLabel
                         width: rightFrame.width
                         text: "Properties:"
-                        font.pointSize: 12
+                        font.pixelSize: 33*pix*1.1
                         padding: 0.2*margin
                         leftPadding: 0.2*margin
                         background: Rectangle {
@@ -1218,7 +1219,7 @@ Component.onCompleted: {
                         id: overviewLabel
                         width: rightFrame.width
                         text: "Overview:"
-                        font.pointSize: 12
+                        font.pixelSize: 33*pix*1.1
                         padding: 0.2*margin
                         leftPadding: 0.2*margin
                         background: Rectangle {
@@ -2147,12 +2148,12 @@ Component.onCompleted: {
                 Label {
                     id: nameLabel
                     text: name
-                    font.pointSize: 11
+                    font.pixelSize: 33*pix*1.1
                 }
                 Label {
                     id: typeLabel
                     text: type
-                    font.pointSize: 9
+                    font.pixelSize: 33*pix*0.9
                     color: "#777777"
                 }
             }
@@ -2694,7 +2695,6 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    //font.pointSize: 10*pix
                     Layout.alignment: Qt.AlignBottom
                     Component.onCompleted: {
                         
@@ -2727,11 +2727,10 @@ Component.onCompleted: {
                 Label {
                     id: nameLabel
                     text: "Name: "
-                    topPadding: 4*pix
-                    bottomPadding: topPadding
                 }
                 TextField {
-                    defaultHeight: 0.75*buttonHeight
+                    anchors.verticalCenter: nameLabel.verticalCenter
+                    defaultHeight: buttonHeight
                     defaultWidth: rightFrame.width - 220*pix
                     onEditingFinished: {
                         // nameTextField.text = displayText
@@ -2814,7 +2813,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -2904,7 +2903,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -2997,7 +2996,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3101,7 +3100,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3195,7 +3194,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3270,7 +3269,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3345,7 +3344,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3420,7 +3419,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3495,7 +3494,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3571,7 +3570,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3655,7 +3654,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3789,7 +3788,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -3931,7 +3930,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -4081,7 +4080,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }
@@ -4166,7 +4165,7 @@ Component.onCompleted: {
                     topPadding: 0.28*margin
                     leftPadding: 0.10*margin
                     text: type
-                    font.pointSize: 12
+                    font.pixelSize: 33*pix*1.1
                     color: "#777777"
                     wrapMode: Text.NoWrap
                 }

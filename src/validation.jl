@@ -4,28 +4,36 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::Validation_data,model_data::Model_data)
-    if model_data.classes[1] isa Segmentation_class
+    if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if validation.use_labels==true
         input_urls,label_urls,_,_,_ = get_urls2(validation,allowed_ext)
         validation_data.label_urls = reduce(vcat,label_urls)
     else
-        input_urls,_ = get_urls1(validation,allowed_ext)
+        input_urls,dirs = get_urls1(validation,allowed_ext)
+    end
+    if settings.problem_type == :Classification
+        labels = map(class -> class.name,model_data.classes)
+        if issubset(dirs,labels)
+            validation.use_labels = true
+            labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
+            validation_data.labels = reduce(vcat,labels_int)
+        end
     end
     validation_data.input_urls = reduce(vcat,input_urls)
-    
+    return nothing
 end
 #get_urls_validation() = get_urls_validation_main(validation,model_data)
 
 function reset_validation_results(validation_data::Validation_data)
-    results_classification = validation_data.Results_classification
-    fields = fieldnames(Validation_classification_results)
+    results_classification = validation_data.Image_classification_results
+    fields = fieldnames(Validation_image_classification_results)
     for field in fields
         empty_field!(results_classification,field)
     end
-    results_segmentation = validation_data.Results_segmentation
-    fields = fieldnames(Validation_segmentation_results)
+    results_segmentation = validation_data.Image_segmentation_results
+    fields = fieldnames(Validation_image_segmentation_results)
     for field in fields
         empty_field!(results_segmentation,field)
     end
@@ -33,7 +41,28 @@ function reset_validation_results(validation_data::Validation_data)
 end
 
 function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Segmentation_class},ind::Int64)
+        options::Processing_training, classes::Vector{Image_classification_class},ind::Int64)
+    original = load_image(validation_data.input_urls[ind])
+    if options.grayscale
+        data_input = image_to_gray_float(original)[:,:,:,:]
+    else
+        data_input = image_to_color_float(original)[:,:,:,:]
+    end
+    if validation.use_labels
+        num = length(classes)
+        labels_temp = Vector{Float32}(undef,num)
+        fill!(labels_temp,0)
+        label_int = EasyML.validation_data.labels[ind]
+        labels_temp[label_int] = 1
+        labels = reshape(labels_temp,1,1,:,1)
+    else
+        labels = Array{Float32,4}(undef,1,1,length(classes),1)
+    end
+    return data_input,labels,original
+end
+
+function prepare_validation_data(validation::Validation,validation_data::Validation_data,
+        options::Processing_training, classes::Vector{Image_segmentation_class},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
@@ -47,23 +76,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
             labels_incl,border,border_thickness)
         data_label = convert(Array{Float32,3},label_bool)[:,:,:,:]
     else
-        data_label = Array{Float32,4}(undef,size(data_input))
-    end
-    return data_input,data_label,original
-end
-
-function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Classification_class},ind::Int64)
-    original = load_image(validation_data.input_urls[ind])
-    if options.grayscale
-        data_input = image_to_gray_float(original)[:,:,:,:]
-    else
-        data_input = image_to_color_float(original)[:,:,:,:]
-    end
-    if validation.use_labels
-        labels = validation_data.labels
-    else
-        labels = Vector{Int64}(undef,0)
+        data_label = Array{Float32,4}(undef,1,1)
     end
     return data_input,data_label,original
 end
@@ -139,11 +152,34 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     return predicted_data,target_data,error_data
 end
 
-function process_output(validation::Validation,predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{Segmentation_class},channels::Channels)
+function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray{Float32,4},
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
+        validation::Validation,classes::Vector{Image_classification_class},channels::Channels)
+    class_names = map(x-> x.name,classes)
+    predicted_vec = Iterators.flatten(predicted)
+    predicted_int = findfirst(predicted_vec .== maximum(predicted_vec))
+    predicted_string = class_names[predicted_int]
+    if validation.use_labels
+        label_vec = Iterators.flatten(label)
+        label_int = findfirst(label_vec .== maximum(label_vec))
+        label_string = class_names[label_int]
+    else
+        label_string = ""
+    end
+    image_data = (predicted_string,label_string)
+    data = (image_data,other_data,original)
+    # Return data
+    put!(channels.validation_results,data)
+    put!(channels.validation_progress,1)
+    return nothing
+end
+
+function process_output(predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},validation::Validation,
+        classes::Vector{Image_segmentation_class},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
-    # Get images
+    # Get output data
     predicted_data,target_data,error_data = 
         output_images(predicted_bool,label_bool,classes,validation)
     image_data = (predicted_data,target_data,error_data)
@@ -159,6 +195,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
         model_data::Model_data,channels::Channels)
     # Initialisation
     validation = settings.Validation
+    processing = settings.Training.Options.Processing
     reset_validation_results(validation_data)
     num = length(validation_data.input_urls)
     put!(channels.validation_progress,num)
@@ -168,7 +205,11 @@ function validate_main(settings::Settings,validation_data::Validation_data,
     loss = model_data.loss
     accuracy = get_accuracy_func(settings.Training)
     use_GPU = settings.Options.Hardware_resources.allow_GPU && has_cuda()
-    GC.gc()
+    if settings.problem_type==:Classification
+        num_parts_current = 1
+    else
+        num_parts_current = 30
+    end
     for i = 1:num
         if isready(channels.validation_modifiers)
             stop_cond::String = fetch(channels.validation_modifiers)[1]
@@ -177,17 +218,17 @@ function validate_main(settings::Settings,validation_data::Validation_data,
                 break
             end
         end
-        data_input,data_label,other = prepare_validation_data(validation,
-            validation_data,settings.Training.Options.Processing,classes,i)
-        predicted = forward(model,data_input,use_GPU=use_GPU)
+        data_input,label,other = prepare_validation_data(validation,validation_data,
+            processing,classes,i)
+        predicted = forward(model,data_input,num_parts=num_parts_current,use_GPU=use_GPU)
         if use_labels
-            accuracy_val = accuracy(predicted,data_label)
-            loss_val = loss(predicted,data_label)
+            accuracy_val = accuracy(predicted,label)
+            loss_val = loss(predicted,label)
             other_data = (accuracy_val,loss_val)
         else
             other_data = (0.f0,0.f0)
         end
-        process_output(validation,predicted,data_label,other,other_data,classes,channels)
+        process_output(predicted,label,other,other_data,validation,classes,channels)
     end
     return nothing
 end

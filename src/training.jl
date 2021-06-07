@@ -146,7 +146,7 @@ end
 
 # Prepare data for training
 function prepare_training_data_classification(classification_data::Classification_data,
-        classes::Vector{Classification_class},options::Training_options,
+        classes::Vector{Image_classification_class},options::Training_options,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
     num_angles = options.Processing.num_angles
     urls = classification_data.input_urls
@@ -200,7 +200,7 @@ function prepare_training_data_classification(classification_data::Classificatio
 end
 
 function prepare_training_data_segmentation(segmentation_data::Segmentation_data,
-        classes::Vector{Segmentation_class},options::Training_options,
+        classes::Vector{Image_segmentation_class},options::Training_options,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
@@ -263,10 +263,10 @@ function prepare_training_data_main(training::Training,training_data::Training_d
     classes = model_data.classes
     options = training.Options
     size12 = model_data.input_size[1:2]
-    if classes isa Vector{Classification_class}
+    if classes isa Vector{Image_classification_class}
         prepare_training_data_classification(classification_data,classes,options,
             size12,progress,results) 
-    elseif classes isa Vector{Segmentation_class}
+    elseif classes isa Vector{Image_segmentation_class}
         segmentation_data = training_data.Segmentation_data
         prepare_training_data_segmentation(segmentation_data,classes,options,
             size12,progress,results)
@@ -713,7 +713,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     max_labels = Vector{Int32}(undef,0)
-    if model_data.classes isa Vector{Classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         push!(max_labels,(1:length(training_data.Classification_data.labels))...)
     end
     # Make channels
@@ -792,9 +792,9 @@ function train_main(settings::Settings,training_data::Training_data,
     end
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
-    if model_data.classes isa Vector{Classification_class}
+    if settings.problem_type==:Classification && settings.input_type==:Image
         train_set, test_set = get_train_test(training_data.Classification_data,training)
-    elseif model_data.classes isa Vector{Segmentation_class}
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
         train_set, test_set = get_train_test(training_data.Segmentation_data,training)
     end
     # Setting functions and parameters

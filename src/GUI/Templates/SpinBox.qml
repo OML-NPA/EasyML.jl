@@ -43,14 +43,14 @@ T.SpinBox {
     id: control
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            contentItem.implicitWidth + 2 * padding +
+                            contentItem.implicitWidth + 2*pix * padding +
                             up.implicitIndicatorWidth +
                             down.implicitIndicatorWidth)
     implicitHeight: Math.max(implicitContentHeight + topPadding + bottomPadding,
                              implicitBackgroundHeight,
                              up.implicitIndicatorHeight,
                              down.implicitIndicatorHeight)
-    padding: 6
+    padding: 6*pix
     leftPadding: padding + (control.mirrored ? (up.indicator ? up.indicator.width : 0) : (down.indicator ? down.indicator.width : 0))
     rightPadding: padding + (control.mirrored ? (down.indicator ? down.indicator.width : 0) : (up.indicator ? up.indicator.width : 0))
 
@@ -61,10 +61,11 @@ T.SpinBox {
     }
 
     contentItem: TextInput {
-        z: 2
+        z: 2*pix
         text: control.displayText
 
-        font: control.font
+        font.pixelSize: 33*pix
+        font.family: "Proxima Nova"
         color: control.palette.text
         selectionColor: control.palette.highlight
         selectedTextColor: control.palette.highlightedText
@@ -90,21 +91,21 @@ T.SpinBox {
     up.indicator: Rectangle {
         x: control.mirrored ? 0 : parent.width - width
         height: parent.height
-        implicitWidth: 40
-        implicitHeight: 40
+        implicitWidth: 40*pix
+        implicitHeight: 40*pix
         color: control.up.pressed ? control.palette.mid : control.palette.button
 
         Rectangle {
             x: (parent.width - width) / 2
             y: (parent.height - height) / 2
             width: parent.width / 3
-            height: 2
+            height: 2*pix
             color: enabled ? control.palette.buttonText : control.palette.mid
         }
         Rectangle {
             x: (parent.width - width) / 2
             y: (parent.height - height) / 2
-            width: 2
+            width: 2*pix
             height: parent.width / 3
             color: enabled ? control.palette.buttonText : control.palette.mid
         }
@@ -113,8 +114,8 @@ T.SpinBox {
     down.indicator: Rectangle {
         x: control.mirrored ? parent.width - width : 0
         height: parent.height
-        implicitWidth: 40
-        implicitHeight: 40
+        implicitWidth: 40*pix
+        implicitHeight: 40*pix
         color: control.down.pressed ? control.palette.mid : control.palette.button
 
         Rectangle {
@@ -127,7 +128,7 @@ T.SpinBox {
     }
 
     background: Rectangle {
-        implicitWidth: 140
+        implicitWidth: 140*pix
         color: enabled ? control.palette.base : control.palette.button
         border.color: control.palette.button
     }

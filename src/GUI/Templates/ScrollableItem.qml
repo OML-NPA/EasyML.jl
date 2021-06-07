@@ -13,11 +13,11 @@ Flickable{
     property color scrollbarColor: defaultpalette.window
     property bool scrollbar: true
     default property alias content : pane.contentItem
-    property double offset_x: 0
+    property double currentX: horizontal.position
+    property double currentY: vertical.position
 
     Pane {
         id:pane
-        x: offset_x
         anchors.fill: parent
         padding: 0
         width: flickable.width
@@ -57,7 +57,6 @@ Flickable{
             anchors.bottom: parent.bottom
             color: showBackground ? scrollbarColor : "transparent"
         }
-
         contentItem:
             Rectangle {
                 implicitWidth: 100*pix

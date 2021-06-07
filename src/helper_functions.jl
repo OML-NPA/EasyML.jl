@@ -1,19 +1,36 @@
 
 #---Struct related functions
-function dict_to_struct!(obj,dict::Dict;skip=[])
+
+function struct_to_dict!(dict,obj)
+    ks = fieldnames(typeof(obj))
+    for k in ks
+        value = getproperty(obj,k)
+        if parentmodule(typeof(value))==EasyML
+            dict_current = Dict{Symbol,Any}()
+            dict[k] = dict_current
+            struct_to_dict!(dict_current,value)
+        else
+            dict[k] = value
+        end
+    end
+    return nothing
+end
+
+function dict_to_struct!(obj,dict::Dict)
     ks = [keys(dict)...]
     for i = 1:length(ks)
         ks_cur = ks[i]
         sym = Symbol(ks_cur)
         value = dict[ks_cur]
         if value isa Dict
-            dict_to_struct!(getproperty(obj,sym),value;skip=skip)
+            dict_to_struct!(getproperty(obj,sym),value)
         else
-            if !(ks_cur in skip) && hasfield(typeof(obj),sym)
+            if hasfield(typeof(obj),sym)
                 setproperty!(obj,sym,value)
             end
         end
     end
+    return nothing
 end
 
 function copystruct!(struct1,struct2)
