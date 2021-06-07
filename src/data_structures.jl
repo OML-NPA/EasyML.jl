@@ -3,20 +3,20 @@
 # 
 @with_kw struct Channels
     training_data_progress::Channel = Channel{Float32}(Inf)
-    training_data_results::Channel = Channel{Any}(1)
+    training_data_results::Channel = Channel{Any}(Inf)
     training_data_modifiers::Channel = Channel{Any}(Inf)
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Any}(Inf)
     validation_data_progress::Channel = Channel{Float32}(Inf)
-    validation_data_results::Channel = Channel{Any}(1)
+    validation_data_results::Channel = Channel{Any}(Inf)
     validation_data_modifiers::Channel = Channel{Any}(Inf)
     validation_progress::Channel = Channel{Any}(Inf)
     validation_results::Channel = Channel{Any}(Inf)
     validation_modifiers::Channel = Channel{Any}(Inf)
     training_labels_colors::Channel = Channel{Any}(Inf)
     application_data_progress::Channel = Channel{Any}(Inf)
-    application_data_results::Channel = Channel{Any}(1)
+    application_data_results::Channel = Channel{Any}(Inf)
     application_progress::Channel = Channel{Any}(Inf)
     application_modifiers::Channel = Channel{Any}(Inf)
 end
@@ -51,17 +51,21 @@ end
     normalisation::Int64 = 0
 end
 
-@with_kw mutable struct Segmentation_output_options<:AbstractOutputOptions
+@with_kw mutable struct Image_segmentation_output_options<:AbstractOutputOptions
     Mask::Output_mask = Output_mask()
     Area::Output_area = Output_area()
     Volume::Output_volume = Output_volume()
 end
 
-@with_kw mutable struct Classification_output_options<:AbstractOutputOptions
+@with_kw mutable struct Image_classification_output_options<:AbstractOutputOptions
     temp::Bool = false
 end
 
-@with_kw mutable struct Segmentation_class<:AbstractClass
+@with_kw mutable struct Image_classification_class<:AbstractClass
+    name::String = ""
+end
+
+@with_kw mutable struct Image_segmentation_class<:AbstractClass
     name::String = ""
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
@@ -72,23 +76,19 @@ end
     not_class::Bool = false
 end
 
-@with_kw mutable struct Classification_class<:AbstractClass
-    name::String = ""
-end
-
 @with_kw mutable struct Model_data
     input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
-    classes::Vector{<:AbstractClass} = Vector{Classification_class}(undef,0)
-    output_options::Vector{<:AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
+    classes::Vector{<:AbstractClass} = Vector{Image_classification_class}(undef,0)
+    output_options::Vector{<:AbstractOutputOptions} = Vector{Image_classification_output_options}(undef,0)
     loss::Function = Flux.Losses.crossentropy
 end
 model_data = Model_data()
 
 #---Master data
 @with_kw mutable struct Design_data
-    output_options_backup::Vector{AbstractOutputOptions} = Vector{Classification_output_options}(undef,0)
+    output_options_backup::Vector{AbstractOutputOptions} = Vector{Image_classification_output_options}(undef,0)
 end
 design_data = Design_data()
 
@@ -138,14 +138,15 @@ segmentation_data = Segmentation_data()
 end
 training_data = Training_data()
 
-@with_kw mutable struct Validation_classification_results
+@with_kw mutable struct Validation_image_classification_results
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
-    predicted_labels::Vector{Int64} = Vector{Int64}(undef,0)
-    target_labels::Vector{Int64} = Vector{Int64}(undef,0)
+    predicted_labels::Vector{String} = Vector{String}(undef,0)
+    target_labels::Vector{String} = Vector{String}(undef,0)
+    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
 end
-validation_classification_results = Validation_classification_results()
+validation_image_classification_results = Validation_image_classification_results()
 
-@with_kw mutable struct Validation_segmentation_results
+@with_kw mutable struct Validation_image_segmentation_results
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
@@ -156,14 +157,16 @@ validation_classification_results = Validation_classification_results()
     other_data::Vector{Tuple{Float32,Float32}} = 
         Vector{Tuple{Float32,Float32}}(undef,0)
 end
-validation_segmentation_results = Validation_segmentation_results()
+validation_image_segmentation_results = Validation_image_segmentation_results()
 
 @with_kw mutable struct Validation_data
-    Results_classification::Validation_classification_results = validation_classification_results
-    Results_segmentation::Validation_segmentation_results = validation_segmentation_results
+    Image_classification_results::Validation_image_classification_results = validation_image_classification_results
+    Image_segmentation_results::Validation_image_segmentation_results = validation_image_segmentation_results
+    original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
+    result_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
-    labels::Vector{Int64} = Vector{Int64}(undef,0)
+    labels::Vector{Int32} = Vector{Int32}(undef,0)
 end
 validation_data = Validation_data()
 
@@ -183,11 +186,6 @@ end
 master_data = Master_data()
 
 #---Settings
-# Main
-@with_kw mutable struct Main_s
-    a::Int = 0
-end
-main = Main_s()
 
 # Options
 @with_kw mutable struct Hardware_resources
@@ -255,8 +253,6 @@ training_options = Training_options()
 
 @with_kw mutable struct Training
     Options::Training_options = training_options
-    problem_type::Tuple{String,Int64} = ("Segmentation",1)
-    input_type::Tuple{String,Int64} = ("Image",0)
     model_url::String = ""
     input_dir::String = ""
     label_dir::String = ""
@@ -296,13 +292,14 @@ application = Application()
 
 # Visualisation
 @with_kw mutable struct Visualisation
-    a::Int = 0
+    a::Bool = false
 end
 visualisation = Visualisation()
 
 # Settings
 @with_kw mutable struct Settings
-    Main::Main_s = main
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
     Options::Options = options
     Design::Design = design
     Training::Training = training

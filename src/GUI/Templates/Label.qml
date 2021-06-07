@@ -10,6 +10,6 @@ T.Label {
     color: control.palette.windowText
     linkColor: control.palette.link
     font.family: "Proxima Nova"//control.font.family
-    font.pointSize: 10
+    font.pixelSize: 33*pix
     wrapMode: Text.WordWrap
 }

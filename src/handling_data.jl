@@ -69,13 +69,16 @@ function get_data_main(data::Master_data,fields,inds)
             data = data[inds[i]]
         end
     end
+    if data isa Symbol
+        data = string(data)
+    end
     return data
 end
 get_data(fields,inds=[]) = get_data_main(master_data,fields,inds)
 
 # Allows to write to data from GUI
 function set_data_main(master_data::Master_data,fields,args...)
-    data = settings
+    data = master_data
     fields::Vector{String} = fix_QML_types(fields)
     args = fix_QML_types(args)
     for i = 1:length(fields)-1
@@ -91,7 +94,11 @@ function set_data_main(master_data::Master_data,fields,args...)
         value = getproperty(data,Symbol(fields[end]))
         value[args[1]][args[2]] = args[3]
     end
-    setproperty!(data, Symbol(fields[end]), value)
+    field = Symbol(fields[end])
+    if getproperty(data,field) isa Symbol
+        data = Symbol(data)
+    end
+    setproperty!(data, field, value)
     return nothing
 end
 set_data(fields,value,args...) = set_data_main(master_data,fields,value,args...)
@@ -108,6 +115,9 @@ function get_settings_main(data::Settings,fields,inds...)
         for i = 1:length(inds)
             data = data[inds[i]]
         end
+    end
+    if data isa Symbol
+        data = string(data)
     end
     return data
 end
@@ -155,7 +165,9 @@ end
 set_settings(fields,value,args...) = set_settings_main(settings,fields,value,args...)
 
 function save_settings_main(settings::Settings)
-    BSON.@save("config.bson",settings)
+    dict = Dict{Symbol,Any}()
+    struct_to_dict!(dict,settings)
+    BSON.@save("config.bson",dict)
     return nothing
 end
 save_settings() = save_settings_main(settings)
@@ -261,40 +273,29 @@ end
 
 function bitarray_to_image(array_bool::BitArray{2},color::Vector{Normed{UInt8,8}})
     s = size(array_bool)
-    array_uint = zeros(N0f8,4,s...)
-    inds = [2,1,4]
-    for i = 1:3
-        ind = inds[i]
-        channel = color[i]
-        if channel>0
-            slice = array_uint[ind,:,:]
-            slice[array_bool] .= channel
-            array_uint[ind,:,:] .= slice
-        end
-    end
-    array_uint[3,:,:] .= 1
-    return collect(colorview(ARGB32,array_uint))
+    array = zeros(RGB{N0f8},s...)
+    colorRGB = colorview(RGB,permutedims(color[:,:,:],(1,2,3)))[1]
+    array[array_bool] .= colorRGB
+    return collect(array)
 end
 
 function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}})
     s = size(array_bool)[2:3]
-    array_uint = zeros(N0f8,4,s...)
-    inds = [2,1,4]
-    for i = 1:3
-        ind = inds[i]
-        channel = color[i]
-        if channel>0
-            slice = array_uint[ind,:,:]
-            slice[array_bool[i,:,:]] .= channel
-            array_uint[ind,:,:] .= slice
-        end
+    array_vec = Vector{Array{RGB{N0f8},2}}(undef,0)
+    for i in 1:3
+        array_temp = zeros(RGB{N0f8},s...)
+        color_temp = zeros(Normed{UInt8,8},3)
+        color_temp[i] = color[i]
+        colorRGB = colorview(RGB,permutedims(color_temp[:,:,:],(1,2,3)))[1]
+        array_temp[array_bool[i,:,:]] .= colorRGB
+        push!(array_vec,array_temp)
     end
-    array_uint[3,:,:] .= 1
-    return collect(colorview(ARGB32,array_uint))
+    array = sum(array_vec)
+    return collect(array)
 end
 
 # Saves image to the main image storage and returns its size
-function get_image_main(master_data::Master_data,fields,img_size,inds)
+function get_image_main(validation_data::Validation_data,fields,img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
@@ -307,19 +308,47 @@ function get_image_main(master_data::Master_data,fields,img_size,inds)
     inds = findall(img_size.!=0)
     if !isempty(inds)
         r = minimum(map(x-> img_size[x]/size(image,x),inds))
-        image = imresize(image, ratio=r)
+        image = EasyML.imresize(image, ratio=r);
     end
-    master_data.image = image
+    final_field = fields[end]
+    if final_field=="original"
+        validation_data.original_image = image
+    elseif any(final_field.==("predicted_data","target_data","error_data"))
+        validation_data.result_image = image
+    end
     return [size(image)...]
 end
 get_image(fields,img_size,inds...) =
-    get_image_main(master_data,fields,img_size,inds...)
+    get_image_main(validation_data,fields,img_size,inds...)
+
+function get_image_size(fields,inds)
+    fields = fix_QML_types(fields)
+    inds = fix_QML_types(inds)
+    image_data = get_data(fields,inds)
+    if image_data isa Array{RGB{N0f8},2}
+        return [size(image_data)...]
+    else
+        return [size(image_data[1])...]
+    end
+end
 
 # Displays image from the main image storage to Julia canvas
-function display_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
-    image = master_data.image
+    image = validation_data.original_image
+    if size(buffer)==size(image)
+        buffer .= image
+    elseif size(buffer)==reverse(size(image))
+        buffer .= transpose(image)
+    end
+    return
+end
+
+function display_result_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+    buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
+    buffer = reinterpret(ARGB32, buffer)
+    image = validation_data.result_image
     if size(buffer)==reverse(size(image))
         buffer .= transpose(image)
     end
@@ -452,12 +481,12 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     data = fix_QML_types(data)
     id = convert(Int64,id)
     type = eltype(model_data.classes)
-    
-    if type==Classification_class
-        class = Classification_class()
+    backup = design_data.output_options_backup
+    if type==Image_classification_class
+        class = Image_classification_class()
         class.name = data[1]
-    elseif type==Segmentation_class
-        class = Segmentation_class()
+    elseif type==Image_segmentation_class
+        class = Image_segmentation_class()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
         class.border = Bool(data[5])
@@ -469,15 +498,15 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     end
     push!(model_data.classes,class)
 
-    if type==Classification_class
-        type_output = Classification_output_options
-    elseif type==Segmentation_class
-        type_output = Segmentation_output_options
+    if type==Image_classification_class
+        type_output = Image_classification_output_options
+    elseif type==Image_segmentation_class
+        type_output = Image_segmentation_output_options
     end
     if eltype(model_data.output_options)!=type_output
         model_data.output_options = Vector{type_output}(undef,0)
     end
-    if id in 1:length(design_data.output_options_backup)
+    if id in 1:length(backup) && eltype(backup)==type_output
         push!(model_data.output_options,design_data.output_options_backup[id])
     else
         push!(model_data.output_options,type_output())
@@ -503,10 +532,20 @@ function backup_options_main(model_data::Model_data)
 end
 backup_options() = backup_options_main(model_data)
 
+function set_problem_type(ind)
+    ind = fix_QML_types(ind)
+    if ind==0 
+        settings.problem_type = :Classification
+    elseif ind==1
+        settings.problem_type = :Segmentation
+    end
+    return nothing
+end
+
 function get_problem_type()
-    if eltype(model_data.classes)==Classification_class
+    if settings.problem_type==:Classification
         return 0
-    elseif eltype(model_data.classes)==Segmentation_class
+    elseif settings.problem_type==:Segmentation
         return 1
     end
 end
@@ -555,6 +594,13 @@ function load_model_main(settings,model_data,url)
     settings.Training.model_url = url
     url_split = split(url,('/','.'))
     settings.Training.name = url_split[end-1]
+    if model_data.classes isa Vector{Image_classification_class}
+        settings.input_type = :Image
+        settings.problem_type = :Classification
+    elseif model_data.classes isa Vector{Image_segmentation_class}
+        settings.input_type = :Image
+        settings.problem_type = :Segmentation
+    end
     return nothing
 end
 load_model(url) = load_model_main(settings,model_data,url)

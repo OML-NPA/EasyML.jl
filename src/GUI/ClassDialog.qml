@@ -18,7 +18,7 @@ ApplicationWindow {
     property double max_id: Math.max(...ids)
 
     //---Universal property block-----------------------------------------------
-    property double pix: Screen.width/3840
+    property double pix: (Screen.width/3840)*(5.669/Screen.logicalPixelDensity)
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -69,13 +69,10 @@ ApplicationWindow {
                 id = max_id
             }
             if (problemComboBox.currentIndex==0) {
-                console.log(id)
-                console.log(Julia.get_class_field(ind,"name"))
                 var class_var = {
                     "id": id,
                     "name": Julia.get_class_field(ind,"name")
                 }
-                classModel.append(class_var)
             }
             else if (problemComboBox.currentIndex==1) {
                 var color = Julia.get_class_field(ind,"color")
@@ -231,7 +228,7 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
             Layout.margins: 0.75*margin
             Layout.rightMargin: 0*margin
-            spacing: -2
+            spacing: -2*pix
             Row {
                 id: problemRow
                 spacing: 0.3*margin
@@ -239,10 +236,10 @@ ApplicationWindow {
                 Label {
                     id: problemtypeLabel
                     text: "Problem:"
-                    anchors.verticalCenter: problemComboBox.verticalCenter
                 }
                 ComboBox {
                     id: problemComboBox
+                    anchors.verticalCenter: problemtypeLabel.verticalCenter
                     editable: false
                     width: 0.69*buttonWidth-1*pix
                     model: ListModel {
@@ -252,6 +249,7 @@ ApplicationWindow {
                         ListElement {text: "Regression"}
                     }
                     onActivated: {
+                        Julia.set_problem_type(currentIndex)
                         classModel.clear()
                         indTree = -1
                         update_fields()
@@ -294,7 +292,7 @@ ApplicationWindow {
                                 model: classModel
                                 delegate: TreeButton {
                                     id: treeButton
-                                    x: 1
+                                    x: 1*pix
                                     hoverEnabled: true
                                     width: classesFrame.width - 25*pix
                                     height: buttonHeight - 2*pix
@@ -492,6 +490,7 @@ ApplicationWindow {
                 }
                 TextField {
                     id: nameTextField
+                    anchors.verticalCenter: nameLabel.verticalCenter
                     width: 400*pix
                     height: buttonHeight
                     onEditingFinished: {
@@ -521,6 +520,7 @@ ApplicationWindow {
                 }
                 ComboBox {
                     id: parentComboBox
+                    anchors.verticalCenter: parentLabel.verticalCenter
                     width: 400*pix
                     editable: false
                     model: nameModel
@@ -549,6 +549,7 @@ ApplicationWindow {
                 }
                 ComboBox {
                     id: parent2ComboBox
+                    anchors.verticalCenter: parent2Label.verticalCenter
                     width: 400*pix
                     editable: false
                     model: name2Model
@@ -571,13 +572,14 @@ ApplicationWindow {
                 spacing: 0.3*margin
                 bottomPadding: 0.2*margin
                 Label {
+                    id: redLabel
                     text: "Red:"
-                    anchors.verticalCenter: redTextField.verticalCenter
                 }
                 TextField {
                     id: redTextField
+                    anchors.verticalCenter: redLabel.verticalCenter
                     text: "0"
-                    width: 0.18*buttonWidth
+                    width: 0.19*buttonWidth
                     height: buttonHeight
                     validator: IntValidator { bottom: 0; top: 999;}
                     onEditingFinished: {
@@ -593,13 +595,14 @@ ApplicationWindow {
                     }
                 }
                 Label {
+                    id: greenLabel
                     text: "Green:"
-                    anchors.verticalCenter: greenTextField.verticalCenter
                 }
                 TextField {
                     id: greenTextField
+                    anchors.verticalCenter: greenLabel.verticalCenter
                     text: "0"
-                    width: 0.18*buttonWidth
+                    width: redTextField.width
                     height: buttonHeight
                     validator: IntValidator { bottom: 0; top: 999;}
                     onEditingFinished: {
@@ -622,13 +625,14 @@ ApplicationWindow {
                     }
                 }
                 Label {
+                    id: blueTextLabel
                     text: "Blue:"
-                    anchors.verticalCenter: blueTextField.verticalCenter
                 }
                 TextField {
                     id: blueTextField
+                    anchors.verticalCenter: blueTextLabel.verticalCenter
                     text: "0"
-                    width: 0.18*buttonWidth
+                    width: redTextField.width
                     height: buttonHeight
                     maximumLength: 3
                     validator: IntValidator { bottom: 0; top: 999;}
@@ -658,10 +662,11 @@ ApplicationWindow {
                 Label {
                     id: notclassLabel
                     width: 350*pix
-                    text: "Not a class_var:"
+                    text: "Not a class:"
                 }
                 CheckBox {
                     id: notclassCheckBox
+                    anchors.verticalCenter: notclassLabel.verticalCenter
                     onClicked: {
                         if (checkState==Qt.Checked) {
                             classModel.get(indTree).notClass = true
@@ -682,6 +687,7 @@ ApplicationWindow {
                 }
                 CheckBox {
                     id: borderCheckBox
+                    anchors.verticalCenter: borderLabel.verticalCenter
                     onClicked: {
                         if (checkState==Qt.Checked) {
                             classModel.get(indTree).border = true
@@ -697,12 +703,14 @@ ApplicationWindow {
                 visible: false
                 spacing: 0.3*margin
                 Label {
+                    id: bordernumpixelsLabel
                     visible: borderCheckBox.checkState==Qt.Checked
                     text: "Border thickness (pix):"
                     width: 350*pix
                 }
                 SpinBox {
                     id: bordernumpixelsSpinBox
+                    anchors.verticalCenter: bordernumpixelsLabel.verticalCenter
                     visible: borderCheckBox.checkState==Qt.Checked
                     from: 0
                     to: 9
@@ -753,6 +761,7 @@ ApplicationWindow {
                 }
                 TextField {
                     id: minareaTextField
+                    anchors.verticalCenter: minareaLabel.verticalCenter
                     width: 140*pix
                     validator: RegExpValidator { regExp: /([1-9]\d{0,5})/ }
                     onEditingFinished: {

@@ -23,7 +23,7 @@ Add the package from this repository to Julia using
 
 and then write
 
-`using MLGUI`
+`using EasyML`
 
 #### Model creation
 A struct named `model_data` is exported.
@@ -57,11 +57,11 @@ NB! A number of neurons for the final layer should equal to the number of classe
 Training parameters can be changed by running `modify(training_options)`.
 
 `get_urls_training(input_dir::String,label_dir::String)`: gets URLs to all files present in both folders specified 
-by `url_inputs` and `url_labels`. URLs are automatically saved to `MLGUI.training_data`.
+by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.training_data`.
 
 `get_urls_training()` opens folder dialogs where you can choose directories with input and label data.
 
-`prepare_training_data()`: prepares your images and corresponding labels for training using URLs loaded previously. Saves data to `MLGUI.training_data`.
+`prepare_training_data()`: prepares your images and corresponding labels for training using URLs loaded previously. Saves data to `EasyML.training_data`.
 
 `results = train()`: opens a training window and trains your neural network. Returns a struct containing loss, accuracy and iterations at which tests were performed.
 
@@ -70,14 +70,14 @@ by `url_inputs` and `url_labels`. URLs are automatically saved to `MLGUI.trainin
 #### Validation
 
 `get_urls_validation(input_dir,label_dir)`: gets URLs to all files present in both folders specified 
-by `url_inputs` and `url_labels`. URLs are automatically saved to `MLGUI.validation_data`.
+by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.validation_data`.
 
 `get_urls_validation(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
-URLs are automatically saved to `MLGUI.validation_data`. Does not require labels.
+URLs are automatically saved to `EasyML.validation_data`. Does not require labels.
 
 `get_urls_validation()` opens folder dialogs where you can choose directories with input and label data (if available).
 
-`prepare_validation_data()`: prepares your data for validation. Saves it to `MLGUI.validation_data`. Progress is reported to REPL.
+`prepare_validation_data()`: prepares your data for validation. Saves it to `EasyML.validation_data`. Progress is reported to REPL.
 
 `results = validate()`: opens a validation window and returns results with predicted masks, target masks and masks with differences between them.
 
@@ -90,11 +90,16 @@ Application settings can be changed by running `modify(application_options)`.
 Output for each class can be changed by running `modify_output()`.
 
 `get_urls_application(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
-URLs are automatically saved to `MLGUI.application_data`.
+URLs are automatically saved to `EasyML.application_data`.
 
 `get_urls_application()` opens a folder dialog where you can choose a directory with input data.
 
 `apply()`: starts application of your model. Progress is reported to REPL. Results are saved to a folder specified in `application_options`.
+
+#### Other
+
+Settings from the last run are automatically imported provided that a file `config.bson` is in a current directory. 
+If that was not the case, the settings can be imported manually using `load_settings()` after switching the current directory. 
 
 #### Custom
 
