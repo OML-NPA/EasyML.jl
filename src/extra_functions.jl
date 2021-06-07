@@ -319,6 +319,13 @@ function get_urls_validation()
 end
 
 function validate()
+    if model_data.model isa Chain{Tuple{}}
+        @error "Model is empty."
+        return nothing
+    elseif isempty(model_data.classes)
+        @error "Classes are empty."
+        return nothing
+    end
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
