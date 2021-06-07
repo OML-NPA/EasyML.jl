@@ -98,7 +98,8 @@ URLs are automatically saved to `EasyML.application_data`.
 
 #### Other
 
-Settings from the last run can be imported using `load_settings()` provided that a file `config.bson` is in a current directory.
+Settings from the last run are automatically imported provided that a file `config.bson` is in a current directory. 
+If that was not the case, the settings can be imported manually using `load_settings()` after switching the current directory. 
 
 #### Custom
 
