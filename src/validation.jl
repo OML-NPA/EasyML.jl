@@ -56,7 +56,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
         labels_temp[label_int] = 1
         labels = reshape(labels_temp,1,1,:,1)
     else
-        labels = Vector{Int64}(undef,0)
+        labels = Array{Float32,4}(undef,1,1,length(classes),1)
     end
     return data_input,labels,original
 end
@@ -76,7 +76,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
             labels_incl,border,border_thickness)
         data_label = convert(Array{Float32,3},label_bool)[:,:,:,:]
     else
-        data_label = Array{Float32,4}(undef,size(data_input))
+        data_label = Array{Float32,4}(undef,1,1)
     end
     return data_input,data_label,original
 end
@@ -157,12 +157,15 @@ function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray
         validation::Validation,classes::Vector{Image_classification_class},channels::Channels)
     class_names = map(x-> x.name,classes)
     predicted_vec = Iterators.flatten(predicted)
-    label_vec = Iterators.flatten(label)
     predicted_int = findfirst(predicted_vec .== maximum(predicted_vec))
-    label_int = findfirst(label_vec .== maximum(label_vec))
     predicted_string = class_names[predicted_int]
-    label_string = class_names[label_int]
-    # Get output data
+    if validation.use_labels
+        label_vec = Iterators.flatten(label)
+        label_int = findfirst(label_vec .== maximum(label_vec))
+        label_string = class_names[label_int]
+    else
+        label_string = ""
+    end
     image_data = (predicted_string,label_string)
     data = (image_data,other_data,original)
     # Return data

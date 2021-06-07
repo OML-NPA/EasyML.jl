@@ -144,6 +144,7 @@ ApplicationWindow {
     color: defaultpalette.window
     property int input_type: Julia.get_settings(["input_type"])=="Image" ? 0 : 1
     property int problem_type: Julia.get_settings(["problem_type"])=="Classification" ? 0 : 1
+    property bool use_labels: Julia.get_settings(["Validation","use_labels"])
 
     property var accuracy: []
     property var loss: []
@@ -164,7 +165,7 @@ ApplicationWindow {
 
     Timer {
         id: validationTimer
-        interval: 200
+        interval: 100
         running: true
         repeat: true
         property int iteration: 0
@@ -172,103 +173,112 @@ ApplicationWindow {
         
         property bool grabDone: false
         onTriggered: {
-            var state = Julia.get_progress("Validation")
-            if (state===false) {
-                return
-            }
-            else {
-                var data = Julia.get_results("Validation")
-            }
-            if (max_iterations===-1) {
-                max_iterations = state
-            }
-            else if (iteration<max_iterations) {
-                iteration += 1
-                validationProgressBar.value = iteration/max_iterations
-                var accuracy_temp = data[0]
-                var loss_temp = data[1]
-                accuracy.push(accuracy_temp)
-                loss.push(loss_temp)
-                if (iteration==1) {
-                    sampleSpinBox.value = 1
-                    classComboBox.currentIndex = 0
-                    var ind1 = 1
-                    var size = get_image(originalDisplay,"original",[ind1])
-                    var ratio = size[1]/size[0]
-                    if (ratio>1) {
-                        displayItem.height = displayItem.width/ratio
-                    }
-                    else {
-                        displayItem.width = displayItem.height*ratio
-                    }
-                    imagetransferCanvas.height = size[0]
-                    imagetransferCanvas.width = size[1]
-                    imagetransferCanvas.update()
-                    imagetransferCanvas.grabToImage(function(result) {
-                        originalDisplay.source = result.url
-                        validationTimer.grabDone = true;
-                    });
-                    if (problem_type==0) {
-                        var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
-                        var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
-                        predicted_labels.push(predicted_label)
-                        target_labels.push(target_label)
-                        classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
-                        classLabel.visible = true
-                    }
-                    else if (problem_type==1) {
-                        var ind2 = 1
-                        resultDisplay.visible = true
-                        function upd() {
-                            get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
-                            imagetransferCanvas.update()
-                            imagetransferCanvas.grabToImage(function(result) {
-                                resultDisplay.source = result.url;
-                            });
-                        }
-                        delay(50, upd)
-                        classRow.visible = true
-                        typeRow.visible = true
-                        opacityRow.visible = true
-                        zoomRow.visible = true
-                    }
-                    var cond = 1024*pix-margin
-                    if (displayItem.width>=cond) {
-                        displayPane.horizontalPadding = 0.5*margin
-                    }
-                    else {
-                        displayPane.horizontalPadding = (1024*pix+margin -
-                                           displayItem.width - informationPane.width)/2
-                    }
-                    if (displayItem.height>=cond) {
-                        displayPane.verticalPadding = 0.5*margin
-                    }
-                    else {
-                        displayPane.verticalPadding = (1024*pix+margin - displayItem.height)/2
-                    }
-                    displayPane.height = displayItem.height + 2*displayPane.verticalPadding
-                    displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
-                    displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
-                    displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
-                    sizechangeTimer.prevWidth = displayPane.height
-                    sizechangeTimer.running = true
-                    controlsLabel.visible = true
-                    sampleRow.visible = true
+            while (true) {
+                var state = Julia.get_progress("Validation")
+                if (state===false) {
+                    return
                 }
                 else {
-                    mean_accuracy = mean(accuracy)
-                    mean_loss = mean(loss)
-                    if (problem_type==0) {
-                        var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
-                        var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
-                        predicted_labels.push(predicted_label)
-                        target_labels.push(target_label)
-                    }
-                    sampleSpinBox.to = iteration
+                    var data = Julia.get_results("Validation")
                 }
-            }
-            else if (iteration===max_iterations) {
-                running = false
+                if (max_iterations===-1) {
+                    max_iterations = state
+                }
+                else if (iteration<max_iterations) {
+                    iteration += 1
+                    validationProgressBar.value = iteration/max_iterations
+                    var accuracy_temp = data[0]
+                    var loss_temp = data[1]
+                    accuracy.push(accuracy_temp)
+                    loss.push(loss_temp)
+                    if (iteration==1) {
+                        sampleSpinBox.value = 1
+                        classComboBox.currentIndex = 0
+                        var ind1 = 1
+                        var size = get_image(originalDisplay,"original",[ind1])
+                        var ratio = size[1]/size[0]
+                        if (ratio>1) {
+                            displayItem.height = displayItem.width/ratio
+                        }
+                        else {
+                            displayItem.width = displayItem.height*ratio
+                        }
+                        imagetransferCanvas.height = size[0]
+                        imagetransferCanvas.width = size[1]
+                        imagetransferCanvas.update()
+                        imagetransferCanvas.grabToImage(function(result) {
+                            originalDisplay.source = result.url
+                            validationTimer.grabDone = true;
+                        });
+                        if (problem_type==0) {
+                            var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
+                            predicted_labels.push(predicted_label)
+                            classLabel.visible = true
+                            if (use_labels) {
+                                var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
+                                target_labels.push(target_label)
+                                classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
+                            }
+                            else {
+                                classLabel.text = "Predicted: " + predicted_label
+                            }
+                        }
+                        else if (problem_type==1) {
+                            var ind2 = 1
+                            resultDisplay.visible = true
+                            function upd() {
+                                get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
+                                imagetransferCanvas.update()
+                                imagetransferCanvas.grabToImage(function(result) {
+                                    resultDisplay.source = result.url;
+                                });
+                            }
+                            delay(50, upd)
+                            classRow.visible = true
+                            typeRow.visible = true
+                            opacityRow.visible = true
+                            zoomRow.visible = true
+                        }
+                        var cond = 1024*pix-margin
+                        if (displayItem.width>=cond) {
+                            displayPane.horizontalPadding = 0.5*margin
+                        }
+                        else {
+                            displayPane.horizontalPadding = (1024*pix+margin -
+                                            displayItem.width - informationPane.width)/2
+                        }
+                        if (displayItem.height>=cond) {
+                            displayPane.verticalPadding = 0.5*margin
+                        }
+                        else {
+                            displayPane.verticalPadding = (1024*pix+margin - displayItem.height)/2
+                        }
+                        displayPane.height = displayItem.height + 2*displayPane.verticalPadding
+                        displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
+                        displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
+                        displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
+                        sizechangeTimer.prevWidth = displayPane.height
+                        sizechangeTimer.running = true
+                        controlsLabel.visible = true
+                        sampleRow.visible = true
+                    }
+                    else {
+                        mean_accuracy = mean(accuracy)
+                        mean_loss = mean(loss)
+                        if (problem_type==0) {
+                            var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
+                            predicted_labels.push(predicted_label)
+                            if (use_labels) {
+                            var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
+                                target_labels.push(target_label)
+                            }
+                        }
+                        sampleSpinBox.to = iteration
+                    }
+                }
+                else if (iteration===max_iterations) {
+                    running = false
+                }
             }
         }
         Component.onCompleted: {
@@ -410,13 +420,13 @@ ApplicationWindow {
                     }
                 }
                 Label {
-                    visible: Julia.get_settings(["Validation","use_labels"])
+                    visible: use_labels
                     topPadding: 0.2*margin
                     text: "Validation information"
                     font.bold: true
                 }
                 Row {
-                    visible: Julia.get_settings(["Validation","use_labels"])
+                    visible: use_labels
                     spacing: 0.3*margin
                     Label {
                         id: accuracytextLabel
@@ -427,7 +437,7 @@ ApplicationWindow {
                     }
                 }
                 Row {
-                    visible: Julia.get_settings(["Validation","use_labels"])
+                    visible: use_labels
                     spacing: 0.3*margin
                     Label {
                         text: "Loss:"
@@ -460,25 +470,30 @@ ApplicationWindow {
                         stepSize: 1
                         editable: false
                         onValueModified: {
-                            var ind1 = sampleSpinBox.value
+                            var ind1 = sampleSpinBox.value - 1
                             accuracyLabel.text = mean_accuracy.toFixed(2)+
-                                " (" + accuracy[ind1-1].toFixed(2) + ")"
+                                " (" + accuracy[ind1].toFixed(2) + ")"
                             lossLabel.text = mean_loss.toFixed(2)+
-                                 " (" + loss[ind1-1].toFixed(2)+")"
+                                 " (" + loss[ind1].toFixed(2)+")"
                             
-                            get_image(originalDisplay,"original",[ind1])
+                            get_image(originalDisplay,"original",[ind1+1])
                             imagetransferCanvas.update()
                             imagetransferCanvas.grabToImage(function(result) {
                                                        resultDisplay.visible = false
                                                        originalDisplay.source = result.url
                                                    });
                             if (problem_type==0) {
-                                 classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                if (use_labels) {
+                                    classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                }
+                                else {
+                                    classLabel.text = "Predicted: " + predicted_labels[ind1]
+                                }
                              }
                             else if (problem_type==1) {
-                                var ind2 = classComboBox.currentIndex+1
+                                var ind2 = classComboBox.currentIndex
                                 function upd() {
-                                    get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
+                                    get_image(resultDisplay,typeComboBox.type,[ind1+1,ind2+1])
                                     imagetransferCanvas.update()
                                     imagetransferCanvas.grabToImage(function(result) {
                                                             resultDisplay.source = result.url;
@@ -545,14 +560,14 @@ ApplicationWindow {
                     visible: false
                     spacing: 0.3*margin
                     Label {
-                        visible: Julia.get_settings(["Validation","use_labels"])
+                        visible: use_labels
                         text: "Show:"
                         width: accuracytextLabel.width
                         topPadding: 10*pix
                     }
                     ComboBox {
                         id: typeComboBox
-                        visible: Julia.get_settings(["Validation","use_labels"])
+                        visible: use_labels
                         property string type: "predicted_data"
                         editable: false
                         currentIndex: 0
