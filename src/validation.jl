@@ -4,7 +4,7 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::Validation_data,model_data::Model_data)
-    if model_data.classes[1] isa Image_classification_class || model_data.classes[1] isa Image_segmentation_class
+    if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if validation.use_labels==true

@@ -93,7 +93,7 @@ function get_results_main(channels::Channels,master_data::Master_data,
                 push!(validation_results.predicted_labels,image_data[1])
                 push!(validation_results.target_labels,image_data[2])
                 push!(validation_results.other_data,other_data)
-            elseif model_data.classes isa Vector{Image_segmentation_class}
+            elseif settings.problem_type==:Segmentation && settings.input_type==:Image
                 validation_results = master_data.Validation_data.Image_segmentation_results
                 push!(validation_results.original,original)
                 push!(validation_results.predicted_data,image_data[1])
