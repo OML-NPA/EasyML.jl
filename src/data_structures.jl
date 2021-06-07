@@ -162,6 +162,8 @@ validation_image_segmentation_results = Validation_image_segmentation_results()
 @with_kw mutable struct Validation_data
     Image_classification_results::Validation_image_classification_results = validation_image_classification_results
     Image_segmentation_results::Validation_image_segmentation_results = validation_image_segmentation_results
+    original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
+    result_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels::Vector{Int32} = Vector{Int32}(undef,0)

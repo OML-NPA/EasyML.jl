@@ -53,15 +53,7 @@ ApplicationWindow {
     }
     //-------------------------------------------------------------------------
     //-Other-------------------------------------------------------------------
-    
-    JuliaCanvas {
-        id: imagetransferCanvas
-        visible: false
-        paintFunction: display_image
-        width: 1024
-        height: 1024
-    }
-    
+
     ListModel {
         id: classModel
         Component.onCompleted: {
@@ -195,22 +187,22 @@ ApplicationWindow {
                         sampleSpinBox.value = 1
                         classComboBox.currentIndex = 0
                         var ind1 = 1
-                        var size = get_image(originalDisplay,"original",[ind1])
-                        var ratio = size[1]/size[0]
-                        if (ratio>1) {
-                            displayItem.height = displayItem.width/ratio
-                        }
-                        else {
-                            displayItem.width = displayItem.height*ratio
-                        }
-                        imagetransferCanvas.height = size[0]
-                        imagetransferCanvas.width = size[1]
-                        imagetransferCanvas.update()
-                        imagetransferCanvas.grabToImage(function(result) {
-                            originalDisplay.source = result.url
-                            validationTimer.grabDone = true;
-                        });
                         if (problem_type==0) {
+                            var result_type = "Image_classification_results"
+                        }
+                        else if (problem_type==1) {
+                            var result_type = "Image_segmentation_results"
+                        }
+                        var size = Julia.get_image_size(["Validation_data",result_type,"original"],[ind1])
+                        var s = 1024*pix
+                        var r = Math.min(s/size[0],s/size[1])
+                        displayItem.height = size[0]*r
+                        displayItem.width = size[1]*r
+                        displayItem.image_height = size[0]
+                        displayItem.image_width = size[1]
+                        displayItem.scale = r
+                        if (problem_type==0) {
+                            Julia.get_image(["Validation_data","Image_classification_results","original"],[0,0],[ind1])
                             var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             classLabel.visible = true
@@ -225,20 +217,16 @@ ApplicationWindow {
                         }
                         else if (problem_type==1) {
                             var ind2 = 1
+                            Julia.get_image(["Validation_data","Image_segmentation_results","original"],[0,0],[ind1])
+                            Julia.get_image(["Validation_data","Image_segmentation_results","predicted_data"],[0,0],[ind1,ind2])
                             resultDisplay.visible = true
-                            function upd() {
-                                get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
-                                imagetransferCanvas.update()
-                                imagetransferCanvas.grabToImage(function(result) {
-                                    resultDisplay.source = result.url;
-                                });
-                            }
-                            delay(50, upd)
+                            resultDisplay.update()
                             classRow.visible = true
                             typeRow.visible = true
                             opacityRow.visible = true
                             zoomRow.visible = true
                         }
+                        originalDisplay.update()
                         var cond = 1024*pix-margin
                         if (displayItem.width>=cond) {
                             displayPane.horizontalPadding = 0.5*margin
@@ -362,27 +350,32 @@ ApplicationWindow {
                     contentHeight: displayItem.height
                     showBackground: false
                     backgroundColor: defaultpalette.window
+                    currentX: 0
+                    currentY: 0
                     clip: true
                     Item {
                         id: displayItem
                         width: 1024*pix
                         height: 1024*pix
-                        Image {
+                        property double image_width: 1024*pix
+                        property double image_height: 1024*pix
+                        property double scale: 1
+                        transform: Scale { origin.x: 0; origin.y: 0; 
+                            xScale: displayItem.scale; yScale: displayItem.scale}
+                        JuliaCanvas {
                             id: originalDisplay
-                            width: displayItem.width
-                            height: displayItem.height
-                            autoTransform: true
-                            fillMode: Image.PreserveAspectFit
+                            width: displayItem.image_width
+                            height: displayItem.image_height
+                            paintFunction: display_original_image
                             smooth: false
                         }
-                        Image {
+                        JuliaCanvas {
                             id: resultDisplay
                             visible: false
+                            width: displayItem.image_width
+                            height: displayItem.image_height
                             opacity: 0.5
-                            width: displayItem.width
-                            height: displayItem.height
-                            autoTransform: true
-                            fillMode: Image.PreserveAspectFit
+                            paintFunction: display_result_image
                             smooth: false
                         }
                     }
@@ -470,18 +463,25 @@ ApplicationWindow {
                         stepSize: 1
                         editable: false
                         onValueModified: {
-                            var ind1 = sampleSpinBox.value - 1
-                            accuracyLabel.text = mean_accuracy.toFixed(2)+
-                                " (" + accuracy[ind1].toFixed(2) + ")"
-                            lossLabel.text = mean_loss.toFixed(2)+
-                                 " (" + loss[ind1].toFixed(2)+")"
-                            
-                            get_image(originalDisplay,"original",[ind1+1])
-                            imagetransferCanvas.update()
-                            imagetransferCanvas.grabToImage(function(result) {
-                                                       resultDisplay.visible = false
-                                                       originalDisplay.source = result.url
-                                                   });
+                            var ind1 = value - 1
+                            accuracyLabel.text = accuracy[ind1].toFixed(2) + " (" + mean_accuracy.toFixed(2) + ")"
+                            lossLabel.text = loss[ind1].toFixed(2) + " (" + mean_loss.toFixed(2) + ")"
+                            if (problem_type==0) {
+                                var results_type = "Image_classification_results"
+                            }
+                            else if (problem_type==1) {
+                                results_type = "Image_segmentation_results"
+                            }
+                            var size = Julia.get_image_size(["Validation_data",results_type,"original"],[ind1+1])
+                            var s = 1024*pix
+                            var r = Math.min(s/size[0],s/size[1])
+                            displayItem.height = size[0]*r
+                            displayItem.width = size[1]*r
+                            displayItem.image_height = size[0]
+                            displayItem.image_width = size[1]
+                            displayItem.scale = r
+                            Julia.get_image(["Validation_data",results_type,"original"],[0,0],[ind1+1])
+                            originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
                                     classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
@@ -492,15 +492,9 @@ ApplicationWindow {
                              }
                             else if (problem_type==1) {
                                 var ind2 = classComboBox.currentIndex
-                                function upd() {
-                                    get_image(resultDisplay,typeComboBox.type,[ind1+1,ind2+1])
-                                    imagetransferCanvas.update()
-                                    imagetransferCanvas.grabToImage(function(result) {
-                                                            resultDisplay.source = result.url;
-                                                            resultDisplay.visible = true
-                                    });
-                                }
-                                delay(50, upd)
+                                Julia.get_image(["Validation_data","Image_segmentation_results",typeComboBox.type],[0,0],[ind1+1,ind2+1])
+                                resultDisplay.visible = true
+                                resultDisplay.update()
                             }
                         }
                     }
@@ -523,12 +517,9 @@ ApplicationWindow {
                         }
                         onActivated: {
                             var ind1 = sampleSpinBox.value
-                            var ind2 = classComboBox.currentIndex+1
-                            get_image(resultDisplay,typeComboBox.type,[ind1,ind2])
-                            imagetransferCanvas.update()
-                            imagetransferCanvas.grabToImage(function(result) {
-                                                       resultDisplay.source = result.url
-                                                   });
+                            var ind2 = classComboBox.currentIndex
+                            Julia.get_image(["Validation_data","Image_segmentation_results",typeComboBox.type],[0,0],[ind1,ind2+1])
+                            resultDisplay.update()
                         }
                         Component.onCompleted: {
                             for (var i=0;i<classModel.count;i++) {
@@ -575,8 +566,8 @@ ApplicationWindow {
                         model: ListModel {
                             id: typeModel
                             ListElement {name: "Result"}
-                            ListElement {name: "Error"}
                             ListElement {name: "Target"}
+                            ListElement {name: "Error"}
                         }
                         onActivated: {
                             if (typeComboBox.currentIndex==0) {
@@ -588,12 +579,10 @@ ApplicationWindow {
                             else {
                                 type = "error_data"
                             }
-                            get_image(resultDisplay,type,
-                                [sampleSpinBox.value,classComboBox.currentIndex+1])
-                            imagetransferCanvas.update()
-                            imagetransferCanvas.grabToImage(function(result) {
-                                                       resultDisplay.source = result.url
-                                                   });
+                            var ind1 = sampleSpinBox.value
+                            var ind2 = classComboBox.currentIndex
+                            Julia.get_image(["Validation_data","Image_segmentation_results",type],[0,0],[ind1,ind2+1])
+                            resultDisplay.update()
                         }
                     }
                 }
@@ -650,12 +639,15 @@ ApplicationWindow {
                             else {
                                 return
                             }
-                            displayItem.width = displayItem.width*ratio
-                            displayItem.height = displayItem.height*ratio
-                            displayScrollableItem.contentX =
-                                    (displayItem.width-displayScrollableItem.width)/2
-                            displayScrollableItem.contentY =
-                                    (displayItem.height-displayScrollableItem.height)/2
+                            var midPointX = displayScrollableItem.contentX + 512*pix
+                            var midPointY = displayScrollableItem.contentY + 512*pix
+                            var newWidth = displayItem.width*ratio
+                            var newHeight = displayItem.height*ratio
+                            displayScrollableItem.contentX = midPointX/(displayItem.width)*newWidth - 512*pix
+                            displayScrollableItem.contentY = midPointY/(displayItem.height)*newHeight - 512*pix
+                            displayItem.width = newWidth
+                            displayItem.height = newHeight
+                            displayItem.scale = displayItem.scale*ratio
                             last_value = value
                         }
                     }
@@ -675,12 +667,6 @@ ApplicationWindow {
         onPositionChanged: mouse.accepted = false;
         onPressAndHold: mouse.accepted = false;
         onClicked: mouse.accepted = false;
-    }
-
-    function get_image(display,type,inds) {
-        var size = Julia.get_image(["Validation_data",fieldname,type],
-            [0,0],inds)
-        return size
     }
 
     function mean(array) {

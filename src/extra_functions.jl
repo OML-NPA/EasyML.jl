@@ -344,15 +344,18 @@ function validate()
         get_results,
         get_progress,
         put_channel,
+        get_image_size,
         get_image,
         get_data,
         # Other
         yield
     )
-    f = CxxWrap.@safe_cfunction(display_image, Cvoid,
-                                    (Array{UInt32,1}, Int32, Int32))
+    f1 = CxxWrap.@safe_cfunction(display_original_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
+    f2 = CxxWrap.@safe_cfunction(display_result_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
     loadqml("GUI/ValidationPlot.qml",
-        display_image = f)
+        display_original_image = f1,
+        display_result_image = f2
+    )
     exec()
     if settings.problem_type==:Classification && settings.input_type==:Image
         return validation_image_classification_results

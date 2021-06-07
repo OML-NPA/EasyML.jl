@@ -267,40 +267,29 @@ end
 
 function bitarray_to_image(array_bool::BitArray{2},color::Vector{Normed{UInt8,8}})
     s = size(array_bool)
-    array_uint = zeros(N0f8,4,s...)
-    inds = [2,1,4]
-    for i = 1:3
-        ind = inds[i]
-        channel = color[i]
-        if channel>0
-            slice = array_uint[ind,:,:]
-            slice[array_bool] .= channel
-            array_uint[ind,:,:] .= slice
-        end
-    end
-    array_uint[3,:,:] .= 1
-    return collect(colorview(ARGB32,array_uint))
+    array = zeros(RGB{N0f8},s...)
+    colorRGB = colorview(RGB,permutedims(color[:,:,:],(1,2,3)))[1]
+    array[array_bool] .= colorRGB
+    return collect(array)
 end
 
 function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}})
     s = size(array_bool)[2:3]
-    array_uint = zeros(N0f8,4,s...)
-    inds = [2,1,4]
-    for i = 1:3
-        ind = inds[i]
-        channel = color[i]
-        if channel>0
-            slice = array_uint[ind,:,:]
-            slice[array_bool[i,:,:]] .= channel
-            array_uint[ind,:,:] .= slice
-        end
+    array_vec = Vector{Array{RGB{N0f8},2}}(undef,0)
+    for i in 1:3
+        array_temp = zeros(RGB{N0f8},s...)
+        color_temp = zeros(Normed{UInt8,8},3)
+        color_temp[i] = color[i]
+        colorRGB = colorview(RGB,permutedims(color_temp[:,:,:],(1,2,3)))[1]
+        array_temp[array_bool[i,:,:]] .= colorRGB
+        push!(array_vec,array_temp)
     end
-    array_uint[3,:,:] .= 1
-    return collect(colorview(ARGB32,array_uint))
+    array = sum(array_vec)
+    return collect(array)
 end
 
 # Saves image to the main image storage and returns its size
-function get_image_main(master_data::Master_data,fields,img_size,inds)
+function get_image_main(validation_data::Validation_data,fields,img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
@@ -313,19 +302,47 @@ function get_image_main(master_data::Master_data,fields,img_size,inds)
     inds = findall(img_size.!=0)
     if !isempty(inds)
         r = minimum(map(x-> img_size[x]/size(image,x),inds))
-        image = imresize(image, ratio=r)
+        image = EasyML.imresize(image, ratio=r);
     end
-    master_data.image = image
+    final_field = fields[end]
+    if final_field=="original"
+        validation_data.original_image = image
+    elseif any(final_field.==("predicted_data","target_data","error_data"))
+        validation_data.result_image = image
+    end
     return [size(image)...]
 end
 get_image(fields,img_size,inds...) =
-    get_image_main(master_data,fields,img_size,inds...)
+    get_image_main(validation_data,fields,img_size,inds...)
+
+function get_image_size(fields,inds)
+    fields = fix_QML_types(fields)
+    inds = fix_QML_types(inds)
+    image_data = get_data(fields,inds)
+    if image_data isa Array{RGB{N0f8},2}
+        return [size(image_data)...]
+    else
+        return [size(image_data[1])...]
+    end
+end
 
 # Displays image from the main image storage to Julia canvas
-function display_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
-    image = master_data.image
+    image = validation_data.original_image
+    if size(buffer)==size(image)
+        buffer .= image
+    elseif size(buffer)==reverse(size(image))
+        buffer .= transpose(image)
+    end
+    return
+end
+
+function display_result_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+    buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
+    buffer = reinterpret(ARGB32, buffer)
+    image = validation_data.result_image
     if size(buffer)==reverse(size(image))
         buffer .= transpose(image)
     end
