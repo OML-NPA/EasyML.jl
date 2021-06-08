@@ -260,6 +260,20 @@ function get_random_color(seed)
     rand(RGB{N0f8})
 end
 
+function make_dir(target_dir::String)
+    dirs = split(target_dir,"/")
+    for i=1:length(dirs)
+        temp_path = join(dirs[1:i],"/")
+        if !isdir(temp_path)
+            mkdir(temp_path)
+        end
+    end
+    if !isdir(target_dir)
+        mkdir(target_dir)
+    end
+    return nothing
+end
+
 # Allows to use @info from GUI
 function info(fields)
     @info get_data(fields)

@@ -185,12 +185,12 @@ ApplicationWindow {
                                 outputmaskCheckBox.checkState = Julia.get_output(["Mask",
                                     "mask"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 if (Julia.get_class_field(indTree+1,"border")) {
-                                    visible = true
+                                    bordermaskCheckBox.visible = true
                                     bordermaskCheckBox.checkState = Julia.get_output(["Mask",
                                         "mask_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 }
                                 if (Julia.get_class_field(indTree+1,"border")) {
-                                    visible = true
+                                    appliedbordermaskCheckbox.visible = true
                                     appliedbordermaskCheckbox.checkState = Julia.get_output(["Mask",
                                         "mask_applied_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 }
