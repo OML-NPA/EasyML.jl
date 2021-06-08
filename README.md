@@ -12,7 +12,7 @@ We use Flux.jl neural network library. Currently it is possible to:
   - Validate a neural network
   - Analyse data with a neural network
   
-Only image data and image segmentation is currently supported.
+Only image data and classification/segmentation are currently supported.
 
 ### Usage 
 
