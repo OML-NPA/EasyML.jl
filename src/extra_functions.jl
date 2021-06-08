@@ -150,7 +150,7 @@ function prepare_training_data()
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
-    elseif model_data.classes isa Vector{Image_segmentation_class}
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
         if isempty(training_data.Image_segmentation_data.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
@@ -326,6 +326,10 @@ function validate()
         @error "Classes are empty."
         return nothing
     end
+    if isempty(valiation_data.input_urls)
+        @error "No input urls. Run 'get_urls_validation'."
+        return nothing
+    end
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
@@ -415,6 +419,10 @@ function get_urls_application()
 end
 
 function apply()
+    if isempty(application_data.input_urls)
+        @error "No input urls. Run 'get_urls_application'."
+        return nothing
+    end
     empty_progress_channel("Application")
     empty_progress_channel("Application modifiers")
     apply_main2(settings,training,application_data,model_data,channels)
@@ -431,6 +439,8 @@ function apply()
             elseif value==max_value
                 # reset progress here
                 break
+            else
+                sleep(0.1)
             end
         else
             temp_value = get_progress("Application")
@@ -441,11 +451,11 @@ function apply()
                 else
                     break
                     @error "No data to process."
-                    # No data
                 end
+            else
+                sleep(0.1)
             end
         end
-        sleep(0.1)
     end
     return nothing
 end

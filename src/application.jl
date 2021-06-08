@@ -2,7 +2,7 @@
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application::Application,
         application_data::Application_data,model_data::Model_data)
-    if settings.problem_type==:Segmentation && settings.input_type==:Image
+    if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application,allowed_ext)
@@ -80,9 +80,9 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::Model_data,classes::Vector{Image_classification_class},
-    processing::Processing_training,num::Int64,urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
-    abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+function get_output(model_data::Model_data,processing::Processing_training,num::Int64,
+        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
+        data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -96,13 +96,10 @@ function get_output(model_data::Model_data,classes::Vector{Image_classification_
                     return nothing
                 end
             end
-            if abort[]==true
-                return
-            end
             # Get input
             input_data = prepare_application_data(urls_batch[l],processing)
             # Get output
-            predicted = forward(model_data.model,input_data,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
             _, predicted_labels4 = findmax(predicted,dims=3)
             predicted_labels = map(x-> x.I[3],predicted_labels4[1,1,1,:])
             # Return result
@@ -126,9 +123,9 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::Model_data,classes::Vector{Image_segmentation_class},
-    processing::Processing_training,num::Int64,urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
-    abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+function get_output(model_data::Model_data,processing::Processing_training,num::Int64,
+        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
+        data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -224,7 +221,7 @@ end
 function process_output(classes::Vector{Image_classification_class},output_options::Vector{Image_classification_output_options},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
         num_classes::Int64,img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,
-        apply_by_file::Bool,abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+        apply_by_file::Bool,abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     class_names = map(x -> x.name,classes)
     for k=1:num
         # Stop if asked
@@ -240,6 +237,7 @@ function process_output(classes::Vector{Image_classification_class},output_optio
         end
         # Initialize accumulators
         labels = Vector{String}(undef,0)
+        data_taken = Threads.Atomic{Bool}(true)
         for _ = 1:num_batch
             while true
                 if isready(data_channel) && data_taken[]==true
@@ -256,16 +254,16 @@ function process_output(classes::Vector{Image_classification_class},output_optio
             # Get neural network output
             _, label_inds = take!(data_channel)
             Threads.atomic_xchg!(data_taken, true)
-            for j = 1:length(predicted_labels)
+            for j = 1:length(label_inds)
                 label_ind = label_inds[j]
                 push!(labels,class_names[label_ind])
             end
             put!(channels.application_progress,1)
         end
         # Export the result
-        df_labels = DataFrame(labels, :auto)
-        objs_to_dataframe(df_objs,obj_area,num_obj_area,0)
-        save(df_labels,savepath,folder,data_sym_ext)
+        df_labels = DataFrame(Labels = labels)
+        name = string(folder,data_ext)
+        save(df_labels,savepath,name,data_sym_ext)
         put!(channels.application_progress,1)
     end
     return nothing
@@ -314,10 +312,6 @@ function process_output(classes::Vector{Image_segmentation_class},output_options
         tasks = Vector{Task}(undef,0)
         data_taken = Threads.Atomic{Bool}(true)
         for _ = 1:num_batch
-            # Stop if asked
-            if abort[]==true
-                return nothing
-            end
             while true
                 if isready(data_channel) && data_taken[]==true
                     Threads.atomic_xchg!(data_taken, false)
@@ -415,7 +409,7 @@ end
 
 # Main function that performs application
 function apply_main(settings::Settings,training::Training,application_data::Application_data,
-        model_data::Model_data,channels::Channels)
+        model_data::Model_data,T::DataType,channels::Channels)
     # Initialize constants
     application = settings.Application
     application_options = application.Options
@@ -426,7 +420,7 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     scaling = application_options.scaling
     batch_size = application_options.minibatch_size
     apply_by_file = application_options.apply_by[1]=="file"
-    data_channel = Channel{Tuple{Int64,BitArray{4}}}(Inf)
+    data_channel = Channel{Tuple{Int64,T}}(Inf)
     abort = Threads.Atomic{Bool}(false)
     # Get file extensions
     img_ext,img_sym_ext = get_image_ext(application_options.image_type)
@@ -448,7 +442,7 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,num_classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
+    Threads.@spawn get_output(model_data,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,num_classes,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,abort,data_channel,channels)
@@ -456,7 +450,12 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
 end
 function apply_main2(settings::Settings,training::Training,application_data::Application_data,
         model_data::Model_data,channels::Channels)
-    Threads.@spawn apply_main(settings,training,application_data,model_data,channels)
+    if settings.problem_type==:Classification
+        T = Vector{Int64}
+    elseif settings.problem_type==:Segmentation
+        T = BitArray{4}
+    end
+    Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
 end
 #apply() = apply_main2(settings,application_data,
 #    model_data,channels)
