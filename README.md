@@ -6,7 +6,7 @@ This package allows to use machine learning in Julia through a graphical user in
 NB! This is a an alpha version. Bugs and rapid changes should be expected!
 
 ### Features
-We use Flux.jl neural network library. Currently it is possible to:
+Flux.jl neural network library is used. Currently it is possible to:
   - Design a neural network
   - Train a neural network
   - Validate a neural network
