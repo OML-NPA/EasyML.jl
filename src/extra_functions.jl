@@ -155,7 +155,6 @@ function prepare_training_data()
         empty!(getfield(segmentation_data,i))
     end
     
-    
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
 
@@ -219,6 +218,18 @@ function prepare_training_data()
                 sleep(0.1)
             end
         end
+    end
+    return nothing
+end
+
+function remove_training_data()
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(classification_data,i))
+    end
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(segmentation_data,i))
     end
     return nothing
 end
@@ -396,6 +407,9 @@ function validate()
     elseif settings.problem_type==:Segmentation && settings.input_type==:Image
         return validation_image_segmentation_results
     end
+    # Clean up
+    empty!(validation_data.original_image)
+    empty!(validation_data.result_image)
 end
 
 # Application

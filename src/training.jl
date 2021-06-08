@@ -373,7 +373,18 @@ function reset_training_data(training_plot_data::TrainingPlotData,
     training_plot_data.epoch = 0
     training_plot_data.iterations_per_epoch = 0
     training_plot_data.starting_time = now()
+    training_plot_data.max_iteration = 0
+    training_plot_data.learning_rate_changed = false
     return nothing
+end
+function clean_up_training(training_plot_data::TrainingPlotData)
+    training_plot_data.iteration = 0
+    training_plot_data.epoch = 0
+    training_plot_data.iterations_per_epoch = 0
+    training_plot_data.starting_time = now()
+    training_plot_data.max_iteration = 0
+    training_plot_data.max_iteration = 0
+    training_plot_data.learning_rate_changed = false
 end
 
 #---
@@ -810,6 +821,8 @@ function train_main(settings::Settings,training_data::TrainingData,
     # Run training
     data = train!(model_data,training_data,training,args,opt,accuracy,loss,
         train_set,test_set,testing_times,use_GPU,channels)
+    # Clean up
+    clean_up_training(training_plot_data)
     # Return training results
     put!(channels.training_results,(model_data.model,data...))
     return nothing
