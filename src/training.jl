@@ -1,30 +1,27 @@
 
 # Get urls of files in selected folders
-function get_urls_training_main(training::Training,training_data::Training_data,
-        model_data::Model_data)
-    if isempty(model_data.classes)
-        @warn "Classes are empty."
-        return nothing
+function get_urls_training_main(training::Training,training_data::TrainingData,
+        model_data::ModelData)
+    if settings.input_type==:Image
+        allowed_ext = ["png","jpg","jpeg"]
     end
-    if model_data.classes isa Vector{Classification_class}
-        allowed_ext = ["png","jpg","jpeg"]
+    if settings.problem_type==:Classification
         input_urls,dirs = get_urls1(training,allowed_ext)
-        training_data.Classification_data.input_urls = input_urls
-        training_data.Classification_data.labels = dirs
-    elseif model_data.classes isa Vector{Segmentation_class}
-        allowed_ext = ["png","jpg","jpeg"]
+        training_data.ClassificationData.input_urls = input_urls
+        training_data.ClassificationData.labels = dirs
+    elseif settings.problem_type==:Segmentation
         input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
-        training_data.Segmentation_data.input_urls = reduce(vcat,input_urls)
-        training_data.Segmentation_data.label_urls = reduce(vcat,label_urls)
-        training_data.Segmentation_data.filenames = filenames
-        training_data.Segmentation_data.fileindices = fileindices
+        training_data.SegmentationData.input_urls = reduce(vcat,input_urls)
+        training_data.SegmentationData.label_urls = reduce(vcat,label_urls)
+        training_data.SegmentationData.filenames = filenames
+        training_data.SegmentationData.fileindices = fileindices
     end
     return nothing
 end
 #get_urls_training() = get_urls_training_main(training,training_data,model_data)
 
 # Set training starting time
-function set_training_starting_time_main(training_plot_data::Training_plot_data)
+function set_training_starting_time_main(training_plot_data::TrainingPlotData)
     training_plot_data.starting_time = now()
     return nothing
 end
@@ -32,7 +29,7 @@ set_training_starting_time() =
     set_training_starting_time_main(training_plot_data)
 
 # Calculates the time elapsed from the begining of training
-function training_elapsed_time_main(training_plot_data::Training_plot_data)
+function training_elapsed_time_main(training_plot_data::TrainingPlotData)
     dif = (now() - training_plot_data.starting_time).value
     hours = string(Int64(floor(dif/3600000)))
     minutes_num = floor(dif/60000)
@@ -145,8 +142,8 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
 end
 
 # Prepare data for training
-function prepare_training_data_classification(classification_data::Classification_data,
-        classes::Vector{Image_classification_class},options::Training_options,
+function prepare_training_data_classification(classification_data::ClassificationData,
+        classes::Vector{ImageClassificationClass},options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
     num_angles = options.Processing.num_angles
     urls = classification_data.input_urls
@@ -199,8 +196,8 @@ function prepare_training_data_classification(classification_data::Classificatio
     return nothing
 end
 
-function prepare_training_data_segmentation(segmentation_data::Segmentation_data,
-        classes::Vector{Image_segmentation_class},options::Training_options,
+function prepare_training_data_segmentation(segmentation_data::SegmentationData,
+        classes::Vector{ImageSegmentationClass},options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
@@ -257,17 +254,17 @@ function prepare_training_data_segmentation(segmentation_data::Segmentation_data
     return nothing
 end
 
-function prepare_training_data_main(training::Training,training_data::Training_data,
-    model_data::Model_data,progress::Channel,results::Channel)
+function prepare_training_data_main(training::Training,training_data::TrainingData,
+    model_data::ModelData,progress::Channel,results::Channel)
     # Initialize
     classes = model_data.classes
     options = training.Options
     size12 = model_data.input_size[1:2]
-    if classes isa Vector{Image_classification_class}
+    if classes isa Vector{ImageClassificationClass}
         prepare_training_data_classification(classification_data,classes,options,
             size12,progress,results) 
-    elseif classes isa Vector{Image_segmentation_class}
-        segmentation_data = training_data.Segmentation_data
+    elseif classes isa Vector{ImageSegmentationClass}
+        segmentation_data = training_data.SegmentationData
         prepare_training_data_segmentation(segmentation_data,classes,options,
             size12,progress,results)
     end
@@ -275,8 +272,8 @@ function prepare_training_data_main(training::Training,training_data::Training_d
 end
 
 # Wrapper allowing for remote execution
-function prepare_training_data_main2(training::Training,training_data::Training_data,
-    model_data::Model_data,progress::Channel,results::Channel)
+function prepare_training_data_main2(training::Training,training_data::TrainingData,
+    model_data::ModelData,progress::Channel,results::Channel)
     #@everywhere training,training_data,model_data
     #remote_do(prepare_training_data_main,workers()[end],training,training_data,
     #model_data,progress,results)
@@ -287,7 +284,7 @@ end
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
-function get_train_test(data::Union{Classification_data,Segmentation_data},training::Training)
+function get_train_test(data::Union{ClassificationData,SegmentationData},training::Training)
     # Get inputs and labels
     data_input = data.data_input
     data_labels = data.data_labels
@@ -366,8 +363,8 @@ end
 #---
 
 # Reset training related data accumulators
-function reset_training_data(training_plot_data::Training_plot_data,
-        training_results_data::Training_results_data)
+function reset_training_data(training_plot_data::TrainingPlotData,
+        training_results_data::TrainingResultsData)
     training_results_data.accuracy = Float32[]
     training_results_data.loss = Float32[]
     training_results_data.test_accuracy = Float32[]
@@ -677,8 +674,8 @@ function check_lr_change(opt,composite)
     return convert(Bool,allow_lr_change)
 end
 
-function train!(model_data::Model_data,training_data::Training_data,training::Training,
-        args::Hyperparameters_training,opt,accuracy::Function,loss::Function,
+function train!(model_data::ModelData,training_data::TrainingData,training::Training,
+        args::HyperparametersTraining,opt,accuracy::Function,loss::Function,
         train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
         use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},T2<:Union{Vector{BitArray{3}},Vector{Int32}}}
     # Initialize constants
@@ -714,7 +711,7 @@ function train!(model_data::Model_data,training_data::Training_data,training::Tr
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     max_labels = Vector{Int32}(undef,0)
     if settings.problem_type==:Classification && settings.input_type==:Image
-        push!(max_labels,(1:length(training_data.Classification_data.labels))...)
+        push!(max_labels,(1:length(training_data.ClassificationData.labels))...)
     end
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
@@ -773,17 +770,17 @@ function test_GPU(model::Chain,accuracy::Function,loss::Function,
 end
 
 # Main training function
-function train_main(settings::Settings,training_data::Training_data,
-        model_data::Model_data,channels::Channels)
+function train_main(settings::Settings,training_data::TrainingData,
+        model_data::ModelData,channels::Channels)
     # Initialization
     GC.gc()
     training = settings.Training
     training_options = training.Options
-    training_plot_data = training_data.Plot_data
+    training_plot_data = training_data.PlotData
     training_results_data = training_data.Results
     args = training_options.Hyperparameters
     use_GPU = false
-    if settings.Options.Hardware_resources.allow_GPU
+    if settings.Options.HardwareResources.allow_GPU
         if has_cuda()
             use_GPU = true
         else
@@ -793,9 +790,9 @@ function train_main(settings::Settings,training_data::Training_data,
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
     if settings.problem_type==:Classification && settings.input_type==:Image
-        train_set, test_set = get_train_test(training_data.Classification_data,training)
+        train_set, test_set = get_train_test(training_data.ClassificationData,training)
     elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-        train_set, test_set = get_train_test(training_data.Segmentation_data,training)
+        train_set, test_set = get_train_test(training_data.SegmentationData,training)
     end
     # Setting functions and parameters
     opt = get_optimiser(training)
@@ -817,8 +814,8 @@ function train_main(settings::Settings,training_data::Training_data,
     put!(channels.training_results,(model_data.model,data...))
     return nothing
 end
-function train_main2(settings::Settings,training_data::Training_data,
-        model_data::Model_data,channels::Channels)
+function train_main2(settings::Settings,training_data::TrainingData,
+        model_data::ModelData,channels::Channels)
     #@everywhere settings,training_data,model_data
     #remote_do(train_main,workers()[end],settings,training_data,model_data,channels)
     Threads.@spawn train_main(settings,training_data,model_data,channels)

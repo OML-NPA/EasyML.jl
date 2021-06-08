@@ -44,19 +44,19 @@ end
 get_progress(field) = get_progress_main(channels,field)
 
 # Return values from results channels by taking the values
-function get_results_main(channels::Channels,master_data::Master_data,
-        model_data::Model_data,field)
+function get_results_main(channels::Channels,all_data::AllData,
+        model_data::ModelData,field)
     field::String = fix_QML_types(field)
     classes = model_data.classes
     if field=="Training data preparation"
         if isready(channels.training_data_results)
             data = take!(channels.training_data_results)
-            if classes isa Vector{Image_classification_class}
-                classification_data = master_data.Training_data.Image_classification_data
+            if settings.problem_type==:Classification
+                classification_data = all_data.TrainingData.ClassificationData
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
-            elseif classes isa Vector{Image_segmentation_class}
-                segmentation_data = master_data.Training_data.Image_segmentation_data
+            elseif settings.problem_type==:Segmentation
+                segmentation_data = all_data.TrainingData.SegmentationData
                 segmentation_data.data_input = data[1]
                 segmentation_data.data_labels = data[2]
             end
@@ -68,7 +68,7 @@ function get_results_main(channels::Channels,master_data::Master_data,
         if isready(channels.training_results)
             data = take!(channels.training_results)
             if !isnothing(data)
-                training_results_data = master_data.Training_data.Results
+                training_results_data = all_data.TrainingData.Results
                 model_data.model = data[1]
                 training_results_data.accuracy = data[2]
                 training_results_data.loss = data[3]
@@ -88,13 +88,13 @@ function get_results_main(channels::Channels,master_data::Master_data,
             other_data = data[2]
             original = data[3]
             if settings.problem_type==:Classification && settings.input_type==:Image
-                validation_results = master_data.Validation_data.Image_classification_results
+                validation_results = all_data.ValidationData.ImageClassificationResults
                 push!(validation_results.original,original)
                 push!(validation_results.predicted_labels,image_data[1])
                 push!(validation_results.target_labels,image_data[2])
                 push!(validation_results.other_data,other_data)
             elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-                validation_results = master_data.Validation_data.Image_segmentation_results
+                validation_results = all_data.ValidationData.ImageSegmentationResults
                 push!(validation_results.original,original)
                 push!(validation_results.predicted_data,image_data[1])
                 push!(validation_results.target_data,image_data[2])
@@ -115,7 +115,7 @@ function get_results_main(channels::Channels,master_data::Master_data,
     end
     return
 end
-get_results(field) = get_results_main(channels,master_data,model_data,field)
+get_results(field) = get_results_main(channels,all_data,model_data,field)
 
 #---
 # Empties progress channels

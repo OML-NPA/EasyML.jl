@@ -247,7 +247,7 @@ ApplicationWindow {
                         onActivated: {
                         }
                         Component.onCompleted: {
-                            var folders = Julia.get_data(["Training_data","foldernames"])
+                            var folders = Julia.get_data(["TrainingData","foldernames"])
                             if (folders[0]===""){
                                 folderRow.visible = false
                             }
@@ -276,8 +276,8 @@ ApplicationWindow {
                         onActivated: {
                             var folderInd = folderComboBox.currentIndex+1
                             var fileInd = fileComboBox.currentIndex+1
-                            var ind = Julia.get_data(["Training_data","fileindices"],[folderInd,fileInd])
-                            var url = Julia.get_data(["Training_data","url_input"],[ind])
+                            var ind = Julia.get_data(["TrainingData","fileindices"],[folderInd,fileInd])
+                            var url = Julia.get_data(["TrainingData","url_input"],[ind])
                             var size = Julia.import_image(url)
                                 imagetransferCanvas.height = size[0]
                                 imagetransferCanvas.width = size[1]
@@ -286,7 +286,7 @@ ApplicationWindow {
                                                            originalDisplay.source = result.url
                                                        });
                             function upd() {
-                                url = Julia.get_data(["Training_data","url_label"],[ind])
+                                url = Julia.get_data(["TrainingData","url_label"],[ind])
                                 Julia.import_image(url)
                                 imagetransferCanvas.height = size[0]
                                 imagetransferCanvas.width = size[1]
@@ -299,7 +299,7 @@ ApplicationWindow {
                             sizechangeTimer.running = true
                         }
                         Component.onCompleted: {
-                            var files = Julia.get_data(["Training_data",
+                            var files = Julia.get_data(["TrainingData",
                                 "filenames"])[folderComboBox.currentIndex]
                             for (var i=0;i<files.length;i++) {
                                 fileselectModel.append(

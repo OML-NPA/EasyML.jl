@@ -142,14 +142,12 @@ ApplicationWindow {
                     Layout.topMargin: 0.5*margin
                     text: "Training progress"
                     Layout.alignment : Qt.AlignHCenter | Qt.AligTop
-                    font.pointSize: 12
                     font.bold: true
                 }
                 RowLayout {
                     spacing: 0
                     Label {
                         text: "Accuracy (%)"
-                        font.pointSize: 10
                         rotation : 270
                         Layout.alignment : Qt.AlignHCenter
                         topPadding: -1.25*margin
@@ -160,7 +158,7 @@ ApplicationWindow {
                             id: accuracyChartView
                             Layout.preferredHeight: 10*margin
                             Layout.preferredWidth: 15*margin
-                            Layout.leftMargin: -2.75*margin
+                            Layout.leftMargin: -2.58*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
                             antialiasing: true
@@ -170,14 +168,14 @@ ApplicationWindow {
                                     id: accuracyAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pointSize: 10
+                                    labelsFont.pixelSize: 33*pix*10/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: accuracyAxisY
-                                    labelsFont.pointSize: 10
+                                    labelsFont.pixelSize: 33*pix*10/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 100
@@ -200,7 +198,6 @@ ApplicationWindow {
                         }
                         Label {
                             text: "Iteration"
-                            font.pointSize: 10
                             Layout.topMargin: -0.3*margin
                             Layout.leftMargin: -2.75*margin
                             Layout.alignment : Qt.AlignHCenter
@@ -211,7 +208,7 @@ ApplicationWindow {
                     spacing: 0
                     Label {
                         text: "Loss"
-                        font.pointSize: 10
+
                         rotation : 270
                         Layout.alignment : Qt.AlignHCenter
                         topPadding: -0.25*margin
@@ -222,7 +219,7 @@ ApplicationWindow {
                             id: lossChartView
                             Layout.preferredHeight: 6*margin
                             Layout.preferredWidth: 15*margin
-                            Layout.leftMargin: -1*margin
+                            Layout.leftMargin: -0.85*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
                             antialiasing: true
@@ -232,14 +229,14 @@ ApplicationWindow {
                                     id: lossAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pointSize: 10
+                                    labelsFont.pixelSize: 33*pix*10/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: lossAxisY
-                                    labelsFont.pointSize: 10
+                                    labelsFont.pixelSize: 33*pix*10/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 0.01
@@ -262,7 +259,6 @@ ApplicationWindow {
                         }
                         Label {
                             text: "Iteration"
-                            font.pointSize: 10
                             Layout.topMargin: -0.3*margin
                             Layout.leftMargin: -1*margin
                             Layout.bottomMargin: 0.5*margin
@@ -309,11 +305,11 @@ ApplicationWindow {
                                 Layout.leftMargin: 0.3*margin
                                 onClicked: {
                                     Julia.put_channel("Training",["stop"])
-                                    /*var stop = false
-                                    while (!stop) {
-                                        stop = Julia.get_results("Training")
-                                        Julia.sleep(0.1)
-                                    }*/
+                                    //var stop = false
+                                    //while (!stop) {
+                                    //    stop = Julia.get_results("Training")
+                                    //    Julia.sleep(0.1)
+                                    //}
                                 }
                             }
                         }
@@ -390,7 +386,7 @@ ApplicationWindow {
                                     id: hardwareresource
                                     Layout.topMargin: 0.2*margin
                                     text: Julia.get_settings(["Options",
-                                        "Hardware_resources","allow_GPU"]) ? "GPU" : "CPU"
+                                        "HardwareResources","allow_GPU"]) ? "GPU" : "CPU"
                                 }
                             }
                             Label {

@@ -1,7 +1,7 @@
 
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application::Application,
-        application_data::Application_data,model_data::Model_data)
+        application_data::ApplicationData,model_data::ModelData)
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
@@ -13,7 +13,7 @@ end
 #get_urls_application() =
 #    get_urls_application_main(application,application_data,model_data)
 
-function prepare_application_data(urls::Vector{String},processing::Processing_training)
+function prepare_application_data(urls::Vector{String},processing::ProcessingTraining)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -80,7 +80,7 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::Model_data,processing::Processing_training,num::Int64,
+function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
         data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
@@ -123,7 +123,7 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::Model_data,processing::Processing_training,num::Int64,
+function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
@@ -159,7 +159,7 @@ function get_output(model_data::Model_data,processing::Processing_training,num::
     return nothing
 end
 
-function run_iteration(classes::Vector{Image_segmentation_class},output_options::Vector{Image_segmentation_output_options},
+function run_iteration(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions},
         savepath::String,filenames_batch::Vector{Vector{String}},num_classes::Int64,num_border::Int64,
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,border::Vector{Bool},
         objs_area::Vector{Vector{Vector{Float64}}},objs_volume::Vector{Vector{Vector{Float64}}},img_ext::String,
@@ -218,7 +218,7 @@ function run_iteration(classes::Vector{Image_segmentation_class},output_options:
     put!(channels.application_progress,1)
 end
 
-function process_output(classes::Vector{Image_classification_class},output_options::Vector{Image_classification_output_options},
+function process_output(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
         num_classes::Int64,img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,
         apply_by_file::Bool,abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
@@ -269,7 +269,7 @@ function process_output(classes::Vector{Image_classification_class},output_optio
     return nothing
 end
 
-function process_output(classes::Vector{Image_segmentation_class},output_options::Vector{Image_segmentation_output_options},
+function process_output(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,num_classes::Int64,
         num_border::Int64,labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,
         border::Vector{Bool},log_area_obj::Vector{Bool},log_area_obj_sum::Vector{Bool},log_area_dist::Vector{Bool},
@@ -375,12 +375,12 @@ function process_output(classes::Vector{Image_segmentation_class},output_options
     return nothing
 end
 
-function get_output_info(classes::Vector{Image_classification_class},output_options::Vector{Image_classification_output_options})
+function get_output_info(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions})
     num_classes = length(classes)
     return classes,num_classes,()
 end
 
-function get_output_info(classes::Vector{Image_segmentation_class},output_options::Vector{Image_segmentation_output_options})
+function get_output_info(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions})
     class_inds,labels_color,labels_incl,border = get_class_data(classes)
     classes = classes[class_inds]
     num_classes = length(classes)
@@ -408,15 +408,15 @@ function get_output_info(classes::Vector{Image_segmentation_class},output_option
 end
 
 # Main function that performs application
-function apply_main(settings::Settings,training::Training,application_data::Application_data,
-        model_data::Model_data,T::DataType,channels::Channels)
+function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
+        model_data::ModelData,T::DataType,channels::Channels)
     # Initialize constants
     application = settings.Application
     application_options = application.Options
     processing = training.Options.Processing
     classes = model_data.classes
-    output_options = model_data.output_options
-    use_GPU = settings.Options.Hardware_resources.allow_GPU && has_cuda()
+    output_options = model_data.OutputOptions
+    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
     scaling = application_options.scaling
     batch_size = application_options.minibatch_size
     apply_by_file = application_options.apply_by[1]=="file"
@@ -448,8 +448,8 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,abort,data_channel,channels)
     return nothing
 end
-function apply_main2(settings::Settings,training::Training,application_data::Application_data,
-        model_data::Model_data,channels::Channels)
+function apply_main2(settings::Settings,training::Training,application_data::ApplicationData,
+        model_data::ModelData,channels::Channels)
     if settings.problem_type==:Classification
         T = Vector{Int64}
     elseif settings.problem_type==:Segmentation
@@ -591,7 +591,7 @@ function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
         histograms_volume::Vector{Vector{Histogram}},
         objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Array{Vector{Vector{Float64}}},
-        output_options::Vector{Image_segmentation_output_options},num_batch::Int64,
+        output_options::Vector{ImageSegmentationOutputOptions},num_batch::Int64,
         num_classes::Int64,num_border::Int64,border::Vector{Bool})
     for i = 1:num_batch
         temp_histograms_area = histograms_area[i]
@@ -621,7 +621,7 @@ end
 
 function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
-        output_options::Vector{Image_segmentation_output_options},
+        output_options::Vector{ImageSegmentationOutputOptions},
         labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_classes::Int64,
         num_border::Int64,scaling::Float64)
     temp_objs_area = objs_area[cnt]
@@ -672,7 +672,7 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
     return nothing
 end
 
-function make_histogram(values::Vector{<:Real}, options::Union{Output_area,Output_volume})
+function make_histogram(values::Vector{<:Real}, options::Union{OutputArea,OutputVolume})
     if options.binning==0
         h = fit(Histogram, values)
     elseif options.binning==1
@@ -699,7 +699,7 @@ function make_histogram(values::Vector{<:Real}, options::Union{Output_area,Outpu
 end
 
 function export_histograms(histograms_area::Vector{Vector{Histogram}},
-        histograms_volume::Vector{Vector{Histogram}},classes::Vector{Image_segmentation_class},num::Int64,
+        histograms_volume::Vector{Vector{Histogram}},classes::Vector{ImageSegmentationClass},num::Int64,
         num_dist_area::Int64,num_dist_volume::Int64,
         log_area_dist::Vector{Bool},log_volume_dist::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -741,7 +741,7 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
 end
 
 function export_objs(type_name::String,objs_area::Vector,
-        objs_volume::Vector,classes::Vector{Image_segmentation_class},
+        objs_volume::Vector,classes::Vector{ImageSegmentationClass},
         num::Int64,num_obj_area::Int64,num_obj_volume::Int64,
         log_area_obj::Vector{Bool},log_volume_obj::Vector{Bool},savepath::String,
         filenames::Vector{String},data_ext::String,data_sym_ext::Symbol)
@@ -782,8 +782,8 @@ function export_objs(type_name::String,objs_area::Vector,
 end
 
 #---Image related functions
-function get_save_image_info(num_dims::Int64,classes::Vector{Image_segmentation_class},
-        output_options::Vector{Image_segmentation_output_options},border::Vector{Bool})
+function get_save_image_info(num_dims::Int64,classes::Vector{ImageSegmentationClass},
+        output_options::Vector{ImageSegmentationOutputOptions},border::Vector{Bool})
     num_classes = length(border)
     num_border = sum(border)
     logical_inds = BitArray{1}(undef,num_dims)
@@ -812,8 +812,8 @@ function get_save_image_info(num_dims::Int64,classes::Vector{Image_segmentation_
     return inds,img_names
 end
 
-function mask_to_img(mask::BitArray{3},classes::Vector{Image_segmentation_class},
-        output_options::Vector{Image_segmentation_output_options},
+function mask_to_img(mask::BitArray{3},classes::Vector{ImageSegmentationClass},
+        output_options::Vector{ImageSegmentationOutputOptions},
         labels_color::Vector{Vector{Float64}},border::Vector{Bool},
         savepath::String,filename::String,ext::String,sym_ext::Symbol)
     num_dims = size(mask)[3]

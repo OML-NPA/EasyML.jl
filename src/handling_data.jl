@@ -24,7 +24,7 @@ end
 
 #---
 # Returns label colors
-function get_labels_colors_main(training_data::Training_data,channels::Channels)
+function get_labels_colors_main(training_data::TrainingData,channels::Channels)
     url_labels = training_data.url_labels
     num = length(url_labels)
     put!(channels.training_labels_colors,num)
@@ -48,7 +48,7 @@ function get_labels_colors_main(training_data::Training_data,channels::Channels)
     put!(channels.training_labels_colors,unique_colors_out)
     return nothing
 end
-function get_labels_colors_main2(training_data::Training_data,channels::Channels)
+function get_labels_colors_main2(training_data::TrainingData,channels::Channels)
     #@everywhere training_data
     #remote_do(get_labels_colors_main,workers()[end],training_data,channels)
     Threads.@spawn get_labels_colors_main(training_data,channels)
@@ -57,7 +57,7 @@ get_labels_colors() = get_labels_colors_main2(training_data,channels)
 
 #---Data/settings related functions
 # Allows to read data from GUI
-function get_data_main(data::Master_data,fields,inds)
+function get_data_main(data::AllData,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = convert(Vector{Int64},fix_QML_types(inds))
     for i = 1:length(fields)
@@ -74,11 +74,11 @@ function get_data_main(data::Master_data,fields,inds)
     end
     return data
 end
-get_data(fields,inds=[]) = get_data_main(master_data,fields,inds)
+get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
 
 # Allows to write to data from GUI
-function set_data_main(master_data::Master_data,fields,args...)
-    data = master_data
+function set_data_main(all_data::AllData,fields,args...)
+    data = all_data
     fields::Vector{String} = fix_QML_types(fields)
     args = fix_QML_types(args)
     for i = 1:length(fields)-1
@@ -101,7 +101,7 @@ function set_data_main(master_data::Master_data,fields,args...)
     setproperty!(data, field, value)
     return nothing
 end
-set_data(fields,value,args...) = set_data_main(master_data,fields,value,args...)
+set_data(fields,value,args...) = set_data_main(all_data,fields,value,args...)
 
 # Allows to read settings from GUI
 function get_settings_main(data::Settings,fields,inds...)
@@ -208,10 +208,10 @@ end
 
 #---Class output related functions
 # Allows to read class output options from GUI
-function get_output_main(model_data::Model_data,fields,ind)
+function get_output_main(model_data::ModelData,fields,ind)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
-    data = model_data.output_options[ind]
+    data = model_data.OutputOptions[ind]
     for i = 1:length(fields)
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -221,11 +221,11 @@ end
 get_output(fields,ind) = get_output_main(model_data,fields,ind)
 
 # Allows to write to class output options from GUI
-function set_output_main(model_data::Model_data,fields,ind,value)
+function set_output_main(model_data::ModelData,fields,ind,value)
     fields::Vector{String} = fix_QML_types(fields)
     ind::Int64 = fix_QML_types(ind)
     value = fix_QML_types(value)
-    data = model_data.output_options[ind]
+    data = model_data.OutputOptions[ind]
     for i = 1:length(fields)-1
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -237,9 +237,9 @@ set_output(fields,ind,value) = set_output_main(model_data,fields,ind,value)
 
 #---
 
-function reset_data_field_main(master_data::Master_data,fields)
+function reset_data_field_main(all_data::AllData,fields)
     fields::Vector{String} = fix_QML_types(fields)
-    data = master_data
+    data = all_data
     for i = 1:length(fields)
         field = Symbol(fields[i])
         data = getproperty(data,field)
@@ -247,7 +247,7 @@ function reset_data_field_main(master_data::Master_data,fields)
     empty!(data)
     return nothing
 end
-reset_data_field(fields) = reset_data_field_main(master_data,fields)
+reset_data_field(fields) = reset_data_field_main(all_data,fields)
 
 # Resets data property
 function resetproperty!(datatype,field)
@@ -289,7 +289,7 @@ function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}
 end
 
 # Saves image to the main image storage and returns its size
-function get_image_main(validation_data::Validation_data,fields,img_size,inds)
+function get_image_main(validation_data::ValidationData,fields,img_size,inds)
     fields = fix_QML_types(fields)
     img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
@@ -357,7 +357,7 @@ model_count() = length(model_data.layers)
 model_properties(index) = [keys(model_data.layers[Int64(index)])...]
 
 # Returns model layer property value
-function model_get_layer_property_main(model_data::Model_data,index,property_name)
+function model_get_layer_property_main(model_data::ModelData,index,property_name)
     layer = model_data.layers[Int64(index)]
     property = layer[property_name]
     if  isa(property,Tuple)
@@ -369,14 +369,14 @@ model_get_layer_property(index,property_name) =
     model_get_layer_property_main(model_data,index,property_name)
 
 # Empties model layers
-function reset_layers_main(model_data::Model_data)
+function reset_layers_main(model_data::ModelData)
     empty!(model_data.layers)
     return nothing
 end
-reset_layers() = reset_layers_main(model_data::Model_data)
+reset_layers() = reset_layers_main(model_data::ModelData)
 
 # Saves new model layer data into a Julia dictionary
-function update_layers_main(model_data::Model_data,keys,values,ext...)
+function update_layers_main(model_data::ModelData,keys,values,ext...)
     layers = model_data.layers
     keys = fix_QML_types(keys)
     values = fix_QML_types(values)
@@ -409,7 +409,7 @@ function update_layers_main(model_data::Model_data,keys,values,ext...)
     push!(layers, copy(dict))
     return nothing
 end
-update_layers(keys,values,ext...) = update_layers_main(model_data::Model_data,
+update_layers(keys,values,ext...) = update_layers_main(model_data::ModelData,
     keys,values,ext...)
 
 # Fix types coming from QML
@@ -445,13 +445,13 @@ function fixtypes(dict::Dict)
 end
 
 # Set model type
-function set_model_type_main(model_data::Model_data,type1,type2)
+function set_model_type_main(model_data::ModelData,type1,type2)
     model_data.type = [fix_QML_types(type1),fix_QML_types(type2)]
 end
 set_model_type(type1,type2) = set_model_type_main(model_data,type1,type2)
 
 # Get model type
-function get_model_type_main(model_data::Model_data)
+function get_model_type_main(model_data::ModelData)
     return model_data.type
 end
 get_model_type() = get_model_type_main(model_data)
@@ -461,26 +461,26 @@ function reset_classes_main(model_data)
     empty!(model_data.classes)
     return nothing
 end
-reset_classes() = reset_classes_main(model_data::Model_data)
+reset_classes() = reset_classes_main(model_data::ModelData)
 
 # Resets model output options
 function reset_output_options_main(model_data)
-    empty!(model_data.output_options)
+    empty!(model_data.OutputOptions)
     return nothing
 end
-reset_output_options() = reset_output_options_main(model_data::Model_data)
+reset_output_options() = reset_output_options_main(model_data::ModelData)
 
 # Appends model classes
-function append_classes_main(model_data::Model_data,design_data::Design_data,id,data)
+function append_classes_main(model_data::ModelData,design_data::DesignData,id,data)
     data = fix_QML_types(data)
     id = convert(Int64,id)
     type = eltype(model_data.classes)
     backup = design_data.output_options_backup
-    if type==Image_classification_class
-        class = Image_classification_class()
+    if type==ImageClassificationClass
+        class = ImageClassificationClass()
         class.name = data[1]
-    elseif type==Image_segmentation_class
-        class = Image_segmentation_class()
+    elseif type==ImageSegmentationClass
+        class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
         class.border = Bool(data[5])
@@ -492,37 +492,37 @@ function append_classes_main(model_data::Model_data,design_data::Design_data,id,
     end
     push!(model_data.classes,class)
 
-    if type==Image_classification_class
-        type_output = Image_classification_output_options
-    elseif type==Image_segmentation_class
-        type_output = Image_segmentation_output_options
+    if type==ImageClassificationClass
+        type_output = ImageClassificationOutputOptions
+    elseif type==ImageSegmentationClass
+        type_output = ImageSegmentationOutputOptions
     end
-    if eltype(model_data.output_options)!=type_output
-        model_data.output_options = Vector{type_output}(undef,0)
+    if eltype(model_data.OutputOptions)!=type_output
+        model_data.OutputOptions = Vector{type_output}(undef,0)
     end
     if id in 1:length(backup) && eltype(backup)==type_output
-        push!(model_data.output_options,design_data.output_options_backup[id])
+        push!(model_data.OutputOptions,design_data.output_options_backup[id])
     else
-        push!(model_data.output_options,type_output())
+        push!(model_data.OutputOptions,type_output())
     end
     return nothing
 end
 append_classes(id,data) = append_classes_main(model_data,design_data,id,data)
 
 # Returns the number of classes
-function num_classes_main(model_data::Model_data)
+function num_classes_main(model_data::ModelData)
     return length(model_data.classes)
 end
-num_classes() = num_classes_main(model_data::Model_data)
+num_classes() = num_classes_main(model_data::ModelData)
 
 # Returns class value
-function get_class_main(model_data::Model_data,index,fieldname)
+function get_class_main(model_data::ModelData,index,fieldname)
     return getfield(model_data.classes[Int64(index)], Symbol(String(fieldname)))
 end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
 
-function backup_options_main(model_data::Model_data)
-    design_data.output_options_backup = deepcopy(model_data.output_options)
+function backup_options_main(model_data::ModelData)
+    design_data.output_options_backup = deepcopy(model_data.OutputOptions)
 end
 backup_options() = backup_options_main(model_data)
 
@@ -547,7 +547,7 @@ end
 #---Model saving/loading
 # Saves ML model
 function save_model_main(model_data,url)
-    names = fieldnames(Model_data)
+    names = fieldnames(ModelData)
     num = length(names)
     dict = Dict{Symbol,IOBuffer}()
     sizehint!(dict,num)
@@ -567,14 +567,15 @@ function load_model_main(settings,model_data,url)
     url = fix_QML_types(url)
     data = BSON.load(url)
     ks = keys(data)
+    k = :OutputOptions
     for k in ks
         try
             serialized = seekstart(data[k])
             deserialized = BSON.load(serialized)[:field]
-            if all(k.!=(:loss,:model,:classes,:output_options))
+            if all(k.!=(:loss,:model,:classes,:OutputOptions))
                 type = typeof(getfield(model_data,k))
                 deserialized = convert(type,deserialized)
-            elseif k==:classes || k==:output_options
+            elseif k==:classes || k==:OutputOptions
                 deserialized = [deserialized...]
                 type = eltype(deserialized)
                 deserialized = convert(Vector{type},deserialized)
@@ -588,10 +589,10 @@ function load_model_main(settings,model_data,url)
     settings.Training.model_url = url
     url_split = split(url,('/','.'))
     settings.Training.name = url_split[end-1]
-    if model_data.classes isa Vector{Image_classification_class}
+    if model_data.classes isa Vector{ImageClassificationClass}
         settings.input_type = :Image
         settings.problem_type = :Classification
-    elseif model_data.classes isa Vector{Image_segmentation_class}
+    elseif model_data.classes isa Vector{ImageSegmentationClass}
         settings.input_type = :Image
         settings.problem_type = :Segmentation
     end
@@ -609,6 +610,6 @@ end
 
 function import_image(url)
     img = load(url)
-    master_data.image = img
+    all_data.image = img
     return [size(img)...]
 end

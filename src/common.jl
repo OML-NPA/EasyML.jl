@@ -158,7 +158,7 @@ end
 
 # Returns color for labels, whether should be combined with other
 # labels and whether border data should be obtained
-function get_class_data(classes::Vector{Image_segmentation_class})
+function get_class_data(classes::Vector{ImageSegmentationClass})
     num = length(classes)
     class_names = Vector{String}(undef,num)
     class_parents = Vector{Vector{String}}(undef,num)
@@ -254,7 +254,7 @@ function rotate_img(img::BitArray{3},angle_val::Float64)
 end
 
 # Use border data to better separate objects
-function apply_border_data(data_in::BitArray{3},classes::Vector{Image_segmentation_class})
+function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
     inds_border = findall(border)
     if isnothing(inds_border)

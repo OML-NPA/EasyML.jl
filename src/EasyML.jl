@@ -38,7 +38,7 @@ include("extra_functions.jl")
 
 export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
 
-export model_data, Image_classification_class, Image_segmentation_class, training, settings, training_data, training_plot_data,
+export model_data, ImageClassificationClass, ImageSegmentationClass, training, settings, training_data, training_plot_data,
     training_results_data, training_options, validation_data, validation_results_data,
     application_data, application_options
 export load_settings,design_network, modify_classes, modify_output, modify, save_model, load_model, get_urls_training, prepare_training_data, train,
