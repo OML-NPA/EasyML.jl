@@ -258,6 +258,17 @@ function modify(data)
 end
 
 function train()
+    if settings.problem_type==:Classification && settings.input_type==:Image
+        if isempty(training_data.ClassificationData.data_input)
+            @error "No training data. Run 'prepare_training_data()'."
+            return nothing
+        end
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
+        if isempty(training_data.SegmentationData.data_input)
+            @error "No training data. Run 'prepare_training_data()'."
+            return nothing
+        end
+    end
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
