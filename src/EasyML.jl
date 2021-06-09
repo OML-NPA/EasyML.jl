@@ -32,7 +32,7 @@ include("training.jl")
 include("common.jl")
 include("validation.jl")
 include("application.jl")
-include("extra_functions.jl")
+include("exported_functions.jl")
 
 export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
 
