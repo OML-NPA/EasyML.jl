@@ -120,7 +120,7 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
                 xmin = (j-1)*step2+1
                 I1 = img2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
                 I2 = label2[ymin:ymin+size12[1]-1,xmin:xmin+size12[2]-1,:]
-                if std(I1)<0.01 || sum(I2)<lim 
+                if std(I1)<0.01 || sum(I2)<lim
                     continue
                 else
                     for h = 1:2
@@ -144,7 +144,7 @@ end
 # Prepare data for training
 function prepare_training_data_classification(classification_data::ClassificationData,
         classes::Vector{ImageClassificationClass},options::TrainingOptions,
-        size12::Tuple{Int64,Int64},progress::Channel,results::Channel) 
+        size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
     urls = classification_data.input_urls
     # Get number of images
@@ -262,7 +262,7 @@ function prepare_training_data_main(training::Training,training_data::TrainingDa
     size12 = model_data.input_size[1:2]
     if classes isa Vector{ImageClassificationClass}
         prepare_training_data_classification(classification_data,classes,options,
-            size12,progress,results) 
+            size12,progress,results)
     elseif classes isa Vector{ImageSegmentationClass}
         segmentation_data = training_data.SegmentationData
         prepare_training_data_segmentation(segmentation_data,classes,options,
@@ -373,7 +373,7 @@ function reset_training_data(training_plot_data::TrainingPlotData,
     training_plot_data.epoch = 0
     training_plot_data.iterations_per_epoch = 0
     training_plot_data.starting_time = now()
-    training_plot_data.max_iteration = 0
+    training_plot_data.max_iterations = 0
     training_plot_data.learning_rate_changed = false
     return nothing
 end
@@ -382,8 +382,7 @@ function clean_up_training(training_plot_data::TrainingPlotData)
     training_plot_data.epoch = 0
     training_plot_data.iterations_per_epoch = 0
     training_plot_data.starting_time = now()
-    training_plot_data.max_iteration = 0
-    training_plot_data.max_iteration = 0
+    training_plot_data.max_iterations = 0
     training_plot_data.learning_rate_changed = false
 end
 
@@ -468,7 +467,7 @@ end
 
 function check_modifiers(model_data,model,model_name,accuracy_vector,
         loss_vector,allow_lr_change,composite,opt,num,epochs,max_iterations,
-        testing_frequency,modifiers_channel,abort;gpu=false) 
+        testing_frequency,modifiers_channel,abort;gpu=false)
     while isready(modifiers_channel)
         modifs = fix_QML_types(take!(modifiers_channel))
         modif1::String = modifs[1]

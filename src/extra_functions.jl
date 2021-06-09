@@ -160,7 +160,6 @@ function prepare_training_data()
 
     if isempty(model_data.classes)
         @error "Empty classes."
-        put!(progress, 0)
         return nothing
     end
     if settings.problem_type==:Classification && settings.input_type==:Image

@@ -1,6 +1,4 @@
 
-#__precompile__(false)
-
 module EasyML
 # Import packages
 using Base: Symbol
