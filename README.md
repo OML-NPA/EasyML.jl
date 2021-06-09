@@ -107,17 +107,17 @@ If that was not the case, the settings can be imported manually using `load_sett
 
 Classes can be modified manually.
 
-Create a new class using `Segmentation_class()`.
+Create a new class using `SegmentationClass()`.
 
 Classes can be of different types depending on a type of a problem.
 
-`Classification_class` contains
+`ClassificationClass` contains
 
 - `name::String`: name of a class.
 
-- `Output::Classification_output_options`: holds settings for output of application of a model to new data.
+- `Output::ImageClassificationOutputOptions`: holds settings for output of application of a model to new data.
 
-`Segmentation_class` contains
+`SegmentationClass` contains
 
 - `name::String`: name of a class.
 
@@ -131,7 +131,7 @@ Classes can be of different types depending on a type of a problem.
 
 - `parents::Vector{String}`: up to two parents can be specified by their name. Objects from a child are added to its parent.
 
-- `Output::Segmentation_output_options`: holds settings for output of application of a model to new data.
+- `Output::ImageSegmentationOutputOptions`: holds settings for output of application of a model to new data.
 
 Put your classes into a vector and write `model_data.classes = your_classes`.
 
@@ -153,4 +153,4 @@ end
 `num_parts` specifies in how many parts should an array be run thorugh a neural network. 
 Allows to process images that otherwise cause out of memory error.
 
-```apply_border_data``` uses borders of objects that a neural network detected in order to separate objects from each other.
+`apply_border_data` uses borders of objects that a neural network detected in order to separate objects from each other.
