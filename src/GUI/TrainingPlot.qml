@@ -159,7 +159,7 @@ ApplicationWindow {
                             id: accuracyChartView
                             Layout.preferredHeight: 10*margin
                             Layout.preferredWidth: 15*margin
-                            Layout.leftMargin: -2.58*margin
+                            Layout.leftMargin: -2.25*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
                             antialiasing: true
@@ -169,17 +169,18 @@ ApplicationWindow {
                                     id: accuracyAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pixelSize: defaultPixelSize*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*11/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: accuracyAxisY
-                                    labelsFont.pixelSize: defaultPixelSize*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*11/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 100
+                                    labelFormat: "%i"
                                 }
                             LineSeries {
                                 id: accuracyLine
@@ -219,7 +220,7 @@ ApplicationWindow {
                         ChartView {
                             id: lossChartView
                             Layout.preferredHeight: 6*margin
-                            Layout.preferredWidth: 15*margin
+                            Layout.preferredWidth: 15.3*margin
                             Layout.leftMargin: -0.85*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
@@ -230,17 +231,18 @@ ApplicationWindow {
                                     id: lossAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pixelSize: defaultPixelSize*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*11/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: lossAxisY
-                                    labelsFont.pixelSize: defaultPixelSize*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*11/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 0.01
+                                    labelFormat: "%.3f"
                                 }
                             LineSeries {
                                 id: lossLine
