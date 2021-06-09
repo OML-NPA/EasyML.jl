@@ -607,12 +607,20 @@ function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
             if area_dist_cond
                 area_options = current_options.Area
                 area_values = objs_area[i][l]
-                temp_histograms_area[l] = make_histogram(area_values,area_options)
+                if isempty(area_values)
+                    @warn "No objects to export for area."
+                else
+                    temp_histograms_area[l] = make_histogram(area_values,area_options)
+                end
             end
             if volume_dist_cond
                 volume_options = current_options.Volume
                 volume_values = objs_volume[i][l]
-                temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
+                if isempty(area_values)
+                    @warn "No objects to export for volume."
+                else
+                    temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
+                end
             end
         end
     end
@@ -708,6 +716,9 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
         return nothing
     end
     for i = 1:num
+        if !isdefined(histograms_area,i)
+            continue
+        end
         num_cols_dist = num_dist_area + num_dist_volume
         if num_dist_area>0
             num_rows_area = maximum(map(x->length(x.weights),histograms_area[i]))
