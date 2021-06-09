@@ -24,6 +24,7 @@ ApplicationWindow {
     property double buttonHeight: 0.03*Screen.height
     property double tabmargin: 0.5*margin
     property double pix: Screen.width/3840
+    property double defaultPixelSize: 33*pix
 
     FolderDialog {
         id: folderDialog

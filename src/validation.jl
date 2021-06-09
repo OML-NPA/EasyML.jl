@@ -3,7 +3,7 @@
 
 # Get urls of files in selected folders
 
-function get_urls_validation_main(validation::Validation,validation_data::Validation_data,model_data::Model_data)
+function get_urls_validation_main(validation::Validation,validation_data::ValidationData,model_data::ModelData)
     if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
@@ -26,22 +26,22 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
 end
 #get_urls_validation() = get_urls_validation_main(validation,model_data)
 
-function reset_validation_results(validation_data::Validation_data)
-    results_classification = validation_data.Image_classification_results
-    fields = fieldnames(Validation_image_classification_results)
+function reset_validation_results(validation_data::ValidationData)
+    results_classification = validation_data.ImageClassificationResults
+    fields = fieldnames(ValidationImageClassificationResults)
     for field in fields
         empty_field!(results_classification,field)
     end
-    results_segmentation = validation_data.Image_segmentation_results
-    fields = fieldnames(Validation_image_segmentation_results)
+    results_segmentation = validation_data.ImageSegmentationResults
+    fields = fieldnames(ValidationImageSegmentationResults)
     for field in fields
         empty_field!(results_segmentation,field)
     end
     return nothing
 end
 
-function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Image_classification_class},ind::Int64)
+function prepare_validation_data(validation::Validation,validation_data::ValidationData,
+        options::ProcessingTraining, classes::Vector{ImageClassificationClass},ind::Int64)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
@@ -61,8 +61,8 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
     return data_input,labels,original
 end
 
-function prepare_validation_data(validation::Validation,validation_data::Validation_data,
-        options::Processing_training, classes::Vector{Image_segmentation_class},ind::Int64)
+function prepare_validation_data(validation::Validation,validation_data::ValidationData,
+        options::ProcessingTraining, classes::Vector{ImageSegmentationClass},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
@@ -76,7 +76,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
             labels_incl,border,border_thickness)
         data_label = convert(Array{Float32,3},label_bool)[:,:,:,:]
     else
-        data_label = Array{Float32,4}(undef,1,1)
+        data_label = Array{Float32,4}(undef,1,1,1,1)
     end
     return data_input,data_label,original
 end
@@ -131,7 +131,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     inds_border = findall(border)
     border_colors = labels_color_uint[findall(border)]
     labels_color_uint = vcat(labels_color_uint,border_colors,border_colors)
-    array_size = size(label_bool)
+    array_size = size(predicted_bool)
     num_feat = array_size[3]
     num_border = sum(border)
     if num_border>0
@@ -154,7 +154,7 @@ end
 
 function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray{Float32,4},
         original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
-        validation::Validation,classes::Vector{Image_classification_class},channels::Channels)
+        validation::Validation,classes::Vector{ImageClassificationClass},channels::Channels)
     class_names = map(x-> x.name,classes)
     predicted_vec = Iterators.flatten(predicted)
     predicted_int = findfirst(predicted_vec .== maximum(predicted_vec))
@@ -174,9 +174,9 @@ function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray
     return nothing
 end
 
-function process_output(predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
+function process_output(predicted::AbstractArray{Float32,4},data_label::AbstractArray{Float32,4},
         original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},validation::Validation,
-        classes::Vector{Image_segmentation_class},channels::Channels)
+        classes::Vector{ImageSegmentationClass},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
     # Get output data
@@ -191,8 +191,8 @@ function process_output(predicted::AbstractArray{Float32},data_label::AbstractAr
 end
 
 # Main validation function
-function validate_main(settings::Settings,validation_data::Validation_data,
-        model_data::Model_data,channels::Channels)
+function validate_main(settings::Settings,validation_data::ValidationData,
+        model_data::ModelData,channels::Channels)
     # Initialisation
     validation = settings.Validation
     processing = settings.Training.Options.Processing
@@ -204,7 +204,7 @@ function validate_main(settings::Settings,validation_data::Validation_data,
     model = model_data.model
     loss = model_data.loss
     accuracy = get_accuracy_func(settings.Training)
-    use_GPU = settings.Options.Hardware_resources.allow_GPU && has_cuda()
+    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
     if settings.problem_type==:Classification
         num_parts_current = 1
     else
@@ -232,8 +232,8 @@ function validate_main(settings::Settings,validation_data::Validation_data,
     end
     return nothing
 end
-function validate_main2(settings::Settings,validation_data::Validation_data,
-        model_data::Model_data,channels::Channels)
+function validate_main2(settings::Settings,validation_data::ValidationData,
+        model_data::ModelData,channels::Channels)
     Threads.@spawn validate_main(settings,validation_data,model_data,channels)
     return nothing
 end

@@ -31,14 +31,13 @@ end
 
 function modify_classes()
     classes = model_data.classes
-    if isempty(classes)
-        @error "Classes are empty. Add classes to the 'model_data'."
-        return nothing
+    if length(classes)==0
+        ids = [0]
+        JindTree = -1
+    else
+        ids = 1:length(classes)
+        JindTree = 0
     end
-    #=if !(classes isa Vector{Image_segmentation_class})
-        @error string("There is nothing to change in a ",eltype(classes))
-        return nothing
-    end=#
     @qmlfunction(
         get_class_field,
         num_classes,
@@ -52,8 +51,32 @@ function modify_classes()
         set_settings,
         save_settings
     )
-    loadqml("GUI/ClassDialog.qml",JindTree = 0, ids = 1:length(classes))
+    loadqml("GUI/ClassDialog.qml",JindTree = JindTree, ids = ids)
     exec()
+    return nothing
+end
+
+function modify_output()
+    if isempty(model_data.classes)
+        @error "There are no classes. Add classes using 'modify_classes()'."
+        return nothing
+    end
+    if settings.problem_type==:Classification
+        @info "Classification has no output to modify."
+    elseif settings.problem_type==:Segmentation
+        @qmlfunction(
+            save_model,
+            get_class_field,
+            get_settings,
+            get_output,
+            set_output,
+            get_class_field,
+            get_problem_type,
+            num_classes
+        )
+        loadqml("GUI/OutputDialog.qml",indTree = 0)
+        exec()
+    end
     return nothing
 end
 
@@ -74,7 +97,7 @@ function get_urls_training(input_dir::String,label_dir::String)
 end
 
 function get_urls_training(input_dir::String)
-    if eltype(model_data.classes)!=Image_classification_class
+    if eltype(model_data.classes)!=ImageClassificationClass
         @error "Label data directory URL was not given."
         return nothing
     end
@@ -131,27 +154,29 @@ function prepare_training_data()
     for i in fields
         empty!(getfield(segmentation_data,i))
     end
-    empty!(training_data.Image_classification_data.data_input)
-    empty!(training_data.Image_classification_data.data_labels)
-    empty!(training_data.Image_classification_data.input_urls)
-    empty!(training_data.Image_classification_data.labels)
-    empty!(training_data.Image_segmentation_data.data_input)
-    empty!(training_data.Image_segmentation_data.data_labels)
+    
     empty_progress_channel("Training data preparation")
     empty_results_channel("Training data preparation")
 
     if isempty(model_data.classes)
         @error "Empty classes."
-        put!(progress, 0)
         return nothing
     end
     if settings.problem_type==:Classification && settings.input_type==:Image
-        if isempty(training_data.Image_classification_data.input_urls)
+        empty!(training_data.ClassificationData.data_input)
+        empty!(training_data.ClassificationData.data_labels)
+        empty!(training_data.SegmentationData.input_urls)
+        empty!(training_data.SegmentationData.label_urls)
+        if isempty(training_data.ClassificationData.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
     elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-        if isempty(training_data.Image_segmentation_data.input_urls)
+        empty!(training_data.SegmentationData.data_input)
+        empty!(training_data.SegmentationData.data_labels)
+        empty!(training_data.ClassificationData.input_urls)
+        empty!(training_data.ClassificationData.labels)
+        if isempty(training_data.SegmentationData.input_urls)
             @error "No input urls. Run 'get_urls_training'."
             return nothing
         end
@@ -175,6 +200,8 @@ function prepare_training_data()
                     # reset progress here
                     break
                 end
+            else
+                sleep(0.1)
             end
         else
             temp_value = get_progress("Training data preparation")
@@ -186,15 +213,28 @@ function prepare_training_data()
                     break
                     @error "No data to process."
                 end
+            else
+                sleep(0.1)
             end
         end
-        sleep(0.1)
+    end
+    return nothing
+end
+
+function remove_training_data()
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(classification_data,i))
+    end
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(segmentation_data,i))
     end
     return nothing
 end
 
 function modify(data)
-    if typeof(data)==Training_options
+    if typeof(data)==TrainingOptions
         @qmlfunction(
             get_settings,
             set_settings,
@@ -203,7 +243,7 @@ function modify(data)
         loadqml("GUI/TrainingOptions.qml")
         exec()
 
-    elseif typeof(data)==Application_options
+    elseif typeof(data)==ApplicationOptions
         @qmlfunction(
             get_settings,
             set_settings,
@@ -218,6 +258,17 @@ function modify(data)
 end
 
 function train()
+    if settings.problem_type==:Classification && settings.input_type==:Image
+        if isempty(training_data.ClassificationData.data_input)
+            @error "No training data. Run 'prepare_training_data()'."
+            return nothing
+        end
+    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
+        if isempty(training_data.SegmentationData.data_input)
+            @error "No training data. Run 'prepare_training_data()'."
+            return nothing
+        end
+    end
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
@@ -326,7 +377,7 @@ function validate()
         @error "Classes are empty."
         return nothing
     end
-    if isempty(valiation_data.input_urls)
+    if isempty(validation_data.input_urls)
         @error "No input urls. Run 'get_urls_validation'."
         return nothing
     end
@@ -366,26 +417,12 @@ function validate()
     elseif settings.problem_type==:Segmentation && settings.input_type==:Image
         return validation_image_segmentation_results
     end
+    # Clean up
+    empty!(validation_data.original_image)
+    empty!(validation_data.result_image)
 end
 
 # Application
-
-function modify_output()
-    @qmlfunction(
-        save_model,
-        get_class_field,
-        get_settings,
-        get_output,
-        set_output,
-        get_class_field,
-        get_problem_type,
-        num_classes
-    )
-    loadqml("GUI/OutputDialog.qml",indTree = 0)
-    exec()
-    return nothing
-end
-
 function get_urls_application(input_dir::String)
     if !isdir(input_dir)
         @error string(input_dir," does not exist.")

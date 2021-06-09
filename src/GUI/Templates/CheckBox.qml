@@ -53,7 +53,7 @@ T.CheckBox {
 
         text: control.text
         font.family: "Proxima Nova"
-        font.pixelSize: 33*pix
+        font.pixelSize: defaultPixelSize
         color: control.palette.windowText
     }
 }

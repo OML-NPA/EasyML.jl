@@ -15,11 +15,12 @@ ApplicationWindow {
     
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
-    //property double defaultPixelSize: 33*pix
+    //property double defaultPixelSize: defaultPixelSize
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
+    property double defaultPixelSize: 33*pix
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
@@ -188,12 +189,12 @@ ApplicationWindow {
                         classComboBox.currentIndex = 0
                         var ind1 = 1
                         if (problem_type==0) {
-                            var result_type = "Image_classification_results"
+                            var result_type = "ImageClassificationResults"
                         }
                         else if (problem_type==1) {
-                            var result_type = "Image_segmentation_results"
+                            var result_type = "ImageSegmentationResults"
                         }
-                        var size = Julia.get_image_size(["Validation_data",result_type,"original"],[ind1])
+                        var size = Julia.get_image_size(["ValidationData",result_type,"original"],[ind1])
                         var s = 1024*pix
                         var r = Math.min(s/size[0],s/size[1])
                         displayItem.height = size[0]*r
@@ -202,12 +203,12 @@ ApplicationWindow {
                         displayItem.image_width = size[1]
                         displayItem.scale = r
                         if (problem_type==0) {
-                            Julia.get_image(["Validation_data","Image_classification_results","original"],[0,0],[ind1])
-                            var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
+                            Julia.get_image(["ValidationData","ImageClassificationResults","original"],[0,0],[ind1])
+                            var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             classLabel.visible = true
                             if (use_labels) {
-                                var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
+                                var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
                                 target_labels.push(target_label)
                                 classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
                             }
@@ -217,8 +218,8 @@ ApplicationWindow {
                         }
                         else if (problem_type==1) {
                             var ind2 = 1
-                            Julia.get_image(["Validation_data","Image_segmentation_results","original"],[0,0],[ind1])
-                            Julia.get_image(["Validation_data","Image_segmentation_results","predicted_data"],[0,0],[ind1,ind2])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults","original"],[0,0],[ind1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults","predicted_data"],[0,0],[ind1,ind2])
                             resultDisplay.visible = true
                             resultDisplay.update()
                             classRow.visible = true
@@ -254,10 +255,10 @@ ApplicationWindow {
                         mean_accuracy = mean(accuracy)
                         mean_loss = mean(loss)
                         if (problem_type==0) {
-                            var predicted_label = Julia.get_data(["Validation_data","Image_classification_results","predicted_labels"],[iteration])
+                            var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             if (use_labels) {
-                            var target_label = Julia.get_data(["Validation_data","Image_classification_results","target_labels"],[iteration])
+                            var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
                                 target_labels.push(target_label)
                             }
                         }
@@ -271,10 +272,10 @@ ApplicationWindow {
         }
         Component.onCompleted: {
             if (problem_type==0) {
-                fieldname = "Image_classification_results"
+                fieldname = "ImageClassificationResults"
             }
             else if (problem_type==1) {
-                fieldname = "Image_segmentation_results"
+                fieldname = "ImageSegmentationResults"
             }
         }
     }
@@ -467,12 +468,12 @@ ApplicationWindow {
                             accuracyLabel.text = accuracy[ind1].toFixed(2) + " (" + mean_accuracy.toFixed(2) + ")"
                             lossLabel.text = loss[ind1].toFixed(2) + " (" + mean_loss.toFixed(2) + ")"
                             if (problem_type==0) {
-                                var results_type = "Image_classification_results"
+                                var results_type = "ImageClassificationResults"
                             }
                             else if (problem_type==1) {
-                                results_type = "Image_segmentation_results"
+                                results_type = "ImageSegmentationResults"
                             }
-                            var size = Julia.get_image_size(["Validation_data",results_type,"original"],[ind1+1])
+                            var size = Julia.get_image_size(["ValidationData",results_type,"original"],[ind1+1])
                             var s = 1024*pix
                             var r = Math.min(s/size[0],s/size[1])
                             displayItem.height = size[0]*r
@@ -480,7 +481,7 @@ ApplicationWindow {
                             displayItem.image_height = size[0]
                             displayItem.image_width = size[1]
                             displayItem.scale = r
-                            Julia.get_image(["Validation_data",results_type,"original"],[0,0],[ind1+1])
+                            Julia.get_image(["ValidationData",results_type,"original"],[0,0],[ind1+1])
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
@@ -492,7 +493,7 @@ ApplicationWindow {
                              }
                             else if (problem_type==1) {
                                 var ind2 = classComboBox.currentIndex
-                                Julia.get_image(["Validation_data","Image_segmentation_results",typeComboBox.type],[0,0],[ind1+1,ind2+1])
+                                Julia.get_image(["ValidationData","ImageSegmentationResults",typeComboBox.type],[0,0],[ind1+1,ind2+1])
                                 resultDisplay.visible = true
                                 resultDisplay.update()
                             }
@@ -518,7 +519,7 @@ ApplicationWindow {
                         onActivated: {
                             var ind1 = sampleSpinBox.value
                             var ind2 = classComboBox.currentIndex
-                            Julia.get_image(["Validation_data","Image_segmentation_results",typeComboBox.type],[0,0],[ind1,ind2+1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults",typeComboBox.type],[0,0],[ind1,ind2+1])
                             resultDisplay.update()
                         }
                         Component.onCompleted: {
@@ -581,7 +582,7 @@ ApplicationWindow {
                             }
                             var ind1 = sampleSpinBox.value
                             var ind2 = classComboBox.currentIndex
-                            Julia.get_image(["Validation_data","Image_segmentation_results",type],[0,0],[ind1,ind2+1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults",type],[0,0],[ind1,ind2+1])
                             resultDisplay.update()
                         }
                     }

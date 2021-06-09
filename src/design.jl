@@ -223,7 +223,7 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
     return ind
 end
 
-function get_topology_main(model_data::Model_data)
+function get_topology_main(model_data::ModelData)
     layers = model_data.layers
     types = [layers[i]["type"] for i = 1:length(layers)]
     connections = Vector{Array{Vector{Int64}}}(undef,0)
@@ -299,7 +299,7 @@ function getbranch(layer_params,in_size)
     return layer,in_size
 end
 
-function make_model_main(model_data::Model_data)
+function make_model_main(model_data::ModelData)
     layers_arranged,_ = get_topology()
     if layers_arranged isa String
         return @info "not supported"

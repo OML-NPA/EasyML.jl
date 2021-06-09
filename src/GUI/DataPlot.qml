@@ -21,6 +21,7 @@ ApplicationWindow {
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
+    property double defaultPixelSize: 33*pix
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
@@ -247,7 +248,7 @@ ApplicationWindow {
                         onActivated: {
                         }
                         Component.onCompleted: {
-                            var folders = Julia.get_data(["Training_data","foldernames"])
+                            var folders = Julia.get_data(["TrainingData","foldernames"])
                             if (folders[0]===""){
                                 folderRow.visible = false
                             }
@@ -276,8 +277,8 @@ ApplicationWindow {
                         onActivated: {
                             var folderInd = folderComboBox.currentIndex+1
                             var fileInd = fileComboBox.currentIndex+1
-                            var ind = Julia.get_data(["Training_data","fileindices"],[folderInd,fileInd])
-                            var url = Julia.get_data(["Training_data","url_input"],[ind])
+                            var ind = Julia.get_data(["TrainingData","fileindices"],[folderInd,fileInd])
+                            var url = Julia.get_data(["TrainingData","url_input"],[ind])
                             var size = Julia.import_image(url)
                                 imagetransferCanvas.height = size[0]
                                 imagetransferCanvas.width = size[1]
@@ -286,7 +287,7 @@ ApplicationWindow {
                                                            originalDisplay.source = result.url
                                                        });
                             function upd() {
-                                url = Julia.get_data(["Training_data","url_label"],[ind])
+                                url = Julia.get_data(["TrainingData","url_label"],[ind])
                                 Julia.import_image(url)
                                 imagetransferCanvas.height = size[0]
                                 imagetransferCanvas.width = size[1]
@@ -299,7 +300,7 @@ ApplicationWindow {
                             sizechangeTimer.running = true
                         }
                         Component.onCompleted: {
-                            var files = Julia.get_data(["Training_data",
+                            var files = Julia.get_data(["TrainingData",
                                 "filenames"])[folderComboBox.currentIndex]
                             for (var i=0;i<files.length;i++) {
                                 fileselectModel.append(
