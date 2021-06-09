@@ -42,7 +42,7 @@ T.Button {
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignLeft
             leftPadding: horizontal ? 0 : tabmargin
-            font.pixelSize: 33*pix
+            font.pixelSize: defaultPixelSize
             Component.onCompleted: {
                 if (horizontal) {
                     var text_width = fontMetrics.advanceWidth(text)*pix

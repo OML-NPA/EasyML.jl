@@ -25,6 +25,7 @@ ApplicationWindow {
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
+    property double defaultPixelSize: 33*pix
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),
@@ -168,14 +169,14 @@ ApplicationWindow {
                                     id: accuracyAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pixelSize: 33*pix*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*10/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: accuracyAxisY
-                                    labelsFont.pixelSize: 33*pix*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*10/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 100
@@ -229,14 +230,14 @@ ApplicationWindow {
                                     id: lossAxisX
                                     min: 1
                                     max: 2
-                                    labelsFont.pixelSize: 33*pix*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*10/12
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
                                 }
                             ValueAxis {
                                     id: lossAxisY
-                                    labelsFont.pixelSize: 33*pix*10/12
+                                    labelsFont.pixelSize: defaultPixelSize*10/12
                                     tickInterval: 0.1
                                     min: 0
                                     max: 0.01

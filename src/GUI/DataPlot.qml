@@ -21,6 +21,7 @@ ApplicationWindow {
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
     property double buttonHeight: 65*pix
+    property double defaultPixelSize: 33*pix
     property var defaultcolors: {"light": rgbtohtml([254,254,254]),"light2": rgbtohtml([253,253,253]),
         "midlight": rgbtohtml([245,245,245]),"midlight2": rgbtohtml([240,240,240]),
         "midlight3": rgbtohtml([235,235,235]),

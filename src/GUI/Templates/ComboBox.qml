@@ -19,7 +19,7 @@ T.ComboBox {
         palette.text: control.palette.text
         palette.highlightedText: control.palette.text
         font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
-        font.pixelSize: 33*pix
+        font.pixelSize: defaultPixelSize
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled
     }
@@ -40,7 +40,7 @@ T.ComboBox {
         validator: control.validator
 
         font.family: "Proxima Nova"//control.font.family
-        font.pixelSize: 33*pix
+        font.pixelSize: defaultPixelSize
         color: control.editable ? control.palette.text : control.palette.buttonText
         selectionColor: control.palette.highlight
         selectedTextColor: control.palette.highlightedText

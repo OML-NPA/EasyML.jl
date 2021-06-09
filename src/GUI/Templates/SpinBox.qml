@@ -64,7 +64,7 @@ T.SpinBox {
         z: 2*pix
         text: control.displayText
 
-        font.pixelSize: 33*pix
+        font.pixelSize: defaultPixelSize
         font.family: "Proxima Nova"
         color: control.palette.text
         selectionColor: control.palette.highlight
