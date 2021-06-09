@@ -76,7 +76,7 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
             labels_incl,border,border_thickness)
         data_label = convert(Array{Float32,3},label_bool)[:,:,:,:]
     else
-        data_label = Array{Float32,4}(undef,1,1)
+        data_label = Array{Float32,4}(undef,1,1,1,1)
     end
     return data_input,data_label,original
 end
@@ -131,7 +131,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     inds_border = findall(border)
     border_colors = labels_color_uint[findall(border)]
     labels_color_uint = vcat(labels_color_uint,border_colors,border_colors)
-    array_size = size(label_bool)
+    array_size = size(predicted_bool)
     num_feat = array_size[3]
     num_border = sum(border)
     if num_border>0
@@ -174,7 +174,7 @@ function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray
     return nothing
 end
 
-function process_output(predicted::AbstractArray{Float32},data_label::AbstractArray{Float32},
+function process_output(predicted::AbstractArray{Float32,4},data_label::AbstractArray{Float32,4},
         original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},validation::Validation,
         classes::Vector{ImageSegmentationClass},channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
