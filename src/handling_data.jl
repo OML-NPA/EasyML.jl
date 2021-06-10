@@ -558,8 +558,10 @@ end
 function get_problem_type()
     if settings.problem_type==:Classification
         return 0
-    elseif settings.problem_type==:Segmentation
+    elseif settings.problem_type==:Regression
         return 1
+    elseif settings.problem_type==:Segmentation
+        return 2
     end
 end
 

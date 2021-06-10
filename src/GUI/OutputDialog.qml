@@ -60,6 +60,12 @@ ApplicationWindow {
                 classModel.append(class_var)
             }
             else if (problemType==1) {
+                var class_var = {
+                    "name": Julia.get_class_field(ind,"name")
+                }
+                classModel.append(class_var)
+            }
+            else if (problemType==2) {
                 var color = Julia.get_class_field(ind,"color")
                 class_var = {
                     "name": Julia.get_class_field(ind,"name"),
@@ -183,6 +189,9 @@ ApplicationWindow {
 
                             }
                             else if (problemType==1) {
+
+                            }
+                            else if (problemType==2) {
                                 outputmaskCheckBox.checkState = Julia.get_output(["Mask",
                                     "mask"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 if (Julia.get_class_field(indTree+1,"border")) {
@@ -241,6 +250,9 @@ ApplicationWindow {
 
                             }
                             else if (problemType==1) {
+
+                            }
+                            else if (problemType==2) {
                                 areadistributionCheckBox.checkState = Julia.get_output(["Area",
                                     "area_distribution"], indTree+1) ? Qt.Checked : Qt.Unchecked
                                 objareaCheckBox.checkState = Julia.get_output(["Area","obj_area"],
@@ -398,6 +410,9 @@ ApplicationWindow {
 
                             }
                             else if (problemType==1) {
+
+                            }
+                            else if (problemType==2) {
                                 volumedistributionCheckBox.checkState = Julia.get_output(["Volume",
                                     "volume_distribution"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 objvolumeCheckBox.checkState = Julia.get_output(["Volume","obj_volume"],

@@ -63,6 +63,8 @@ function modify_output()
     end
     if settings.problem_type==:Classification
         @info "Classification has no output to modify."
+    elseif settings.problem_type==:Regression
+        @info "Regression has no output to modify."
     elseif settings.problem_type==:Segmentation
         @qmlfunction(
             save_model,
