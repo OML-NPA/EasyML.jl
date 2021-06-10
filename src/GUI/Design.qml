@@ -581,9 +581,9 @@ Component.onCompleted: {
                                                           inputnum: 1
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "Flattening"
+                                                          type: "Flatten"
                                                           group: "resizing"
-                                                          name: "flattening"
+                                                          name: "flatten"
                                                           colorR: 180
                                                           colorG: 180
                                                           colorB: 180
@@ -3175,7 +3175,7 @@ Component.onCompleted: {
             property string type
             property var group: null
             property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"neurons": "32"}
+            property var datastore: { "name": name, "type": type, "group": group,"filters": "32"}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3208,7 +3208,7 @@ Component.onCompleted: {
                     Layout.topMargin: 0.22*margin
                     spacing: 0.24*margin
                     Repeater {
-                        model: ["Name","Neurons"]
+                        model: ["Name","Filters"]
                         Label {
                             text: modelData+": "
                             topPadding: 4*pix
@@ -3229,12 +3229,12 @@ Component.onCompleted: {
                         }
                     }
                     TextField {
-                        text: datastore.neurons
+                        text: datastore.filters
                         defaultHeight: 0.75*buttonHeight
                         defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.neurons = displayText
+                            unit.datastore.filters = displayText
                         }
                     }
                 }
