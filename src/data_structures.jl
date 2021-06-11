@@ -125,14 +125,16 @@ training_results_data = TrainingResultsData()
     data_labels::Vector{Int32} = Vector{BitArray{3}}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     labels::Vector{String} = Vector{String}(undef,0)
+    filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
 end
 classification_data = ClassificationData()
 
 @with_kw mutable struct RegressionData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
-    input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
+    input_urls::Vector{String} = Vector{String}(undef,0)
     labels_url::String = ""
+    filenames::Vector{String} = Vector{String}(undef,0)
 end
 regression_data = RegressionData()
 

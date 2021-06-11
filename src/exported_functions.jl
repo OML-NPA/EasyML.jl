@@ -90,9 +90,16 @@ function get_urls_training(input_dir::String,label_dir::String)
         @error string(input_dir," does not exist.")
         return nothing
     end
-    if !isdir(label_dir)
-        @error string(label_dir," does not exist.")
-        return nothing
+    if settings.problem_type==:Classification || settings.problem_type==:Segmentation
+        if !isdir(label_dir)
+            @error string(label_dir," does not exist.")
+            return nothing
+        end
+    else
+        if !isfile(label_dir)
+            @error string(label_dir," does not exist.")
+            return nothing
+        end
     end
     get_urls_training_main(training,training_data,model_data)
     return nothing
@@ -164,23 +171,40 @@ function prepare_training_data()
         @error "Empty classes."
         return nothing
     end
-    if settings.problem_type==:Classification && settings.input_type==:Image
-        empty!(training_data.ClassificationData.data_input)
-        empty!(training_data.ClassificationData.data_labels)
-        empty!(training_data.SegmentationData.input_urls)
-        empty!(training_data.SegmentationData.label_urls)
-        if isempty(training_data.ClassificationData.input_urls)
-            @error "No input urls. Run 'get_urls_training'."
-            return nothing
-        end
-    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-        empty!(training_data.SegmentationData.data_input)
-        empty!(training_data.SegmentationData.data_labels)
-        empty!(training_data.ClassificationData.input_urls)
-        empty!(training_data.ClassificationData.labels)
-        if isempty(training_data.SegmentationData.input_urls)
-            @error "No input urls. Run 'get_urls_training'."
-            return nothing
+    if settings.input_type==:Image
+        if settings.problem_type==:Classification 
+            empty!(training_data.ClassificationData.data_input)
+            empty!(training_data.ClassificationData.data_labels)
+            empty!(training_data.SegmentationData.input_urls)
+            empty!(training_data.SegmentationData.label_urls)
+            empty!(training_data.RegressionData.input_urls)
+            empty!(training_data.RegressionData.labels_url)
+            if isempty(training_data.ClassificationData.input_urls)
+                @error "No input urls. Run 'get_urls_training'."
+                return nothing
+            end
+        elseif settings.problem_type==:Regression
+            empty!(training_data.RegressionData.data_input)
+            empty!(training_data.RegressionData.data_labels)
+            empty!(training_data.ClassificationData.input_urls)
+            empty!(training_data.ClassificationData.labels)
+            empty!(training_data.SegmentationData.input_urls)
+            empty!(training_data.SegmentationData.label_urls)
+            if isempty(training_data.RegressionData.input_urls)
+                @error "No input urls. Run 'get_urls_training'."
+                return nothing
+            end
+        elseif settings.problem_type==:Segmentation
+            empty!(training_data.SegmentationData.data_input)
+            empty!(training_data.SegmentationData.data_labels)
+            empty!(training_data.ClassificationData.input_urls)
+            empty!(training_data.ClassificationData.labels)
+            empty!(training_data.RegressionData.input_urls)
+            empty!(training_data.RegressionData.labels_url)
+            if isempty(training_data.SegmentationData.input_urls)
+                @error "No input urls. Run 'get_urls_training'."
+                return nothing
+            end
         end
     end
 

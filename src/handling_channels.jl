@@ -47,14 +47,17 @@ get_progress(field) = get_progress_main(channels,field)
 function get_results_main(channels::Channels,all_data::AllData,
         model_data::ModelData,field)
     field::String = fix_QML_types(field)
-    classes = model_data.classes
     if field=="Training data preparation"
         if isready(channels.training_data_results)
-            data = take!(channels.training_data_results)
+            data = take!(EasyML.channels.training_data_results)
             if settings.problem_type==:Classification
                 classification_data = all_data.TrainingData.ClassificationData
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
+            elseif settings.problem_type==:Regression
+                regression_data = all_data.TrainingData.RegressionData
+                regression_data.data_input = data[1]
+                regression_data.data_labels = data[2]
             elseif settings.problem_type==:Segmentation
                 segmentation_data = all_data.TrainingData.SegmentationData
                 segmentation_data.data_input = data[1]

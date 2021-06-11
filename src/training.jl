@@ -6,9 +6,14 @@ function get_urls_training_main(training::Training,training_data::TrainingData,
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type==:Classification
-        input_urls,dirs = get_urls1(training,allowed_ext)
+        input_urls,dirs,_ = get_urls1(training,allowed_ext)
         training_data.ClassificationData.input_urls = input_urls
         training_data.ClassificationData.labels = dirs
+    elseif settings.problem_type==:Regression
+        input_urls,_,filenames = get_urls1(training,allowed_ext)
+        training_data.RegressionData.input_urls = reduce(vcat,input_urls)
+        training_data.RegressionData.labels_url = training.label_dir
+        training_data.RegressionData.filenames = reduce(vcat,filenames)
     elseif settings.problem_type==:Segmentation
         input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
         training_data.SegmentationData.input_urls = reduce(vcat,input_urls)
@@ -142,9 +147,9 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
 end
 
 # Prepare data for training
-function prepare_training_data_classification(classification_data::ClassificationData,
-        classes::Vector{ImageClassificationClass},options::TrainingOptions,
-        size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
+function prepare_training_data(classification_data::ClassificationData,
+        model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
+        progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
     urls = classification_data.input_urls
     # Get number of images
@@ -172,10 +177,14 @@ function prepare_training_data_classification(classification_data::Classificatio
             end
             # Get a current image
             img = current_imgs[l]
-            # Convert to grayscale
-            float_img = image_to_gray_float(img)
+            # Convert to float
+            if options.Processing.grayscale
+                img = image_to_gray_float(img)
+            else
+                img = image_to_color_float(img)
+            end
             # Augment images
-            data = augment(float_img,size12,num_angles)
+            data = augment(img,size12,num_angles)
             data_input_temp[l] = data
             data_label_temp[l] = label*ones(Int32,length(data))
         end
@@ -196,9 +205,67 @@ function prepare_training_data_classification(classification_data::Classificatio
     return nothing
 end
 
-function prepare_training_data_segmentation(segmentation_data::SegmentationData,
-        classes::Vector{ImageSegmentationClass},options::TrainingOptions,
+function prepare_training_data(regression_data::RegressionData,
+        model_data::ModelData,options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
+    input_size = model_data.input_size
+    num_angles = options.Processing.num_angles
+    urls = regression_data.input_urls
+    filenames_inputs = regression_data.filenames
+    # Get number of images
+    num = length(urls)
+    # Return progress target value
+    put!(progress, num+2)
+    # Load images
+    imgs = load_images(urls)
+    put!(progress, 1)
+    # Load labels
+    labels_info = DataFrame(FileIO.load(regression_data.labels_url))
+    filenames_labels = labels_info[:,1]
+    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
+    loaded_labels = convert(Vector{Vector{Float32}},labels_original_T)
+    # Initialize accumulators
+    data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
+    data_label = Vector{Vector{Vector{Float32}}}(undef,num)
+    for k = 1:num # @floop ThreadedEx() 
+    # Abort if requested
+        if isready(channels.training_data_modifiers)
+            if fetch(channels.training_data_modifiers)[1]=="stop"
+                return nothing
+            end
+        end
+        filename = filenames_inputs[k]
+        if filename in filenames_labels
+            # Get a current image
+            img = imgs[k]
+            img = imresize(img,input_size[1:2])
+            # Convert to float
+            if options.Processing.grayscale
+                img = image_to_gray_float(img)
+            else
+                img = image_to_color_float(img)
+            end
+            # Augment images
+            data_input[k] = augment(img,size12,num_angles)
+            data_label[k] = repeat([loaded_labels[k]],length(data_input[k]))
+        end
+        # Return progress
+        put!(progress, 1)
+    end
+    # Flatten input images and labels array
+    data_input_flat = reduce(vcat,data_input)
+    data_label_flat = reduce(vcat,data_label)
+    # Return results
+    put!(results, (data_input_flat,data_label_flat))
+    # Return progress
+    put!(progress, 1)
+    return nothing
+end
+
+function prepare_training_data(segmentation_data::SegmentationData,
+        model_data::ModelData,options::TrainingOptions,
+        size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
+    classes = model_data.classes
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
     input_urls = segmentation_data.input_urls
@@ -227,6 +294,7 @@ function prepare_training_data_segmentation(segmentation_data::SegmentationData,
         # Get current images
         img = imgs[k]
         labelimg = labels[k]
+        # Convert to float
         if options.Processing.grayscale
             img = image_to_gray_float(img)
         else
@@ -257,17 +325,16 @@ end
 function prepare_training_data_main(training::Training,training_data::TrainingData,
     model_data::ModelData,progress::Channel,results::Channel)
     # Initialize
-    classes = model_data.classes
     options = training.Options
     size12 = model_data.input_size[1:2]
-    if classes isa Vector{ImageClassificationClass}
-        prepare_training_data_classification(classification_data,classes,options,
-            size12,progress,results)
-    elseif classes isa Vector{ImageSegmentationClass}
-        segmentation_data = training_data.SegmentationData
-        prepare_training_data_segmentation(segmentation_data,classes,options,
-            size12,progress,results)
+    if settings.problem_type==:Classification
+        data = training_data.ClassificationData
+    elseif settings.problem_type==:Regression
+        data = training_data.RegressionData
+    elseif settings.problem_type==:Segmentation
+        data = training_data.SegmentationData
     end
+    prepare_training_data(data,model_data,options,size12,progress,results)
     return nothing
 end
 

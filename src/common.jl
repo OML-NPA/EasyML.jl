@@ -3,6 +3,7 @@
 function get_urls1(settings::Union{Training,Validation,Application},allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
+    filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
     # Get directories containing data and labels
@@ -29,13 +30,14 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
         for l = 1:length(files_input)
             push!(input_urls_temp,string(input_dir,"/",dir,"/",files_input[l]))
         end
+        push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
         url_split = split(input_dir,"/")
         dirs = [url_split[end]]
     end
-    return input_urls,dirs
+    return input_urls,dirs,filenames
 end
 
 # Get urls of files in selected folders. Requires data and labels
