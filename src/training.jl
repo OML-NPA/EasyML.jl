@@ -176,12 +176,12 @@ function prepare_training_data(classification_data::ClassificationData,
                 end
             end
             # Get a current image
-            img = current_imgs[l]
+            img_raw = current_imgs[l]
             # Convert to float
             if options.Processing.grayscale
-                img = image_to_gray_float(img)
+                img = image_to_gray_float(img_raw)
             else
-                img = image_to_color_float(img)
+                img = image_to_color_float(img_raw)
             end
             # Augment images
             data = augment(img,size12,num_angles)
@@ -216,39 +216,58 @@ function prepare_training_data(regression_data::RegressionData,
     num = length(urls)
     # Return progress target value
     put!(progress, num+2)
+    # Load labels
+    labels_info = DataFrame(CSVFiles.load(regression_data.labels_url))
+    filenames_labels::Vector{String} = labels_info[:,1]
+    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
+    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
+    # Remove if no corresponding label
+    inds_adj = zeros(Int64,num)
+    cnt = 1
+    l = length(filenames_inputs)
+    while cnt<=l
+        filename = filenames_inputs[cnt]
+        ind = findfirst(x -> x==filename, filenames_labels)
+        if isnothing(ind)
+            deleteat!(urls,cnt)
+            deleteat!(filenames_inputs,cnt)
+            l-=1
+        else
+            inds_adj[cnt] = ind
+            cnt += 1
+        end
+    end
+    num = cnt - 1
+    inds_adj = inds_adj[1:num]
     # Load images
     imgs = load_images(urls)
     put!(progress, 1)
-    # Load labels
-    labels_info = DataFrame(FileIO.load(regression_data.labels_url))
-    filenames_labels = labels_info[:,1]
-    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
-    loaded_labels = convert(Vector{Vector{Float32}},labels_original_T)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
-    for k = 1:num # @floop ThreadedEx() 
-    # Abort if requested
+    for k = 1:num #@floop ThreadedEx() 
+        # Abort if requested
         if isready(channels.training_data_modifiers)
             if fetch(channels.training_data_modifiers)[1]=="stop"
                 return nothing
             end
         end
-        filename = filenames_inputs[k]
-        if filename in filenames_labels
-            # Get a current image
-            img = imgs[k]
-            img = imresize(img,input_size[1:2])
-            # Convert to float
-            if options.Processing.grayscale
-                img = image_to_gray_float(img)
-            else
-                img = image_to_color_float(img)
-            end
-            # Augment images
-            data_input[k] = augment(img,size12,num_angles)
-            data_label[k] = repeat([loaded_labels[k]],length(data_input[k]))
+        # Get a current image
+        img_raw = imgs[k]
+        img_raw = imresize(img_raw,input_size[1:2])
+        # Get current label
+        label = loaded_labels[inds_adj[k]]
+        # Convert to float
+        if options.Processing.grayscale
+            img = image_to_gray_float(img_raw)
+        else
+            img = image_to_color_float(img_raw)
         end
+        # Augment images
+        temp_input = augment(img,size12,num_angles)
+        temp_label = repeat([label],length(temp_input))
+        data_input[k] = temp_input
+        data_label[k] = temp_label
         # Return progress
         put!(progress, 1)
     end
@@ -282,7 +301,6 @@ function prepare_training_data(segmentation_data::SegmentationData,
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
-    tasks = []
     # Make input images
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
@@ -292,13 +310,13 @@ function prepare_training_data(segmentation_data::SegmentationData,
             end
         end
         # Get current images
-        img = imgs[k]
+        img_raw = imgs[k]
         labelimg = labels[k]
         # Convert to float
         if options.Processing.grayscale
-            img = image_to_gray_float(img)
+            img = image_to_gray_float(img_raw)
         else
-            img = image_to_color_float(img)
+            img = image_to_color_float(img_raw)
         end
         # Crope to remove black background
         # img,label = correct_view(img,label)
@@ -311,7 +329,6 @@ function prepare_training_data(segmentation_data::SegmentationData,
         # Return progress
         put!(progress, 1)
     end
-    wait.(tasks)
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
@@ -322,8 +339,11 @@ function prepare_training_data(segmentation_data::SegmentationData,
     return nothing
 end
 
+# Wrapper allowing for remote execution
 function prepare_training_data_main(training::Training,training_data::TrainingData,
-    model_data::ModelData,progress::Channel,results::Channel)
+        model_data::ModelData,channels::Channels)
+    progress = channels.training_data_progress
+    results = channels.training_data_results
     # Initialize
     options = training.Options
     size12 = model_data.input_size[1:2]
@@ -334,24 +354,15 @@ function prepare_training_data_main(training::Training,training_data::TrainingDa
     elseif settings.problem_type==:Segmentation
         data = training_data.SegmentationData
     end
-    prepare_training_data(data,model_data,options,size12,progress,results)
+    t = Threads.@spawn prepare_training_data(data,model_data,options,size12,progress,results)
     return nothing
-end
-
-# Wrapper allowing for remote execution
-function prepare_training_data_main2(training::Training,training_data::TrainingData,
-    model_data::ModelData,progress::Channel,results::Channel)
-    #@everywhere training,training_data,model_data
-    #remote_do(prepare_training_data_main,workers()[end],training,training_data,
-    #model_data,progress,results)
-    Threads.@spawn prepare_training_data_main(training,training_data,
-    model_data,progress,results)
 end
 #prepare_training_data() = prepare_training_data_main2(training,training_data,
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
-function get_train_test(data::Union{ClassificationData,SegmentationData},training::Training)
+function get_train_test(data::Union{ClassificationData,RegressionData,SegmentationData},
+        training::Training)
     # Get inputs and labels
     data_input = data.data_input
     data_labels = data.data_labels
@@ -404,6 +415,25 @@ function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector
     current_labels_cat = reduce(cat4,current_labels)
     # Form a minibatch
     minibatch = (current_input_cat,current_labels_cat)
+    return minibatch
+end
+
+function make_minibatch(data_input::Vector{Array{Float32,3}},data_labels::Vector{Vector{Float32}},
+        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        inds_all::Vector{Int64},i::Int64)
+    ind = inds_start[i]
+    # First and last minibatch indices
+    ind1 = ind+1
+    ind2 = ind+batch_size
+    # Get inputs and labels
+    current_inds = inds_all[ind1:ind2]
+    current_input = data_input[current_inds]
+    current_labels = data_labels[current_inds]
+    # Catenating inputs and labels
+    input_cat = reduce(cat4,current_input)[:,:,:,:]
+    labels_cat = reduce(hcat,current_labels)
+    # Form a minibatch
+    minibatch = (input_cat,labels_cat)
     return minibatch
 end
 
@@ -656,13 +686,13 @@ end
 
 
 # Training on GPU
-function training_part_GPU(model_data,model_name,opt,accuracy,loss,
+function training_part_GPU(model_data,model_name,opt,accuracy,loss,output_N,
         accuracy_vector,loss_vector,counter,accuracy_test_vector,
         loss_test_vector,iteration_test_vector,counter_test,num_test,epochs,num,
         max_iterations,testing_frequency,allow_lr_change,composite,
         run_test,minibatch_channel,minibatch_test_channel,channels,abort)
     local loss_val::Float32
-    local predicted::CuArray{Float32,4}
+    local predicted::CuArray{Float32,output_N}
     epoch_idx = 1
     # Prepare model
     model = model_data.model
@@ -670,7 +700,7 @@ function training_part_GPU(model_data,model_name,opt,accuracy,loss,
     while epoch_idx<=epochs[]
         for i=1:num
             # Prepare training data
-            local minibatch_data::Tuple{Array{Float32,4},Array{Float32,4}}
+            local minibatch_data::Tuple{Array{Float32,4},Array{Float32,output_N}}
             while true
                 # Update parameters or abort if needed
                 if isready(channels.training_modifiers)
@@ -753,8 +783,9 @@ end
 
 function train!(model_data::ModelData,training_data::TrainingData,training::Training,
         args::HyperparametersTraining,opt,accuracy::Function,loss::Function,
-        train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
-        use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},T2<:Union{Vector{BitArray{3}},Vector{Int32}}}
+        output_N::Int64,train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},
+        testing_times::Float64,use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},
+        T2<:Union{Vector{BitArray{3}},Vector{Int32},Vector{Vector{Float32}}}}
     # Initialize constants
     epochs = Threads.Atomic{Int64}(args.epochs)
     batch_size = args.batch_size
@@ -791,14 +822,14 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
         push!(max_labels,(1:length(training_data.ClassificationData.labels))...)
     end
     # Make channels
-    minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
-    minibatch_test_channel = Channel{Tuple{Array{Float32,4},Array{Float32,4}}}(Inf)
+    minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
+    minibatch_test_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
     # Data preparation thread
     Threads.@spawn minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
         inds_all,counter,run_test,data_input_test,data_labels_test,inds_start_test,
         inds_all_test,counter_test,batch_size,minibatch_channel,minibatch_test_channel,abort)
     # Training thread
-    inputs = (model_data,model_name,opt,accuracy,loss,accuracy_vector,
+    inputs = (model_data,model_name,opt,accuracy,loss,output_N,accuracy_vector,
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
         counter_test,num_test,epochs,num,max_iterations,testing_frequency,allow_lr_change,composite,
         run_test,minibatch_channel,minibatch_test_channel,channels,abort)
@@ -846,6 +877,23 @@ function test_GPU(model::Chain,accuracy::Function,loss::Function,
     return data
 end
 
+function get_output_N(model_data::ModelData)
+    input = ones(Float32,model_data.input_size...,2)
+    output = model_data.model(input)
+    return length(size(output))
+end
+
+function get_data_struct(training_data::TrainingData)
+    if settings.problem_type==:Classification
+        data = training_data.ClassificationData
+    elseif settings.problem_type==:Regression
+        data = training_data.RegressionData
+    elseif settings.problem_type==:Segmentation
+        data = training_data.SegmentationData
+    end
+    return data
+end
+
 # Main training function
 function train_main(settings::Settings,training_data::TrainingData,
         model_data::ModelData,channels::Channels)
@@ -865,28 +913,18 @@ function train_main(settings::Settings,training_data::TrainingData,
         end
     end
     reset_training_data(training_plot_data,training_results_data)
+    output_N = get_output_N(model_data::ModelData)
     # Preparing train and test sets
-    if settings.problem_type==:Classification && settings.input_type==:Image
-        train_set, test_set = get_train_test(training_data.ClassificationData,training)
-    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-        train_set, test_set = get_train_test(training_data.SegmentationData,training)
-    end
+    data = get_data_struct(training_data)
+    train_set, test_set = get_train_test(data,training)
     # Setting functions and parameters
     opt = get_optimiser(training)
     accuracy = get_accuracy_func(training)
     loss = model_data.loss
     testing_times = training_options.General.testing_frequency
-    # Check whether user wants to abort
-    if isready(channels.training_modifiers)
-        stop_cond::String = fetch(channels.training_modifiers)[1]
-        if stop_cond=="stop"
-            take!(channels.training_modifiers)
-            return nothing
-        end
-    end
     # Run training
     data = train!(model_data,training_data,training,args,opt,accuracy,loss,
-        train_set,test_set,testing_times,use_GPU,channels)
+        output_N,train_set,test_set,testing_times,use_GPU,channels)
     # Clean up
     clean_up_training(training_plot_data)
     # Return training results

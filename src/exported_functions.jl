@@ -208,8 +208,7 @@ function prepare_training_data()
         end
     end
 
-    prepare_training_data_main2(training,training_data,model_data,
-        channels.training_data_progress,channels.training_data_results)
+    prepare_training_data_main(training,training_data,model_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
@@ -234,7 +233,7 @@ function prepare_training_data()
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value
-                    p.n = convert(Int64,max_value)
+                    p.n = max_value
                 else
                     break
                     @error "No data to process."
@@ -252,9 +251,11 @@ function remove_training_data()
     for i in fields
         empty!(getfield(classification_data,i))
     end
-    fields = [:data_input,:data_labels]
     for i in fields
         empty!(getfield(segmentation_data,i))
+    end
+    for i in fields
+        empty!(getfield(regression_data,i))
     end
     return nothing
 end
@@ -298,13 +299,17 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if settings.problem_type==:Classification && settings.input_type==:Image
+    if settings.problem_type==:Classification
         @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
         training.Options.General.weight_accuracy = false
+    elseif settings.problem_type==:Regression
+        @warn "Weighted accuracy cannot be used for regression. Using regular accuracy."
+        training.Options.General.weight_accuracy = false
     end
-    train_main2(settings,training_data,model_data,channels)
+    #train_main2(settings,training_data,model_data,channels)
+    train_main(settings,training_data,model_data,channels)
     # Launches GUI
-    @qmlfunction(
+    #=@qmlfunction(
         # Data handling
         get_settings,
         get_results,
@@ -327,7 +332,7 @@ function train()
             return training_results_data
         end
         sleep(1)
-    end
+    end=#
     return nothing
 end
 

@@ -2,20 +2,20 @@
 #---Channels
 # 
 @with_kw struct Channels
-    training_data_progress::Channel = Channel{Float32}(Inf)
+    training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
     training_data_modifiers::Channel = Channel{Any}(Inf)
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Any}(Inf)
-    validation_data_progress::Channel = Channel{Float32}(Inf)
+    validation_data_progress::Channel = Channel{Int64}(Inf)
     validation_data_results::Channel = Channel{Any}(Inf)
     validation_data_modifiers::Channel = Channel{Any}(Inf)
     validation_progress::Channel = Channel{Any}(Inf)
     validation_results::Channel = Channel{Any}(Inf)
     validation_modifiers::Channel = Channel{Any}(Inf)
     training_labels_colors::Channel = Channel{Any}(Inf)
-    application_data_progress::Channel = Channel{Any}(Inf)
+    application_data_progress::Channel = Channel{Int64}(Inf)
     application_data_results::Channel = Channel{Any}(Inf)
     application_progress::Channel = Channel{Any}(Inf)
     application_modifiers::Channel = Channel{Any}(Inf)
