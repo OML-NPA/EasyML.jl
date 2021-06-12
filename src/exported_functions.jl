@@ -178,7 +178,6 @@ function prepare_training_data()
             empty!(training_data.SegmentationData.input_urls)
             empty!(training_data.SegmentationData.label_urls)
             empty!(training_data.RegressionData.input_urls)
-            empty!(training_data.RegressionData.labels_url)
             if isempty(training_data.ClassificationData.input_urls)
                 @error "No input urls. Run 'get_urls_training'."
                 return nothing
@@ -200,7 +199,6 @@ function prepare_training_data()
             empty!(training_data.ClassificationData.input_urls)
             empty!(training_data.ClassificationData.labels)
             empty!(training_data.RegressionData.input_urls)
-            empty!(training_data.RegressionData.labels_url)
             if isempty(training_data.SegmentationData.input_urls)
                 @error "No input urls. Run 'get_urls_training'."
                 return nothing
@@ -307,9 +305,9 @@ function train()
         training.Options.General.weight_accuracy = false
     end
     #train_main2(settings,training_data,model_data,channels)
-    train_main(settings,training_data,model_data,channels)
+    train_main2(settings,training_data,model_data,channels)
     # Launches GUI
-    #=@qmlfunction(
+    @qmlfunction(
         # Data handling
         get_settings,
         get_results,
@@ -332,7 +330,7 @@ function train()
             return training_results_data
         end
         sleep(1)
-    end=#
+    end
     return nothing
 end
 
