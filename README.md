@@ -28,7 +28,7 @@ and then write
 #### Model creation
 A struct named `model_data` is exported.
 
-- `input_size::Tuple{Int64,Int64,Int64}`: input size during training.
+- `input_size::Tuple{Int64,Int64,Int64}`: model input size.
 
 - `model::Chain`: Flux.jl model.
 
