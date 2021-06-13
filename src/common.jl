@@ -302,18 +302,6 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
 end
 
 #---
-# Accuracy based on RMSE
-function accuracy_regular(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
-    # Convert to BitArray
-    actual_bool = actual.>0
-    predicted_bool = predicted.>0.5
-    # Calculate accuracy
-    correct_bool = predicted_bool .& actual_bool
-    num_correct = sum(correct_bool)
-    acc = num_correct/prod(size(predicted)[1:2])
-    return convert(Float32,acc)
-end
-
 function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
     acc = Vector{Float32}(undef,0)
     for i in 1:size(predicted,4)
@@ -328,8 +316,30 @@ function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:Ab
     return mean(acc)
 end
 
-# Weight accuracy using inverse frequency (CPU)
-function accuracy_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+    err = abs.(actual .- predicted)
+    err_relative = mean(err./actual)
+    if err_relative>0.5f0
+        acc = 0.25f0/err_relative
+    else
+        acc = 1f0 - err_relative
+    end
+    return acc
+end
+
+function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+    # Convert to BitArray
+    actual_bool = actual.>0
+    predicted_bool = predicted.>0.5
+    # Calculate accuracy
+    correct_bool = predicted_bool .& actual_bool
+    num_correct = convert(Float32,sum(correct_bool))
+    acc = num_correct/prod(size(predicted)[1:2])
+    return acc
+end
+
+# Weight accuracy using inverse frequency
+function accuracy_segmentation_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
     # Get input dimensions
     array_size = size(actual)
     array_size12 = array_size[1:2]
@@ -442,11 +452,13 @@ end
 function get_accuracy_func(training::Training)
     if settings.problem_type==:Classification
         return accuracy_classification
-    else
+    elseif settings.problem_type==:Regression
+        return accuracy_regression
+    elseif settings.problem_type==:Segmentation
         if training.Options.General.weight_accuracy
-            return accuracy_weighted
+            return accuracy_segmentation_weighted
         else
-            return accuracy_regular
+            return accuracy_segmentation
         end
     end
 end

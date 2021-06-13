@@ -613,6 +613,9 @@ function load_model_main(settings,model_data,url)
     if model_data.classes isa Vector{ImageClassificationClass}
         settings.input_type = :Image
         settings.problem_type = :Classification
+    elseif model_data.classes isa Vector{ImageRegressionClass}
+        settings.input_type = :Image
+        settings.problem_type = :Regression
     elseif model_data.classes isa Vector{ImageSegmentationClass}
         settings.input_type = :Image
         settings.problem_type = :Segmentation
