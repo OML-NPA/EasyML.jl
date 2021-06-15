@@ -726,7 +726,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     model_name = string("models/",training.name,".model")
-    output_N = get_output_N(model_data)
+    output_N = model_data.output_size + 1
     # Initialize data
     data_input = train_set[1]
     data_labels = train_set[2]
@@ -797,12 +797,6 @@ function test_GPU(model::Chain,accuracy::Function,loss::Function,
     end
     data = [mean(test_accuracy),mean(test_loss)]
     return data
-end
-
-function get_output_N(model_data::ModelData)
-    input = ones(Float32,model_data.input_size...,2)
-    output = model_data.model(input)
-    return length(size(output))
 end
 
 function get_data_struct(training_data::TrainingData)

@@ -355,6 +355,20 @@ function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:Ab
     return mean(acc)
 end
 
+function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
+    acc = Vector{Float32}(undef,0)
+    for i in 1:size(predicted,2)
+        _ , actual_ind = findmax(actual[1,i])
+        _ , predicted_ind = findmax(predicted[1,i])
+        if actual_ind==predicted_ind
+            push!(acc,1)
+        else
+            push!(acc,0)
+        end
+    end
+    return mean(acc)
+end
+
 function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     err = abs.(actual .- predicted)
     err_relative = mean(err./actual)
