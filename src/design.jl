@@ -321,6 +321,10 @@ function make_model_main(model_data::ModelData)
         input = zeros(Float32,in_size...,1)
         out_size = size(model(input))
         model_data.output_size = out_size[1:end-1]
+        if settings.problem_type==:Classification && out_size!=1
+            @warning "Use flatten before an output. Otherwise, the 
+                model will not function correctly."
+        end
     catch
         return false
     end

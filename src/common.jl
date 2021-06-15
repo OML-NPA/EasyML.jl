@@ -341,20 +341,6 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
 end
 
 #---
-function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
-    acc = Vector{Float32}(undef,0)
-    for i in 1:size(predicted,4)
-        _ , actual_ind = findmax(actual[1,1,:,i])
-        _ , predicted_ind = findmax(predicted[1,1,:,i])
-        if actual_ind==predicted_ind
-            push!(acc,1)
-        else
-            push!(acc,0)
-        end
-    end
-    return mean(acc)
-end
-
 function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     acc = Vector{Float32}(undef,0)
     for i in 1:size(predicted,2)

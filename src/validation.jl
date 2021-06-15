@@ -66,9 +66,9 @@ function prepare_validation_data(model_data::ModelData,validation::Validation,va
         fill!(labels_temp,0)
         label_int = validation_data.labels_classification[ind]
         labels_temp[label_int] = 1
-        labels = reshape(labels_temp,1,1,:,1)
+        labels = reshape(labels_temp,:,1)
     else
-        labels = Array{Float32,4}(undef,0,0,0,0)
+        labels = Array{Float32,2}(undef,0,0)
     end
     return data_input,labels,original
 end
@@ -182,7 +182,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     return predicted_data,target_data,error_data
 end
 
-function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray{Float32,4},
+function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray{Float32,2},
         original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
         validation::Validation,classes::Vector{ImageClassificationClass},channels::Channels)
     class_names = map(x-> x.name,classes)
