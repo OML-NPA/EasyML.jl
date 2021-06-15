@@ -317,7 +317,14 @@ function make_model_main(model_data::ModelData)
         push!(model_layers,layer)
     end
     model_data.model = Chain(model_layers...)
-    return nothing
+    try
+        input = zeros(Float32,in_size...,1)
+        out_size = size(model(input))
+        model_data.output_size = out_size[1:end-1]
+    catch
+        return false
+    end
+    return true
 end
 make_model() = make_model_main(model_data)
 

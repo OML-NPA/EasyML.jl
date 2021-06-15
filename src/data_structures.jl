@@ -86,7 +86,8 @@ end
 end
 
 @with_kw mutable struct ModelData
-    input_size::Tuple{Int64,Int64,Int64} = (160,160,1)
+    input_size::Tuple{Int64,Int64,Int64} = (1,1,1)
+    output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
     model::Chain = Chain()
     layers::Vector{Dict{String,Any}} = []
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
