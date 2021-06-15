@@ -13,7 +13,43 @@ end
 #get_urls_application() =
 #    get_urls_application_main(application,application_data,model_data)
 
-function prepare_application_data(urls::Vector{String},processing::ProcessingTraining)
+function prepare_application_data(model_data::ModelData,classes::Vector{ImageClassificationClass},
+        urls::Vector{String},processing::ProcessingTraining)
+    num = length(urls)
+    data = Vector{Array{Float32,4}}(undef,length(urls))
+    for i = 1:num
+        url = urls[i]
+        image = load_image(url)
+        if processing.grayscale
+            data[i] = image_to_gray_float(image)[:,:,:,:]
+        else
+            data[i] = image_to_color_float(image)[:,:,:,:]
+        end
+    end
+    data_out = reduce(cat4,data)
+    return data_out
+end
+
+function prepare_application_data(model_data::ModelData,classes::Vector{ImageRegressionClass},
+        urls::Vector{String},processing::ProcessingTraining)
+    num = length(urls)
+    data = Vector{Array{Float32,4}}(undef,length(urls))
+    for i = 1:num
+        url = urls[i]
+        image = load_image(url)
+        image = imresize(image,model_data.input_size[1:2])
+        if processing.grayscale
+            data[i] = image_to_gray_float(image)[:,:,:,:]
+        else
+            data[i] = image_to_color_float(image)[:,:,:,:]
+        end
+    end
+    data_out = reduce(cat4,data)
+    return data_out
+end
+
+function prepare_application_data(model_data::ModelData,classes::Vector{ImageSegmentationClass},
+        urls::Vector{String},processing::ProcessingTraining)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -82,7 +118,7 @@ end
 
 function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
-        data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+        data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -97,7 +133,35 @@ function get_output(model_data::ModelData,processing::ProcessingTraining,num::In
                 end
             end
             # Get input
-            input_data = prepare_application_data(urls_batch[l],processing)
+            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
+            # Get output
+            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
+            predicted_labels = reshape(predicted,:)
+            # Return result
+            put!(data_channel,(l,predicted_labels))
+        end
+    end
+    return nothing
+end
+
+function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
+    urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
+    data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+    for k = 1:num
+        urls_batch = urls_batched[k]
+        num_batch = length(urls_batch)
+        for l = 1:num_batch
+            # Stop if asked
+            if isready(channels.application_modifiers)
+                stop_cond::String = fetch(channels.training_modifiers)[1]
+                if stop_cond=="stop"
+                    take!(channels.application_modifiers)
+                    Threads.atomic_xchg!(abort, true)
+                    return nothing
+                end
+            end
+            # Get input
+            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
             predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
             _, predicted_labels4 = findmax(predicted,dims=3)
@@ -143,7 +207,7 @@ function get_output(model_data::ModelData,processing::ProcessingTraining,num::In
                 return
             end
             # Get input
-            input_data = prepare_application_data(urls_batch[l],processing)
+            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Adjust input size if required to avoid incorrect size of output 
             input_data,change_size,s = adjust_size(input_data,model_data.input_size[1:2])
             # Get output
@@ -220,8 +284,8 @@ end
 
 function process_output(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
-        num_classes::Int64,img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,
-        apply_by_file::Bool,abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+        img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
+        abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     class_names = map(x -> x.name,classes)
     for k=1:num
         # Stop if asked
@@ -269,14 +333,69 @@ function process_output(classes::Vector{ImageClassificationClass},output_options
     return nothing
 end
 
+function process_output(classes::Vector{ImageRegressionClass},output_options::Vector{ImageRegressionOutputOptions},
+        savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
+        img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
+        abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
+    class_names = map(x -> x.name,classes)
+    for k=1:num
+        # Stop if asked
+        if abort[]==true
+            return nothing
+        end
+        folder = folders[k]
+        filenames_batch = filenames_batched[k]
+        num_batch = length(filenames_batch)
+        savepath = joinpath(savepath_main,folder)
+        if !isdir(savepath)
+            mkdir(savepath)
+        end
+        # Initialize accumulators
+        labels_accum = Vector{Vector{Float32}}(undef,0)
+        data_taken = Threads.Atomic{Bool}(true)
+        for _ = 1:num_batch
+            while true
+                if isready(data_channel) && data_taken[]==true
+                    Threads.atomic_xchg!(data_taken, false)
+                    break
+                else
+                    # Stop if asked
+                    if abort[]==true
+                        return nothing
+                    end
+                    sleep(0.1)
+                end
+            end
+            # Get neural network output
+            _, label = take!(data_channel)
+            Threads.atomic_xchg!(data_taken, true)
+            push!(labels_accum,label)
+            put!(channels.application_progress,1)
+        end
+        labels_temp = reduce(vcat,labels_accum)
+        if length(classes)==1
+            labels = convert(Array{Float64,2},reshape(labels_temp,:,1))
+        else
+            labels = convert(Array{Float64,2},labels_temp)
+        end
+        # Export the result
+        df_labels = DataFrame(labels,class_names)
+        name = string(folder,data_ext)
+        save(df_labels,savepath,name,data_sym_ext)
+        put!(channels.application_progress,1)
+    end
+    return nothing
+end
+
 function process_output(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions},
-        savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,num_classes::Int64,
+        savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
         num_border::Int64,labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,
         border::Vector{Bool},log_area_obj::Vector{Bool},log_area_obj_sum::Vector{Bool},log_area_dist::Vector{Bool},
         log_volume_obj::Vector{Bool},log_volume_obj_sum::Vector{Bool},log_volume_dist::Vector{Bool},num_obj_area::Int64,
         num_obj_area_sum::Int64,num_dist_area::Int64,num_obj_volume::Int64,num_obj_volume_sum::Int64,num_dist_volume::Int64,
         img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
         abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+    num_classes = length(classes)
     for k=1:num
         folder = folders[k]
         filenames_batch = filenames_batched[k]
@@ -377,7 +496,12 @@ end
 
 function get_output_info(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions})
     num_classes = length(classes)
-    return classes,num_classes,()
+    return classes,()
+end
+
+function get_output_info(classes::Vector{ImageRegressionClass},output_options::Vector{ImageRegressionOutputOptions})
+    num_classes = length(classes)
+    return classes,()
 end
 
 function get_output_info(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions})
@@ -401,7 +525,7 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
     num_obj_volume = count(log_volume_obj)
     num_obj_volume_sum = count(log_volume_obj_sum)
     num_dist_volume = count(log_volume_dist)
-    return classes,num_classes,(num_border,labels_color,labels_incl,apply_border,border,
+    return classes,(num_border,labels_color,labels_incl,apply_border,border,
         log_area_obj,log_area_obj_sum,log_area_dist,log_volume_obj,
         log_volume_obj_sum,log_volume_dist,num_obj_area,num_obj_area_sum,
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
@@ -440,11 +564,11 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Send number of iterations
     put!(channels.application_progress,sum(length.(urls_batched))+length(urls_batched))
     # Output information
-    classes,num_classes,output_info = get_output_info(classes,output_options)
+    classes,output_info = get_output_info(classes,output_options)
     # Prepare output
     Threads.@spawn get_output(model_data,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
     # Process output and save data
-    process_output(classes,output_options,savepath_main,folders,filenames_batched,num,num_classes,output_info...,
+    process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,abort,data_channel,channels)
     return nothing
 end
@@ -452,6 +576,8 @@ function apply_main2(settings::Settings,training::Training,application_data::App
         model_data::ModelData,channels::Channels)
     if settings.problem_type==:Classification
         T = Vector{Int64}
+    elseif settings.problem_type==:Regression
+        T = Vector{Float32}
     elseif settings.problem_type==:Segmentation
         T = BitArray{4}
     end
