@@ -12,7 +12,7 @@ Flux.jl neural network library is used. Currently it is possible to:
   - Validate a neural network
   - Analyse data with a neural network
   
-Only image data and classification/segmentation are currently supported.
+Classification, regression and segmentation on images are currently supported.
 
 ### Usage 
 
@@ -56,7 +56,7 @@ NB! A number of neurons for the final layer should equal to the number of classe
 
 Training parameters can be changed by running `modify(training_options)`.
 
-`get_urls_training(input_dir::String,label_dir::String)`: gets URLs to all files present in both folders specified 
+`get_urls_training(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (a folder and a file) specified 
 by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.training_data`.
 
 `get_urls_training()` opens folder dialogs where you can choose directories with input and label data.
@@ -69,10 +69,10 @@ by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.traini
 
 #### Validation
 
-`get_urls_validation(input_dir,label_dir)`: gets URLs to all files present in both folders specified 
+`get_urls_validation(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (a folder and a file) specified 
 by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.validation_data`.
 
-`get_urls_validation(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
+`get_urls_validation(url_inputs::String)`: gets URLs to all files present in a folder specified by `url_inputs`. 
 URLs are automatically saved to `EasyML.validation_data`. Does not require labels.
 
 `get_urls_validation()` opens folder dialogs where you can choose directories with input and label data (if available).
@@ -89,7 +89,7 @@ Application settings can be changed by running `modify(application_options)`.
 
 Output for each class can be changed by running `modify_output()`.
 
-`get_urls_application(input_dir)`: gets URLs to all files present in a folder specified by `input_dir`. 
+`get_urls_application(url_inputs::String)`: gets URLs to all files present in a folder specified by `url_inputs`. 
 URLs are automatically saved to `EasyML.application_data`.
 
 `get_urls_application()` opens a folder dialog where you can choose a directory with input data.
@@ -107,17 +107,23 @@ If that was not the case, the settings can be imported manually using `load_sett
 
 Classes can be modified manually.
 
-Create a new class using `SegmentationClass()`.
+Create a new class using `ImageClassificationClass()`, `ImageRegressionClass()` or `ImageSegmentationClass()`.
 
 Classes can be of different types depending on a type of a problem.
 
-`ClassificationClass` contains
+`ImageClassificationClass` contains
 
 - `name::String`: name of a class.
 
 - `Output::ImageClassificationOutputOptions`: holds settings for output of application of a model to new data.
 
-`SegmentationClass` contains
+`ImageRegressionClass` contains
+
+- `name::String`: name of a class.
+
+- `Output::ImageRegressionOutputOptions`: holds settings for output of application of a model to new data.
+
+`ImageSegmentationClass` contains
 
 - `name::String`: name of a class.
 
