@@ -2721,20 +2721,23 @@ Component.onCompleted: {
     Component {
         id: generalpropertiesComponent
         Column {
-            Row {
-                leftPadding: 0.4*margin
-                topPadding: 0.39*margin
-                bottomPadding: 0.2*margin
+            leftPadding: 0.4*margin
+            topPadding: 0.4*margin
+            spacing: 0.3*margin
+            property double leftPad: 380*pix
+            Item {
+                height: buttonHeight
+                width: buttonWidth
                 Label {
                     id: nameLabel
                     text: "Name: "
                 }
                 TextField {
                     anchors.verticalCenter: nameLabel.verticalCenter
-                    defaultHeight: buttonHeight
-                    defaultWidth: rightFrame.width - 220*pix
+                    anchors.left: nameLabel.right
+                    height: buttonHeight
+                    width: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        // nameTextField.text = displayText
                         Julia.set_settings(["Training","name"],displayText)
                     }
                     Component.onCompleted: {
@@ -2748,35 +2751,40 @@ Component.onCompleted: {
                     }
                 }
             }
-            RowLayout {
-                Column {
-                    id: labelColumnLayout
-                    leftPadding: 0.4*margin
-                    topPadding: 0.22*margin
-                    spacing: 0.4*margin
-                    Label {
-                        text: "Number of layers: "
-                    }
-                    Label {
-                        text: "Number of connections: "
-                    }
-                    Label {
-                        text: "Number of nonlinearities: "
-                    }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numlayersLabel
+                    text: "Number of layers: "
                 }
-                Column {
-                    leftPadding: 0*margin
-                    topPadding: 0.22*margin
-                    spacing: 0.4*margin
-                    Label {
-                        text: layers.children.length
-                    }
-                    Label {
-                        text: getconnectionsnum()
-                    }
-                    Label {
-                        text: getirregularitiesnum()
-                    }
+                Label {
+                    leftPadding: leftPad
+                    text: layers.children.length
+                }
+            }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numconnectionsLabel
+                    text: "Number of connections: "
+                }
+                Label {
+                    leftPadding: leftPad
+                    text: getconnectionsnum()
+                }
+            }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numnonlinearLabel
+                    text: "Number of nonlinearities: "
+                }
+                Label {
+                    leftPadding: leftPad
+                    text: getirregularitiesnum()
                 }
             }
         }
@@ -2784,7 +2792,6 @@ Component.onCompleted: {
 
     Component {
         id: inputpropertiesComponent
-
         Column {
             id: column
             property var unit: null
@@ -2819,29 +2826,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column{
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Size","Normalisation"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -2849,16 +2856,16 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.size
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3},[1-9]\d{0,3}))/ }
                         onEditingFinished: {
                             unit.datastore.size = displayText
                         }
                     }
                     ComboBox {
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         currentIndex: datastore.normalisation.ind
                         model: ListModel {
                            id: optionsModel
@@ -2909,37 +2916,37 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Loss"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     ComboBox {
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         currentIndex: datastore.loss.ind
                         model: ListModel {
                            id: optionsModel
@@ -3002,30 +3009,30 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride","Dilation factor"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3033,8 +3040,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
                             unit.datastore.filters = displayText
@@ -3042,8 +3049,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.filtersize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.filtersize = displayText
@@ -3051,8 +3058,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.stride = displayText
@@ -3060,8 +3067,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.dilationfactor
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.dilationfactor = displayText
@@ -3106,30 +3113,30 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3137,8 +3144,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
                             unit.datastore.filters = displayText
@@ -3146,8 +3153,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.filtersize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.filtersize = displayText
@@ -3155,8 +3162,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.stride = displayText
@@ -3200,29 +3207,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Filters"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3230,8 +3237,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
                             unit.datastore.filters = displayText
@@ -3275,29 +3282,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Epsilon"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3305,8 +3312,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.epsilon
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,10}/ }
                         onEditingFinished: {
                             unit.datastore.epsilon = displayText
@@ -3350,29 +3357,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Probability"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3380,8 +3387,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.probability
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
                             unit.datastore.probability = displayText
@@ -3425,29 +3432,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Scale"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3455,8 +3462,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.scale
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
                             unit.datastore.scale = displayText
@@ -3500,29 +3507,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Alpha"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3530,8 +3537,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.alpha
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,4}|[1-9]d{1,2}/ }
                         onEditingFinished: {
                             unit.datastore.alpha = displayText
@@ -3576,29 +3583,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Pool size","Stride"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3606,8 +3613,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.poolsize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.poolsize = displayText
@@ -3615,8 +3622,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
                             unit.datastore.stride = displayText
@@ -3660,29 +3667,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Inputs"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3690,8 +3697,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.inputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
                         onEditingFinished: {
                             var inputnum = parseFloat(unit.datastore.inputs)
@@ -3794,29 +3801,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Inputs","Dimension"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3824,8 +3831,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.inputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[2-9]|10/ }
                         onEditingFinished: {
                             var inputnum = parseFloat(unit.datastore.inputs)
@@ -3890,8 +3897,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.dimension
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
                             unit.datastore.dimension = displayText
@@ -3936,29 +3943,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Outputs","Dimension"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -3966,8 +3973,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.outputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
                         onEditingFinished: {
                             var outputnum = parseFloat(unit.datastore.outputs)
@@ -4040,8 +4047,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.dimension
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
                             unit.datastore.dimension = displayText
@@ -4086,29 +4093,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name","Multiplier","Dimensions"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
@@ -4116,8 +4123,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.multiplier
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /([2-5])/ }
                         onEditingFinished: {
                             unit.datastore.multiplier = displayText
@@ -4125,8 +4132,8 @@ Component.onCompleted: {
                     }
                     TextField {
                         text: datastore.dimensions
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator {
                             regExp: /(1|2|3|1,2|1,2,3)/ }
                         onEditingFinished: {
@@ -4171,29 +4178,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     Repeater {
                         model: ["Name"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 30*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
