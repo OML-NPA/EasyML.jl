@@ -137,9 +137,9 @@ ApplicationWindow {
     minimumHeight: 1024*pix + classLabel.height + margin
     minimumWidth: informationPane.width + 1024*pix + margin
     color: defaultpalette.window
-    property int input_type: Julia.get_settings(["input_type"])=="Image" ? 0 : 1
-    property int problem_type: Julia.get_settings(["problem_type"])=="Classification" ? 0 : 1
-    property bool use_labels: Julia.get_settings(["Validation","use_labels"])
+    property int input_type
+    property int problem_type
+    property bool use_labels
 
     property var accuracy: []
     property var loss: []
@@ -289,15 +289,25 @@ ApplicationWindow {
             }
         }
         Component.onCompleted: {
-            if (problem_type==0) {
+            use_labels = Julia.get_settings(["Validation","use_labels"])
+            var temp = Julia.get_settings(["input_type"])
+            if (temp=="Image") {
+                input_type = 0
+            }
+            var temp = Julia.get_settings(["problem_type"])
+            if (temp=="Classification") {
+                problem_type = 0
                 fieldname = "ImageClassificationResults"
             }
-            if (problem_type==1) {
+            else if (temp=="Regression") {
+                problem_type = 1
                 fieldname = "ImageRegressionResults"
             }
-            else if (problem_type==2) {
+            else if (temp=="Segmentation") {
+                problem_type = 2
                 fieldname = "ImageSegmentationResults"
             }
+            
         }
     }
     Timer {
