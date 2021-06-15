@@ -22,8 +22,8 @@ function getlinear(type::String, d, in_size::Tuple{Int64,Int64,Int64})
         out = outdims(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Dense"
-        layer = Dense(in_size, d["filters"])
-        out = (d["filters"], in[2:3])
+        layer = Dense(in_size[1], d["filters"])
+        out = (d["filters"], in_size[2:3]...)
         return (layer, out)
     end
 end
@@ -110,8 +110,8 @@ function getresizing(type::String, d, in_size)
         end
         out = (out...,)
         return (Upsample(scale = multiplier), out)
-    elseif type == "Flattening"
-        out = (prod(size(x)), 1, 1)
+    elseif type == "Flatten"
+        out = (prod(in_size), 1, 1)
         return (x -> Flux.flatten(x), out)
     end
 end

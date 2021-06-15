@@ -10,3 +10,4 @@ source/GUI/qml.qrc
 config.bson
 src/test.jl
 *.docx
+*.csv

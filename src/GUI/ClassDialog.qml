@@ -18,7 +18,7 @@ ApplicationWindow {
     property double max_id: Math.max(...ids)
 
     //---Universal property block-----------------------------------------------
-    property double pix: (Screen.width/3840)*(5.669/Screen.logicalPixelDensity)
+    property double pix: (Screen.width/3840)
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -76,6 +76,12 @@ ApplicationWindow {
                 }
             }
             else if (problemComboBox.currentIndex==1) {
+                var class_var = {
+                    "id": id,
+                    "name": Julia.get_class_field(ind,"name")
+                }
+            }
+            else if (problemComboBox.currentIndex==2) {
                 var color = Julia.get_class_field(ind,"color")
                 var parents = Julia.get_class_field(ind,"parents")
                 class_var = {
@@ -116,6 +122,9 @@ ApplicationWindow {
 
         }
         else if (problemComboBox.currentIndex==1) {
+
+        }
+        else if (problemComboBox.currentIndex==2) {
             colorLabel.visible = true
             colorRow.visible = true
             minareaRow.visible = true
@@ -140,7 +149,10 @@ ApplicationWindow {
         if (problemComboBox.currentIndex==0) {
 
         }
-        else if (problemComboBox.currentIndex==1) {
+        if (problemComboBox.currentIndex==1) {
+
+        }
+        else if (problemComboBox.currentIndex==2) {
             colorLabel.visible = true
             colorRow.visible = true
             minareaRow.visible = true
@@ -246,8 +258,8 @@ ApplicationWindow {
                     model: ListModel {
                         id: problemtypeModel
                         ListElement {text: "Classification"}
-                        ListElement {text: "Segmentation"}
                         ListElement {text: "Regression"}
+                        ListElement {text: "Segmentation"}
                     }
                     onActivated: {
                         Julia.set_problem_type(currentIndex)
@@ -307,7 +319,7 @@ ApplicationWindow {
                                     }
                                     Rectangle {
                                         id: colorRectangle
-                                        visible: problemComboBox.currentIndex==1
+                                        visible: problemComboBox.currentIndex==2
                                         anchors.left: treeButton.left
                                         anchors.verticalCenter: treeButton.verticalCenter
                                         anchors.leftMargin: 15*pix
@@ -315,13 +327,13 @@ ApplicationWindow {
                                         width: 30*pix
                                         border.width: 2*pix
                                         radius: colorRectangle.width
-                                        color: problemComboBox.currentIndex==1 ? 
+                                        color: problemComboBox.currentIndex==2 ? 
                                             rgbtohtml([colorR,colorG,colorB]) :
                                             "transparent"
                                     }
                                     Label {
                                         anchors.left: colorRectangle.left
-                                        anchors.leftMargin: problemComboBox.currentIndex==1 ? 
+                                        anchors.leftMargin: problemComboBox.currentIndex==2 ? 
                                             50*pix : 10*pix
                                         anchors.verticalCenter: treeButton.verticalCenter
                                         text: name
@@ -397,6 +409,12 @@ ApplicationWindow {
                                         }
                                     }
                                     else if (problemComboBox.currentIndex==1) {
+                                        var class_var = {
+                                            "name": name,
+                                            "id": id
+                                        }
+                                    }
+                                    else if (problemComboBox.currentIndex==2) {
                                         var class_var = {
                                             "name": name,
                                             "id": id,

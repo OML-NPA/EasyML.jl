@@ -2,20 +2,20 @@
 #---Channels
 # 
 @with_kw struct Channels
-    training_data_progress::Channel = Channel{Float32}(Inf)
+    training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
     training_data_modifiers::Channel = Channel{Any}(Inf)
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Any}(Inf)
-    validation_data_progress::Channel = Channel{Float32}(Inf)
+    validation_data_progress::Channel = Channel{Int64}(Inf)
     validation_data_results::Channel = Channel{Any}(Inf)
     validation_data_modifiers::Channel = Channel{Any}(Inf)
     validation_progress::Channel = Channel{Any}(Inf)
     validation_results::Channel = Channel{Any}(Inf)
     validation_modifiers::Channel = Channel{Any}(Inf)
     training_labels_colors::Channel = Channel{Any}(Inf)
-    application_data_progress::Channel = Channel{Any}(Inf)
+    application_data_progress::Channel = Channel{Int64}(Inf)
     application_data_results::Channel = Channel{Any}(Inf)
     application_progress::Channel = Channel{Any}(Inf)
     application_modifiers::Channel = Channel{Any}(Inf)
@@ -27,6 +27,10 @@ channels = Channels()
 abstract type AbstractClass end
 
 @with_kw mutable struct ImageClassificationClass<:AbstractClass
+    name::String = ""
+end
+
+@with_kw mutable struct ImageRegressionClass<:AbstractClass
     name::String = ""
 end
 
@@ -68,6 +72,10 @@ end
 end
 
 @with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
+    temp::Bool = false
+end
+
+@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
     temp::Bool = false
 end
 
@@ -117,8 +125,18 @@ training_results_data = TrainingResultsData()
     data_labels::Vector{Int32} = Vector{BitArray{3}}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     labels::Vector{String} = Vector{String}(undef,0)
+    filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
 end
 classification_data = ClassificationData()
+
+@with_kw mutable struct RegressionData
+    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
+    data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+    input_urls::Vector{String} = Vector{String}(undef,0)
+    labels_url::String = ""
+    filenames::Vector{String} = Vector{String}(undef,0)
+end
+regression_data = RegressionData()
 
 @with_kw mutable struct SegmentationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
@@ -135,6 +153,7 @@ segmentation_data = SegmentationData()
     PlotData::TrainingPlotData = training_plot_data
     Results::TrainingResultsData = training_results_data
     ClassificationData::ClassificationData = classification_data
+    RegressionData::RegressionData = regression_data
     SegmentationData::SegmentationData = segmentation_data
 end
 training_data = TrainingData()
@@ -146,6 +165,14 @@ training_data = TrainingData()
     other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
 end
 validation_image_classification_results = ValidationImageClassificationResults()
+
+@with_kw mutable struct ValidationImageRegressionResults
+    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
+    predicted_labels::Vector{Vector{Float32}}= Vector{Vector{Float32}}(undef,0)
+    target_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
+end
+validation_image_regression_results = ValidationImageRegressionResults()
 
 @with_kw mutable struct ValidationImageSegmentationResults
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
@@ -162,12 +189,14 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
 
 @with_kw mutable struct ValidationData
     ImageClassificationResults::ValidationImageClassificationResults = validation_image_classification_results
+    ImageRegressionResults::ValidationImageRegressionResults = validation_image_regression_results
     ImageSegmentationResults::ValidationImageSegmentationResults = validation_image_segmentation_results
     original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     result_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
-    labels::Vector{Int32} = Vector{Int32}(undef,0)
+    labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
+    labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
 end
 validation_data = ValidationData()
 

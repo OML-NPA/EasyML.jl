@@ -47,14 +47,17 @@ get_progress(field) = get_progress_main(channels,field)
 function get_results_main(channels::Channels,all_data::AllData,
         model_data::ModelData,field)
     field::String = fix_QML_types(field)
-    classes = model_data.classes
     if field=="Training data preparation"
         if isready(channels.training_data_results)
-            data = take!(channels.training_data_results)
+            data = take!(EasyML.channels.training_data_results)
             if settings.problem_type==:Classification
                 classification_data = all_data.TrainingData.ClassificationData
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
+            elseif settings.problem_type==:Regression
+                regression_data = all_data.TrainingData.RegressionData
+                regression_data.data_input = data[1]
+                regression_data.data_labels = data[2]
             elseif settings.problem_type==:Segmentation
                 segmentation_data = all_data.TrainingData.SegmentationData
                 segmentation_data.data_input = data[1]
@@ -84,22 +87,30 @@ function get_results_main(channels::Channels,all_data::AllData,
     elseif field=="Validation"
         if isready(channels.validation_results)
             data = take!(channels.validation_results)
-            image_data = data[1]
-            other_data = data[2]
-            original = data[3]
-            if settings.problem_type==:Classification && settings.input_type==:Image
-                validation_results = all_data.ValidationData.ImageClassificationResults
-                push!(validation_results.original,original)
-                push!(validation_results.predicted_labels,image_data[1])
-                push!(validation_results.target_labels,image_data[2])
-                push!(validation_results.other_data,other_data)
-            elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-                validation_results = all_data.ValidationData.ImageSegmentationResults
-                push!(validation_results.original,original)
-                push!(validation_results.predicted_data,image_data[1])
-                push!(validation_results.target_data,image_data[2])
-                push!(validation_results.error_data,image_data[3])
-                push!(validation_results.other_data,other_data)
+            if settings.input_type==:Image
+                image_data = data[1]
+                other_data = data[2]
+                original = data[3]
+                if settings.problem_type==:Classification
+                    validation_results = all_data.ValidationData.ImageClassificationResults
+                    push!(validation_results.original,original)
+                    push!(validation_results.predicted_labels,image_data[1])
+                    push!(validation_results.target_labels,image_data[2])
+                    push!(validation_results.other_data,other_data)
+                elseif settings.problem_type==:Regression
+                    validation_results = all_data.ValidationData.ImageRegressionResults
+                    push!(validation_results.original,original)
+                    push!(validation_results.predicted_labels,image_data[1])
+                    push!(validation_results.target_labels,image_data[2])
+                    push!(validation_results.other_data,other_data)
+                elseif settings.problem_type==:Segmentation
+                    validation_results = all_data.ValidationData.ImageSegmentationResults
+                    push!(validation_results.original,original)
+                    push!(validation_results.predicted_data,image_data[1])
+                    push!(validation_results.target_data,image_data[2])
+                    push!(validation_results.error_data,image_data[3])
+                    push!(validation_results.other_data,other_data)
+                end
             end
             return [other_data...]
         else

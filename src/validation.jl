@@ -7,18 +7,30 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
     if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    if validation.use_labels==true
-        input_urls,label_urls,_,_,_ = get_urls2(validation,allowed_ext)
-        validation_data.label_urls = reduce(vcat,label_urls)
-    else
-        input_urls,dirs = get_urls1(validation,allowed_ext)
-    end
     if settings.problem_type == :Classification
+        input_urls,dirs = get_urls1(validation,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         if issubset(dirs,labels)
             validation.use_labels = true
             labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
-            validation_data.labels = reduce(vcat,labels_int)
+            validation_data.labels_classification = reduce(vcat,labels_int)
+        end
+    elseif settings.problem_type == :Regression
+        input_urls_raw,_,filenames_inputs_raw = get_urls1(validation,allowed_ext)
+        input_urls = input_urls_raw[1]
+        filenames_inputs = filenames_inputs_raw[1]
+        if validation.use_labels==true
+            filenames_labels,loaded_labels = load_regression_data(regression_data.labels_url)
+            intersect_regression_data!(input_urls,filenames_inputs,
+                loaded_labels,filenames_labels)
+            validation_data.labels_regression = loaded_labels
+        end
+    elseif settings.problem_type == :Segmentation
+        if validation.use_labels==true
+            input_urls,label_urls,_,_,_ = get_urls2(validation,allowed_ext)
+            validation_data.label_urls = reduce(vcat,label_urls)
+        else
+            input_urls,_ = get_urls1(validation,allowed_ext)
         end
     end
     validation_data.input_urls = reduce(vcat,input_urls)
@@ -40,7 +52,7 @@ function reset_validation_results(validation_data::ValidationData)
     return nothing
 end
 
-function prepare_validation_data(validation::Validation,validation_data::ValidationData,
+function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
         options::ProcessingTraining, classes::Vector{ImageClassificationClass},ind::Int64)
     original = load_image(validation_data.input_urls[ind])
     if options.grayscale
@@ -52,16 +64,34 @@ function prepare_validation_data(validation::Validation,validation_data::Validat
         num = length(classes)
         labels_temp = Vector{Float32}(undef,num)
         fill!(labels_temp,0)
-        label_int = EasyML.validation_data.labels[ind]
+        label_int = validation_data.labels_classification[ind]
         labels_temp[label_int] = 1
         labels = reshape(labels_temp,1,1,:,1)
     else
-        labels = Array{Float32,4}(undef,1,1,length(classes),1)
+        labels = Array{Float32,4}(undef,0,0,0,0)
     end
     return data_input,labels,original
 end
 
-function prepare_validation_data(validation::Validation,validation_data::ValidationData,
+function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
+        options::ProcessingTraining, classes::Vector{ImageRegressionClass},ind::Int64)
+    original = load_image(validation_data.input_urls[ind])
+    original = imresize(original,model_data.input_size[1:2])
+    if options.grayscale
+        data_input = image_to_gray_float(original)[:,:,:,:]
+    else
+        data_input = image_to_color_float(original)[:,:,:,:]
+    end
+    
+    if validation.use_labels
+        labels = reshape(validation_data.labels_regression[ind],:,1)
+    else
+        labels = Array{Float32,2}(undef,0,0)
+    end
+    return data_input,labels,original
+end
+
+function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
         options::ProcessingTraining, classes::Vector{ImageSegmentationClass},ind::Int64)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
@@ -174,6 +204,17 @@ function process_output(predicted::AbstractArray{Float32,4},label::AbstractArray
     return nothing
 end
 
+function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray{Float32,2},
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
+        validation::Validation,classes::Vector{ImageRegressionClass},channels::Channels)
+    image_data = (predicted[:],label[:])
+    data = (image_data,other_data,original)
+    # Return data
+    put!(channels.validation_results,data)
+    put!(channels.validation_progress,1)
+    return nothing
+end
+
 function process_output(predicted::AbstractArray{Float32,4},data_label::AbstractArray{Float32,4},
         original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},validation::Validation,
         classes::Vector{ImageSegmentationClass},channels::Channels)
@@ -203,9 +244,9 @@ function validate_main(settings::Settings,validation_data::ValidationData,
     classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
-    accuracy = get_accuracy_func(settings.Training)
+    accuracy::Function = get_accuracy_func(settings.Training)
     use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
-    if settings.problem_type==:Classification
+    if settings.problem_type==:Classification || settings.problem_type==:Regression
         num_parts_current = 1
     else
         num_parts_current = 30
@@ -218,7 +259,7 @@ function validate_main(settings::Settings,validation_data::ValidationData,
                 break
             end
         end
-        data_input,label,other = prepare_validation_data(validation,validation_data,
+        data_input,label,other = prepare_validation_data(model_data,validation,validation_data,
             processing,classes,i)
         predicted = forward(model,data_input,num_parts=num_parts_current,use_GPU=use_GPU)
         if use_labels
@@ -237,4 +278,3 @@ function validate_main2(settings::Settings,validation_data::ValidationData,
     Threads.@spawn validate_main(settings,validation_data,model_data,channels)
     return nothing
 end
-# validate() = validate_main2(settings,validation_data,model_data,channels)

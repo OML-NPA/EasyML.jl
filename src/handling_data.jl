@@ -337,10 +337,12 @@ function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::In
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
     image = validation_data.original_image
-    if size(buffer)==size(image)
-        buffer .= image
-    elseif size(buffer)==reverse(size(image))
+    s = size(image)
+    
+    if size(buffer)==reverse(size(image)) || (s[1]==s[2] && size(buffer)==size(image))
         buffer .= transpose(image)
+    elseif size(buffer)==s
+        buffer .= image
     end
     return
 end
@@ -464,14 +466,26 @@ get_model_type() = get_model_type_main(model_data)
 
 # Resets model classes
 function reset_classes_main(model_data)
-    empty!(model_data.classes)
+    if settings.problem_type==:Classification
+        model_data.classes = Vector{ImageClassificationClass}(undef,0)
+    elseif settings.problem_type==:Regression
+        model_data.classes = Vector{ImageRegressionClass}(undef,0)
+    elseif settings.problem_type==:Segmentation
+        model_data.classes = Vector{ImageSegmentationClass}(undef,0)
+    end
     return nothing
 end
 reset_classes() = reset_classes_main(model_data::ModelData)
 
 # Resets model output options
 function reset_output_options_main(model_data)
-    empty!(model_data.OutputOptions)
+    if settings.problem_type==:Classification
+        model_data.OutputOptions = Vector{ImageClassificationOutputOptions}(undef,0)
+    elseif settings.problem_type==:Regression
+        model_data.OutputOptions = Vector{ImageRegressionOutputOptions}(undef,0)
+    elseif settings.problem_type==:Segmentation
+        model_data.OutputOptions = Vector{ImageSegmentationOutputOptions}(undef,0)
+    end
     return nothing
 end
 reset_output_options() = reset_output_options_main(model_data::ModelData)
@@ -484,6 +498,9 @@ function append_classes_main(model_data::ModelData,design_data::DesignData,id,da
     backup = design_data.output_options_backup
     if type==ImageClassificationClass
         class = ImageClassificationClass()
+        class.name = data[1]
+    elseif type==ImageRegressionClass
+        class = ImageRegressionClass()
         class.name = data[1]
     elseif type==ImageSegmentationClass
         class = ImageSegmentationClass()
@@ -500,6 +517,8 @@ function append_classes_main(model_data::ModelData,design_data::DesignData,id,da
 
     if type==ImageClassificationClass
         type_output = ImageClassificationOutputOptions
+    elseif type==ImageRegressionClass
+        type_output = ImageRegressionOutputOptions
     elseif type==ImageSegmentationClass
         type_output = ImageSegmentationOutputOptions
     end
@@ -537,6 +556,8 @@ function set_problem_type(ind)
     if ind==0 
         settings.problem_type = :Classification
     elseif ind==1
+        settings.problem_type = :Regression
+    elseif ind==2
         settings.problem_type = :Segmentation
     end
     return nothing
@@ -545,8 +566,10 @@ end
 function get_problem_type()
     if settings.problem_type==:Classification
         return 0
-    elseif settings.problem_type==:Segmentation
+    elseif settings.problem_type==:Regression
         return 1
+    elseif settings.problem_type==:Segmentation
+        return 2
     end
 end
 
@@ -598,6 +621,9 @@ function load_model_main(settings,model_data,url)
     if model_data.classes isa Vector{ImageClassificationClass}
         settings.input_type = :Image
         settings.problem_type = :Classification
+    elseif model_data.classes isa Vector{ImageRegressionClass}
+        settings.input_type = :Image
+        settings.problem_type = :Regression
     elseif model_data.classes isa Vector{ImageSegmentationClass}
         settings.input_type = :Image
         settings.problem_type = :Segmentation

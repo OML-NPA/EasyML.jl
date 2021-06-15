@@ -61,6 +61,8 @@ ApplicationWindow {
             if (problem_type==0) {
             }
             else if (problem_type==1) {
+            }
+            else if (problem_type==2) {
                 load_model_classes(classModel)
                 for (var i=0;i<classModel.count;i++) {
                     var class_var = classModel.get(i)
@@ -95,7 +97,7 @@ ApplicationWindow {
                     "name": Julia.get_class_field(ind,"name")
                 }
             }
-        else if (problem_type==1) {
+        else if (problem_type==2) {
             if (classModel.count!==0) {
                 classModel.clear()
             }
@@ -135,9 +137,9 @@ ApplicationWindow {
     minimumHeight: 1024*pix + classLabel.height + margin
     minimumWidth: informationPane.width + 1024*pix + margin
     color: defaultpalette.window
-    property int input_type: Julia.get_settings(["input_type"])=="Image" ? 0 : 1
-    property int problem_type: Julia.get_settings(["problem_type"])=="Classification" ? 0 : 1
-    property bool use_labels: Julia.get_settings(["Validation","use_labels"])
+    property int input_type
+    property int problem_type
+    property bool use_labels
 
     property var accuracy: []
     property var loss: []
@@ -188,13 +190,7 @@ ApplicationWindow {
                         sampleSpinBox.value = 1
                         classComboBox.currentIndex = 0
                         var ind1 = 1
-                        if (problem_type==0) {
-                            var result_type = "ImageClassificationResults"
-                        }
-                        else if (problem_type==1) {
-                            var result_type = "ImageSegmentationResults"
-                        }
-                        var size = Julia.get_image_size(["ValidationData",result_type,"original"],[ind1])
+                        var size = Julia.get_image_size(["ValidationData",fieldname,"original"],[ind1])
                         var s = 1024*pix
                         var r = Math.min(s/size[0],s/size[1])
                         displayItem.height = size[0]*r
@@ -217,6 +213,20 @@ ApplicationWindow {
                             }
                         }
                         else if (problem_type==1) {
+                            Julia.get_image(["ValidationData","ImageRegressionResults","original"],[0,0],[ind1])
+                            var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
+                            predicted_labels.push(predicted_label)
+                            classLabel.visible = true
+                            if (use_labels) {
+                                var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
+                                target_labels.push(target_label)
+                                classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
+                            }
+                            else {
+                                classLabel.text = "Predicted: " + predicted_label
+                            }
+                        }
+                        else if (problem_type==2) {
                             var ind2 = 1
                             Julia.get_image(["ValidationData","ImageSegmentationResults","original"],[0,0],[ind1])
                             Julia.get_image(["ValidationData","ImageSegmentationResults","predicted_data"],[0,0],[ind1,ind2])
@@ -262,6 +272,14 @@ ApplicationWindow {
                                 target_labels.push(target_label)
                             }
                         }
+                        else if (problem_type==1) {
+                            var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
+                            predicted_labels.push(predicted_label)
+                            if (use_labels) {
+                            var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
+                                target_labels.push(target_label)
+                            }
+                        }
                         sampleSpinBox.to = iteration
                     }
                 }
@@ -271,12 +289,25 @@ ApplicationWindow {
             }
         }
         Component.onCompleted: {
-            if (problem_type==0) {
+            use_labels = Julia.get_settings(["Validation","use_labels"])
+            var temp = Julia.get_settings(["input_type"])
+            if (temp=="Image") {
+                input_type = 0
+            }
+            var temp = Julia.get_settings(["problem_type"])
+            if (temp=="Classification") {
+                problem_type = 0
                 fieldname = "ImageClassificationResults"
             }
-            else if (problem_type==1) {
+            else if (temp=="Regression") {
+                problem_type = 1
+                fieldname = "ImageRegressionResults"
+            }
+            else if (temp=="Segmentation") {
+                problem_type = 2
                 fieldname = "ImageSegmentationResults"
             }
+            
         }
     }
     Timer {
@@ -467,13 +498,7 @@ ApplicationWindow {
                             var ind1 = value - 1
                             accuracyLabel.text = accuracy[ind1].toFixed(2) + " (" + mean_accuracy.toFixed(2) + ")"
                             lossLabel.text = loss[ind1].toFixed(2) + " (" + mean_loss.toFixed(2) + ")"
-                            if (problem_type==0) {
-                                var results_type = "ImageClassificationResults"
-                            }
-                            else if (problem_type==1) {
-                                results_type = "ImageSegmentationResults"
-                            }
-                            var size = Julia.get_image_size(["ValidationData",results_type,"original"],[ind1+1])
+                            var size = Julia.get_image_size(["ValidationData",fieldname,"original"],[ind1+1])
                             var s = 1024*pix
                             var r = Math.min(s/size[0],s/size[1])
                             displayItem.height = size[0]*r
@@ -481,7 +506,7 @@ ApplicationWindow {
                             displayItem.image_height = size[0]
                             displayItem.image_width = size[1]
                             displayItem.scale = r
-                            Julia.get_image(["ValidationData",results_type,"original"],[0,0],[ind1+1])
+                            Julia.get_image(["ValidationData",fieldname,"original"],[0,0],[ind1+1])
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
@@ -490,8 +515,16 @@ ApplicationWindow {
                                 else {
                                     classLabel.text = "Predicted: " + predicted_labels[ind1]
                                 }
-                             }
-                            else if (problem_type==1) {
+                            }
+                            if (problem_type==1) {
+                                if (use_labels) {
+                                    classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                }
+                                else {
+                                    classLabel.text = "Predicted: " + predicted_labels[ind1]
+                                }
+                            }
+                            else if (problem_type==2) {
                                 var ind2 = classComboBox.currentIndex
                                 Julia.get_image(["ValidationData","ImageSegmentationResults",typeComboBox.type],[0,0],[ind1+1,ind2+1])
                                 resultDisplay.visible = true

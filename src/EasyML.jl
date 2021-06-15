@@ -1,5 +1,6 @@
 
 module EasyML
+
 # Import packages
 using Base: Symbol
 using
@@ -8,7 +9,7 @@ QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
 # Data structuring
 Parameters, DataFrames, StaticArrays, Dates,
 # Data import/export
-FileIO, ImageIO, JSON, BSON, XLSX,
+FileIO, ImageIO, JSON, BSON, XLSX, CSVFiles,
 # Image manipulation
 Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
 ImageMorphology.FeatureTransform, ImageSegmentation, ColorTypes,
@@ -36,14 +37,13 @@ include("exported_functions.jl")
 
 export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
 
-export model_data, ImageClassificationClass, ImageSegmentationClass, training, settings, training_data, 
+export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, training, settings, training_data, 
     training_plot_data, training_results_data, training_options, validation_data, validation_results_data,
     application_data, application_options
 export load_settings, design_network, modify_classes, modify_output, modify, save_model, load_model, 
     get_urls_training, prepare_training_data, remove_training_data, train, get_urls_validation, 
-    validate, get_urls_application, apply, forward, apply_border_data
+    validate, remove_validation_data, get_urls_application, apply, forward, apply_border_data
 export Join, Split, Addition, Activation, Identity
-
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas

@@ -3,6 +3,7 @@
 function get_urls1(settings::Union{Training,Validation,Application},allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
+    filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
     # Get directories containing data and labels
@@ -29,13 +30,14 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
         for l = 1:length(files_input)
             push!(input_urls_temp,string(input_dir,"/",dir,"/",files_input[l]))
         end
+        push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
         url_split = split(input_dir,"/")
         dirs = [url_split[end]]
     end
-    return input_urls,dirs
+    return input_urls,dirs,filenames
 end
 
 # Get urls of files in selected folders. Requires data and labels
@@ -97,6 +99,45 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
         cnt = num
     end
     return input_urls,label_urls,dirs,filenames,fileindices
+end
+
+function load_regression_data(url::String)
+    labels_info = DataFrame(CSVFiles.load(url))
+    filenames_labels::Vector{String} = labels_info[:,1]
+    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
+    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
+    return filenames_labels,loaded_labels
+end
+
+function intersect_regression_data!(input_urls::Vector{String},filenames_inputs::Vector{String},
+        loaded_labels::Vector{Vector{Float32}},filenames_labels::Vector{String})
+    num = length(filenames_inputs)
+    inds_adj = zeros(Int64,num)
+    inds_remove = Vector{Int64}(undef,0)
+    cnt = 1
+    l = length(filenames_inputs)
+    while cnt<=l
+        filename = filenames_inputs[cnt]
+        ind = findfirst(x -> x==filename, filenames_labels)
+        if isnothing(ind)
+            deleteat!(input_urls,cnt)
+            deleteat!(filenames_inputs,cnt)
+            l-=1
+        else
+            inds_adj[cnt] = ind
+            cnt += 1
+        end
+    end
+    num = cnt - 1
+    inds_adj = inds_adj[1:num]
+    filenames_labels_temp = filenames_labels[inds_adj]
+    loaded_labels_temp = loaded_labels[inds_adj]
+    r = length(filenames_labels_temp)+1:length(filenames_labels)
+    deleteat!(filenames_labels,r)
+    deleteat!(loaded_labels,r)
+    filenames_labels .= filenames_labels_temp
+    loaded_labels .= loaded_labels_temp
+    return nothing
 end
 
 # Imports images using urls
@@ -300,19 +341,7 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
 end
 
 #---
-# Accuracy based on RMSE
-function accuracy_regular(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
-    # Convert to BitArray
-    actual_bool = actual.>0
-    predicted_bool = predicted.>0.5
-    # Calculate accuracy
-    correct_bool = predicted_bool .& actual_bool
-    num_correct = sum(correct_bool)
-    acc = num_correct/prod(size(predicted)[1:2])
-    return convert(Float32,acc)
-end
-
-function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
+function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
     acc = Vector{Float32}(undef,0)
     for i in 1:size(predicted,4)
         _ , actual_ind = findmax(actual[1,1,:,i])
@@ -326,63 +355,30 @@ function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:Ab
     return mean(acc)
 end
 
-# Weight accuracy using inverse frequency (CPU)
-function accuracy_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
-    # Get input dimensions
-    array_size = size(actual)
-    array_size12 = array_size[1:2]
-    num_feat = array_size[3]
-    num_batch = array_size[4]
-    # Convert to BitArray
-    actual_bool = actual.>0
-    predicted_bool = predicted.>0.5
-    # Calculate correct and incorrect class pixels as a BitArray
-    correct_bool = predicted_bool .& actual_bool
-    dif_bool = xor.(predicted_bool,actual_bool)
-    # Calculate correct and incorrect background pixels as a BitArray
-    correct_background_bool = (!).(dif_bool .| actual_bool)
-    dif_background_bool = dif_bool-actual_bool
-    # Number of elements
-    numel = prod(array_size12)
-    # Count number of class pixels
-    pix_sum = sum(actual_bool,dims=(1,2,4))
-    pix_sum_perm = permutedims(pix_sum,[3,1,2,4])
-    class_counts = pix_sum_perm[:,1,1,1]
-    # Calculate weight for each pixel
-    fr = class_counts./numel./num_batch
-    w = 1 ./fr
-    w2 = 1 ./(1 .- fr)
-    w_sum = w + w2
-    w = w./w_sum
-    w2 = w2./w_sum
-    w_adj = w./class_counts
-    w2_adj = w2./(numel*num_batch .- class_counts)
-    # Initialize vectors for storing accuracies
-    classes_accuracy = Vector{Float32}(undef,num_feat)
-    background_accuracy = Vector{Float32}(undef,num_feat)
-    # Calculate accuracies
-    for i = 1:num_feat
-        # Calculate accuracy for a class
-        sum_correct = sum(correct_bool[:,:,i,:])
-        sum_dif = sum(dif_bool[:,:,i,:])
-        sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        classes_accuracy[i] = w_adj[i]*sum_comb
-        # Calculate accuracy for a background
-        sum_correct = sum(correct_background_bool[:,:,i,:])
-        sum_dif = sum(dif_background_bool[:,:,i,:])
-        sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        background_accuracy[i] = w2_adj[i]*sum_comb
-    end
-    # Calculate final accuracy
-    acc = mean(classes_accuracy+background_accuracy)
-    if acc>1.0
-        acc = 1.0f0
+function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
+    err = abs.(actual .- predicted)
+    err_relative = mean(err./actual)
+    if err_relative>0.5f0
+        acc = 0.25f0/err_relative
+    else
+        acc = 1f0 - err_relative
     end
     return acc
 end
 
-# Weight accuracy using inverse frequency (GPU)
-function accuracy_weighted(predicted::CuArray{Float32,4},actual::CuArray{Float32,4})
+function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
+    # Convert to BitArray
+    actual_bool = actual.>0
+    predicted_bool = predicted.>0.5
+    # Calculate accuracy
+    correct_bool = predicted_bool .& actual_bool
+    num_correct = convert(Float32,sum(correct_bool))
+    acc = num_correct/prod(size(predicted)[1:2])
+    return acc
+end
+
+# Weight accuracy using inverse frequency
+function accuracy_segmentation_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
     # Get input dimensions
     array_size = size(actual)
     array_size12 = array_size[1:2]
@@ -440,11 +436,13 @@ end
 function get_accuracy_func(training::Training)
     if settings.problem_type==:Classification
         return accuracy_classification
-    else
+    elseif settings.problem_type==:Regression
+        return accuracy_regression
+    elseif settings.problem_type==:Segmentation
         if training.Options.General.weight_accuracy
-            return accuracy_weighted
+            return accuracy_segmentation_weighted
         else
-            return accuracy_regular
+            return accuracy_segmentation
         end
     end
 end
@@ -565,5 +563,5 @@ function forward(model::Chain,input_data::Array{Float32};
             predicted = accum_parts(model,input_data,num_parts,offset)
         end
     end
-    return predicted::Array{Float32,4}
+    return predicted
 end
