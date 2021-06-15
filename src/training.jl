@@ -210,42 +210,23 @@ function prepare_training_data(regression_data::RegressionData,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     input_size = model_data.input_size
     num_angles = options.Processing.num_angles
-    urls = regression_data.input_urls
+    input_urls = regression_data.input_urls
     filenames_inputs = regression_data.filenames
     # Get number of images
-    num = length(urls)
+    num = length(input_urls)
     # Return progress target value
     put!(progress, num+2)
     # Load labels
-    labels_info = DataFrame(CSVFiles.load(regression_data.labels_url))
-    filenames_labels::Vector{String} = labels_info[:,1]
-    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
-    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
-    # Remove if no corresponding label
-    inds_adj = zeros(Int64,num)
-    cnt = 1
-    l = length(filenames_inputs)
-    while cnt<=l
-        filename = filenames_inputs[cnt]
-        ind = findfirst(x -> x==filename, filenames_labels)
-        if isnothing(ind)
-            deleteat!(urls,cnt)
-            deleteat!(filenames_inputs,cnt)
-            l-=1
-        else
-            inds_adj[cnt] = ind
-            cnt += 1
-        end
-    end
-    num = cnt - 1
-    inds_adj = inds_adj[1:num]
+    filenames_labels,loaded_labels = load_regression_data(regression_data.labels_url)
+    intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
+    num = length(input_urls)
     # Load images
-    imgs = load_images(urls)
+    imgs = load_images(input_urls)
     put!(progress, 1)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
-    for k = 1:num #@floop ThreadedEx() 
+    @floop ThreadedEx() for k = 1:num
         # Abort if requested
         if isready(channels.training_data_modifiers)
             if fetch(channels.training_data_modifiers)[1]=="stop"
@@ -256,7 +237,7 @@ function prepare_training_data(regression_data::RegressionData,
         img_raw = imgs[k]
         img_raw = imresize(img_raw,input_size[1:2])
         # Get current label
-        label = loaded_labels[inds_adj[k]]
+        label = loaded_labels[k]
         # Convert to float
         if options.Processing.grayscale
             img = image_to_gray_float(img_raw)

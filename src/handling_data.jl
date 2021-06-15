@@ -331,10 +331,12 @@ function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::In
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
     image = validation_data.original_image
-    if size(buffer)==size(image)
-        buffer .= image
-    elseif size(buffer)==reverse(size(image))
+    s = size(image)
+    
+    if size(buffer)==reverse(size(image)) || (s[1]==s[2] && size(buffer)==size(image))
         buffer .= transpose(image)
+    elseif size(buffer)==s
+        buffer .= image
     end
     return
 end

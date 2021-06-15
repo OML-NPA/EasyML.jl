@@ -341,12 +341,20 @@ function get_urls_validation(input_dir::String,label_dir::String)
         @error string(input_dir," does not exist.")
         return nothing
     end
-    if !isdir(label_dir)
-        @error string(label_dir," does not exist.")
-        return nothing
+    if settings.problem_type==:Classification || settings.problem_type==:Segmentation
+        if !isdir(label_dir)
+            @error string(label_dir," does not exist.")
+            return nothing
+        end
+        validation.label_dir = label_dir
+    else
+        if !isfile(label_dir)
+            @error string(label_dir," does not exist.")
+            return nothing
+        end
+        regression_data.labels_url = label_dir
     end
     validation.input_dir = input_dir
-    validation.label_dir = label_dir
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
@@ -413,7 +421,7 @@ function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
-    if settings.problem_type==:Classification && settings.input_type==:Image && training.Options.General.weight_accuracy
+    if settings.problem_type==:Classification && training.Options.General.weight_accuracy
         @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
         training.Options.General.weight_accuracy = false
     end
@@ -441,14 +449,34 @@ function validate()
         display_result_image = f2
     )
     exec()
-    if settings.problem_type==:Classification && settings.input_type==:Image
-        return validation_image_classification_results
-    elseif settings.problem_type==:Segmentation && settings.input_type==:Image
-        return validation_image_segmentation_results
+    if settings.input_type==:Image
+        if settings.problem_type==:Classification
+            return validation_image_classification_results
+        elseif settings.problem_type==:Segmentation
+            return validation_image_segmentation_results
+        end
     end
     # Clean up
-    empty!(validation_data.original_image)
-    empty!(validation_data.result_image)
+    validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
+    validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
+end
+
+function remove_validation_data()
+    if settings.input_type==:Image
+        if settings.problem_type==:Classification
+            data = validation_data.ImageClassificationResults
+            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
+        elseif settings.problem_type==:Regression
+            data = validation_data.ImageRegressionResults
+            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
+        elseif settings.problem_type==:Segmentation
+            data = validation_data.ImageSegmentationResults
+            fields = fieldnames(ValidationImageSegmentationResults)[1:end-1]
+        end
+    end
+    for field in fields
+        empty!(getfield(data, field))
+    end
 end
 
 # Application

@@ -195,7 +195,8 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     result_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
-    labels::Vector{Int32} = Vector{Int32}(undef,0)
+    labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
+    labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
 end
 validation_data = ValidationData()
 
