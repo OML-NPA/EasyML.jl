@@ -322,7 +322,7 @@ function make_model_main(model_data::ModelData)
         out_size = size(model(input))
         model_data.output_size = out_size[1:end-1]
         if settings.problem_type==:Classification && out_size!=1
-            @warning "Use flatten before an output. Otherwise, the 
+            @warn "Use flatten before an output. Otherwise, the 
                 model will not function correctly."
         end
     catch
