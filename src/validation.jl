@@ -9,13 +9,11 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
     end
     if settings.problem_type == :Classification
         input_urls,dirs = get_urls1(validation,allowed_ext)
-        if validation.use_labels==true
-            labels = map(class -> class.name,model_data.classes)
-            if issubset(dirs,labels)
-                validation.use_labels = true
-                labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
-                validation_data.labels_classification = reduce(vcat,labels_int)
-            end
+        labels = map(class -> class.name,model_data.classes)
+        if issubset(dirs,labels)
+            validation.use_labels = true
+            labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
+            validation_data.labels_classification = reduce(vcat,labels_int)
         end
     elseif settings.problem_type == :Regression
         input_urls_raw,_,filenames_inputs_raw = get_urls1(validation,allowed_ext)
@@ -66,7 +64,7 @@ function prepare_validation_data(model_data::ModelData,validation::Validation,va
         num = length(classes)
         labels_temp = Vector{Float32}(undef,num)
         fill!(labels_temp,0)
-        label_int = EasyML.validation_data.labels[ind]
+        label_int = validation_data.labels_classification[ind]
         labels_temp[label_int] = 1
         labels = reshape(labels_temp,1,1,:,1)
     else
