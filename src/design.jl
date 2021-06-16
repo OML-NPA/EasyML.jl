@@ -234,16 +234,18 @@ function get_topology_main(model_data::ModelData)
     end
     ind = findfirst(types .== "Input")
     if isempty(ind)
-        @info "no input layer"
-        return "no input layer"
+        @warn "No input layer."
+        return "No input layer."
     elseif length(ind)>1
-        @info "more than one input layer"
-        return "more than one input layer"
+        @warn "More than one input layer."
+        return "More than one input layer."
     end
     ind_output = findfirst(types .== "Output")
-    if ind_output!==nothing && length(ind_output)>1
-        @info "more than one output layer"
-        return "more than one output layer"
+    if isnothing(ind_output)
+        @warn "No output layers."
+    elseif  && length(ind_output)>1
+        @warn "More than one output layer."
+        return "More than one output layer."
     end
     layers_arranged = Vector(undef,0)
     inds_arranged = Vector(undef,0)
@@ -293,7 +295,7 @@ function getbranch(layer_params,in_size)
         if allcmp(par_size)
             in_size = par_size
         else
-            return @info "incorrect size"
+            return @info "Inputs to a parallel layer have different sizes."
         end
     end
     return layer,in_size
@@ -302,7 +304,7 @@ end
 function make_model_main(model_data::ModelData)
     layers_arranged,_ = get_topology()
     if layers_arranged isa String
-        return @info "not supported"
+        return false
     end
     in_size = (layers_arranged[1]["size"]...,)
     model_data.input_size = in_size
