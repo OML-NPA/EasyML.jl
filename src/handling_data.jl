@@ -600,8 +600,10 @@ function load_model_main(settings,model_data,url)
                 deserialized = convert(type,deserialized)
             elseif k==:classes || k==:OutputOptions
                 deserialized = [deserialized...]
-                type = eltype(deserialized)
-                deserialized = convert(Vector{type},deserialized)
+                if !isempty(deserialized)
+                    type = eltype(deserialized)
+                    deserialized = convert(Vector{type},deserialized)
+                end
             end
             setfield!(model_data,k,deserialized)
         catch e
