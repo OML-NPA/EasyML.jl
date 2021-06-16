@@ -1,23 +1,125 @@
+# Number of model layers
+model_count() = length(model_data.layers_info)
+
+function get_max_id_main(model_data::ModelData)
+    if length(model_data.model)>0
+        ids = map(x-> x.id, model_data.layers_info)
+        return maximum(id)
+    else
+        return 0
+    end
+end
+get_max_id() = get_max_id_main(model_data)
+
+# Returns keys for layer properties
+model_properties(index) = 
+    string(collect(fieldnames(typeof(model_data.layers[Int64(index)]))))
+
+# Returns model layer property value
+function model_get_layer_property_main(model_data::ModelData,index,property_name)
+    layer_info = model_data.layers_info[Int64(index)]
+    property = getfield(layer_info,Symbol(property_name))
+    if property <: Tuple
+        return collect(property)
+    end
+    return property
+end
+model_get_layer_property(index,property_name) =
+    model_get_layer_property_main(model_data,index,property_name)
+
+# Empties model layers
+function reset_layers_main(model_data::ModelData)
+    empty!(model_data.layers_info)
+    return nothing
+end
+reset_layers() = reset_layers_main(model_data::ModelData)
+
+function get_layer_info(layer_name::String)
+    if layer_name=="input"
+        return InputInfo()
+    elseif layer_name=="output"
+        return OutputInfo()
+    elseif layer_name=="conv"
+        return ConvInfo()
+    elseif layer_name=="tconv"
+        return TConvInfo()
+    elseif layer_name=="dense"
+        return DenseInfo()
+    elseif layer_name=="dropout"
+        return DropoutInfo()  
+    elseif layer_name=="batchnorm"
+        return BatchNormInfo()
+    elseif layer_name=="relu"
+        return ReLUInfo()
+    elseif layer_name=="leakyrelu"
+        return LeakyReLUInfo()
+    elseif layer_name=="elu"
+        return ELUInfo()  
+    elseif layer_name=="tanh"
+        return TanhInfo()
+    elseif layer_name=="sigmoid"
+        return SigmoidInfo()
+    elseif layer_name=="maxpool" || layer_name=="avgpool"
+        return PoolInfo()
+    elseif layer_name=="addition"
+        return AdditionInfo()  
+    elseif layer_name=="join"
+        return JoinInfo()  
+    elseif layer_name=="split"
+        return SplitInfo()  
+    elseif layer_name=="upsample"
+        return UpsampleInfo()  
+    else 
+        return EmptyInfo()
+    end
+end
+
+# Saves new model layer data into a Julia dictionary
+function update_layers_main(model_data::ModelData,fields,values,ext...)
+    layers_info = model_data.layers_info
+    fields = fix_QML_types(fields)
+    values = fix_QML_types(values)
+    ext = fix_QML_types(ext)
+    layer_info = get_layer_info(values[2])
+    for i = 1:length(keys)
+        value_raw = values[i]
+        field = Symbol(fields[i])
+        type = typeof(getfield(layer_info,key))
+        if type <: Tuple
+            eltypes = type.parameters
+            value = map(T,x->convert(T,x),eltypes,value_raw)
+        elseif type isa Number && typeof(value_raw) isa String
+            value = parse(type,value_raw)
+        else
+            value = convert(type,value_raw)
+        end
+        setfield!(layer_info,field,value)
+    end
+    push!(layers_info,layer_info)
+    return nothing
+end
+update_layers(keys,values,ext...) = update_layers_main(model_data::ModelData,
+    keys,values,ext...)
 
 #---Layer constructors
 function getlinear(type::String, d, in_size::Tuple{Int64,Int64,Int64})
     if type == "Convolution"
         layer = Conv(
-            d["filtersize"],
+            d["filter_size"],
             in_size[3] => d["filters"],
             pad = SamePad(),
             stride = d["stride"],
-            dilation = d["dilationfactor"]
+            dilation = d["dilation_factor"]
         )
         out = outdims(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Transposed convolution"
         layer = ConvTranspose(
-            d["filtersize"],
+            d["filter_size"],
             in_size[3] => d["filters"],
             pad = SamePad(),
             stride = d["stride"],
-            dilation = d["dilationfactor"],
+            dilation = d["dilation_factor"],
         )
         out = outdims(layer, (in_size...,1))[1:3]
         return (layer, out)
@@ -243,7 +345,7 @@ function get_topology_main(model_data::ModelData)
     ind_output = findfirst(types .== "Output")
     if isnothing(ind_output)
         @warn "No output layers."
-    elseif  && length(ind_output)>1
+    elseif length(ind_output)>1
         @warn "More than one output layer."
         return "More than one output layer."
     end
@@ -412,34 +514,34 @@ end
 arrange() = arrange_main(design)
 
 #---Losses
-function get_loss(name::String)
-    if name == "MAE"
+function get_loss(loss_name::String)
+    if loss_name == "MAE"
         return Losses.mae
-    elseif name == "MSE"
+    elseif loss_name == "MSE"
         return Losses.mse
-    elseif name == "MSLE"
+    elseif loss_name == "MSLE"
         return Losses.msle
-    elseif name == "Huber"
+    elseif loss_name == "Huber"
         return Losses.huber_loss
-    elseif name == "Crossentropy"
+    elseif loss_name == "Crossentropy"
         return Losses.crossentropy
-    elseif name == "Logit crossentropy"
+    elseif loss_name == "Logit crossentropy"
         return Losses.logitcrossentropy
-    elseif name == "Binary crossentropy"
+    elseif loss_name == "Binary crossentropy"
         return Losses.binarycrossentropy
-    elseif name == "Logit binary crossentropy"
+    elseif loss_name == "Logit binary crossentropy"
         return Losses.logitbinarycrossentropy
-    elseif name == "Kullback-Leiber divergence"
+    elseif loss_name == "Kullback-Leiber divergence"
         return Losses.kldivergence
-    elseif name == "Poisson"
+    elseif loss_name == "Poisson"
         return Losses.poisson_loss
-    elseif name == "Hinge"
+    elseif loss_name == "Hinge"
         return Losses.hinge_loss
-    elseif name == "Squared hinge"
+    elseif loss_name == "Squared hinge"
         return squared_hinge_loss
-    elseif name == "Dice coefficient"
+    elseif loss_name == "Dice coefficient"
         return Losses.dice_coeff_loss
-    elseif name == "Tversky"
+    elseif loss_name == "Tversky"
         return Losses.tversky_loss
     end
 end

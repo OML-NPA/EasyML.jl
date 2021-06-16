@@ -55,11 +55,13 @@ ApplicationWindow {
     Loader { id: designoptionsLoader}
 
 //---Julia package block--------------------------------------------------
-property var model: []
-Component.onCompleted: {
-    importmodel(model)
-}
+    property var model: []
+    Component.onCompleted: {
+        importmodel(model)
+    }
 //------------------------------------------------------------------------
+
+    property int idCounter: 0
 
     onWidthChanged: {
         if (layers.children.length>0) {
@@ -425,7 +427,7 @@ Component.onCompleted: {
                                     boundsBehavior: Flickable.StopAtBounds
                                     model: ListModel {id: activationlayerModel
                                                       ListElement{
-                                                          type: "RelU"
+                                                          type: "ReLU"
                                                           group: "activation"
                                                           name: "relu"
                                                           colorR: 250
@@ -434,7 +436,7 @@ Component.onCompleted: {
                                                           inputnum: 1
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "Laeky RelU"
+                                                          type: "Laeky ReLU"
                                                           group: "activation"
                                                           name: "leakyrelu"
                                                           colorR: 250
@@ -443,7 +445,7 @@ Component.onCompleted: {
                                                           inputnum: 1
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "ElU"
+                                                          type: "ELU"
                                                           group: "activation"
                                                           name: "elu"
                                                           colorR: 250
@@ -1293,6 +1295,7 @@ Component.onCompleted: {
     }
 
     function importmodel(model) {
+        idCounter = Julia.get_max_id()
         model.length = 0
         var skipStringing = ["x","y"]
         var count = Julia.model_count()
@@ -1781,48 +1784,46 @@ Component.onCompleted: {
         return highest;
     }
 
-    function pushstack(comp,labelColor,group,type,name,unit,datastore) {
+    function pushstack(comp,id,name,type,group,labelColor,unit) {
         propertiesStackView.push(comp, {"labelColor": labelColor,
             "group": group,"type": type, "name": name,"unit": unit})
-        if (datastore!==undefined) {
-            propertiesStackView.currentItem.datastore = datastore
-        }
     }
 
-    function getstack(labelColor,group,type,name,unit,datastore) {
+    function getstack(labelColor,id,group,type,name,unit) {
+        var properties = [id,name,type,group,labelColor]
         switch(type) {
-        case "Input":
-            return pushstack(inputpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Output":
-            return pushstack(outputpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Convolution":
-            return pushstack(convpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Transposed convolution":
-            return pushstack(tconvpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Dense":
-            return pushstack(densepropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Drop-out":
-            return pushstack(dropoutpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Batch normalisation":
-            return pushstack(batchnormpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Leaky RelU":
-            return pushstack(leakyrelupropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "ElU":
-            return pushstack(elupropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Max pooling":
-            return pushstack(poolpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Average pooling":
-            return pushstack(poolpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Addition":
-            return pushstack(additionpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Join":
-            return pushstack(catpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Split":
-            return pushstack(splitpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Upsample":
-            return pushstack(upsamplepropertiesComponent,labelColor,group,type,name,unit,datastore)
-        default:
-            pushstack(emptypropertiesComponent,labelColor,group,type,name,unit,datastore)
+            case "Input":
+                return pushstack(inputpropertiesComponent,...properties,unit)
+            case "Output":
+                return pushstack(outputpropertiesComponent,...properties,unit)
+            case "Convolution":
+                return pushstack(convpropertiesComponent,...properties,unit)
+            case "Transposed convolution":
+                return pushstack(tconvpropertiesComponent,...properties,unit)
+            case "Dense":
+                return pushstack(densepropertiesComponent,...properties,unit)
+            case "Drop-out":
+                return pushstack(dropoutpropertiesComponent,...properties,unit)
+            case "Batch normalisation":
+                return pushstack(batchnormpropertiesComponent,...properties,unit)
+            case "Leaky ReLU":
+                return pushstack(leakyrelupropertiesComponent,...properties,unit)
+            case "ELU":
+                return pushstack(elupropertiesComponent,...properties,unit)
+            case "Max pooling":
+                return pushstack(poolpropertiesComponent,...properties,unit)
+            case "Average pooling":
+                return pushstack(poolpropertiesComponent,...properties,unit)
+            case "Addition":
+                return pushstack(additionpropertiesComponent,...properties,unit)
+            case "Join":
+                return pushstack(catpropertiesComponent,...properties,unit)
+            case "Split":
+                return pushstack(splitpropertiesComponent,...properties,unit)
+            case "Upsample":
+                return pushstack(upsamplepropertiesComponent,...properties,unit)
+            default:
+                pushstack(emptypropertiesComponent,...properties,unit)
         }
     }
 
@@ -2134,6 +2135,7 @@ Component.onCompleted: {
             radius: 8*pix
             border.color: defaultpalette.controlborder
             border.width: 3*pix
+            property int id
             property string name
             property string type
             property string group
@@ -2166,7 +2168,9 @@ Component.onCompleted: {
                 Component.onCompleted: {
                     deselectunits()
                     selectunit(unit)
-                    getstack(labelColor,group,type,name,unit,datastore)
+                    idCounter  = idCounter + 1
+                    id = idCounter
+                    getstack(labelColor,id,group,type,name,unit)
                 }
                 onEntered: {
                     selectunit(unit)
@@ -2208,7 +2212,7 @@ Component.onCompleted: {
                     deselectunits()
                     selectunit(unit)
                     mainPane.selectioninds = [unitindex(unit)]
-                    getstack(labelColor,group,type,name,unit,datastore)
+                    getstack(labelColor,id,group,type,name,unit)
                 }
                 onPositionChanged: {
                     if (pressed) {
@@ -2794,6 +2798,7 @@ Component.onCompleted: {
         id: inputpropertiesComponent
         Column {
             id: column
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -2804,6 +2809,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
 
@@ -2886,6 +2894,7 @@ Component.onCompleted: {
     Component {
         id: outputpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -2895,6 +2904,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -2978,16 +2990,20 @@ Component.onCompleted: {
     Component {
         id: convpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
             property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filtersize": "3",
-                "stride": "1", "dilationfactor": "1"}
+            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filter_size": "3",
+                "stride": "1", "dilation_factor": "1"}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3048,12 +3064,12 @@ Component.onCompleted: {
                         }
                     }
                     TextField {
-                        text: datastore.filtersize
+                        text: datastore.filter_size
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.filtersize = displayText
+                            unit.datastore.filter_size = displayText
                         }
                     }
                     TextField {
@@ -3066,12 +3082,12 @@ Component.onCompleted: {
                         }
                     }
                     TextField {
-                        text: datastore.dilationfactor
+                        text: datastore.dilation_factor
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.dilationfactor = displayText
+                            unit.datastore.dilation_factor = displayText
                         }
                     }
                 }
@@ -3082,16 +3098,20 @@ Component.onCompleted: {
     Component {
         id: tconvpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
             property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filtersize": "3",
+            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filter_size": "3",
                 "stride": "1"}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3152,12 +3172,12 @@ Component.onCompleted: {
                         }
                     }
                     TextField {
-                        text: datastore.filtersize
+                        text: datastore.filter_size
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.filtersize = displayText
+                            unit.datastore.filter_size = displayText
                         }
                     }
                     TextField {
@@ -3177,6 +3197,7 @@ Component.onCompleted: {
     Component {
         id: densepropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3186,6 +3207,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3252,6 +3276,7 @@ Component.onCompleted: {
     Component {
         id: batchnormpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3261,6 +3286,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3327,6 +3355,7 @@ Component.onCompleted: {
     Component {
         id: dropoutpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3336,6 +3365,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3402,6 +3434,7 @@ Component.onCompleted: {
     Component {
         id: leakyrelupropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3411,6 +3444,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3477,6 +3513,7 @@ Component.onCompleted: {
     Component {
         id: elupropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3486,6 +3523,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3552,6 +3592,7 @@ Component.onCompleted: {
     Component {
         id: poolpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3562,6 +3603,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3637,6 +3681,7 @@ Component.onCompleted: {
     Component {
         id: additionpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3646,6 +3691,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3770,6 +3818,7 @@ Component.onCompleted: {
     Component {
         id: catpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3780,6 +3829,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3912,6 +3964,7 @@ Component.onCompleted: {
     Component {
         id: splitpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -3922,6 +3975,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -4062,6 +4118,7 @@ Component.onCompleted: {
     Component {
         id: upsamplepropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
@@ -4072,6 +4129,9 @@ Component.onCompleted: {
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -4148,15 +4208,19 @@ Component.onCompleted: {
     Component {
         id: emptypropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
-            property string group
+            property var group: null
             property var labelColor: null
             property var datastore: { "name": name, "type": type, "group": group}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {

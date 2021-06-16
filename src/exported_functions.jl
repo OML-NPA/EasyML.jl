@@ -8,6 +8,7 @@ function design_network()
         model_get_layer_property,
         model_properties,
         # Model functions
+        get_max_id,
         reset_layers,
         update_layers,
         make_model,
