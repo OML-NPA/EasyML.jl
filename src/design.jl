@@ -11,15 +11,15 @@ function get_max_id_main(model_data::ModelData)
 end
 get_max_id() = get_max_id_main(model_data)
 
-# Returns keys for layer properties
+# Returns fields for layer properties
 model_properties(index) = 
-    string(collect(fieldnames(typeof(model_data.layers[Int64(index)]))))
+    string.(collect(fieldnames(typeof(model_data.layers_info[Int64(index)]))))
 
 # Returns model layer property value
 function model_get_layer_property_main(model_data::ModelData,index,property_name)
     layer_info = model_data.layers_info[Int64(index)]
     property = getfield(layer_info,Symbol(property_name))
-    if property <: Tuple
+    if typeof(property) <: Tuple
         return collect(property)
     end
     return property
@@ -49,16 +49,10 @@ function get_layer_info(layer_name::String)
         return DropoutInfo()  
     elseif layer_name=="batchnorm"
         return BatchNormInfo()
-    elseif layer_name=="relu"
-        return ReLUInfo()
     elseif layer_name=="leakyrelu"
         return LeakyReLUInfo()
     elseif layer_name=="elu"
         return ELUInfo()  
-    elseif layer_name=="tanh"
-        return TanhInfo()
-    elseif layer_name=="sigmoid"
-        return SigmoidInfo()
     elseif layer_name=="maxpool" || layer_name=="avgpool"
         return PoolInfo()
     elseif layer_name=="addition"
@@ -70,25 +64,33 @@ function get_layer_info(layer_name::String)
     elseif layer_name=="upsample"
         return UpsampleInfo()  
     else 
-        return EmptyInfo()
+        return GenericInfo()
     end
 end
 
 # Saves new model layer data into a Julia dictionary
-function update_layers_main(model_data::ModelData,fields,values,ext...)
+function update_layers_main(model_data::ModelData,fields,values)
     layers_info = model_data.layers_info
     fields = fix_QML_types(fields)
     values = fix_QML_types(values)
-    ext = fix_QML_types(ext)
-    layer_info = get_layer_info(values[2])
-    for i = 1:length(keys)
+    layer_info = get_layer_info(values[7])
+    for i = 1:length(fields)
         value_raw = values[i]
         field = Symbol(fields[i])
-        type = typeof(getfield(layer_info,key))
+        type = typeof(getfield(layer_info,field))
         if type <: Tuple
             eltypes = type.parameters
-            value = map(T,x->convert(T,x),eltypes,value_raw)
-        elseif type isa Number && typeof(value_raw) isa String
+            l = length(eltypes)
+            if length(eltypes)!=length(value_raw)
+                if value_raw isa Array
+                    value_raw = repeat(value_raw,l)
+                else
+                    value_raw = repeat([value_raw],l)
+                end
+            end
+            value_array = map((T,x)->convert(T,x),eltypes,value_raw)
+            value = Tuple(value_array)
+        elseif (type<:Number) && (value_raw isa String)
             value = parse(type,value_raw)
         else
             value = convert(type,value_raw)
@@ -98,8 +100,8 @@ function update_layers_main(model_data::ModelData,fields,values,ext...)
     push!(layers_info,layer_info)
     return nothing
 end
-update_layers(keys,values,ext...) = update_layers_main(model_data::ModelData,
-    keys,values,ext...)
+update_layers(fields,values) = update_layers_main(model_data::ModelData,
+    fields,values)
 
 #---Layer constructors
 function getlinear(type::String, d, in_size::Tuple{Int64,Int64,Int64})

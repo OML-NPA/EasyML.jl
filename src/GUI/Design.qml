@@ -137,7 +137,7 @@ ApplicationWindow {
                                 "name": unit.name,
                                 "group": unit.group,
                                 "type": unit.type,
-                                "labelColor": unit.labelColor,
+                                "label_color": unit.label_color,
                                 "inputnum": unit.inputnum,
                                 "outputnum": unit.outputnum,
                                 "x": unit.x,
@@ -158,7 +158,7 @@ ApplicationWindow {
                        "name": data.name,
                        "group": data.group,
                        "type": data.type,
-                       "labelColor": data.labelColor,
+                       "label_color": data.label_color,
                        "inputnum": copycache.connections[i].up.length,
                        "outputnum": copycache.connections[i].down.length,
                        "x": data.x+20*pix,
@@ -727,20 +727,21 @@ ApplicationWindow {
                                 var data = model[i]
                                 var datastore = copy(data)
                                 var names = ["connections_down","connections_up",
-                                    "labelColor","x","y"]
+                                    "label_color","x","y"]
                                 for (var j=0;j<names.length;j++) {
                                     delete datastore[names[j]]
                                 }
-                                layerComponent.createObject(layers,{"color" : adjustcolor(data.labelColor),
-                                   "name": data.name,
-                                   "group": data.group,
-                                   "type": data.type,
-                                   "labelColor": data.labelColor,
-                                   "inputnum": data.connections_up.length,
-                                   "outputnum": data.connections_down.length,
-                                   "x": data.x,
-                                   "y": data.y,
-                                   "datastore": datastore});
+                                layerComponent.createObject(layers,{"color" : adjustcolor(data.label_color),
+                                    "id": data.id,
+                                    "name": data.name,
+                                    "group": data.group,
+                                    "type": data.type,
+                                    "label_color": data.label_color,
+                                    "inputnum": data.connections_up.length,
+                                    "outputnum": data.connections_down.length,
+                                    "x": data.x,
+                                    "y": data.y,
+                                    "datastore": datastore});
                             }
 
                             for (i=0;i<model.length;i++) {
@@ -1058,11 +1059,11 @@ ApplicationWindow {
                     onClicked: {
                        getarchitecture()
                        customizationItem.forceActiveFocus()
-                       var name = Julia.get_settings(["Training","name"])
+                       /*var name = Julia.get_settings(["Training","name"])
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
                        Julia.make_model()
-                       Julia.save_model(url)
+                       Julia.save_model(url)*/
                        opacity = 1
                     }
                 }
@@ -1708,9 +1709,10 @@ ApplicationWindow {
             var connections = getconnections(unit,1)
             var x = layers.children[i].x/pix
             var y = layers.children[i].y/pix
-            Julia.update_layers(keys,values,"connections_up",connections["up"],
-                            "connections_down",connections["down"],
-                            "x",x,"y",y,"labelColor",layers.children[i].labelColor);
+            keys = ["connections_up","connections_down","x","y","label_color",...keys]
+            values = [connections["up"],connections["down"],x,y,
+                layers.children[i].label_color,...values]
+            Julia.update_layers(keys,values)
         }
     }
 
@@ -1784,13 +1786,13 @@ ApplicationWindow {
         return highest;
     }
 
-    function pushstack(comp,id,name,type,group,labelColor,unit) {
-        propertiesStackView.push(comp, {"labelColor": labelColor,
+    function pushstack(comp,id,name,type,group,label_color,unit) {
+        propertiesStackView.push(comp, {"label_color": label_color,
             "group": group,"type": type, "name": name,"unit": unit})
     }
 
-    function getstack(labelColor,id,group,type,name,unit) {
-        var properties = [id,name,type,group,labelColor]
+    function getstack(label_color,id,group,type,name,unit) {
+        var properties = [id,name,type,group,label_color]
         switch(type) {
             case "Input":
                 return pushstack(inputpropertiesComponent,...properties,unit)
@@ -2139,7 +2141,7 @@ ApplicationWindow {
             property string name
             property string type
             property string group
-            property var labelColor: null
+            property var label_color: null
             property double inputnum
             property double outputnum
             property var datastore
@@ -2170,7 +2172,7 @@ ApplicationWindow {
                     selectunit(unit)
                     idCounter  = idCounter + 1
                     id = idCounter
-                    getstack(labelColor,id,group,type,name,unit)
+                    getstack(label_color,id,group,type,name,unit)
                 }
                 onEntered: {
                     selectunit(unit)
@@ -2212,7 +2214,7 @@ ApplicationWindow {
                     deselectunits()
                     selectunit(unit)
                     mainPane.selectioninds = [unitindex(unit)]
-                    getstack(labelColor,id,group,type,name,unit)
+                    getstack(label_color,id,group,type,name,unit)
                 }
                 onPositionChanged: {
                     if (pressed) {
@@ -2674,7 +2676,7 @@ ApplicationWindow {
                                            "name": name,
                                            "group": group,
                                            "type": type,
-                                           "labelColor": [colorR,colorG,colorB],
+                                           "label_color": [colorR,colorG,colorB],
                                            "inputnum": inputnum,
                                            "outputnum": outputnum,
                                            "x": flickableMainPane.contentX + 20*pix,
@@ -2803,9 +2805,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: {"name": name, "type": type, "group": group,"size": "160,160",
-                "normalisation": {"text": "[0,1]", "ind": 0}}
+            property var label_color: null
+            property var datastore: {"id": id,"name": name, "type": type, "group": group,
+                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": 0}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -2822,7 +2824,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -2839,7 +2841,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Size","Normalisation"]
                         Label {
@@ -2852,7 +2854,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -2863,10 +2865,19 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.size
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3},[1-9]\d{0,3}))/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.size.length;i++) {
+                                str = str + datastore.size[i].toString()
+                                if (i!==(datastore.size.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
                         onEditingFinished: {
                             unit.datastore.size = displayText
                         }
@@ -2899,8 +2910,8 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"loss": {"text": "Dice coefficient", "ind": 12}}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,"loss": {"text": "Dice coefficient", "ind": 12}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -2916,7 +2927,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -2933,7 +2944,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Loss"]
                         Label {
@@ -2946,7 +2957,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -2995,9 +3006,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filter_size": "3",
-                "stride": "1", "dilation_factor": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "filters": 32, "filter_size": 3,"stride": 1, "dilation_factor": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3013,7 +3024,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3030,7 +3041,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride","Dilation factor"]
@@ -3044,7 +3055,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3055,39 +3066,48 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.filters
+                        text: datastore.filters.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.filter_size
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
+                        validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.filter_size.length;i++) {
+                                str = str + datastore.filter_size[i].toString()
+                                if (i!==(datastore.filter_size.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
+                        onEditingFinished: {
+                            unit.datastore.filter_size = parseInt(displayText,10)
+                        }
+                    }
+                    TextField {
+                        text: datastore.stride.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.filter_size = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.stride
+                        text: datastore.dilation_factor.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.stride = displayText
-                        }
-                    }
-                    TextField {
-                        text: datastore.dilation_factor
-                        height: buttonHeight
-                        width: rightFrame.width - labelColumn.width - 70*pix
-                        validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
-                        onEditingFinished: {
-                            unit.datastore.dilation_factor = displayText
+                            unit.datastore.dilation_factor = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3103,9 +3123,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filter_size": "3",
-                "stride": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"filters": 32, "filter_size": 3,"stride": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3121,7 +3141,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3138,7 +3158,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride"]
@@ -3152,7 +3172,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3163,30 +3183,39 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.filters
+                        text: datastore.filters.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.filter_size
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
+                        validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.filter_size.length;i++) {
+                                str = str + datastore.filter_size[i].toString()
+                                if (i!==(datastore.filter_size.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
+                        onEditingFinished: {
+                            unit.datastore.filter_size = parseInt(displayText,10)
+                        }
+                    }
+                    TextField {
+                        text: datastore.stride.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.filter_size = displayText
-                        }
-                    }
-                    TextField {
-                        text: datastore.stride
-                        height: buttonHeight
-                        width: rightFrame.width - labelColumn.width - 70*pix
-                        validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
-                        onEditingFinished: {
-                            unit.datastore.stride = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3202,8 +3231,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group, "filters": 32}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3219,7 +3249,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3236,7 +3266,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters"]
                         Label {
@@ -3249,7 +3279,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3260,12 +3290,12 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.filters
+                        text: datastore.filters.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3281,8 +3311,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"epsilon": "0.00001"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"epsilon": 0.00001}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3298,7 +3329,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3315,7 +3346,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Epsilon"]
                         Label {
@@ -3328,7 +3359,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3339,12 +3370,12 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.epsilon
+                        text: datastore.epsilon.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,10}/ }
                         onEditingFinished: {
-                            unit.datastore.epsilon = displayText
+                            unit.datastore.epsilon = parseFloat(displayText)
                         }
                     }
                 }
@@ -3360,8 +3391,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"probability": "0.5"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"probability": 0.5}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3377,7 +3409,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3394,7 +3426,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Probability"]
                         Label {
@@ -3407,7 +3439,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3418,12 +3450,12 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.probability
+                        text: datastore.probability.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.probability = displayText
+                            unit.datastore.probability = parseFloat(displayText)
                         }
                     }
                 }
@@ -3439,8 +3471,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"scale": "0.01"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"scale": 0.01}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3456,7 +3489,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3473,7 +3506,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Scale"]
                         Label {
@@ -3486,7 +3519,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3497,12 +3530,12 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.scale
+                        text: datastore.scale.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.scale = displayText
+                            unit.datastore.scale = parseFloat(displayText)
                         }
                     }
                 }
@@ -3518,8 +3551,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"alpha": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"alpha": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3535,7 +3569,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3552,7 +3586,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Alpha"]
                         Label {
@@ -3565,7 +3599,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3576,12 +3610,12 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.alpha
+                        text: datastore.alpha.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,4}|[1-9]d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.alpha = displayText
+                            unit.datastore.alpha = parseFloat(displayText)
                         }
                     }
                 }
@@ -3597,9 +3631,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "poolsize": "2", "stride": "2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group, "poolsize": 2, "stride": 2}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3615,7 +3649,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3632,7 +3666,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Pool size","Stride"]
                         Label {
@@ -3645,7 +3679,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3656,21 +3690,21 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.poolsize
+                        text: datastore.poolsize.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.poolsize = displayText
+                            unit.datastore.poolsize = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.stride
+                        text: datastore.stride.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.stride = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3686,8 +3720,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"inputs": "2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"inputs": 2}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3703,7 +3738,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3720,7 +3755,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Inputs"]
                         Label {
@@ -3733,7 +3768,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3744,7 +3779,7 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.inputs
+                        text: datastore.inputs.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
@@ -3807,7 +3842,7 @@ ApplicationWindow {
                                 }
                             }
                             unit.inputnum = newinputnum
-                            unit.datastore.inputs = displayText
+                            unit.datastore.inputs = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3823,9 +3858,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "inputs": "2", "dimension": "3"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "inputs": 2, "dimension": 3}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3841,7 +3876,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3858,7 +3893,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Inputs","Dimension"]
                         Label {
@@ -3871,7 +3906,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -3882,7 +3917,7 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.inputs
+                        text: datastore.inputs.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[2-9]|10/ }
@@ -3944,16 +3979,16 @@ ApplicationWindow {
                                 }
                             }
                             unit.inputnum = newinputnum
-                            unit.datastore.inputs = displayText
+                            unit.datastore.inputs = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimension
+                        text: datastore.dimension.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
-                            unit.datastore.dimension = displayText
+                            unit.datastore.dimension = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3969,9 +4004,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "outputs": "2","dimension":"3"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "outputs": 2,"dimension": 3}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3987,7 +4022,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -4004,7 +4039,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Outputs","Dimension"]
                         Label {
@@ -4017,7 +4052,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -4028,7 +4063,7 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.outputs
+                        text: datastore.outputs.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
@@ -4098,16 +4133,16 @@ ApplicationWindow {
 
                             }
                             unit.outputnum = newoutputnum
-                            unit.datastore.outputs = displayText
+                            unit.datastore.outputs = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimension
+                        text: datastore.dimension.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
-                            unit.datastore.dimension = displayText
+                            unit.datastore.dimension = parseInt(displayText,10)
                         }
                     }
                 }
@@ -4123,9 +4158,9 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"multiplier": "2",
-                "dimensions": "1,2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"multiplier": 2, "dimensions": [1,2]}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -4141,7 +4176,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -4158,7 +4193,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Multiplier","Dimensions"]
                         Label {
@@ -4171,7 +4206,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight
@@ -4182,22 +4217,36 @@ ApplicationWindow {
                         }
                     }
                     TextField {
-                        text: datastore.multiplier
+                        text: datastore.multiplier.toString()
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /([2-5])/ }
                         onEditingFinished: {
-                            unit.datastore.multiplier = displayText
+                            unit.datastore.multiplier = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimensions
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator {
                             regExp: /(1|2|3|1,2|1,2,3)/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.dimensions.length;i++) {
+                                str = str + datastore.dimensions[i].toString()
+                                if (i!==(datastore.dimensions.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
                         onEditingFinished: {
-                            unit.datastore.dimensions = displayText
+                            var splitString = displayText.split(",")
+                            var ar = []
+                            for (var i=0;i<splitString.length;i++) {
+                                ar.push(parseInt(displayText,10))
+                            }
+                            unit.datastore.dimensions = ar
                         }
                     }
                 }
@@ -4213,8 +4262,8 @@ ApplicationWindow {
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -4230,7 +4279,7 @@ ApplicationWindow {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -4247,7 +4296,7 @@ ApplicationWindow {
                     id: labelColumn
                     leftPadding: 0.4*margin
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name"]
                         Label {
@@ -4260,7 +4309,7 @@ ApplicationWindow {
                 }
                 Column {
                     topPadding: 0.2*margin
-                    spacing: 30*pix
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
                         height: buttonHeight

@@ -87,17 +87,17 @@ end
 
 abstract type AbstractLayerInfo end
 
-@with_kw mutable struct EmptyInfo<:AbstractLayerInfo
+@with_kw mutable struct GenericInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
 end
 
 @with_kw mutable struct InputInfo<:AbstractLayerInfo
@@ -105,13 +105,13 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
-    normalisation::Tuple{String,Int64}
+    label_color::NTuple{3,Int64} = (0,0,0)
+    normalisation::Tuple{String,Int64} = ("",0)
 end
 
 @with_kw mutable struct OutputInfo<:AbstractLayerInfo
@@ -119,13 +119,13 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
-    loss::Tuple{String,Int64}
+    label_color::NTuple{3,Int64} = (0,0,0)
+    loss::Tuple{String,Int64} = ("",0)
 end
 
 @with_kw mutable struct ConvInfo<:AbstractLayerInfo
@@ -133,16 +133,16 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
-    filters::Int64
-    filter_size::NTuple{2,Int64}
-    stride::Int64
-    dilation_factor::Int64
+    label_color::NTuple{3,Int64} = (0,0,0)
+    filters::Int64 = 0
+    filter_size::NTuple{2,Int64} = (0,0)
+    stride::Int64 = 0
+    dilation_factor::Int64 = 0
 end
 
 @with_kw mutable struct TConvInfo<:AbstractLayerInfo
@@ -150,16 +150,16 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
-    filters::Int64
-    filter_size::NTuple{2,Int64}
-    stride::Int64
-    dilation_factor::Int64
+    label_color::NTuple{3,Int64} = (0,0,0)
+    filters::Int64 = 0
+    filter_size::NTuple{2,Int64} = (0,0)
+    stride::Int64 = 0
+    dilation_factor::Int64 = 0
 end
 
 @with_kw mutable struct DenseInfo<:AbstractLayerInfo
@@ -167,13 +167,13 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
-    filters::Int64
+    label_color::NTuple{3,Int64} = (0,0,0)
+    filters::Int64 = 0
 end
 
 @with_kw mutable struct BatchNormInfo<:AbstractLayerInfo
@@ -181,12 +181,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     epsilon::Float64 = 0
 end
 
@@ -195,12 +195,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     probability::Float64 = 0
 end
 
@@ -209,12 +209,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     scale::Float64 = 0
 end
 
@@ -223,12 +223,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     alpha::Float64 = 0
 end
 
@@ -237,12 +237,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     poolsize::NTuple{2,Int64} = (0,0)
     stride::Int64 = 0
 end
@@ -252,26 +252,26 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     inputs::Int64 = 0
 end
 
-@with_kw mutable struct CatInfo<:AbstractLayerInfo
+@with_kw mutable struct JoinInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     inputs::Int64 = 0
     dimension::Int64 = 0
 end
@@ -281,12 +281,12 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     outputs::Int64 = 0
     dimension::Int64 = 0
 end
@@ -296,14 +296,14 @@ end
     name::String = ""
     group::String = ""
     type::String = ""
-    connections_up::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
+    connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
     y::Float64 = 0
     size::NTuple{3,Int64} = (0,0,0)
-    color::NTuple{3,Int64} = (0,0,0)
+    label_color::NTuple{3,Int64} = (0,0,0)
     multiplier::Int64 = 0
-    dimension::Vector{Int64} = 0
+    dimension::Vector{Int64} = [0]
 end
 
 @with_kw mutable struct ModelData
