@@ -133,7 +133,7 @@ ApplicationWindow {
                 for (i=0;i<mainPane.selectioninds.length;i++) {
                     var ind = mainPane.selectioninds[i]
                     unit = layers.children[ind]
-                    var data = {"color" : unit.color,
+                    var data = {"color": unit.color,
                                 "name": unit.name,
                                 "group": unit.group,
                                 "type": unit.type,
@@ -153,8 +153,11 @@ ApplicationWindow {
                 var selectioninds = mainPane.selectioninds
                 for (i=0;i<copycache.objectsdata.length;i++) {
                     data = copycache.objectsdata[i]
+                    idCounter += 1
+                    var id = idCounter
                     unit = layerComponent.createObject(layers,{
                        "color" : data.color,
+                       "id": id,
                        "name": data.name,
                        "group": data.group,
                        "type": data.type,
@@ -1059,11 +1062,11 @@ ApplicationWindow {
                     onClicked: {
                        getarchitecture()
                        customizationItem.forceActiveFocus()
-                       /*var name = Julia.get_settings(["Training","name"])
+                       var name = Julia.get_settings(["Training","name"])
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
                        Julia.make_model()
-                       Julia.save_model(url)*/
+                       Julia.save_model(url)
                        opacity = 1
                     }
                 }
@@ -1787,8 +1790,8 @@ ApplicationWindow {
     }
 
     function pushstack(comp,id,name,type,group,label_color,unit) {
-        propertiesStackView.push(comp, {"label_color": label_color,
-            "group": group,"type": type, "name": name,"unit": unit})
+        propertiesStackView.push(comp, {"id": id, "name": name, "type": type, 
+            "group": group, "label_color": label_color, "unit": unit})
     }
 
     function getstack(label_color,id,group,type,name,unit) {
@@ -3079,14 +3082,18 @@ ApplicationWindow {
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         Component.onCompleted: {
-                            var str = ""
-                            for (var i=0;i<datastore.filter_size.length;i++) {
-                                str = str + datastore.filter_size[i].toString()
-                                if (i!==(datastore.filter_size.length-1)) {
-                                    str = str + ","
+                            if (Array.isArray(datastore.filter_size)) {
+                                if (datastore.filter_size[0]==datastore.filter_size[1]) {
+                                    text = datastore.filter_size[0].toString()
+                                }
+                                else {
+                                    text = datastore.filter_size[0].toString() + 
+                                        "," + datastore.filter_size[1].toString()
                                 }
                             }
-                            text = str
+                            else {
+                                text = datastore.filter_size.toString()
+                            }
                         }
                         onEditingFinished: {
                             unit.datastore.filter_size = parseInt(displayText,10)
@@ -3196,14 +3203,18 @@ ApplicationWindow {
                         width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         Component.onCompleted: {
-                            var str = ""
-                            for (var i=0;i<datastore.filter_size.length;i++) {
-                                str = str + datastore.filter_size[i].toString()
-                                if (i!==(datastore.filter_size.length-1)) {
-                                    str = str + ","
+                            if (Array.isArray(datastore.filter_size)) {
+                                if (datastore.filter_size[0]==datastore.filter_size[1]) {
+                                    text = datastore.filter_size[0].toString()
+                                }
+                                else {
+                                    text = datastore.filter_size[0].toString() + 
+                                        "," + datastore.filter_size[1].toString()
                                 }
                             }
-                            text = str
+                            else {
+                                text = datastore.filter_size.toString()
+                            }
                         }
                         onEditingFinished: {
                             unit.datastore.filter_size = parseInt(displayText,10)
