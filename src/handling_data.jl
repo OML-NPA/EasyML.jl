@@ -508,7 +508,9 @@ function load_model_main(settings,model_data,url)
                 deserialized = [deserialized...]
                 if !isempty(deserialized)
                     type = eltype(deserialized)
-                    deserialized = convert(Vector{type},deserialized)
+                    if type!==Vector{AbstractClass} && type!==Vector{AbstractOutputOption}
+                        deserialized = convert(Vector{type},deserialized)
+                    end
                 end
             end
             setfield!(model_data,k,deserialized)
