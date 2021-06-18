@@ -500,7 +500,7 @@ function load_model_main(settings,model_data,url)
         try
             serialized = seekstart(data[k])
             deserialized = BSON.load(serialized)[:field]
-            if all(k.!=(:loss,:model,:classes,:OutputOptions))
+            if all(k.!=(:output_size,:loss,:model,:classes,:OutputOptions))
                 type = typeof(getfield(model_data,k))
                 deserialized = convert(type,deserialized)
             elseif k==:classes || k==:OutputOptions
