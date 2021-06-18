@@ -116,7 +116,7 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
         data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
@@ -144,7 +144,7 @@ function get_output(model_data::ModelData,processing::ProcessingTraining,num::In
     return nothing
 end
 
-function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
     urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
     data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
@@ -164,8 +164,8 @@ function get_output(model_data::ModelData,processing::ProcessingTraining,num::In
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
             predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
-            _, predicted_labels4 = findmax(predicted,dims=3)
-            predicted_labels = map(x-> x.I[3],predicted_labels4[1,1,1,:])
+            _, predicted_labels4 = findmax(predicted,dims=2)
+            predicted_labels = map(x-> x.I[2],predicted_labels4[:])
             # Return result
             put!(data_channel,(l,predicted_labels))
         end
@@ -566,7 +566,7 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    Threads.@spawn get_output(model_data,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
+    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,abort,data_channel,channels)
