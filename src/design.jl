@@ -382,6 +382,9 @@ function getbranch(layer_params,in_size)
                 temp_layers = []
                 for j = 1:length(layer_params[i])
                     layer,temp_size = getbranch(layer_params[i][j],temp_size)
+                    if isnothing(layer)
+                        return nothing,nothing
+                    end
                     push!(temp_layers,layer)
                 end
             end
@@ -396,7 +399,9 @@ function getbranch(layer_params,in_size)
         if allcmp(par_size)
             in_size = par_size
         else
-            return @info "Inputs to a parallel layer have different sizes."
+            @warn "Inputs to a parallel layer have different sizes."
+            push!(design_data.warnings,"Inputs to a parallel layer have different sizes.")
+            return nothing,nothing
         end
     end
     return layer,in_size
@@ -418,6 +423,9 @@ function make_model_main(design_data::DesignData)
     for i = 1:length(layers_arranged)
         layer_params = layers_arranged[i]
         layer,in_size = getbranch(layer_params,in_size)
+        if isnothing(layer)
+            return false
+        end
         push!(model_layers,layer)
     end
     model_data.model = Chain(model_layers...)
