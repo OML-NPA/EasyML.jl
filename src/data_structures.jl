@@ -308,6 +308,7 @@ model_data = ModelData()
 @with_kw mutable struct DesignData
     ModelData::ModelData = ModelData()
     output_options_backup::Vector{AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
+    warnings::Vector{String} = Vector{String}(undef,0)
 end
 design_data = DesignData()
 

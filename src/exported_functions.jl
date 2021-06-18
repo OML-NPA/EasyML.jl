@@ -20,6 +20,7 @@ function design_network()
         arrange,
         # Data handling
         get_data,
+        set_data,
         get_settings,
         set_settings,
         save_settings,

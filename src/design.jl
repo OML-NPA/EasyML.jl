@@ -339,13 +339,15 @@ function get_topology(model_data::ModelData)
         push!(connections,layers[i].connections_down)
         push!(connections_in,layers[i].connections_up)
     end
-    ind = findfirst(types .== "Input")
+    ind = findall(types .== "Input")
     if isempty(ind)
         @warn "No input layer."
-        return "No input layer."
+        push!(design_data.warnings,"No input layer.")
+        return nothing,nothing
     elseif length(ind)>1
         @warn "More than one input layer."
-        return "More than one input layer."
+        push!(design_data.warnings,"More than one input layer.")
+        return nothing,nothing
     end
     layers_arranged = Vector(undef,0)
     inds_arranged = Vector(undef,0)
@@ -403,7 +405,7 @@ end
 function make_model_main(design_data::DesignData)
     model_data = design_data.ModelData
     layers_arranged,_ = get_topology(model_data)
-    if layers_arranged isa String
+    if isnothing(layers_arranged)
         return false
     end
     in_size = (layers_arranged[1].size...,)
@@ -432,9 +434,12 @@ function check_model_main(design_data::DesignData,settings::Settings)
         model_data.output_size = output_size
         if settings.problem_type==:Classification && length(output_size)!=1
             @warn "Use flatten before an output. Otherwise, the model will not function correctly."
+            push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
+            return false
         end
     catch
         @warn "Something is wrong with your model."
+        push!(design_data.warnings,"Something is wrong with your model.")
         return false
     end
 end
