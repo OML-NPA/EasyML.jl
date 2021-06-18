@@ -496,7 +496,6 @@ function load_model_main(settings,model_data,url)
     url = fix_QML_types(url)
     data = BSON.load(url)
     ks = keys(data)
-    k = :OutputOptions
     for k in ks
         try
             serialized = seekstart(data[k])
@@ -508,9 +507,9 @@ function load_model_main(settings,model_data,url)
                 deserialized = [deserialized...]
                 if !isempty(deserialized)
                     type = eltype(deserialized)
-                    if type!==Vector{AbstractClass} && type!==Vector{AbstractOutputOption}
-                        deserialized = convert(Vector{type},deserialized)
-                    end
+                    deserialized = convert(Vector{type},deserialized)
+                else
+                    continue
                 end
             end
             setfield!(model_data,k,deserialized)
