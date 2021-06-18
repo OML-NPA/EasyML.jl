@@ -244,11 +244,12 @@ ApplicationWindow {
                             ValueAxis {
                                     id: accuracyAxisY
                                     labelsFont.pixelSize: defaultPixelSize*11/12
-                                    tickInterval: 0.1
+                                    tickInterval: 10
+                                    tickType: ValueAxis.TicksDynamic
                                     min: 0
                                     max: 100
                                     labelFormat: "%i"
-                                }
+                            }
                             LineSeries {
                                 id: accuracyLine
                                 axisX: accuracyAxisX
@@ -302,15 +303,16 @@ ApplicationWindow {
                                     tickType: ValueAxis.TicksDynamic
                                     tickInterval: 1
                                     labelFormat: "%i"
-                                }
+                            }
                             ValueAxis {
                                     id: lossAxisY
                                     labelsFont.pixelSize: defaultPixelSize*11/12
-                                    tickInterval: 0.1
+                                    tickType: ValueAxis.TicksFixed
+                                    tickCount: 6
                                     min: 0
                                     max: 0.01
                                     labelFormat: "%.3f"
-                                }
+                            }
                             LineSeries {
                                 id: lossLine
                                 axisX: lossAxisX
