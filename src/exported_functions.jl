@@ -175,6 +175,13 @@ function prepare_training_data()
         @error "Empty classes."
         return nothing
     end
+    if training.Options.Processing.grayscale && model_data.input_size[3]==3
+        training.Options.Processing.grayscale = false
+        @warn "Using RGB images because color channel has size 3."
+    elseif !training.Options.Processing.grayscale && model_data.input_size[3]==1
+        training.Options.Processing.grayscale = false
+        @warn "Using grayscale images because color channel has size 1."
+    end
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
             empty!(training_data.ClassificationData.data_input)
