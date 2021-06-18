@@ -344,8 +344,8 @@ end
 function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     acc = Vector{Float32}(undef,0)
     for i in 1:size(predicted,2)
-        _ , actual_ind = findmax(actual[1,i])
-        _ , predicted_ind = findmax(predicted[1,i])
+        _ , actual_ind = collect(findmax(actual[:,i]))
+        _ , predicted_ind = collect(findmax(predicted[:,i]))
         if actual_ind==predicted_ind
             push!(acc,1)
         else
