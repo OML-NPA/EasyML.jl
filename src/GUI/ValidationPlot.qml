@@ -158,6 +158,69 @@ ApplicationWindow {
         //validationplotLoader.sourceComponent = undefined
     }
 
+    Popup {
+        id: initialisationPopup
+        modal: true
+        visible: true
+        closePolicy: Popup.NoAutoClose
+        x: validationWindow.width/2 - width/2
+        y: validationWindow.height/2 - height/2
+        width: titleLabel.width + 0.8*margin
+        height: titleLabel.height + 0.4*margin + 15*pix + 0.2*margin
+        Label {
+            id: titleLabel
+            x: initialisationPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            topPadding: 0.10*margin
+            text: "INITIALISATION"
+        }
+        Repeater {
+            id: progressRepeater
+            model: 3
+            property var offsets: [-30*pix,0,30*pix]
+            Rectangle {
+                id: progress1Rectangle
+                anchors.top: titleLabel.bottom
+                anchors.topMargin: 0.1*margin
+                x: initialisationPopup.width/2 - width/2 - progressRepeater.offsets[index] - 12*pix
+                color: defaultcolors.dark
+                visible: false
+                width: 15*pix
+                height: width
+                radius: width
+            }
+        }
+        Timer {
+            id: initialisationTimer
+            running: initialisationPopup.visible
+            repeat: true
+            interval: 300
+            property double max_value: 0
+            property double value: 0
+            property double loading_state: 1
+            onTriggered: {
+                if (loading_state===0) {
+                    progressRepeater.itemAt(2).visible = false
+                    progressRepeater.itemAt(1).visible = false
+                    progressRepeater.itemAt(0).visible = false
+                    loading_state+=1
+                }
+                else if (loading_state===1) {
+                    progressRepeater.itemAt(2).visible = true
+                    loading_state+=1
+                }
+                else if (loading_state===2) {
+                    progressRepeater.itemAt(1).visible = true
+                    loading_state+=1
+                }
+                else {
+                    progressRepeater.itemAt(0).visible = true
+                    loading_state = 0
+                }
+            }
+        }
+    }
+
     Timer {
         id: validationTimer
         interval: 100
@@ -178,6 +241,7 @@ ApplicationWindow {
                 }
                 if (max_iterations===-1) {
                     max_iterations = state
+                    titleLabel.text = "MODEL COMPILATION"
                 }
                 else if (iteration<max_iterations) {
                     iteration += 1
@@ -187,6 +251,7 @@ ApplicationWindow {
                     accuracy.push(accuracy_temp)
                     loss.push(loss_temp)
                     if (iteration==1) {
+                        initialisationPopup.visible = false
                         sampleSpinBox.value = 1
                         classComboBox.currentIndex = 0
                         var ind1 = 1
