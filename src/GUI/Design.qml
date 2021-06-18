@@ -1626,8 +1626,30 @@ ApplicationWindow {
         }
     }
 
+    function getlayersnum() {
+        var layersnum = layers.children.length
+        for (var i=0;i<layers.children.length;i++) {
+            if (layers.children[i].group==="inout") {
+                layersnum -= 1
+            }
+        }
+        
+        return(layersnum)
+    }
+
     function getconnectionsnum() {
-        return(connections.children.length)
+        var connnum = connections.children.length
+        for (var i=0;i<layers.children.length;i++) {
+            if (layers.children[i].group==="inout") {
+                if (layers.children[i].name=="input") {
+                    connnum -= layers.children[i].children[2].children[1].children[0].children.length - 2
+                }
+                else {
+                    connnum -= 1
+                }
+            }
+        }
+        return(connnum)
     }
 
     function getirregularitiesnum() {
@@ -2721,6 +2743,7 @@ ApplicationWindow {
             y: Math.round((parent.height - height)/2)
             delay: 200
             font.family: "Proxima Nova"
+            font.pixelSize: defaultPixelSize*0.8
             visible: parent.hovered
             background: Rectangle {color: "white"; border.width: 2*pix}
         }
@@ -2769,7 +2792,7 @@ ApplicationWindow {
                 }
                 Label {
                     leftPadding: leftPad
-                    text: layers.children.length
+                    text: getlayersnum()
                 }
             }
             Item {
