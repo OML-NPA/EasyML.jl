@@ -2973,7 +2973,12 @@ ApplicationWindow {
                             text = str
                         }
                         onEditingFinished: {
-                            unit.datastore.size = displayText
+                            var splitString = displayText.split(",")
+                            var ar = []
+                            for (var i=0;i<splitString.length;i++) {
+                                ar.push(parseInt(splitString[i],10))
+                            }
+                            unit.datastore.size = ar
                         }
                     }
                     ComboBox {
@@ -4346,7 +4351,7 @@ ApplicationWindow {
                             var splitString = displayText.split(",")
                             var ar = []
                             for (var i=0;i<splitString.length;i++) {
-                                ar.push(parseInt(displayText,10))
+                                ar.push(parseInt(splitString[i],10))
                             }
                             unit.datastore.dimensions = ar
                         }
