@@ -28,11 +28,11 @@ model_get_layer_property(index,property_name) =
     model_get_layer_property_main(model_data,index,property_name)
 
 # Empties model layers
-function reset_layers_main(model_data::ModelData)
-    empty!(model_data.layers_info)
+function reset_layers_main(design_data::DesignData)
+    empty!(design_data.ModelData.layers_info)
     return nothing
 end
-reset_layers() = reset_layers_main(model_data::ModelData)
+reset_layers() = reset_layers_main(design_data::DesignData)
 
 function get_layer_info(layer_name::String)
     if layer_name=="input"
@@ -69,8 +69,8 @@ function get_layer_info(layer_name::String)
 end
 
 # Saves new model layer data into a Julia dictionary
-function update_layers_main(model_data::ModelData,fields,values)
-    layers_info = model_data.layers_info
+function update_layers_main(design_data::DesignData,fields,values)
+    layers_info = design_data.ModelData.layers_info
     fields = fix_QML_types(fields)
     values = fix_QML_types(values)
     layer_info = get_layer_info(values[7])
@@ -104,7 +104,7 @@ function update_layers_main(model_data::ModelData,fields,values)
     push!(layers_info,layer_info)
     return nothing
 end
-update_layers(fields,values) = update_layers_main(model_data::ModelData,
+update_layers(fields,values) = update_layers_main(design_data::DesignData,
     fields,values)
 
 #---Layer constructors
@@ -145,11 +145,11 @@ function getnorm(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
 end
 
 function getactivation(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
-    if type == "RelU"
+    if type == "ReLU"
         return Activation(relu)
-    elseif type == "Laeky RelU"
+    elseif type == "Laeky ReLU"
         return Activation(leakyrelu)
-    elseif type == "ElU"
+    elseif type == "ELU"
         return Activation(elu)
     elseif type == "Tanh"
         return Activation(tanh)
@@ -330,7 +330,7 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
     return ind
 end
 
-function get_topology_main(model_data::ModelData)
+function get_topology(model_data::ModelData)
     layers = model_data.layers_info
     types = [layers[i].type for i = 1:length(layers)]
     connections = Vector{Array{Vector{Int64}}}(undef,0)
@@ -359,7 +359,6 @@ function get_topology_main(model_data::ModelData)
     end
     return layers_arranged, inds_arranged
 end
-get_topology() = get_topology_main(model_data)
 
 #---Model constructors
 function getbranch(layer_params,in_size)
@@ -401,8 +400,9 @@ function getbranch(layer_params,in_size)
     return layer,in_size
 end
 
-function make_model_main(model_data::ModelData)
-    layers_arranged,_ = get_topology()
+function make_model_main(design_data::DesignData)
+    model_data = design_data.ModelData
+    layers_arranged,_ = get_topology(model_data)
     if layers_arranged isa String
         return false
     end
@@ -419,34 +419,51 @@ function make_model_main(model_data::ModelData)
         push!(model_layers,layer)
     end
     model_data.model = Chain(model_layers...)
-    try
-        input = zeros(Float32,in_size...,1)
-        out_size = size(model(input))
-        model_data.output_size = out_size[1:end-1]
-        if settings.problem_type==:Classification && out_size!=1
-            @warn "Use flatten before an output. Otherwise, the 
-                model will not function correctly."
-        end
-    catch
-        return false
-    end
     return true
 end
-make_model() = make_model_main(model_data)
+make_model() = make_model_main(design_data)
+
+function check_model_main(design_data::DesignData,settings::Settings)
+    model_data = design_data.ModelData
+    input = zeros(Float32,model_data.input_size...,1)
+    try
+        output = model_data.model(input)
+        output_size = size(output)[1:end-1]
+        model_data.output_size = output_size
+        if settings.problem_type==:Classification && length(output_size)!=1
+            @warn "Use flatten before an output. Otherwise, the model will not function correctly."
+        end
+    catch
+        @warn "Something is wrong with your model."
+        return false
+    end
+end
+check_model() = check_model_main(design_data,settings)
+
+function move_model_main(model_data::ModelData,design_data::DesignData)
+    model_data2 = design_data.ModelData
+    model_data.model = deepcopy(model_data2.model)
+    model_data.layers_info = deepcopy(model_data2.layers_info)
+    model_data.input_size = model_data2.input_size
+    model_data.output_size = model_data2.output_size
+    model_data.loss = model_data2.loss
+    design_data.ModelData = ModelData()
+end
+move_model() = move_model_main(model_data,design_data)
 
 #---Model visual representation constructors
 function arrange_layer(coordinates::Array,coordinate::Array{Float64},
-    parameters::Design)
-    coordinate[2] = coordinate[2] + parameters.min_dist_y + parameters.height
+    desing::Design)
+    coordinate[2] = coordinate[2] + desing.min_dist_y + desing.height
     push!(coordinates,copy(coordinate))
     return coordinate
 end
 
 function arrange_branches(coordinates,coordinate::Vector{Float64},
-        parameters::Design,layers_arranged)
+        desing::Design,layers_arranged)
     num = layers_arranged isa AbstractLayerInfo ? 1 : length(layers_arranged)
     if num==1
-        coordinate = arrange_layer(coordinates,coordinate,parameters)
+        coordinate = arrange_layer(coordinates,coordinate,desing)
     else
         par_coordinates = []
         x_coordinates = []
@@ -454,7 +471,7 @@ function arrange_branches(coordinates,coordinate::Vector{Float64},
         num2 = num-1
         for i=1:num2
             push!(x_coordinates,coordinate[1].+
-                (i+1+(i-1))*parameters.min_dist_x+i*parameters.width)
+                (i+1+(i-1))*desing.min_dist_x+i*desing.width)
         end
         x_coordinates = x_coordinates .-
             (mean([x_coordinates[1],x_coordinates[end]])-coordinate[1])
@@ -466,7 +483,7 @@ function arrange_branches(coordinates,coordinate::Vector{Float64},
             else
                 for j = 1:length(layers_arranged[i])
                     temp_coordinate = arrange_branches(temp_coordinates,temp_coordinate,
-                        parameters,layers_arranged[i][j])
+                        desing,layers_arranged[i][j])
                 end
             end
             push!(par_coordinates,temp_coordinates)
@@ -490,8 +507,8 @@ function get_values!(values::Array,array::Array,cond_fun)
     return nothing
 end
 
-function arrange_main(design::Design)
-    layers_arranged,inds_arranged = get_topology()
+function arrange_main(design_data::DesignData,design::Design)
+    layers_arranged,inds_arranged = get_topology(design_data.ModelData)
     coordinates = []
     coordinate = [layers_arranged[1].x,layers_arranged[1].y-
         (design.height+design.min_dist_y)]
@@ -508,7 +525,7 @@ function arrange_main(design::Design)
     inds_flattened = inds_flattened[inds_flattened.>0]
     return [coordinates_flattened,inds_flattened.-1]
 end
-arrange() = arrange_main(design)
+arrange() = arrange_main(design_data,design)
 
 #---Losses
 function get_loss(loss_name::String)

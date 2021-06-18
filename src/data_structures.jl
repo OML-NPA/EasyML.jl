@@ -293,18 +293,20 @@ end
 end
 
 @with_kw mutable struct ModelData
-    input_size::Tuple{Int64,Int64,Int64} = (1,1,1)
-    output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
     model::Chain = Chain()
     layers_info::Vector{AbstractLayerInfo} = []
+    loss::Function = Flux.Losses.mse
+    input_size::Tuple{Int64,Int64,Int64} = (1,1,1)
+    output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     OutputOptions::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
-    loss::Function = Flux.Losses.mse
+    
 end
 model_data = ModelData()
 
 #---Master data
 @with_kw mutable struct DesignData
+    ModelData::ModelData = ModelData()
     output_options_backup::Vector{AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
 end
 design_data = DesignData()

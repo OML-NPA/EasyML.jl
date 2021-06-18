@@ -1065,7 +1065,17 @@ ApplicationWindow {
                        var name = Julia.get_settings(["Training","name"])
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
-                       Julia.make_model()
+                       var state = Julia.make_model()
+                       if (state==false) {
+                           opacity = 1
+                           return
+                       }
+                       state = Julia.check_model()
+                       if (state==false) {
+                           opacity = 1
+                           return
+                       }
+                       Julia.move_model()
                        Julia.save_model(url)
                        opacity = 1
                     }

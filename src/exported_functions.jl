@@ -12,6 +12,8 @@ function design_network()
         reset_layers,
         update_layers,
         make_model,
+        check_model,
+        move_model,
         save_model,
         load_model,
         # Model design
