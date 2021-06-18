@@ -1066,19 +1066,14 @@ ApplicationWindow {
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
                        var state = Julia.make_model()
-                       if (state==false) {
-                           show_warnings()
-                           opacity = 1
-                           return
-                       }
-                       state = Julia.check_model()
-                       if (state==false) {
-                           show_warnings()
-                           opacity = 1
-                           return
+                       if (state) {
+                           state = Julia.check_model()
                        }
                        Julia.move_model()
                        Julia.save_model(url)
+                       if (state==false) {
+                           show_warnings()
+                       }
                        opacity = 1
                     }
                 }
