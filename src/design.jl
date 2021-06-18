@@ -339,15 +339,17 @@ function get_topology(model_data::ModelData)
         push!(connections,layers[i].connections_down)
         push!(connections_in,layers[i].connections_up)
     end
-    ind = findall(types .== "Input")
-    if isempty(ind)
+    ind_vec = findall(types .== "Input")
+    if isempty(ind_vec)
         @warn "No input layer."
         push!(design_data.warnings,"No input layer.")
         return nothing,nothing
-    elseif length(ind)>1
+    elseif length(ind_vec)>1
         @warn "More than one input layer."
         push!(design_data.warnings,"More than one input layer.")
         return nothing,nothing
+    else
+        ind = ind_vec[1]
     end
     layers_arranged = Vector(undef,0)
     inds_arranged = Vector(undef,0)
