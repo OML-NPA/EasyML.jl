@@ -726,7 +726,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     model_name = string("models/",training.name,".model")
-    output_N = model_data.output_size + 1
+    output_N = length(model_data.output_size) + 1
     # Initialize data
     data_input = train_set[1]
     data_labels = train_set[2]
