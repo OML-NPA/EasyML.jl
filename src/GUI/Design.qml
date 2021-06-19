@@ -1003,11 +1003,11 @@ ApplicationWindow {
                                 var minY = Math.min(initialYPos,finishY)
                                 for (var i=0;i<layers.children.length;i++) {
                                     if (layers.children[i].x >minX && layers.children[i].x <maxX &&
-                                        layers.children[i].y >minY && layers.children[i].y <maxY &&
-                                        (layers.children[i].x + layers.children[i].width)>minX &&
-                                        (layers.children[i].x + layers.children[i].width)<maxX &&
-                                        (layers.children[i].y + layers.children[i].height) >minY &&
-                                        (layers.children[i].y + layers.children[i].height) <maxY)                                                          {
+                                            layers.children[i].y >minY && layers.children[i].y <maxY &&
+                                            (layers.children[i].x + layers.children[i].width)>minX &&
+                                            (layers.children[i].x + layers.children[i].width)<maxX &&
+                                            (layers.children[i].y + layers.children[i].height) >minY &&
+                                            (layers.children[i].y + layers.children[i].height) <maxY) {
                                         mainPane.selectioninds.push(i)
                                         layers.children[i].border.color = defaultcolors.dark
                                         layers.children[i].border.width = 4*pix
@@ -2413,6 +2413,8 @@ ApplicationWindow {
                     }
                 }
                 onReleased: {
+                    mainframeTimer.pressed = false
+                    mainframeTimer.object = null
                     updateOverview()
                     for (var i=0;i<layers.children.length;i++) {
                         var unit_other = layers.children[i]
@@ -2459,8 +2461,6 @@ ApplicationWindow {
                     if (downNodeItem.children.length===2) {
                         downNode.visible = false
                     }
-                    mainframeTimer.pressed = false
-                    mainframeTimer.object = null
                 }
             }
         }
@@ -2558,6 +2558,8 @@ ApplicationWindow {
                         }
                     }
                     onReleased: {
+                        mainframeTimer.pressed = false
+                        mainframeTimer.object = null
                         if (upNode.connectedNode==null) {
                             upNodeRectangle.x = unit.width*index/(inputnum+1)-upNode.radius
                             upNodeRectangle.y = -upNode.radius + 2*pix
@@ -2628,8 +2630,6 @@ ApplicationWindow {
                         upNodeRectangle.x = unit.width*index/(inputnum+1)-upNode.radius
                         upNodeRectangle.y = -upNode.radius + 2*pix
                         upNode.visible = false
-                        mainframeTimer.pressed = false
-                        mainframeTimer.object = null
                     }
                 }
             }
