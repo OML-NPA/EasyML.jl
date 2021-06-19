@@ -300,7 +300,6 @@ end
     output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     OutputOptions::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
-    
 end
 model_data = ModelData()
 
