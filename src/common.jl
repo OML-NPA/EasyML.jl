@@ -567,10 +567,9 @@ function forward(model::Chain,input_data::Array{Float32};
 end
 
 function check_abort_signal(channel::Channel)
-    if isready(channels.application_modifiers)
+    if isready(channel)
         stop_cond::String = fetch(channel)[1]
         if stop_cond=="stop"
-            take!(channels.application_modifiers)
             return true
         else
             return false
