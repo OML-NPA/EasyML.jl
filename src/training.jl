@@ -530,8 +530,8 @@ end
 
 #---
 function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,inds_all,
-        counter,run_test,data_input_test,data_labels_test,inds_start_test,
-        inds_all_test,counter_test,num_test,batch_size,minibatch_channel,minibatch_test_channel,abort)
+        counter,run_test,data_input_test,data_labels_test,inds_start_test,inds_all_test,counter_test,
+        num_test,batch_size,minibatch_channel,minibatch_test_channel,testing_mode,abort)
     epoch_idx = 1
     iteration_local = 0
     iteration_test_local = 0
@@ -544,30 +544,49 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
             inds_start_test_sh = shuffle!(inds_start_test)
             inds_all_test_sh = shuffle!(inds_all_test)
         end
-        for i=1:num
-            iteration_local+=1
+        cnt = 0
+        while true
             while true
                 numel_channel = (iteration_local-counter.iteration)
                 if numel_channel<10
+                    iteration_local += 1
+                    cnt += 1
                     minibatch = make_minibatch(data_input,data_labels,max_labels,batch_size,
-                        inds_start_sh,inds_all_sh,i)
+                        inds_start_sh,inds_all_sh,cnt)
                     put!(minibatch_channel,minibatch)
+                    break
+                elseif testing_mode[]
                     break
                 else
                     sleep(0.01)
                 end
             end
-            if run_test && iteration_test_local!=num_test
-                numel_test_channel = (iteration_test_local-counter_test.iteration)
-                if numel_test_channel<1
-                    iteration_test_local+=1
-                    minibatch = make_minibatch(data_input_test,data_labels_test,max_labels,batch_size,
-                        inds_start_test_sh,inds_all_test_sh,i)
+            if run_test && testing_mode[]
+                cnt_test = 0
+                
+                while true
+                    numel_test_channel = (iteration_test_local-counter_test.iteration)
+                    if numel_test_channel<10
+                        cnt_test += 1
+                        iteration_test_local += 1
+                        @info ("preparation",cnt_test,num_test)
+                        minibatch = make_minibatch(data_input_test,data_labels_test,max_labels,batch_size,
+                            inds_start_test_sh,inds_all_test_sh,cnt_test)
                         put!(minibatch_test_channel,minibatch)
+                    else
+                        sleep(0.01)
+                    end
+                    if cnt_test==num_test
+                        Threads.atomic_xchg!(testing_mode, false)
+                        break
+                    end
                 end
             end
             if abort[]
                 return nothing
+            end
+            if cnt==num
+                break
             end
         end
         # Update epoch counter
@@ -619,9 +638,10 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         accuracy_vector,loss_vector,counter,accuracy_test_vector,loss_test_vector,
         iteration_test_vector,counter_test,num_test,epochs,num,max_iterations,
         testing_frequency,allow_lr_change,composite,run_test,minibatch_channel,
-        minibatch_test_channel,channels,use_GPU,abort)
+        minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
+        iteration_global_counter = 0
         for i = 1:num
             # Prepare training data
             local minibatch_data::eltype(minibatch_channel.data)
@@ -664,20 +684,16 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             loss_vector[iteration] = loss_val
             # Testing part
             if run_test
-                testing_frequency_cond::Bool = ceil(i/testing_frequency)>counter_test.iteration
+                training_started_cond = i==1 && epoch_idx==1
+                testing_frequency_cond = i>iteration_global_counter*ceil(num/testing_frequency)
                 training_finished_cond = iteration==(max_iterations[]-1)
                 # Test if testing frequency reached or training is done
-                if testing_frequency_cond || training_finished_cond
-                    # Update test counter
-                    counter_test()
-                    if isready(minibatch_test_channel)
-                        minibatch_test_data = take!(minibatch_test_channel)
-                        break
-                    else
-                        sleep(0.01)
-                    end
+                if testing_frequency_cond ||  training_started_cond || training_finished_cond
+                    iteration_global_counter += 1
+                    @info "here"
+                    Threads.atomic_xchg!(testing_mode, true)
                     # Calculate test accuracy and loss
-                    data_test = test(model,accuracy,loss,minibatch_test_data,num_test,move_f)
+                    data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f)
                     # Return testing information
                     put!(channels.training_progress,["Testing",data_test...,iteration])
                     push!(accuracy_test_vector,data_test[1])
@@ -696,6 +712,44 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
     end
     return nothing
 end
+
+function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_channel::Channel,
+        counter_test,num_test::Int64,move_f)
+    test_accuracy = Vector{Float32}(undef,num_test)
+    test_loss = Vector{Float32}(undef,num_test)
+    local minibatch_test_data::eltype(minibatch_test_channel.data)
+    for j=1:num_test
+        @info (j,num_test)
+        while true
+            # Update parameters or abort if needed
+            if isready(channels.training_modifiers)
+                testing_frequency = check_modifiers(model_data,model,model_name,
+                    accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
+                    max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
+                if abort[]==true
+                    return nothing
+                end
+            end
+            if isready(minibatch_test_channel)
+                minibatch_test_data = take!(minibatch_test_channel)
+                break
+            else
+                sleep(0.01)
+            end
+        end
+        # Update test counter
+        counter_test()
+        test_minibatch = move_f.(minibatch_test_data)
+        predicted = model(test_minibatch[1])
+        actual = test_minibatch[2]
+        test_accuracy[j] = accuracy(predicted,actual)
+        test_loss[j] = loss(predicted,actual)
+        cleanup!(predicted)
+    end
+    data = [mean(test_accuracy),mean(test_loss)]
+    return data
+end
+
 
 function check_lr_change(opt,composite)
     if !composite
@@ -726,6 +780,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     composite = hasproperty(opt, :os)
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
+    testing_mode = Threads.Atomic{Bool}(true)
     model_name = string("models/",training.name,".model")
     output_N = length(model_data.output_size) + 1
     # Initialize data
@@ -762,7 +817,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     end
     Threads.@spawn minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,
         inds_all,counter,run_test,data_input_test,data_labels_test,inds_start_test,
-        inds_all_test,counter_test,num_test,batch_size,minibatch_channel,minibatch_test_channel,abort)
+        inds_all_test,counter_test,num_test,batch_size,minibatch_channel,minibatch_test_channel,testing_mode,abort)
     # Training thread
     if use_GPU
         T_out = CuArray{Float32,output_N}
@@ -776,28 +831,11 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,accuracy_vector,
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
         counter_test,num_test,epochs,num,max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,abort)
+        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     # Return training information
     resize!(accuracy_vector,counter.iteration)
     resize!(loss_vector,counter.iteration)
     data = (accuracy_vector,loss_vector,accuracy_test_vector,loss_test_vector,iteration_test_vector)
-    return data
-end
-
-function test(model::Chain,accuracy::Function,loss::Function,
-        test_batches::Array{Tuple{Array{Float32,4},Array{Float32,4}},1},
-        num_test::Int64,move_f)
-    test_accuracy = Vector{Float32}(undef,num_test)
-    test_loss = Vector{Float32}(undef,num_test)
-    for j=1:num_test
-        test_minibatch = move_f.(test_batches[j])
-        predicted = model(test_minibatch[1])
-        actual = test_minibatch[2]
-        test_accuracy[j] = accuracy(predicted,actual)
-        test_loss[j] = loss(predicted,actual)
-        cleanup!(predicted)
-    end
-    data = [mean(test_accuracy),mean(test_loss)]
     return data
 end
 
