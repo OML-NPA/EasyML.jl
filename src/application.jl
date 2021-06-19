@@ -175,7 +175,7 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
