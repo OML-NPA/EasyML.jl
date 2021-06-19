@@ -11,3 +11,4 @@ config.bson
 src/test.jl
 *.docx
 *.csv
+*.model

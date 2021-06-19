@@ -8,15 +8,19 @@ function design_network()
         model_get_layer_property,
         model_properties,
         # Model functions
+        get_max_id,
         reset_layers,
         update_layers,
         make_model,
+        check_model,
+        move_model,
         save_model,
         load_model,
         # Model design
         arrange,
         # Data handling
         get_data,
+        set_data,
         get_settings,
         set_settings,
         save_settings,
@@ -170,6 +174,13 @@ function prepare_training_data()
     if isempty(model_data.classes)
         @error "Empty classes."
         return nothing
+    end
+    if training.Options.Processing.grayscale && model_data.input_size[3]==3
+        training.Options.Processing.grayscale = false
+        @warn "Using RGB images because color channel has size 3."
+    elseif !training.Options.Processing.grayscale && model_data.input_size[3]==1
+        training.Options.Processing.grayscale = false
+        @warn "Using grayscale images because color channel has size 1."
     end
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
@@ -449,33 +460,17 @@ function validate()
         display_result_image = f2
     )
     exec()
+    # Clean up
+    validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
+    validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
     if settings.input_type==:Image
         if settings.problem_type==:Classification
             return validation_image_classification_results
         elseif settings.problem_type==:Segmentation
             return validation_image_segmentation_results
-        end
-    end
-    # Clean up
-    validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
-    validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
-end
-
-function remove_validation_data()
-    if settings.input_type==:Image
-        if settings.problem_type==:Classification
-            data = validation_data.ImageClassificationResults
-            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
         elseif settings.problem_type==:Regression
-            data = validation_data.ImageRegressionResults
-            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
-        elseif settings.problem_type==:Segmentation
-            data = validation_data.ImageSegmentationResults
-            fields = fieldnames(ValidationImageSegmentationResults)[1:end-1]
+            return validation_image_regression_results
         end
-    end
-    for field in fields
-        empty!(getfield(data, field))
     end
 end
 

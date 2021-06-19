@@ -341,11 +341,11 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
 end
 
 #---
-function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
+function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     acc = Vector{Float32}(undef,0)
-    for i in 1:size(predicted,4)
-        _ , actual_ind = findmax(actual[1,1,:,i])
-        _ , predicted_ind = findmax(predicted[1,1,:,i])
+    for i in 1:size(predicted,2)
+        _ , actual_ind = collect(findmax(actual[:,i]))
+        _ , predicted_ind = collect(findmax(predicted[:,i]))
         if actual_ind==predicted_ind
             push!(acc,1)
         else
@@ -373,7 +373,7 @@ function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:Abst
     # Calculate accuracy
     correct_bool = predicted_bool .& actual_bool
     num_correct = convert(Float32,sum(correct_bool))
-    acc = num_correct/prod(size(predicted)[1:2])
+    acc = num_correct/prod(size(predicted))
     return acc
 end
 
@@ -535,7 +535,7 @@ function accum_parts(model::Chain,input_data::CuArray{Float32,4},
         temp_predicted = model(temp_data)
         temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
         push!(predicted,collect(temp_predicted))
-        CUDA.unsafe_free!(temp_predicted)
+        cleanup!(temp_predicted)
     end
     if ind_max==1
         predicted_out = reduce(vcat,predicted)
@@ -553,6 +553,7 @@ function forward(model::Chain,input_data::Array{Float32};
         model = move(model,gpu)
         if num_parts==1
             predicted = collect(model(input_data_gpu))
+            cleanup!(predicted)
         else
             predicted = collect(accum_parts(model,input_data_gpu,num_parts,offset))
         end
@@ -564,4 +565,26 @@ function forward(model::Chain,input_data::Array{Float32};
         end
     end
     return predicted
+end
+
+function check_abort_signal(channel::Channel)
+    if isready(channel)
+        stop_cond::String = fetch(channel)[1]
+        if stop_cond=="stop"
+            return true
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
+
+function cleanup!(x::Array)
+    return nothing
+end
+
+function cleanup!(x::CuArray)
+    CUDA.unsafe_free!(x)
+    return nothing
 end

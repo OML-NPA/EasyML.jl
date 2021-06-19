@@ -589,7 +589,7 @@ ApplicationWindow {
                 id: colorRow
                 visible: false
                 spacing: 0.3*margin
-                bottomPadding: 0.2*margin
+                bottomPadding: -0.1*margin
                 Label {
                     id: redLabel
                     text: "Red:"

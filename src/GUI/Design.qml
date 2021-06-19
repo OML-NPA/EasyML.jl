@@ -1,9 +1,9 @@
 ﻿
 import QtQuick 2.15
+import Qt.labs.platform 1.1
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
-import Qt.labs.platform 1.1
 import QtQml.Models 2.15
 import QtQuick.Shapes 1.15
 import Qt.labs.folderlistmodel 2.15
@@ -55,11 +55,13 @@ ApplicationWindow {
     Loader { id: designoptionsLoader}
 
 //---Julia package block--------------------------------------------------
-property var model: []
-Component.onCompleted: {
-    importmodel(model)
-}
+    property var model: []
+    Component.onCompleted: {
+        importmodel(model)
+    }
 //------------------------------------------------------------------------
+
+    property int idCounter: 0
 
     onWidthChanged: {
         if (layers.children.length>0) {
@@ -131,11 +133,11 @@ Component.onCompleted: {
                 for (i=0;i<mainPane.selectioninds.length;i++) {
                     var ind = mainPane.selectioninds[i]
                     unit = layers.children[ind]
-                    var data = {"color" : unit.color,
+                    var data = {"color": unit.color,
                                 "name": unit.name,
                                 "group": unit.group,
                                 "type": unit.type,
-                                "labelColor": unit.labelColor,
+                                "label_color": unit.label_color,
                                 "inputnum": unit.inputnum,
                                 "outputnum": unit.outputnum,
                                 "x": unit.x,
@@ -151,12 +153,15 @@ Component.onCompleted: {
                 var selectioninds = mainPane.selectioninds
                 for (i=0;i<copycache.objectsdata.length;i++) {
                     data = copycache.objectsdata[i]
+                    idCounter += 1
+                    var id = idCounter
                     unit = layerComponent.createObject(layers,{
                        "color" : data.color,
+                       "id": id,
                        "name": data.name,
                        "group": data.group,
                        "type": data.type,
-                       "labelColor": data.labelColor,
+                       "label_color": data.label_color,
                        "inputnum": copycache.connections[i].up.length,
                        "outputnum": copycache.connections[i].down.length,
                        "x": data.x+20*pix,
@@ -425,7 +430,7 @@ Component.onCompleted: {
                                     boundsBehavior: Flickable.StopAtBounds
                                     model: ListModel {id: activationlayerModel
                                                       ListElement{
-                                                          type: "RelU"
+                                                          type: "ReLU"
                                                           group: "activation"
                                                           name: "relu"
                                                           colorR: 250
@@ -434,7 +439,7 @@ Component.onCompleted: {
                                                           inputnum: 1
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "Laeky RelU"
+                                                          type: "Laeky ReLU"
                                                           group: "activation"
                                                           name: "leakyrelu"
                                                           colorR: 250
@@ -443,7 +448,7 @@ Component.onCompleted: {
                                                           inputnum: 1
                                                           outputnum: 1}
                                                       ListElement{
-                                                          type: "ElU"
+                                                          type: "ELU"
                                                           group: "activation"
                                                           name: "elu"
                                                           colorR: 250
@@ -725,20 +730,21 @@ Component.onCompleted: {
                                 var data = model[i]
                                 var datastore = copy(data)
                                 var names = ["connections_down","connections_up",
-                                    "labelColor","x","y"]
+                                    "label_color","x","y"]
                                 for (var j=0;j<names.length;j++) {
                                     delete datastore[names[j]]
                                 }
-                                layerComponent.createObject(layers,{"color" : adjustcolor(data.labelColor),
-                                   "name": data.name,
-                                   "group": data.group,
-                                   "type": data.type,
-                                   "labelColor": data.labelColor,
-                                   "inputnum": data.connections_up.length,
-                                   "outputnum": data.connections_down.length,
-                                   "x": data.x,
-                                   "y": data.y,
-                                   "datastore": datastore});
+                                layerComponent.createObject(layers,{"color" : adjustcolor(data.label_color),
+                                    "id": data.id,
+                                    "name": data.name,
+                                    "group": data.group,
+                                    "type": data.type,
+                                    "label_color": data.label_color,
+                                    "inputnum": data.connections_up.length,
+                                    "outputnum": data.connections_down.length,
+                                    "x": data.x,
+                                    "y": data.y,
+                                    "datastore": datastore});
                             }
 
                             for (i=0;i<model.length;i++) {
@@ -1059,8 +1065,15 @@ Component.onCompleted: {
                        var name = Julia.get_settings(["Training","name"])
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
-                       Julia.make_model()
+                       var state = Julia.make_model()
+                       if (state) {
+                           state = Julia.check_model()
+                       }
+                       Julia.move_model()
                        Julia.save_model(url)
+                       if (state==false) {
+                           show_warnings()
+                       }
                        opacity = 1
                     }
                 }
@@ -1293,6 +1306,7 @@ Component.onCompleted: {
     }
 
     function importmodel(model) {
+        idCounter = Julia.get_max_id()
         model.length = 0
         var skipStringing = ["x","y"]
         var count = Julia.model_count()
@@ -1356,6 +1370,16 @@ Component.onCompleted: {
         return url.toString().replace("file:///","")
     }
 //----------------------------------------------------------------------------
+
+
+    function show_warnings() {
+        var warnings = Julia.get_data(["DesignData","warnings"])
+        for (var i=0;i<warnings.length;i++) {
+            warningPopup.warnings.push(warnings[i])
+        }
+        warningPopup.visible = true
+        Julia.set_data(["DesignData","warnings"],[])
+    }
 
     function updatePosDownNode(unit,downNode,downNodeRectangle,mouseAdjust) {
         var outputnum = downNodeRectangle.outputnum
@@ -1619,8 +1643,30 @@ Component.onCompleted: {
         }
     }
 
+    function getlayersnum() {
+        var layersnum = layers.children.length
+        for (var i=0;i<layers.children.length;i++) {
+            if (layers.children[i].group==="inout") {
+                layersnum -= 1
+            }
+        }
+        
+        return(layersnum)
+    }
+
     function getconnectionsnum() {
-        return(connections.children.length)
+        var connnum = connections.children.length
+        for (var i=0;i<layers.children.length;i++) {
+            if (layers.children[i].group==="inout") {
+                if (layers.children[i].name=="input") {
+                    connnum -= layers.children[i].children[2].children[1].children[0].children.length - 2
+                }
+                else {
+                    connnum -= 1
+                }
+            }
+        }
+        return(connnum)
     }
 
     function getirregularitiesnum() {
@@ -1705,9 +1751,10 @@ Component.onCompleted: {
             var connections = getconnections(unit,1)
             var x = layers.children[i].x/pix
             var y = layers.children[i].y/pix
-            Julia.update_layers(keys,values,"connections_up",connections["up"],
-                            "connections_down",connections["down"],
-                            "x",x,"y",y,"labelColor",layers.children[i].labelColor);
+            keys = ["connections_up","connections_down","x","y","label_color",...keys]
+            values = [connections["up"],connections["down"],x,y,
+                layers.children[i].label_color,...values]
+            Julia.update_layers(keys,values)
         }
     }
 
@@ -1781,48 +1828,46 @@ Component.onCompleted: {
         return highest;
     }
 
-    function pushstack(comp,labelColor,group,type,name,unit,datastore) {
-        propertiesStackView.push(comp, {"labelColor": labelColor,
-            "group": group,"type": type, "name": name,"unit": unit})
-        if (datastore!==undefined) {
-            propertiesStackView.currentItem.datastore = datastore
-        }
+    function pushstack(comp,id,name,type,group,label_color,unit) {
+        propertiesStackView.push(comp, {"id": id, "name": name, "type": type, 
+            "group": group, "label_color": label_color, "unit": unit})
     }
 
-    function getstack(labelColor,group,type,name,unit,datastore) {
+    function getstack(label_color,id,group,type,name,unit) {
+        var properties = [id,name,type,group,label_color]
         switch(type) {
-        case "Input":
-            return pushstack(inputpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Output":
-            return pushstack(outputpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Convolution":
-            return pushstack(convpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Transposed convolution":
-            return pushstack(tconvpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Dense":
-            return pushstack(densepropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Drop-out":
-            return pushstack(dropoutpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Batch normalisation":
-            return pushstack(batchnormpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Leaky RelU":
-            return pushstack(leakyrelupropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "ElU":
-            return pushstack(elupropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Max pooling":
-            return pushstack(poolpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Average pooling":
-            return pushstack(poolpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Addition":
-            return pushstack(additionpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Join":
-            return pushstack(catpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Split":
-            return pushstack(splitpropertiesComponent,labelColor,group,type,name,unit,datastore)
-        case "Upsample":
-            return pushstack(upsamplepropertiesComponent,labelColor,group,type,name,unit,datastore)
-        default:
-            pushstack(emptypropertiesComponent,labelColor,group,type,name,unit,datastore)
+            case "Input":
+                return pushstack(inputpropertiesComponent,...properties,unit)
+            case "Output":
+                return pushstack(outputpropertiesComponent,...properties,unit)
+            case "Convolution":
+                return pushstack(convpropertiesComponent,...properties,unit)
+            case "Transposed convolution":
+                return pushstack(tconvpropertiesComponent,...properties,unit)
+            case "Dense":
+                return pushstack(densepropertiesComponent,...properties,unit)
+            case "Drop-out":
+                return pushstack(dropoutpropertiesComponent,...properties,unit)
+            case "Batch normalisation":
+                return pushstack(batchnormpropertiesComponent,...properties,unit)
+            case "Leaky ReLU":
+                return pushstack(leakyrelupropertiesComponent,...properties,unit)
+            case "ELU":
+                return pushstack(elupropertiesComponent,...properties,unit)
+            case "Max pooling":
+                return pushstack(poolpropertiesComponent,...properties,unit)
+            case "Average pooling":
+                return pushstack(poolpropertiesComponent,...properties,unit)
+            case "Addition":
+                return pushstack(additionpropertiesComponent,...properties,unit)
+            case "Join":
+                return pushstack(catpropertiesComponent,...properties,unit)
+            case "Split":
+                return pushstack(splitpropertiesComponent,...properties,unit)
+            case "Upsample":
+                return pushstack(upsamplepropertiesComponent,...properties,unit)
+            default:
+                pushstack(emptypropertiesComponent,...properties,unit)
         }
     }
 
@@ -2134,10 +2179,11 @@ Component.onCompleted: {
             radius: 8*pix
             border.color: defaultpalette.controlborder
             border.width: 3*pix
+            property int id
             property string name
             property string type
             property string group
-            property var labelColor: null
+            property var label_color: null
             property double inputnum
             property double outputnum
             property var datastore
@@ -2166,7 +2212,9 @@ Component.onCompleted: {
                 Component.onCompleted: {
                     deselectunits()
                     selectunit(unit)
-                    getstack(labelColor,group,type,name,unit,datastore)
+                    idCounter  = idCounter + 1
+                    id = idCounter
+                    getstack(label_color,id,group,type,name,unit)
                 }
                 onEntered: {
                     selectunit(unit)
@@ -2208,7 +2256,7 @@ Component.onCompleted: {
                     deselectunits()
                     selectunit(unit)
                     mainPane.selectioninds = [unitindex(unit)]
-                    getstack(labelColor,group,type,name,unit,datastore)
+                    getstack(label_color,id,group,type,name,unit)
                 }
                 onPositionChanged: {
                     if (pressed) {
@@ -2670,7 +2718,7 @@ Component.onCompleted: {
                                            "name": name,
                                            "group": group,
                                            "type": type,
-                                           "labelColor": [colorR,colorG,colorB],
+                                           "label_color": [colorR,colorG,colorB],
                                            "inputnum": inputnum,
                                            "outputnum": outputnum,
                                            "x": flickableMainPane.contentX + 20*pix,
@@ -2712,29 +2760,84 @@ Component.onCompleted: {
             y: Math.round((parent.height - height)/2)
             delay: 200
             font.family: "Proxima Nova"
+            font.pixelSize: defaultPixelSize*0.8
             visible: parent.hovered
             background: Rectangle {color: "white"; border.width: 2*pix}
         }
     }
 
+    Popup {
+        id: warningPopup
+        modal: true
+        visible: false
+        closePolicy: Popup.NoAutoClose
+        x: customizationWindow.width/2 - width/2
+        y: customizationWindow.height/2 - height/2
+        width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
+        height: titleLabel.height + textLabel.height 
+            + okButton.height + 0.4*margin + okButton.height
+        property var warnings: []
+        onVisibleChanged: {
+            if (visible) {
+                if (warnings.length!==0) {
+                    textLabel.text = warnings[0]
+                    warnings.shift()
+                }
+            }
+        }
+        Label {
+            id: titleLabel
+            x: warningPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            topPadding: 0.25*margin
+            text: "WARNING"
+        }
+        Label {
+            id: textLabel
+            x:warningPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            anchors.top: titleLabel.bottom
+            topPadding: 0.4*margin
+        }
+        Button {
+            id: okButton
+            width: buttonWidth/2
+            x: warningPopup.width/2 - width/2 - 12*pix
+            anchors.top: textLabel.bottom
+            anchors.topMargin: 0.4*margin
+            text: "OK"
+            onClicked: {
+                if (warningPopup.warnings.length!==0) {
+                    textLabel.text = warningPopup.warnings[0]
+                    warningPopup.warnings.shift()
+                }
+                else {
+                    warningPopup.visible = false
+                }
+            }
+        }
+    }
 //----Properties components----------------------------------------
     Component {
         id: generalpropertiesComponent
         Column {
-            Row {
-                leftPadding: 0.4*margin
-                topPadding: 0.39*margin
-                bottomPadding: 0.2*margin
+            leftPadding: 0.4*margin
+            topPadding: 0.4*margin
+            spacing: 0.3*margin
+            property double leftPad: 380*pix
+            Item {
+                height: buttonHeight
+                width: buttonWidth
                 Label {
                     id: nameLabel
                     text: "Name: "
                 }
                 TextField {
                     anchors.verticalCenter: nameLabel.verticalCenter
-                    defaultHeight: buttonHeight
-                    defaultWidth: rightFrame.width - 220*pix
+                    anchors.left: nameLabel.right
+                    height: buttonHeight
+                    width: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        // nameTextField.text = displayText
                         Julia.set_settings(["Training","name"],displayText)
                     }
                     Component.onCompleted: {
@@ -2748,35 +2851,40 @@ Component.onCompleted: {
                     }
                 }
             }
-            RowLayout {
-                Column {
-                    id: labelColumnLayout
-                    leftPadding: 0.4*margin
-                    topPadding: 0.22*margin
-                    spacing: 0.4*margin
-                    Label {
-                        text: "Number of layers: "
-                    }
-                    Label {
-                        text: "Number of connections: "
-                    }
-                    Label {
-                        text: "Number of nonlinearities: "
-                    }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numlayersLabel
+                    text: "Number of layers: "
                 }
-                Column {
-                    leftPadding: 0*margin
-                    topPadding: 0.22*margin
-                    spacing: 0.4*margin
-                    Label {
-                        text: layers.children.length
-                    }
-                    Label {
-                        text: getconnectionsnum()
-                    }
-                    Label {
-                        text: getirregularitiesnum()
-                    }
+                Label {
+                    leftPadding: leftPad
+                    text: getlayersnum()
+                }
+            }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numconnectionsLabel
+                    text: "Number of connections: "
+                }
+                Label {
+                    leftPadding: leftPad
+                    text: getconnectionsnum()
+                }
+            }
+            Item {
+                height: buttonHeight
+                width: buttonWidth
+                Label {
+                    id: numnonlinearLabel
+                    text: "Number of nonlinearities: "
+                }
+                Label {
+                    leftPadding: leftPad
+                    text: getirregularitiesnum()
                 }
             }
         }
@@ -2784,19 +2892,22 @@ Component.onCompleted: {
 
     Component {
         id: inputpropertiesComponent
-
         Column {
             id: column
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: {"name": name, "type": type, "group": group,"size": "160,160",
-                "normalisation": {"text": "[0,1]", "ind": 0}}
+            property var label_color: null
+            property var datastore: {"id": id,"name": name, "type": type, "group": group,
+                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": 0}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
 
@@ -2807,7 +2918,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -2819,46 +2930,60 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column{
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Size","Normalisation"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.size
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3})|([1-9]\d{0,3},[1-9]\d{0,3},[1-9]\d{0,3}))/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.size.length;i++) {
+                                str = str + datastore.size[i].toString()
+                                if (i!==(datastore.size.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
                         onEditingFinished: {
-                            unit.datastore.size = displayText
+                            var splitString = displayText.split(",")
+                            var ar = []
+                            for (var i=0;i<splitString.length;i++) {
+                                ar.push(parseInt(splitString[i],10))
+                            }
+                            unit.datastore.size = ar
                         }
                     }
                     ComboBox {
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         currentIndex: datastore.normalisation.ind
                         model: ListModel {
                            id: optionsModel
@@ -2879,15 +3004,19 @@ Component.onCompleted: {
     Component {
         id: outputpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"loss": {"text": "Dice coefficient", "ind": 12}}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,"loss": {"text": "Dice coefficient", "ind": 12}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -2897,7 +3026,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -2909,37 +3038,37 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Loss"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     ComboBox {
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         currentIndex: datastore.loss.ind
                         model: ListModel {
                            id: optionsModel
@@ -2971,16 +3100,20 @@ Component.onCompleted: {
     Component {
         id: convpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filtersize": "3",
-                "stride": "1", "dilationfactor": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "filters": 32, "filter_size": 3,"stride": 1, "dilation_factor": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -2990,7 +3123,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3002,69 +3135,82 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride","Dilation factor"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.filters.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.filtersize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
+                        Component.onCompleted: {
+                            if (Array.isArray(datastore.filter_size)) {
+                                if (datastore.filter_size[0]==datastore.filter_size[1]) {
+                                    text = datastore.filter_size[0].toString()
+                                }
+                                else {
+                                    text = datastore.filter_size[0].toString() + 
+                                        "," + datastore.filter_size[1].toString()
+                                }
+                            }
+                            else {
+                                text = datastore.filter_size.toString()
+                            }
+                        }
                         onEditingFinished: {
-                            unit.datastore.filtersize = displayText
+                            unit.datastore.filter_size = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.stride.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.stride = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dilationfactor
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.dilation_factor.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.dilationfactor = displayText
+                            unit.datastore.dilation_factor = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3075,16 +3221,20 @@ Component.onCompleted: {
     Component {
         id: tconvpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32", "filtersize": "3",
-                "stride": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"filters": 32, "filter_size": 3,"stride": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3094,7 +3244,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3106,60 +3256,73 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters","Filter size",
                             "Stride"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.filters.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.filtersize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
+                        Component.onCompleted: {
+                            if (Array.isArray(datastore.filter_size)) {
+                                if (datastore.filter_size[0]==datastore.filter_size[1]) {
+                                    text = datastore.filter_size[0].toString()
+                                }
+                                else {
+                                    text = datastore.filter_size[0].toString() + 
+                                        "," + datastore.filter_size[1].toString()
+                                }
+                            }
+                            else {
+                                text = datastore.filter_size.toString()
+                            }
+                        }
                         onEditingFinished: {
-                            unit.datastore.filtersize = displayText
+                            unit.datastore.filter_size = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.stride.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.stride = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3170,15 +3333,20 @@ Component.onCompleted: {
     Component {
         id: densepropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"filters": "32"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group, "filters": 32}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3188,7 +3356,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3200,41 +3368,41 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Filters"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.filters
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.filters.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]\d{0,5}/ }
                         onEditingFinished: {
-                            unit.datastore.filters = displayText
+                            unit.datastore.filters = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3245,15 +3413,20 @@ Component.onCompleted: {
     Component {
         id: batchnormpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"epsilon": "0.00001"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"epsilon": 0.00001}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3263,7 +3436,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3275,41 +3448,41 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Epsilon"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.epsilon
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.epsilon.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,10}/ }
                         onEditingFinished: {
-                            unit.datastore.epsilon = displayText
+                            unit.datastore.epsilon = parseFloat(displayText)
                         }
                     }
                 }
@@ -3320,15 +3493,20 @@ Component.onCompleted: {
     Component {
         id: dropoutpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"probability": "0.5"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"probability": 0.5}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3338,7 +3516,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3350,41 +3528,41 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Probability"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.probability
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.probability.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.probability = displayText
+                            unit.datastore.probability = parseFloat(displayText)
                         }
                     }
                 }
@@ -3395,15 +3573,20 @@ Component.onCompleted: {
     Component {
         id: leakyrelupropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"scale": "0.01"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"scale": 0.01}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3413,7 +3596,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3425,41 +3608,41 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Scale"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.scale
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.scale.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.scale = displayText
+                            unit.datastore.scale = parseFloat(displayText)
                         }
                     }
                 }
@@ -3470,15 +3653,20 @@ Component.onCompleted: {
     Component {
         id: elupropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"alpha": "1"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"alpha": 1}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3488,7 +3676,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3500,41 +3688,41 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Alpha"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.alpha
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.alpha.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /0.\d{1,4}|[1-9]d{1,2}/ }
                         onEditingFinished: {
-                            unit.datastore.alpha = displayText
+                            unit.datastore.alpha = parseFloat(displayText)
                         }
                     }
                 }
@@ -3545,16 +3733,20 @@ Component.onCompleted: {
     Component {
         id: poolpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "poolsize": "2", "stride": "2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group, "poolsize": 2, "stride": 2}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3564,7 +3756,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3576,50 +3768,50 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Pool size","Stride"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.poolsize
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.poolsize.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.poolsize = displayText
+                            unit.datastore.poolsize = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.stride
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.stride.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /(([1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1})|([1-9]\d{0,1},[1-9]\d{0,1},[1-9]\d{0,1}))/ }
                         onEditingFinished: {
-                            unit.datastore.stride = displayText
+                            unit.datastore.stride = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3630,15 +3822,20 @@ Component.onCompleted: {
     Component {
         id: additionpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"inputs": "2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"inputs": 2}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3648,7 +3845,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3660,38 +3857,38 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Inputs"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.inputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.inputs.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
                         onEditingFinished: {
                             var inputnum = parseFloat(unit.datastore.inputs)
@@ -3752,7 +3949,7 @@ Component.onCompleted: {
                                 }
                             }
                             unit.inputnum = newinputnum
-                            unit.datastore.inputs = displayText
+                            unit.datastore.inputs = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3763,16 +3960,20 @@ Component.onCompleted: {
     Component {
         id: catpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "inputs": "2", "dimension": "3"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "inputs": 2, "dimension": 3}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3782,7 +3983,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3794,38 +3995,38 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Inputs","Dimension"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.inputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.inputs.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[2-9]|10/ }
                         onEditingFinished: {
                             var inputnum = parseFloat(unit.datastore.inputs)
@@ -3885,16 +4086,16 @@ Component.onCompleted: {
                                 }
                             }
                             unit.inputnum = newinputnum
-                            unit.datastore.inputs = displayText
+                            unit.datastore.inputs = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimension
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.dimension.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
-                            unit.datastore.dimension = displayText
+                            unit.datastore.dimension = parseInt(displayText,10)
                         }
                     }
                 }
@@ -3905,16 +4106,20 @@ Component.onCompleted: {
     Component {
         id: splitpropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,
-                "outputs": "2","dimension":"3"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,
+                "outputs": 2,"dimension": 3}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -3924,7 +4129,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -3936,38 +4141,38 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Outputs","Dimension"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.outputs
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.outputs.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-9]|10/ }
                         onEditingFinished: {
                             var outputnum = parseFloat(unit.datastore.outputs)
@@ -4035,16 +4240,16 @@ Component.onCompleted: {
 
                             }
                             unit.outputnum = newoutputnum
-                            unit.datastore.outputs = displayText
+                            unit.datastore.outputs = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimension
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.dimension.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /[1-3]/ }
                         onEditingFinished: {
-                            unit.datastore.dimension = displayText
+                            unit.datastore.dimension = parseInt(displayText,10)
                         }
                     }
                 }
@@ -4055,16 +4260,20 @@ Component.onCompleted: {
     Component {
         id: upsamplepropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
             property var group: null
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group,"multiplier": "2",
-                "dimensions": "1,2"}
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, 
+                "group": group,"multiplier": 2, "dimensions": [1,2]}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -4074,7 +4283,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -4086,51 +4295,65 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name","Multiplier","Dimensions"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText
                         }
                     }
                     TextField {
-                        text: datastore.multiplier
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        text: datastore.multiplier.toString()
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator { regExp: /([2-5])/ }
                         onEditingFinished: {
-                            unit.datastore.multiplier = displayText
+                            unit.datastore.multiplier = parseInt(displayText,10)
                         }
                     }
                     TextField {
-                        text: datastore.dimensions
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         validator: RegExpValidator {
                             regExp: /(1|2|3|1,2|1,2,3)/ }
+                        Component.onCompleted: {
+                            var str = ""
+                            for (var i=0;i<datastore.dimensions.length;i++) {
+                                str = str + datastore.dimensions[i].toString()
+                                if (i!==(datastore.dimensions.length-1)) {
+                                    str = str + ","
+                                }
+                            }
+                            text = str
+                        }
                         onEditingFinished: {
-                            unit.datastore.dimensions = displayText
+                            var splitString = displayText.split(",")
+                            var ar = []
+                            for (var i=0;i<splitString.length;i++) {
+                                ar.push(parseInt(splitString[i],10))
+                            }
+                            unit.datastore.dimensions = ar
                         }
                     }
                 }
@@ -4141,15 +4364,19 @@ Component.onCompleted: {
     Component {
         id: emptypropertiesComponent
         Column {
+            property int id
             property var unit: null
             property var name: null
             property string type
-            property string group
-            property var labelColor: null
-            property var datastore: { "name": name, "type": type, "group": group}
+            property var group: null
+            property var label_color: null
+            property var datastore: { "id": id,"name": name, "type": type, "group": group}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
+                }
+                else {
+                    datastore = unit.datastore
                 }
             }
             Row {
@@ -4159,7 +4386,7 @@ Component.onCompleted: {
                     topPadding: 0.39*margin
                     leftPadding: 0.1*margin
                     rightPadding: 0.2*margin
-                    colorRGB: labelColor
+                    colorRGB: label_color
                 }
                 Label {
                     id: typeLabel
@@ -4171,29 +4398,29 @@ Component.onCompleted: {
                     wrapMode: Text.NoWrap
                 }
             }
-            RowLayout {
-                ColumnLayout {
-                    id: labelColumnLayout
-                    Layout.alignment: Qt.AlignTop
-                    Layout.leftMargin: 0.4*margin
-                    Layout.topMargin: 0.22*margin
-                    spacing: 0.24*margin
+            Row {
+                Column {
+                    id: labelColumn
+                    leftPadding: 0.4*margin
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     Repeater {
                         model: ["Name"]
                         Label {
-                            text: modelData+": "
-                            topPadding: 4*pix
+                            height: buttonHeight
+                            topPadding: 14*pix
                             bottomPadding: topPadding
+                            text: modelData+": "
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 0.2*margin
+                Column {
+                    topPadding: 0.2*margin
+                    spacing: 20*pix
                     TextField {
                         text: datastore.name
-                        defaultHeight: 0.75*buttonHeight
-                        defaultWidth: rightFrame.width - labelColumnLayout.width - 70*pix
+                        height: buttonHeight
+                        width: rightFrame.width - labelColumn.width - 70*pix
                         onEditingFinished: {
                             unit.datastore.name = displayText
                             unit.children[0].children[0].text = displayText

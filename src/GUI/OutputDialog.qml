@@ -622,7 +622,7 @@ ApplicationWindow {
                                             }
                                             Rectangle {
                                                 id: colorRectangle
-                                                visible: Julia.get_problem_type()==1
+                                                visible: Julia.get_problem_type()==2
                                                 anchors.left: treeButton.left
                                                 anchors.verticalCenter: treeButton.verticalCenter
                                                 anchors.leftMargin: 15*pix
@@ -630,13 +630,13 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                color: Julia.get_problem_type()==1 ? 
+                                                color: Julia.get_problem_type()==2 ? 
                                                     rgbtohtml([colorR,colorG,colorB]) :
                                                     "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
-                                                anchors.leftMargin: Julia.get_problem_type()==1 ? 
+                                                anchors.leftMargin: Julia.get_problem_type()==2 ? 
                                                     50*pix : 10*pix
                                                 anchors.verticalCenter: treeButton.verticalCenter
                                                 text: name

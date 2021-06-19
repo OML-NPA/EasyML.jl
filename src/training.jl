@@ -616,10 +616,10 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
 end
 
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
-        accuracy_vector,loss_vector,counter,accuracy_test_vector,
-        loss_test_vector,iteration_test_vector,counter_test,num_test,epochs,num,
-        max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,abort)
+        accuracy_vector,loss_vector,counter,accuracy_test_vector,loss_test_vector,
+        iteration_test_vector,counter_test,num_test,epochs,num,max_iterations,
+        testing_frequency,allow_lr_change,composite,run_test,minibatch_channel,
+        minibatch_test_channel,channels,use_GPU,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
         for i=1:num
@@ -630,7 +630,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                 if isready(channels.training_modifiers)
                     testing_frequency = check_modifiers(model_data,model,model_name,
                         accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                        max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=true)
+                        max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
                         return nothing
                     end
@@ -686,11 +686,12 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                 end
             end
             GC.safepoint()
+            cleanup!(predicted)
         end
         # Update epoch counter
         epoch_idx += 1
         # Save model
-        model_data.model = move(model,cpu)
+        model_data.model = cpu(model)
         save_model_main(model_data,model_name)
     end
     return nothing
@@ -726,7 +727,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     model_name = string("models/",training.name,".model")
-    output_N = get_output_N(model_data)
+    output_N = length(model_data.output_size) + 1
     # Initialize data
     data_input = train_set[1]
     data_labels = train_set[2]
@@ -775,7 +776,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,accuracy_vector,
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
         counter_test,num_test,epochs,num,max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,abort)
+        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,abort)
     # Return training information
     resize!(accuracy_vector,counter.iteration)
     resize!(loss_vector,counter.iteration)
@@ -783,7 +784,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     return data
 end
 
-function test_GPU(model::Chain,accuracy::Function,loss::Function,
+function test(model::Chain,accuracy::Function,loss::Function,
         test_batches::Array{Tuple{Array{Float32,4},Array{Float32,4}},1},
         num_test::Int64,move_f)
     test_accuracy = Vector{Float32}(undef,num_test)
@@ -794,15 +795,10 @@ function test_GPU(model::Chain,accuracy::Function,loss::Function,
         actual = test_minibatch[2]
         test_accuracy[j] = accuracy(predicted,actual)
         test_loss[j] = loss(predicted,actual)
+        cleanup!(predicted)
     end
     data = [mean(test_accuracy),mean(test_loss)]
     return data
-end
-
-function get_output_N(model_data::ModelData)
-    input = ones(Float32,model_data.input_size...,2)
-    output = model_data.model(input)
-    return length(size(output))
 end
 
 function get_data_struct(training_data::TrainingData)
