@@ -373,7 +373,7 @@ function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:Abst
     # Calculate accuracy
     correct_bool = predicted_bool .& actual_bool
     num_correct = convert(Float32,sum(correct_bool))
-    acc = num_correct/prod(size(predicted)[1:2])
+    acc = num_correct/prod(size(predicted))
     return acc
 end
 
