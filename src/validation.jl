@@ -262,7 +262,8 @@ function validate_main(settings::Settings,validation_data::ValidationData,
     classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
-    accuracy::Function = get_accuracy_func(settings.Training)
+    ws = get_weigths(training,classes)
+    accuracy::Function = get_accuracy_func(settings,ws)
     use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
     if settings.problem_type==:Classification || settings.problem_type==:Regression
         num_parts_current = 1

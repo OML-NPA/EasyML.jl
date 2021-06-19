@@ -308,10 +308,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if settings.problem_type==:Classification
-        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    elseif settings.problem_type==:Regression
+    if settings.problem_type==:Regression
         @warn "Weighted accuracy cannot be used for regression. Using regular accuracy."
         training.Options.General.weight_accuracy = false
     end
@@ -432,10 +429,6 @@ function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
-    if settings.problem_type==:Classification && training.Options.General.weight_accuracy
-        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    end
     validate_main2(settings,validation_data,model_data,channels)
     # Launches GUI
     @qmlfunction(

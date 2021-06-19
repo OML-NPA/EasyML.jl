@@ -28,6 +28,7 @@ abstract type AbstractClass end
 
 @with_kw mutable struct ImageClassificationClass<:AbstractClass
     name::String = ""
+    weight::Float32 = 1
 end
 
 @with_kw mutable struct ImageRegressionClass<:AbstractClass

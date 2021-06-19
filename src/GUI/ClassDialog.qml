@@ -17,10 +17,6 @@ ApplicationWindow {
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
 
-    Component.onCompleted: {
-        console.log(Screen.devicePixelRatio)
-    }
-
     //---Universal property block-----------------------------------------------
     property double pix: (Screen.width/3840)
     property double margin: 78*pix
@@ -76,6 +72,7 @@ ApplicationWindow {
             if (problemComboBox.currentIndex==0) {
                 var class_var = {
                     "id": id,
+                    "weight": Julia.get_class_field(ind,"weight"),
                     "name": Julia.get_class_field(ind,"name")
                 }
             }
@@ -123,7 +120,7 @@ ApplicationWindow {
         
         nameTextField.visible = true
         if (problemComboBox.currentIndex==0) {
-
+            weightRow.visible = true
         }
         else if (problemComboBox.currentIndex==1) {
 
@@ -151,20 +148,12 @@ ApplicationWindow {
         nameTextField.text = classModel.get(indTree).name
         
         if (problemComboBox.currentIndex==0) {
-
+            weightTextField.text = classModel.get(indTree).weight
         }
         if (problemComboBox.currentIndex==1) {
 
         }
         else if (problemComboBox.currentIndex==2) {
-            colorLabel.visible = true
-            colorRow.visible = true
-            minareaRow.visible = true
-            parentRow.visible = true
-            notclassRow.visible = true
-            borderRow.visible = true
-            bordernumpixelsRow.visible = true
-            borderremoveobjsRow.visible = true
 
             redTextField.text = classModel.get(indTree).colorR
             greenTextField.text = classModel.get(indTree).colorG
@@ -409,7 +398,8 @@ ApplicationWindow {
                                     if (problemComboBox.currentIndex==0) {
                                         var class_var = {
                                             "name": name,
-                                            "id": id
+                                            "id": id,
+                                            "weight": 1
                                         }
                                     }
                                     else if (problemComboBox.currentIndex==1) {
@@ -509,7 +499,6 @@ ApplicationWindow {
                     id: nameLabel
                     text: "Name:"
                     width: 160*pix
-                    topPadding: 0.14*margin
                 }
                 TextField {
                     id: nameTextField
@@ -533,13 +522,32 @@ ApplicationWindow {
                 }
             }
             Row {
+                id: weightRow
+                visible: false
+                Label {
+                    id: weightLabel
+                    text: "Weight:"
+                    width: 160*pix
+                }
+                TextField {
+                    id: weightTextField
+                    anchors.verticalCenter: weightLabel.verticalCenter
+                    width: 400*pix
+                    height: buttonHeight
+                    validator: DoubleValidator { bottom: 0; decimals : 2; top: 1;}
+                    onEditingFinished: {
+                        classModel.setProperty(indTree, "weight", parseFloat(text))
+                    }
+                    
+                }
+            }
+            Row {
                 id: parentRow
                 visible: false
                 Label {
                     id: parentLabel
                     width: nameLabel.width
                     text: "Parent:"
-                    topPadding: 0.14*margin
                 }
                 ComboBox {
                     id: parentComboBox
@@ -568,7 +576,6 @@ ApplicationWindow {
                     id: parent2Label
                     width: nameLabel.width
                     text: "Parent 2:"
-                    topPadding: 0.14*margin
                 }
                 ComboBox {
                     id: parent2ComboBox
@@ -780,7 +787,6 @@ ApplicationWindow {
                     id: minareaLabel
                     text: "Minimum object area:"
                     width: 350*pix
-                    topPadding: 10*pix
                 }
                 TextField {
                     id: minareaTextField

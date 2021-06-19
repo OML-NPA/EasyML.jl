@@ -355,6 +355,23 @@ function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:Ab
     return mean(acc)
 end
 
+function accuracy_classification_weighted(predicted::A,actual::A,weigths::Vector{T}) where {T<:Float32,A<:AbstractArray{T,2}}
+    l = size(predicted,2)
+    acc = Vector{Float32}(undef,l)
+    w = Vector{Float32}(undef,l)
+    for i = 1:l
+        _ , actual_ind = collect(findmax(actual[:,i]))
+        _ , predicted_ind = collect(findmax(predicted[:,i]))
+        w[i] = weigths[actual_ind]
+        if actual_ind==predicted_ind
+            acc[i] = 1
+        else
+            acc[i] = 0
+        end
+    end
+    return mean(acc,StatsBase.weights(w))
+end
+
 function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     err = abs.(actual .- predicted)
     err_relative = mean(err./actual)
@@ -432,14 +449,43 @@ function accuracy_segmentation_weighted(predicted::A,actual::A) where {T<:Float3
     return acc
 end
 
+function get_weigths(training::Training,classes::Vector{<:AbstractClass})
+    if training.Options.General.weight_accuracy
+        return map(class -> class.weight,classes)
+    else
+        return Vector{Float32}(undef,0)
+    end
+end
+
+function get_weigths(training::Training,training_data::TrainingData,classes::Vector{<:AbstractClass})
+    if training.Options.General.weight_accuracy
+        data_labels = training_data.ClassificationData.data_labels
+        label_counts = map(x -> count(x.==data_labels),1:length(classes))
+        frequencies = label_counts/length(data_labels)
+        weights64 = frequencies./sum(frequencies)
+        weights = convert(Vector{Float32},weights64)
+        for i = 1:length(classes)
+            model_data.classes[i].weight = weights[1]
+        end
+        return weights
+    else
+        return Vector{Float32}(undef,0)
+    end
+end
+
 # Returns an accuracy function
-function get_accuracy_func(training::Training)
+function get_accuracy_func(settings::Settings,weights::Vector{Float32})
+    weight = settings.Training.Options.General.weight_accuracy
     if settings.problem_type==:Classification
-        return accuracy_classification
+        if weight
+            return (x,y) -> accuracy_classification_weighted(x,y,weights)
+        else
+            return accuracy_classification
+        end
     elseif settings.problem_type==:Regression
         return accuracy_regression
     elseif settings.problem_type==:Segmentation
-        if training.Options.General.weight_accuracy
+        if weight
             return accuracy_segmentation_weighted
         else
             return accuracy_segmentation

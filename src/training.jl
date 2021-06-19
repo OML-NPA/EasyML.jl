@@ -622,7 +622,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         minibatch_test_channel,channels,use_GPU,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
-        for i=1:num
+        for i = 1:num
             # Prepare training data
             local minibatch_data::eltype(minibatch_channel.data)
             while true
@@ -836,7 +836,8 @@ function train_main(settings::Settings,training_data::TrainingData,
     train_set, test_set = get_train_test(data,training)
     # Setting functions and parameters
     opt = get_optimiser(training)
-    accuracy = get_accuracy_func(training)
+    ws = get_weigths(training,training_data,classes)
+    accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss
     testing_times = training_options.General.testing_frequency
     # Run training
