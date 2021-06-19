@@ -13,7 +13,7 @@ ApplicationWindow {
     visible: true
     title: qsTr("  EasyML")
     minimumWidth: gridLayout.width
-    minimumHeight: 800*pix
+    minimumHeight: 600*pix
     maximumWidth: gridLayout.width
     maximumHeight: gridLayout.height
 
@@ -139,8 +139,10 @@ ApplicationWindow {
                 Component {
                     id: generalView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: usegpuLabel
@@ -163,8 +165,8 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
-                            bottomPadding: 10*pix
                             Label {
                                 id: weightaccuracyLabel
                                 text: "Weight accuracy:"
@@ -187,8 +189,8 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             visible: weightaccuracyCheckBox.checkState==Qt.Checked ? true : false
-                            bottomPadding: -10*pix
                             Label {
                                 id: modeLabel
                                 text: "Mode:"
@@ -231,12 +233,15 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: testdatafractionLabel
                                 text: "Test data fraction:"
                                 width: testingfrLabel.width
                             }
                             SpinBox {
+                                anchors.verticalCenter: testdatafractionLabel.verticalCenter
                                 from: 0
                                 value: 10*Julia.get_settings(
                                            ["Training","Options","General","test_data_fraction"])
@@ -256,6 +261,7 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: testingfrLabel
@@ -279,14 +285,18 @@ ApplicationWindow {
                 Component {
                     id: processingView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: grayscaleLabel
                                 text: "Convert to grayscale:"
                                 width: minfrpixLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: grayscaleLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -305,12 +315,15 @@ ApplicationWindow {
                             font.bold: true
                         }
                         Row {
+                            id: mirroringLabel
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 text: "Mirroring:"
                                 width: minfrpixLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: mirroringLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -325,12 +338,15 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: rotationLabel
                                 text: "Rotation (number of angles):"
                                 width: minfrpixLabel.width
                             }
                             SpinBox {
+                                anchors.verticalCenter: rotationLabel.verticalCenter
                                 id: numanglesSpinBox
                                 from: 1
                                 value: Julia.get_settings(
@@ -343,12 +359,14 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: minfrpixLabel
                                 text: "Minimum fraction of labeled pixels:"
                             }
                             SpinBox {
+                                anchors.verticalCenter: minfrpixLabel.verticalCenter
                                 id: minfrpixSpinBox
                                 from: 0
                                 value: 100*Julia.get_settings(
@@ -372,16 +390,19 @@ ApplicationWindow {
                 Component {
                     id: hyperparametersView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: optimiserLabel
                                 text: "Optimiser:"
-                                topPadding: 10*pix
                                 width: numberofepochsLabel.width
                             }
                             ComboBox {
                                 id: optimisersComboBox
+                                anchors.verticalCenter: optimiserLabel.verticalCenter
                                 editable: false
                                 width: 0.6*buttonWidth
                                 topPadding: -100
@@ -451,15 +472,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param1Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param1TextField
+                                anchors.verticalCenter: param1Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -471,15 +493,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param2Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param2TextField
+                                anchors.verticalCenter: param2Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -491,15 +514,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param3Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param3TextField
+                                anchors.verticalCenter: param3Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -511,13 +535,15 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: batchsizeLabel
                                 text: "Batch size:"
-                                bottomPadding: 0.05*margin
                                 width: numberofepochsLabel.width
                             }
                             SpinBox {
+                                anchors.verticalCenter: batchsizeLabel.verticalCenter
                                 from: 1
                                 value: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","batch_size"])
@@ -532,13 +558,14 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: numberofepochsLabel
                                 text: "Number of epochs:"
-                                bottomPadding: 0.05*margin
                             }
                             SpinBox {
+                                anchors.verticalCenter: numberofepochsLabel.verticalCenter
                                 from: 1
                                 value: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","epochs"])
@@ -553,15 +580,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: learningrateLabel
                                 text: "Learning rate:"
-                                bottomPadding: 0.05*margin
                                 width: numberofepochsLabel.width
                             }
                             SpinBox {
                                 id: learningrateSpinBox
+                                anchors.verticalCenter: learningrateLabel.verticalCenter
                                 visible: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","allow_lr_change"])
                                 from: 1
