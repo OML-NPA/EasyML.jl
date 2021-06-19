@@ -13,7 +13,7 @@ ApplicationWindow {
     visible: true
     minimumHeight: 1024*pix + margin
     minimumWidth: informationPane.width + 1024*pix + margin
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
 
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840

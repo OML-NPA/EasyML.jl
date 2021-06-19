@@ -11,11 +11,15 @@ import org.julialang 1.0
 ApplicationWindow {
     id: classdialogWindow
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
     width: rowLayout.width
     height: rowLayout.height + applyButton.height + 0.75*margin
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
+
+    Component.onCompleted: {
+        console.log(Screen.devicePixelRatio)
+    }
 
     //---Universal property block-----------------------------------------------
     property double pix: (Screen.width/3840)

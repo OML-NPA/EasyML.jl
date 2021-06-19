@@ -11,7 +11,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: validationWindow
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
     
     //---Universal property block-----------------------------------------------
     property double pix: Screen.width/3840
