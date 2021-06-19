@@ -322,17 +322,17 @@ end
 training_plot_data = TrainingPlotData()
 
 @with_kw mutable struct TrainingResultsData
-    loss::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    accuracy::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    test_accuracy::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    test_loss::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    test_accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    test_loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_iteration::Vector{Int64} = Vector{Int64}(undef,0)
 end
 training_results_data = TrainingResultsData()
 
 @with_kw mutable struct ClassificationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{Int32} = Vector{BitArray{3}}(undef,0)
+    data_labels::Vector{Int32} = Vector{Int32}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     labels::Vector{String} = Vector{String}(undef,0)
     filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
