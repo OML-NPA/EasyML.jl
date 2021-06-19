@@ -14,6 +14,10 @@ ApplicationWindow {
     title: qsTr("  EasyML")
     width: rowLayout.width
     height: rowLayout.height + applyButton.height + 0.75*margin
+    minimumWidth: rowLayout.width
+    minimumHeight: rowLayout.height + applyButton.height + 0.75*margin
+    maximumWidth: rowLayout.width
+    maximumHeight: rowLayout.height + applyButton.height + 0.75*margin
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
 
