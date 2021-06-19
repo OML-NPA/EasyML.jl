@@ -11,7 +11,7 @@ import org.julialang 1.0
 
 
 ApplicationWindow {
-    id: window
+    id: trainingWindow
     visible: true
     title: qsTr("  EasyML")
     minimumWidth: gridLayout.width
@@ -72,8 +72,8 @@ ApplicationWindow {
         modal: true
         visible: true
         closePolicy: Popup.NoAutoClose
-        x: window.width/2 - width/2
-        y: window.height/2 - height/2
+        x: trainingWindow.width/2 - width/2
+        y: trainingWindow.height/2 - height/2
         width: titleLabel.width + 0.8*margin
         height: titleLabel.height + 0.4*margin + 15*pix + 0.2*margin
         Label {
@@ -542,8 +542,8 @@ ApplicationWindow {
             }
         }
         MouseArea {
-            width: window.width
-            height: window.height
+            width: trainingWindow.width
+            height: trainingWindow.height
             onPressed: {
                 focus = true
                 mouse.accepted = false
