@@ -289,7 +289,7 @@ end
     y::Float64 = 0
     label_color::NTuple{3,Int64} = (0,0,0)
     multiplier::Int64 = 0
-    dimension::Vector{Int64} = [0]
+    dimensions::Vector{Int64} = [0]
 end
 
 @with_kw mutable struct ModelData
