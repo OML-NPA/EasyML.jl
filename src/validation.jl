@@ -231,6 +231,24 @@ function process_output(predicted::AbstractArray{Float32,4},data_label::Abstract
     return nothing
 end
 
+function remove_validation_data()
+    if settings.input_type==:Image
+        if settings.problem_type==:Classification
+            data = validation_data.ImageClassificationResults
+            fields = fieldnames(ValidationImageRegressionResults)
+        elseif settings.problem_type==:Regression
+            data = validation_data.ImageRegressionResults
+            fields = fieldnames(ValidationImageRegressionResults)
+        elseif settings.problem_type==:Segmentation
+            data = validation_data.ImageSegmentationResults
+            fields = fieldnames(ValidationImageSegmentationResults)
+        end
+    end
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
 # Main validation function
 function validate_main(settings::Settings,validation_data::ValidationData,
         model_data::ModelData,channels::Channels)

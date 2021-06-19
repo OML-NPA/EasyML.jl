@@ -474,24 +474,6 @@ function validate()
     end
 end
 
-function remove_validation_data()
-    if settings.input_type==:Image
-        if settings.problem_type==:Classification
-            data = validation_data.ImageClassificationResults
-            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
-        elseif settings.problem_type==:Regression
-            data = validation_data.ImageRegressionResults
-            fields = fieldnames(ValidationImageRegressionResults)[1:end-1]
-        elseif settings.problem_type==:Segmentation
-            data = validation_data.ImageSegmentationResults
-            fields = fieldnames(ValidationImageSegmentationResults)[1:end-1]
-        end
-    end
-    for field in fields
-        empty!(getfield(data, field))
-    end
-end
-
 # Application
 function get_urls_application(input_dir::String)
     if !isdir(input_dir)
