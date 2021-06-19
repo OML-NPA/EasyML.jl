@@ -117,20 +117,14 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
 end
 
 function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
-        data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
+        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if isready(channels.application_modifiers)
-                stop_cond::String = fetch(channels.training_modifiers)[1]
-                if stop_cond=="stop"
-                    take!(channels.application_modifiers)
-                    Threads.atomic_xchg!(abort, true)
-                    return nothing
-                end
+            if check_abort_signal(channels.application_modifiers)
+                return nothing
             end
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
@@ -145,20 +139,14 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
 end
 
 function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-    urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
-    data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+    urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if isready(channels.application_modifiers)
-                stop_cond::String = fetch(channels.training_modifiers)[1]
-                if stop_cond=="stop"
-                    take!(channels.application_modifiers)
-                    Threads.atomic_xchg!(abort, true)
-                    return nothing
-                end
+            if check_abort_signal(channels.application_modifiers)
+                return nothing
             end
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
@@ -188,22 +176,14 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
 end
 
 function get_output(model_data::ModelData,processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,abort::Threads.Atomic{Bool},
+        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if isready(channels.application_modifiers)
-                stop_cond::String = fetch(channels.training_modifiers)[1]
-                if stop_cond=="stop"
-                    take!(channels.application_modifiers)
-                    Threads.atomic_xchg!(abort, true)
-                    return nothing
-                end
-            end
-            if abort[]==true
+            if check_abort_signal(channels.application_modifiers)
                 return
             end
             # Get input
@@ -227,8 +207,8 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
         savepath::String,filenames_batch::Vector{Vector{String}},num_classes::Int64,num_border::Int64,
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,border::Vector{Bool},
         objs_area::Vector{Vector{Vector{Float64}}},objs_volume::Vector{Vector{Vector{Float64}}},img_ext::String,
-        img_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,abort::Threads.Atomic{Bool},
-        data_taken::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+        img_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,data_taken::Threads.Atomic{Bool},
+        data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     # Get neural network output
     l,predicted_bool = take!(data_channel)
     Threads.atomic_xchg!(data_taken, true)
@@ -260,7 +240,7 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
         masks[j] = temp_mask
     end
     # Stop if asked
-    if abort[]==true
+    if check_abort_signal(channels.application_modifiers)
         return nothing
     end
     filenames = filenames_batch[l]
@@ -285,13 +265,9 @@ end
 function process_output(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
         img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
-        abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+        data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     class_names = map(x -> x.name,classes)
     for k=1:num
-        # Stop if asked
-        if abort[]==true
-            return nothing
-        end
         folder = folders[k]
         filenames_batch = filenames_batched[k]
         num_batch = length(filenames_batch)
@@ -309,7 +285,7 @@ function process_output(classes::Vector{ImageClassificationClass},output_options
                     break
                 else
                     # Stop if asked
-                    if abort[]==true
+                    if check_abort_signal(channels.application_modifiers)
                         return nothing
                     end
                     sleep(0.1)
@@ -336,13 +312,9 @@ end
 function process_output(classes::Vector{ImageRegressionClass},output_options::Vector{ImageRegressionOutputOptions},
         savepath_main::String,folders::Vector{String},filenames_batched::Vector{Vector{Vector{String}}},num::Int64,
         img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
-        abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
+        data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     class_names = map(x -> x.name,classes)
     for k=1:num
-        # Stop if asked
-        if abort[]==true
-            return nothing
-        end
         folder = folders[k]
         filenames_batch = filenames_batched[k]
         num_batch = length(filenames_batch)
@@ -360,7 +332,7 @@ function process_output(classes::Vector{ImageRegressionClass},output_options::Ve
                     break
                 else
                     # Stop if asked
-                    if abort[]==true
+                    if check_abort_signal(channels.application_modifiers)
                         return nothing
                     end
                     sleep(0.1)
@@ -394,7 +366,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         log_volume_obj::Vector{Bool},log_volume_obj_sum::Vector{Bool},log_volume_dist::Vector{Bool},num_obj_area::Int64,
         num_obj_area_sum::Int64,num_dist_area::Int64,num_obj_volume::Int64,num_obj_volume_sum::Int64,num_dist_volume::Int64,
         img_ext::String,img_sym_ext::Symbol,data_ext::String,data_sym_ext::Symbol,scaling::Float64,apply_by_file::Bool,
-        abort::Threads.Atomic{Bool},data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
+        data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     num_classes = length(classes)
     for k=1:num
         folder = folders[k]
@@ -437,7 +409,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
                     break
                 else
                     # Stop if asked
-                    if abort[]==true
+                    if check_abort_signal(channels.application_modifiers)
                         return nothing
                     end
                     sleep(0.1)
@@ -445,7 +417,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
             end
             t = Threads.@spawn run_iteration(classes,output_options,savepath,filenames_batch,num_classes,
                 num_border,labels_color,labels_incl,apply_border,border,objs_area,objs_volume,img_ext,
-                img_sym_ext,scaling,apply_by_file,abort,data_taken,data_channel,channels)
+                img_sym_ext,scaling,apply_by_file,data_taken,data_channel,channels)
             push!(tasks,t)
         end
         while length(tasks)!=num_batch
@@ -545,7 +517,6 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     batch_size = application_options.minibatch_size
     apply_by_file = application_options.apply_by[1]=="file"
     data_channel = Channel{Tuple{Int64,T}}(Inf)
-    abort = Threads.Atomic{Bool}(false)
     # Get file extensions
     img_ext,img_sym_ext = get_image_ext(application_options.image_type)
     data_ext,data_sym_ext = get_data_ext(application_options.data_type)
@@ -566,10 +537,10 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,abort,data_channel,channels)
+    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
-        img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,abort,data_channel,channels)
+        img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
     return nothing
 end
 function apply_main2(settings::Settings,training::Training,application_data::ApplicationData,

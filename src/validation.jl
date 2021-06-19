@@ -252,12 +252,8 @@ function validate_main(settings::Settings,validation_data::ValidationData,
         num_parts_current = 30
     end
     for i = 1:num
-        if isready(channels.validation_modifiers)
-            stop_cond::String = fetch(channels.validation_modifiers)[1]
-            if stop_cond=="stop"
-                take!(channels.validation_modifiers)
-                break
-            end
+        if check_abort_signal(channels.validation_modifiers)
+            return nothing
         end
         data_input,label,other = prepare_validation_data(model_data,validation,validation_data,
             processing,classes,i)
