@@ -619,7 +619,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         accuracy_vector,loss_vector,counter,accuracy_test_vector,
         loss_test_vector,iteration_test_vector,counter_test,num_test,epochs,num,
         max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,abort)
+        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
         for i=1:num
@@ -630,8 +630,14 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                 if isready(channels.training_modifiers)
                     testing_frequency = check_modifiers(model_data,model,model_name,
                         accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                        max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=true)
+                        max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
+                        if gpu==true
+                            model_data.model = cpu(model)
+                        else
+                            model_data.model = model
+                        end
+                        save_model_main(model_data,model_name)
                         return nothing
                     end
                 end
@@ -690,7 +696,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         # Update epoch counter
         epoch_idx += 1
         # Save model
-        model_data.model = move(model,cpu)
+        model_data.model = cpu(model)
         save_model_main(model_data,model_name)
     end
     return nothing
@@ -775,7 +781,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,accuracy_vector,
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
         counter_test,num_test,epochs,num,max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,abort)
+        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,abort)
     # Return training information
     resize!(accuracy_vector,counter.iteration)
     resize!(loss_vector,counter.iteration)
