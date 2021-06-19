@@ -460,16 +460,18 @@ function validate()
         display_result_image = f2
     )
     exec()
+    # Clean up
+    validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
+    validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
     if settings.input_type==:Image
         if settings.problem_type==:Classification
             return validation_image_classification_results
         elseif settings.problem_type==:Segmentation
             return validation_image_segmentation_results
+        elseif settings.problem_type==:Regression
+            return validation_image_regression_results
         end
     end
-    # Clean up
-    validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
-    validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
 end
 
 function remove_validation_data()
