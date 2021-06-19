@@ -134,7 +134,7 @@ ApplicationWindow {
     }
     //-------------------------------------------------------------------------
     
-    minimumHeight: 1024*pix + classLabel.height + margin
+    minimumHeight: 1024*pix + showclassLabel.height + margin
     minimumWidth: informationPane.width + 1024*pix + margin
     color: defaultpalette.window
     property int input_type
@@ -267,28 +267,28 @@ ApplicationWindow {
                             Julia.get_image(["ValidationData","ImageClassificationResults","original"],[0,0],[ind1])
                             var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
-                            classLabel.visible = true
+                            showclassLabel.visible = true
                             if (use_labels) {
                                 var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
                                 target_labels.push(target_label)
-                                classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
+                                showclassLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
                             }
                             else {
-                                classLabel.text = "Predicted: " + predicted_label
+                                showclassLabel.text = "Predicted: " + predicted_label
                             }
                         }
                         else if (problem_type==1) {
                             Julia.get_image(["ValidationData","ImageRegressionResults","original"],[0,0],[ind1])
                             var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
-                            classLabel.visible = true
+                            showclassLabel.visible = true
                             if (use_labels) {
                                 var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
                                 target_labels.push(target_label)
-                                classLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
+                                showclassLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
                             }
                             else {
-                                classLabel.text = "Predicted: " + predicted_label
+                                showclassLabel.text = "Predicted: " + predicted_label
                             }
                         }
                         else if (problem_type==2) {
@@ -419,7 +419,7 @@ ApplicationWindow {
                             + 2*displayPane.horizontalPadding
                 }
                 else {
-                    displayPane.height = Math.floor(displayScrollableItem.height + classLabel.height
+                    displayPane.height = Math.floor(displayScrollableItem.height + showclassLabel.height
                         + 2*displayPane.verticalPadding)
                     displayPane.width = Math.floor(displayScrollableItem.width
                         + 2*displayPane.horizontalPadding)
@@ -478,7 +478,7 @@ ApplicationWindow {
                     }
                 }
                 Label {
-                    id: classLabel
+                    id: showclassLabel
                     anchors.horizontalCenter: resultColumn.horizontalCenter
                     topPadding: 0.5*margin
                     visible: false
@@ -488,7 +488,7 @@ ApplicationWindow {
         Pane {
             id: informationPane
             x: validationWindow.width - 580*pix
-            height: Math.max(1024*pix + margin + classLabel.height,displayPane.height)
+            height: Math.max(1024*pix + margin + showclassLabel.height,displayPane.height)
             width: 580*pix
             padding: 0.75*margin
             backgroundColor: defaultpalette.window2
@@ -549,11 +549,13 @@ ApplicationWindow {
                     visible: false
                     spacing: 0.3*margin
                     Label {
+                        id: sampleLabel
                         text: "Sample:"
                         width: accuracytextLabel.width
                     }
                     SpinBox {
                         id: sampleSpinBox
+                        anchors.verticalCenter: sampleLabel.verticalCenter
                         from: 1
                         value: 1
                         to: 1
@@ -575,18 +577,18 @@ ApplicationWindow {
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
-                                    classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    classLabel.text = "Predicted: " + predicted_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
                                 }
                             }
                             if (problem_type==1) {
                                 if (use_labels) {
-                                    classLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    classLabel.text = "Predicted: " + predicted_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
                                 }
                             }
                             else if (problem_type==2) {
@@ -603,12 +605,13 @@ ApplicationWindow {
                     visible: false
                     spacing: 0.3*margin
                     Label {
+                        id: classLabel
                         text: "Class:"
                         width: accuracytextLabel.width
-                        topPadding: 10*pix
                     }
                     ComboBox {
                         id: classComboBox
+                        anchors.verticalCenter: classLabel.verticalCenter
                         editable: false
                         width: 0.76*buttonWidth
                         model: ListModel {
@@ -650,13 +653,14 @@ ApplicationWindow {
                     visible: false
                     spacing: 0.3*margin
                     Label {
+                        id: typeLabel
                         visible: use_labels
                         text: "Show:"
                         width: accuracytextLabel.width
-                        topPadding: 10*pix
                     }
                     ComboBox {
                         id: typeComboBox
+                        anchors.verticalCenter: typeLabel.verticalCenter
                         visible: use_labels
                         property string type: "predicted_data"
                         editable: false
@@ -688,14 +692,14 @@ ApplicationWindow {
                 Row {
                     id: opacityRow
                     visible: false
-                    topPadding: 34*pix
                     spacing: 0.3*margin
                     Label {
+                        id: opacityLabel
                         text: "Opacity:"
                         width: accuracytextLabel.width
-                        topPadding: -24*pix
                     }
                     Slider {
+                        anchors.verticalCenter: opacityLabel.verticalCenter
                         width: 0.76*buttonWidth
                         height: 12*pix
                         leftPadding: 0
@@ -710,14 +714,14 @@ ApplicationWindow {
                 Row {
                     id: zoomRow
                     visible: false
-                    topPadding: 34*pix
                     spacing: 0.3*margin
                     Label {
+                        id: zoomLabel
                         text: "Zoom:"
                         width: accuracytextLabel.width
-                        topPadding: -24*pix
                     }
                     Slider {
+                        anchors.verticalCenter: zoomLabel.verticalCenter
                         width: 0.76*buttonWidth
                         height: 12*pix
                         leftPadding: 0

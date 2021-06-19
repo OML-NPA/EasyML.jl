@@ -469,10 +469,12 @@ ApplicationWindow {
                             Row {
                                 spacing: 0.3*margin
                                 Label {
+                                    id: numepochsLabel
                                     text: "Number of epochs:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: numepochsLabel.verticalCenter
                                     from: trainingTimer.epoch
                                     value: Julia.get_settings(
                                                ["Training","Options","Hyperparameters","epochs"])
@@ -491,12 +493,14 @@ ApplicationWindow {
                             Row {
                                 spacing: 0.3*margin
                                 Label {
+                                    id: learningrateLabel
                                     visible: Julia.get_settings(
                                                  ["Training","Options","Hyperparameters","allow_lr_change"])
                                     text: "Learning rate:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: learningrateLabel.verticalCenter
                                     visible: Julia.get_settings(
                                                  ["Training","Options","Hyperparameters","allow_lr_change"])
                                     from: 1
@@ -525,6 +529,7 @@ ApplicationWindow {
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: testingfrLabel.verticalCenter
                                     from: 0
                                     value: Julia.get_settings(
                                                ["Training","Options","General","testing_frequency"])
