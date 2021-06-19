@@ -783,7 +783,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     return data
 end
 
-function test_GPU(model::Chain,accuracy::Function,loss::Function,
+function test(model::Chain,accuracy::Function,loss::Function,
         test_batches::Array{Tuple{Array{Float32,4},Array{Float32,4}},1},
         num_test::Int64,move_f)
     test_accuracy = Vector{Float32}(undef,num_test)
