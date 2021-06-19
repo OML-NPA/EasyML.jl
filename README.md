@@ -10,7 +10,7 @@ Flux.jl neural network library is used. Currently it is possible to:
   - Design a neural network
   - Train a neural network
   - Validate a neural network
-  - Analyse data with a neural network
+  - Apply a neural network to new data
   
 Classification, regression and segmentation on images are currently supported.
 
