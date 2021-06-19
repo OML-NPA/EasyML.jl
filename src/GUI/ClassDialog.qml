@@ -152,7 +152,7 @@ ApplicationWindow {
         nameTextField.text = classModel.get(indTree).name
         
         if (problemComboBox.currentIndex==0) {
-            weightTextField.text = classModel.get(indTree).weight
+            weightTextField.text = classModel.get(indTree).weight.toFixed(2)
         }
         if (problemComboBox.currentIndex==1) {
 
