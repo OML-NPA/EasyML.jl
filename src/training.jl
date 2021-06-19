@@ -632,12 +632,6 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                         accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
                         max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
-                        if gpu==true
-                            model_data.model = cpu(model)
-                        else
-                            model_data.model = model
-                        end
-                        save_model_main(model_data,model_name)
                         return nothing
                     end
                 end
