@@ -532,7 +532,7 @@ ApplicationWindow {
                                     anchors.verticalCenter: testingfrLabel.verticalCenter
                                     from: 0
                                     value: Julia.get_settings(
-                                               ["Training","Options","General","testing_frequency"])
+                                               ["Training","Options","General","num_tests"])
                                     to: 10000
                                     stepSize: 1
                                     editable: true

@@ -569,7 +569,6 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
                     if numel_test_channel<10
                         cnt_test += 1
                         iteration_test_local += 1
-                        @info ("preparation",cnt_test,num_test)
                         minibatch = make_minibatch(data_input_test,data_labels_test,max_labels,batch_size,
                             inds_start_test_sh,inds_all_test_sh,cnt_test)
                         put!(minibatch_test_channel,minibatch)
@@ -597,7 +596,7 @@ end
 
 function check_modifiers(model_data,model,model_name,accuracy_vector,
         loss_vector,allow_lr_change,composite,opt,num,epochs,max_iterations,
-        testing_frequency,modifiers_channel,abort;gpu=false)
+        num_tests,modifiers_channel,abort;gpu=false)
     while isready(modifiers_channel)
         modifs = fix_QML_types(take!(modifiers_channel))
         modif1::String = modifs[1]
@@ -628,16 +627,16 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             resize!(loss_vector,max_iterations[])
         elseif modif1=="testing frequency"
             new_frequency_times::Float64 = modifs[2]
-            testing_frequency::Float64 = convert(Float64,floor(num/new_frequency_times))
+            num_tests::Float64 = convert(Float64,floor(num/new_frequency_times))
         end
     end
-    return testing_frequency
+    return num_tests
 end
 
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
         accuracy_vector,loss_vector,counter,accuracy_test_vector,loss_test_vector,
         iteration_test_vector,counter_test,num_test,epochs,num,max_iterations,
-        testing_frequency,allow_lr_change,composite,run_test,minibatch_channel,
+        num_tests,allow_lr_change,composite,run_test,minibatch_channel,
         minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
@@ -648,9 +647,9 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             while true
                 # Update parameters or abort if needed
                 if isready(channels.training_modifiers)
-                    testing_frequency = check_modifiers(model_data,model,model_name,
+                    num_tests = check_modifiers(model_data,model,model_name,
                         accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                        max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
+                        max_iterations,num_tests,channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
                         return nothing
                     end
@@ -685,12 +684,11 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             # Testing part
             if run_test
                 training_started_cond = i==1 && epoch_idx==1
-                testing_frequency_cond = i>iteration_global_counter*ceil(num/testing_frequency)
+                num_tests_cond = i>iteration_global_counter*ceil(num/num_tests)
                 training_finished_cond = iteration==(max_iterations[]-1)
                 # Test if testing frequency reached or training is done
-                if testing_frequency_cond ||  training_started_cond || training_finished_cond
+                if num_tests_cond ||  training_started_cond || training_finished_cond
                     iteration_global_counter += 1
-                    @info "here"
                     Threads.atomic_xchg!(testing_mode, true)
                     # Calculate test accuracy and loss
                     data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f)
@@ -719,13 +717,12 @@ function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_chan
     test_loss = Vector{Float32}(undef,num_test)
     local minibatch_test_data::eltype(minibatch_test_channel.data)
     for j=1:num_test
-        @info (j,num_test)
         while true
             # Update parameters or abort if needed
             if isready(channels.training_modifiers)
-                testing_frequency = check_modifiers(model_data,model,model_name,
+                num_tests = check_modifiers(model_data,model,model_name,
                     accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                    max_iterations,testing_frequency,channels.training_modifiers,abort;gpu=use_GPU)
+                    max_iterations,num_tests,channels.training_modifiers,abort;gpu=use_GPU)
                 if abort[]==true
                     return nothing
                 end
@@ -788,7 +785,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     data_labels = train_set[2]
     num_data = length(data_input)
     inds_start,inds_all,num = make_minibatch_inds(num_data,batch_size)
-    testing_frequency = num/testing_times
+    num_tests = num/testing_times
     data_input_test = test_set[1]
     data_labels_test = test_set[2]
     num_data_test = length(data_input_test)
@@ -830,7 +827,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     end
     training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,accuracy_vector,
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
-        counter_test,num_test,epochs,num,max_iterations,testing_frequency,allow_lr_change,composite,
+        counter_test,num_test,epochs,num,max_iterations,num_tests,allow_lr_change,composite,
         run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     # Return training information
     resize!(accuracy_vector,counter.iteration)
@@ -881,7 +878,7 @@ function train_main(settings::Settings,training_data::TrainingData,
     end
     accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss
-    testing_times = training_options.General.testing_frequency
+    testing_times = training_options.General.num_tests
     # Run training
     data = train!(model_data,training_data,training,args,opt,accuracy,loss,
         train_set,test_set,testing_times,use_GPU,channels)

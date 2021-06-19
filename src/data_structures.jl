@@ -483,7 +483,7 @@ hyperparameters_training = HyperparametersTraining()
     weight_accuracy::Bool = true
     manual_weight_accuracy::Bool = false
     test_data_fraction::Float64 = 0
-    testing_frequency::Float64 = 5
+    num_tests::Float64 = 5
 end
 general_training = GeneralTraining()
 

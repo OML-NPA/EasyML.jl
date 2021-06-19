@@ -265,18 +265,18 @@ ApplicationWindow {
                             spacing: 0.3*margin
                             Label {
                                 id: testingfrLabel
-                                text: "Testing frequency (per epoch):"
+                                text: "Number of tests (per epoch):"
                             }
                             SpinBox {
                                 from: 0
                                 value: Julia.get_settings(
-                                           ["Training","Options","General","testing_frequency"])
+                                           ["Training","Options","General","num_tests"])
                                 to: 10000
                                 stepSize: 1
                                 editable: true
                                 onValueModified: {
                                     Julia.set_settings(
-                                        ["Training","Options","General","testing_frequency"],value)
+                                        ["Training","Options","General","num_tests"],value)
                                 }
                             }
                         }
