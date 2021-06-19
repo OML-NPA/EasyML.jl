@@ -28,19 +28,25 @@ and then write
 #### Model creation
 A struct named `model_data` is exported.
 
-- `input_size::Tuple{Int64,Int64,Int64}`: model input size.
-
 - `model::Chain`: Flux.jl model.
 
-- `layers::Dict`: contains layers and their information for visualisation.
-
-- `classes::Vector{AbstractClass}`: hold information about classes that a neural network outputs and what should be done with them.
+- `layers_info::Vector{AbstractLayerInfo}`: contains information for visualisation of layers.
 
 - `loss::Function`: holds loss that is used during training.
 
-The fields can be modified using a GUI. 
+- `input_size::Tuple{Int64,Int64,Int64}`: model input size.
+
+- `input_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}}: model output size.
+
+- `classes::Vector{AbstractClass}`: hold information about classes that a neural network outputs and what should be done with them.
+
+-  `OutputOptions::Vector{<:AbstractOutputOptions}`: hold information about output options for each class for application of the model.
+
+It is suggested to modify fields using a GUI. 
 
 `modify_classes()` allows to modify classes.
+
+`modify_output()` allows to modify output options.
 
 `design_network()` opens a GUI for neural network creation. Click a save icon to save your network.
 
@@ -48,7 +54,7 @@ The fields can be modified using a GUI.
 
 NB! A number of neurons for the final layer should equal to the number of classes plus the number of borders that should be detected in case of segmentation.
 
-`save_model(url::String)`: saves your model, uses `.model` extension.
+`save_model(url::String)`: saves your model. Use `.model` extension.
 
 `load_model(url::String)`: loads your model.
 
@@ -69,7 +75,7 @@ by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.traini
 
 #### Validation
 
-`get_urls_validation(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (a folder and a file) specified 
+`get_urls_validation(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (or a folder and a file) specified 
 by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.validation_data`.
 
 `get_urls_validation(url_inputs::String)`: gets URLs to all files present in a folder specified by `url_inputs`. 
@@ -86,8 +92,6 @@ URLs are automatically saved to `EasyML.validation_data`. Does not require label
 #### Application
 
 Application settings can be changed by running `modify(application_options)`.
-
-Output for each class can be changed by running `modify_output()`.
 
 `get_urls_application(url_inputs::String)`: gets URLs to all files present in a folder specified by `url_inputs`. 
 URLs are automatically saved to `EasyML.application_data`.
@@ -145,6 +149,7 @@ You can forward any suitable input data through a neural network using the follo
 
 ##### Custom loop
 
+An example loop for segmentation:
 ```
 model = model_data.model
 data_example = [ones(Float32,160,160,1,1),ones(Float32,160,160,1,1)]
