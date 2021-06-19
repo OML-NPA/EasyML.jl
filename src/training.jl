@@ -616,10 +616,10 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
 end
 
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
-        accuracy_vector,loss_vector,counter,accuracy_test_vector,
-        loss_test_vector,iteration_test_vector,counter_test,num_test,epochs,num,
-        max_iterations,testing_frequency,allow_lr_change,composite,
-        run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,abort)
+        accuracy_vector,loss_vector,counter,accuracy_test_vector,loss_test_vector,
+        iteration_test_vector,counter_test,num_test,epochs,num,max_iterations,
+        testing_frequency,allow_lr_change,composite,run_test,minibatch_channel,
+        minibatch_test_channel,channels,use_GPU,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
         for i=1:num
@@ -686,6 +686,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                 end
             end
             GC.safepoint()
+            cleanup!(predicted)
         end
         # Update epoch counter
         epoch_idx += 1
@@ -794,6 +795,7 @@ function test(model::Chain,accuracy::Function,loss::Function,
         actual = test_minibatch[2]
         test_accuracy[j] = accuracy(predicted,actual)
         test_loss[j] = loss(predicted,actual)
+        cleanup!(predicted)
     end
     data = [mean(test_accuracy),mean(test_loss)]
     return data

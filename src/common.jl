@@ -535,7 +535,7 @@ function accum_parts(model::Chain,input_data::CuArray{Float32,4},
         temp_predicted = model(temp_data)
         temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
         push!(predicted,collect(temp_predicted))
-        CUDA.unsafe_free!(temp_predicted)
+        cleanup!(temp_predicted)
     end
     if ind_max==1
         predicted_out = reduce(vcat,predicted)
@@ -553,6 +553,7 @@ function forward(model::Chain,input_data::Array{Float32};
         model = move(model,gpu)
         if num_parts==1
             predicted = collect(model(input_data_gpu))
+            cleanup!(predicted)
         else
             predicted = collect(accum_parts(model,input_data_gpu,num_parts,offset))
         end
@@ -577,4 +578,13 @@ function check_abort_signal(channel::Channel)
     else
         return false
     end
+end
+
+function cleanup!(x::Array)
+    return nothing
+end
+
+function cleanup!(x::CuArray)
+    CUDA.unsafe_free!(x)
+    return nothing
 end
