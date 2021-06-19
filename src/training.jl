@@ -836,7 +836,11 @@ function train_main(settings::Settings,training_data::TrainingData,
     train_set, test_set = get_train_test(data,training)
     # Setting functions and parameters
     opt = get_optimiser(training)
-    ws = get_weigths(training,training_data,classes)
+    if training.Options.General.manual_weight_accuracy
+        ws = get_weigths(training,model_data.classes)
+    else
+        ws = get_weigths(training,training_data,model_data.classes)
+    end
     accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss
     testing_times = training_options.General.testing_frequency

@@ -143,10 +143,12 @@ ApplicationWindow {
                         Row {
                             spacing: 0.3*margin
                             Label {
+                                id: weightaccuracyLabel
                                 text: "Weight accuracy:"
                                 width: testingfrLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: weightaccuracyLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -161,10 +163,52 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            topPadding: 10*pix
+                            bottomPadding: -10*pix
+                            Label {
+                                id: modeLabel
+                                text: "Mode:"
+                                width: testingfrLabel.width + 20*pix
+                            }
+                            ComboBox {
+                                id: optimisersComboBox
+                                anchors.verticalCenter: modeLabel.verticalCenter
+                                editable: false
+                                width: 0.4*buttonWidth
+                                model: ListModel {
+                                    id: modeModel
+                                }
+                                property var modes: ["Auto","Manual"]
+                                onActivated: {
+                                    if (currentIndex==0) {
+                                        Julia.set_settings(
+                                            ["Training","Options","General","manual_weight_accuracy"],false)
+                                    }
+                                    else {
+                                        Julia.set_settings(
+                                            ["Training","Options","General","manual_weight_accuracy"],true)
+                                    }
+                                }
+                                Component.onCompleted: {
+                                    for (var i=0;i<modes.length;i++) {
+                                        modeModel.append({"name": modes[i]})
+                                    }
+                                    var mode = Julia.get_settings(
+                                        ["Training","Options","General","manual_weight_accuracy"])
+                                    
+                                    if (mode) {
+                                        currentIndex = 1
+                                    }
+                                    else {
+                                        currentIndex = 0
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        Row {
                             spacing: 0.3*margin
                             Label {
-                                Layout.alignment : Qt.AlignLeft
-                                Layout.row: 1
                                 text: "Test data fraction:"
                                 width: testingfrLabel.width
                             }
@@ -191,8 +235,6 @@ ApplicationWindow {
                             spacing: 0.3*margin
                             Label {
                                 id: testingfrLabel
-                                Layout.alignment : Qt.AlignLeft
-                                Layout.row: 1
                                 text: "Testing frequency (per epoch):"
                             }
                             SpinBox {
