@@ -264,7 +264,14 @@ function validate_main(settings::Settings,validation_data::ValidationData,
     loss = model_data.loss
     ws = get_weigths(training,classes)
     accuracy::Function = get_accuracy_func(settings,ws)
-    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
+    use_GPU = false
+    if training.Options.General.allow_GPU
+        if has_cuda()
+            use_GPU = true
+        else
+            @warn "No CUDA capable device was detected. Using CPU instead."
+        end
+    end
     if settings.problem_type==:Classification || settings.problem_type==:Regression
         num_parts_current = 1
     else

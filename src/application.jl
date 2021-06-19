@@ -518,7 +518,14 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     processing = training.Options.Processing
     classes = model_data.classes
     output_options = model_data.OutputOptions
-    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
+    use_GPU = false
+    if training.Options.General.allow_GPU
+        if has_cuda()
+            use_GPU = true
+        else
+            @warn "No CUDA capable device was detected. Using CPU instead."
+        end
+    end
     scaling = application_options.scaling
     batch_size = application_options.minibatch_size
     apply_by_file = application_options.apply_by[1]=="file"

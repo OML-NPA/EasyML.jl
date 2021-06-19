@@ -823,7 +823,7 @@ function train_main(settings::Settings,training_data::TrainingData,
     training_results_data = training_data.Results
     args = training_options.Hyperparameters
     use_GPU = false
-    if settings.Options.HardwareResources.allow_GPU
+    if training.Options.General.allow_GPU
         if has_cuda()
             use_GPU = true
         else

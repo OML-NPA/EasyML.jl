@@ -479,6 +479,7 @@ end
 hyperparameters_training = HyperparametersTraining()
 
 @with_kw mutable struct GeneralTraining
+    allow_GPU::Bool = true
     weight_accuracy::Bool = true
     manual_weight_accuracy::Bool = false
     test_data_fraction::Float64 = 0

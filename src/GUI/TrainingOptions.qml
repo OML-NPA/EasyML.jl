@@ -143,6 +143,28 @@ ApplicationWindow {
                         Row {
                             spacing: 0.3*margin
                             Label {
+                                id: usegpuLabel
+                                text: "Allow GPU:"
+                                width: testingfrLabel.width
+                            }
+                            CheckBox {
+                                anchors.verticalCenter: usegpuLabel.verticalCenter
+                                padding: 0
+                                width: height
+                                checkState : Julia.get_settings(
+                                           ["Training","Options","General","allow_GPU"]) ?
+                                           Qt.Checked : Qt.Unchecked
+                                onClicked: {
+                                    var value = checkState==Qt.Checked ? true : false
+                                    Julia.set_settings(
+                                        ["Training","Options","General","allow_GPU"],
+                                        value)
+                                }
+                            }
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
                                 id: weightaccuracyLabel
                                 text: "Weight accuracy:"
                                 width: testingfrLabel.width
