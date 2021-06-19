@@ -301,9 +301,12 @@ function process_output(classes::Vector{ImageClassificationClass},output_options
             put!(channels.application_progress,1)
         end
         # Export the result
+        filenames = reduce(vcat,filenames_batch)
+        df_filenames = DataFrame(Filenames=filenames)
         df_labels = DataFrame(Labels = labels)
+        df = hcat(df_filenames,df_labels)
         name = string(folder,data_ext)
-        save(df_labels,savepath,name,data_sym_ext)
+        save(df,savepath,name,data_sym_ext)
         put!(channels.application_progress,1)
     end
     return nothing
@@ -351,9 +354,12 @@ function process_output(classes::Vector{ImageRegressionClass},output_options::Ve
             labels = convert(Array{Float64,2},labels_temp)
         end
         # Export the result
+        filenames = reduce(vcat,filenames_batch)
+        df_filenames = DataFrame(Filenames=filenames)
         df_labels = DataFrame(labels,class_names)
+        df = hcat(df_filenames,df_labels)
         name = string(folder,data_ext)
-        save(df_labels,savepath,name,data_sym_ext)
+        save(df,savepath,name,data_sym_ext)
         put!(channels.application_progress,1)
     end
     return nothing
