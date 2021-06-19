@@ -333,16 +333,16 @@ ApplicationWindow {
                             var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             if (use_labels) {
-                            var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
-                                target_labels.push(target_label)
+                                var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
+                                    target_labels.push(target_label)
                             }
                         }
                         else if (problem_type==1) {
                             var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             if (use_labels) {
-                            var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
-                                target_labels.push(target_label)
+                                var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
+                                    target_labels.push(target_label)
                             }
                         }
                         sampleSpinBox.to = iteration
