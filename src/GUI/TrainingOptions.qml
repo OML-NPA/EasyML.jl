@@ -164,12 +164,14 @@ ApplicationWindow {
                         }
                         Row {
                             spacing: 0.3*margin
+                            bottomPadding: 10*pix
                             Label {
                                 id: weightaccuracyLabel
                                 text: "Weight accuracy:"
                                 width: testingfrLabel.width
                             }
                             CheckBox {
+                                id: weightaccuracyCheckBox
                                 anchors.verticalCenter: weightaccuracyLabel.verticalCenter
                                 padding: 0
                                 width: height
@@ -185,7 +187,7 @@ ApplicationWindow {
                             }
                         }
                         Row {
-                            topPadding: 10*pix
+                            visible: weightaccuracyCheckBox.checkState==Qt.Checked ? true : false
                             bottomPadding: -10*pix
                             Label {
                                 id: modeLabel
