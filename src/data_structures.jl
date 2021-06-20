@@ -497,8 +497,8 @@ training_options = TrainingOptions()
 @with_kw mutable struct Training
     Options::TrainingOptions = training_options
     model_url::String = ""
-    input_dir::String = ""
-    label_dir::String = ""
+    input_url::String = ""
+    label_url::String = ""
     name::String = "new"
 end
 training = Training()
@@ -506,8 +506,8 @@ training = Training()
 # Validation
 @with_kw mutable struct Validation
     model_url::String = ""
-    input_dir::String = ""
-    label_dir::String = ""
+    input_url::String = ""
+    label_url::String = ""
     use_labels::Bool = false
 end
 validation = Validation()
@@ -528,7 +528,7 @@ application_options = ApplicationOptions()
 @with_kw mutable struct Application
     Options::ApplicationOptions = application_options
     model_url::String = ""
-    input_dir::String = ""
+    input_url::String = ""
     checked_folders::Vector{String} = String[]
 end
 application = Application()

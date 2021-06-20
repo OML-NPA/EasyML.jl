@@ -12,7 +12,7 @@ function get_urls_training_main(training::Training,training_data::TrainingData,
     elseif settings.problem_type==:Regression
         input_urls,_,filenames = get_urls1(training,allowed_ext)
         training_data.RegressionData.input_urls = reduce(vcat,input_urls)
-        training_data.RegressionData.labels_url = training.label_dir
+        training_data.RegressionData.labels_url = training.label_url
         training_data.RegressionData.filenames = reduce(vcat,filenames)
     elseif settings.problem_type==:Segmentation
         input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)

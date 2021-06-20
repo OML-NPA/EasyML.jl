@@ -7,14 +7,14 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
     # Empty a url accumulator
     empty!(input_urls)
     # Get directories containing data and labels
-    input_dir = settings.input_dir
+    input_url = settings.input_url
     # Return if no directories
-    if isempty(input_dir)
+    if isempty(input_url)
         @warn "Directory is empty."
         return nothing
     end
     # Get directories containing our images and labels
-    dirs = getdirs(input_dir)
+    dirs = getdirs(input_url)
     # If no directories, then set empty string
     if length(dirs)==0
         dirs = [""]
@@ -24,17 +24,17 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
         input_urls_temp = Vector{String}(undef,0)
         dir = dirs[k]
         # Get files in a directory
-        files_input = getfiles(string(input_dir,"/",dir))
+        files_input = getfiles(string(input_url,"/",dir))
         files_input = filter_ext(files_input,allowed_ext)
         # Push urls into an accumulator
         for l = 1:length(files_input)
-            push!(input_urls_temp,string(input_dir,"/",dir,"/",files_input[l]))
+            push!(input_urls_temp,string(input_url,"/",dir,"/",files_input[l]))
         end
         push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
-        url_split = split(input_dir,"/")
+        url_split = split(input_url,"/")
         dirs = [url_split[end]]
     end
     return input_urls,dirs,filenames
@@ -51,16 +51,16 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
     empty!(input_urls)
     empty!(label_urls)
     # Get directories containing images and labels
-    input_dir = settings.input_dir
-    label_dir = settings.label_dir
+    input_url = settings.input_url
+    label_url = settings.label_url
     # Return if no directories
-    if isempty(input_dir) || isempty(label_dir)
+    if isempty(input_url) || isempty(label_url)
         @error "Empty urls."
         return nothing,nothing,nothing
     end
     # Get directories containing our images and labels
-    dirs_input= getdirs(input_dir)
-    dirs_labels = getdirs(label_dir)
+    dirs_input= getdirs(input_url)
+    dirs_labels = getdirs(label_url)
     # Keep only those present for both images and labels
     dirs = intersect(dirs_input,dirs_labels)
     # If no directories, then set empty string
@@ -73,8 +73,8 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
         input_urls_temp = Vector{String}(undef,0)
         label_urls_temp = Vector{String}(undef,0)
         # Get files in a directory
-        files_input = getfiles(string(input_dir,"/",dirs[k]))
-        files_labels = getfiles(string(label_dir,"/",dirs[k]))
+        files_input = getfiles(string(input_url,"/",dirs[k]))
+        files_labels = getfiles(string(label_url,"/",dirs[k]))
         # Filter files
         files_input = filter_ext(files_input,allowed_ext)
         files_labels = filter_ext(files_labels,allowed_ext)
@@ -89,8 +89,8 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
         # Push urls into accumulators
         num = length(files_input)
         for l = 1:num
-            push!(input_urls_temp,string(input_dir,"/",files_input[l]))
-            push!(label_urls_temp,string(label_dir,"/",files_labels[l]))
+            push!(input_urls_temp,string(input_url,"/",files_input[l]))
+            push!(label_urls_temp,string(label_url,"/",files_labels[l]))
         end
         push!(filenames,filenames_input[inds2])
         push!(fileindices,cnt+1:num)
