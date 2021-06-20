@@ -646,9 +646,8 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             Threads.atomic_xchg!(max_iterations, new_max_iterations)
             resize!(accuracy_vector,max_iterations[])
             resize!(loss_vector,max_iterations[])
-        elseif modif1=="testing frequency"
-            new_frequency_times::Float64 = modifs[2]
-            num_tests::Float64 = convert(Float64,floor(num/new_frequency_times))
+        elseif modif1=="number of tests"
+            num_tests::Float64 = modifs[2]
         end
     end
     return num_tests

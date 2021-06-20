@@ -524,12 +524,12 @@ ApplicationWindow {
                                     ["Training","Options","Testing","test_data_fraction"])!==0
                                 spacing: 0.3*margin
                                 Label {
-                                    id: testingfrLabel
+                                    id: numtestsLabell
                                     text: "Number of tests:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
-                                    anchors.verticalCenter: testingfrLabel.verticalCenter
+                                    anchors.verticalCenter: numtestsLabell.verticalCenter
                                     from: 0
                                     value: Julia.get_settings(
                                                ["Training","Options","Testing","num_tests"])
@@ -537,7 +537,7 @@ ApplicationWindow {
                                     stepSize: 1
                                     editable: true
                                     onValueModified: {
-                                        Julia.put_channel("Training",["testing frequency",value])
+                                        Julia.put_channel("Training",["number of tests",value])
                                     }
                                 }
                             }
