@@ -366,6 +366,7 @@ end
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 training_data = TrainingData()
 
@@ -415,6 +416,7 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
 

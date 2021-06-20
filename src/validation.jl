@@ -299,6 +299,7 @@ function validate_main(settings::Settings,validation_data::ValidationData,
 end
 function validate_main2(settings::Settings,validation_data::ValidationData,
         model_data::ModelData,channels::Channels)
-    Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+    t = Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+    push!(validation_data.tasks,t)
     return nothing
 end

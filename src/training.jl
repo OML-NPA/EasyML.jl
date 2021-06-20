@@ -781,7 +781,7 @@ end
 function train!(model_data::ModelData,training::Training,
         args::HyperparametersTraining,opt,accuracy::Function,loss::Function,
         train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
-        use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},
+        use_GPU::Bool,channels::Channels,tasks::Vector{Task}) where {T1<:Vector{Array{Float32,3}},
         T2<:Union{Vector{BitArray{3}},Vector{Int32},Vector{Vector{Float32}}}}
     # Initialize constants
     epochs = Threads.Atomic{Int64}(args.epochs)
@@ -833,9 +833,10 @@ function train!(model_data::ModelData,training::Training,
     else
         make_minibatch = make_minibatch_generic
     end
-    Threads.@spawn minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,
+    t = Threads.@spawn minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,
         inds_all,counter,run_test,data_input_test,data_labels_test,inds_start_test,
         inds_all_test,counter_test,num_test,batch_size,minibatch_channel,minibatch_test_channel,testing_mode,abort)
+    push!(tasks,t)
     # Training thread
     if use_GPU
         T_out = CuArray{Float32,output_N}
@@ -903,7 +904,7 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
     testing_times = training_options.Testing.num_tests
     # Run training
     data = train!(model_data,training,args,opt,accuracy,loss,
-        train_set,test_set,testing_times,use_GPU,channels)
+        train_set,test_set,testing_times,use_GPU,channels,training_data.tasks)
     # Clean up
     clean_up_training(training_plot_data)
     # Return training results
@@ -912,5 +913,6 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
 end
 function train_main2(settings::Settings,training_data::TrainingData,testing_data::TestingData,
         model_data::ModelData,channels::Channels)
-    Threads.@spawn train_main(settings,training_data,testing_data,model_data,channels)
+    t = Threads.@spawn train_main(settings,training_data,testing_data,model_data,channels)
+    push!(training_data.tasks,t)
 end

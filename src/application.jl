@@ -550,7 +550,8 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
+    t = Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
+    push!(application_data.tasks,t)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
@@ -565,7 +566,8 @@ function apply_main2(settings::Settings,training::Training,application_data::App
     elseif settings.problem_type==:Segmentation
         T = BitArray{4}
     end
-    Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    t = Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    push!(application_data.tasks,t)
 end
 #apply() = apply_main2(settings,application_data,
 #    model_data,channels)
