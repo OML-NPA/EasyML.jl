@@ -220,27 +220,30 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
     else
         @info string(local_settings.input_url, " was selected.")
     end
-    if settings.problem_type==:Classification
+    problem_type = settings.problem_type
+    if problem_type==:Classification
     
-    elseif settings.problem_type==:Regression
+    elseif problem_type==:Regression
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe)
         loadqml("GUI/UniversalFileDialog.qml",
             nameFilters = name_filters)
         exec()
         local_settings.label_url = url_out[1]
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type==:Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe)
         loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
         exec()
         local_settings.label_url = url_out[1]
     end
-    if local_settings.label_url==""
-        @error "Label data directory URL is empty."
-        return nothing
-    else
-        @info string(local_settings.label_url, " was selected.")
+    if  problem_type!=:Classification
+        if local_settings.label_url==""
+            @error "Label data directory URL is empty."
+            return nothing
+        else
+            @info string(local_settings.label_url, " was selected.")
+        end
     end
     get_urls_main(local_settings,local_data,model_data)
     return nothing
@@ -352,7 +355,7 @@ function remove_data(local_data::Union{TrainingData,TestingData})
     end
     if settings.input_type==:Image
         empty!(local_data.ClassificationData.input_urls)
-        empty!(local_data.ClassificationData.labels)
+        empty!(local_data.ClassificationData.label_urls)
         empty!(local_data.RegressionData.input_urls)
         empty!(local_data.SegmentationData.input_urls)
         empty!(local_data.SegmentationData.label_urls)

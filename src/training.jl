@@ -167,6 +167,7 @@ function prepare_data(classification_data::ClassificationData,
     num_angles = options.Processing.num_angles
     input_urls = classification_data.input_urls
     label_urls = classification_data.label_urls
+    labels = map(class -> class.name, model_data.classes)
     labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),label_urls,length.(input_urls))
     data_labels_initial = reduce(vcat,labels_int)
     # Get number of images
@@ -179,7 +180,7 @@ function prepare_data(classification_data::ClassificationData,
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    for k = 1:num #@floop ThreadedEx() 
+    @floop ThreadedEx() for k = 1:num
         current_imgs = imgs[k]
         num2 = length(current_imgs)
         label = data_labels_initial[k]
@@ -341,8 +342,6 @@ end
 function prepare_data_main(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
-    local_settings = training
-    local_data = training_data
     options = settings.Training.Options
     size12 = model_data.input_size[1:2]
     problem_type = settings.problem_type
