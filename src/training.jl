@@ -170,10 +170,11 @@ function prepare_data(classification_data::ClassificationData,
     labels = map(class -> class.name, model_data.classes)
     labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),label_urls,length.(input_urls))
     data_labels_initial = reduce(vcat,labels_int)
-    # Get number of images
     num = length(input_urls)
+    # Get number of images
+    num_all = sum(length.(input_urls))
     # Return progress target value
-    put!(progress, num+2)
+    put!(progress, num_all + 2)
     # Load images
     imgs = load_images.(input_urls)
     put!(progress, 1)
@@ -205,17 +206,21 @@ function prepare_data(classification_data::ClassificationData,
             data = augment(img,size12,num_angles)
             data_input_temp[l] = data
             data_label_temp[l] = repeat([label],length(data))
+            # Return progress
+            put!(progress, 1)
         end
         data_input_flat_temp = reduce(vcat,data_input_temp)
         data_label_flat_temp = reduce(vcat,data_label_temp)
         data_input[k] = data_input_flat_temp
         data_label[k] = data_label_flat_temp
-        # Return progress
-        put!(progress, 1)
     end
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    inds = collect(1:length(data_input_flat))
+    shuffle!(inds)
+    data_input_flat = data_input_flat[inds]
+    data_label_flat = data_label_flat[inds]
     # Return results
     put!(results, (data_input_flat,data_label_flat))
     # Return progress
@@ -273,6 +278,10 @@ function prepare_data(regression_data::RegressionData,
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    inds = collect(1:length(data_input_flat))
+    shuffle!(inds)
+    data_input_flat = data_input_flat[inds]
+    data_label_flat = data_label_flat[inds]
     # Return results
     put!(results, (data_input_flat,data_label_flat))
     # Return progress
@@ -331,6 +340,10 @@ function prepare_data(segmentation_data::SegmentationData,
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    inds = collect(1:length(data_input_flat))
+    shuffle!(inds)
+    data_input_flat = data_input_flat[inds]
+    data_label_flat = data_label_flat[inds]
     # Return results
     put!(results, (data_input_flat,data_label_flat))
     # Return progress
@@ -366,25 +379,9 @@ end
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
-function get_train_test(data::Union{ClassificationData,RegressionData,SegmentationData},
-        training::Training)
-    # Get inputs and labels
-    data_input = data.data_input
-    data_labels = data.data_labels
-    # Get the number of elements
-    num = length(data_input)
-    # Get shuffle indices
-    inds = randperm(num)
-    # Shuffle using randomized indices
-    data_input = data_input[inds]
-    data_labels = data_labels[inds]
-    # Get fraction of data used for testing
-    test_fraction = training.Options.General.test_data_fraction
-    # Get index after which all data is for testing
-    ind = Int64(round((1-test_fraction)*num))
-    # Separate data into training and testing data
-    train_set = (data_input[1:ind],data_labels[1:ind])
-    test_set = (data_input[ind+1:end],data_labels[ind+1:end])
+function get_sets(typed_training_data::T,typed_testing_data::T) where T<:Union{ClassificationData,RegressionData,SegmentationData}
+    train_set = (typed_training_data.data_input,typed_training_data.data_labels)
+    test_set = (typed_testing_data.data_input,typed_testing_data.data_labels)
     return train_set, test_set
 end
 
@@ -872,7 +869,7 @@ function get_data_struct(training_data::TrainingData)
 end
 
 # Main training function
-function train_main(settings::Settings,training_data::TrainingData,
+function train_main(settings::Settings,training_data::TrainingData,testing_data::TestingData,
         model_data::ModelData,channels::Channels)
     # Initialization
     GC.gc()
@@ -892,7 +889,7 @@ function train_main(settings::Settings,training_data::TrainingData,
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
     data = get_data_struct(training_data)
-    train_set, test_set = get_train_test(data,training)
+    train_set, test_set = get_sets(data,training)
     # Setting functions and parameters
     opt = get_optimiser(training)
     if training.Options.General.manual_weight_accuracy
@@ -912,7 +909,7 @@ function train_main(settings::Settings,training_data::TrainingData,
     put!(channels.training_results,(model_data.model,data...))
     return nothing
 end
-function train_main2(settings::Settings,training_data::TrainingData,
+function train_main2(settings::Settings,training_data::TrainingData,testing_data::TestingData,
         model_data::ModelData,channels::Channels)
-    Threads.@spawn train_main(settings,training_data,model_data,channels)
+    Threads.@spawn train_main(settings,training_data,testing_data,model_data,channels)
 end
