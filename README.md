@@ -62,12 +62,12 @@ NB! A number of neurons for the final layer should equal to the number of classe
 
 #### Training
 
-Training parameters can be changed by running `modify(training_options)`.
+Training options can be changed by running `modify(training_options)`.
 
-`get_urls_training(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (a folder and a file) specified 
+`get_urls_training(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (or a folder and a file) specified 
 by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.training_data`.
 
-`get_urls_training()` opens folder dialogs where you can choose directories with input and label data.
+`get_urls_training()` opens folder dialogs where you can choose folders (or a folder and a file) with input and label data.
 
 `prepare_training_data()`: prepares your images and corresponding labels for training using URLs loaded previously. Saves data to `EasyML.training_data`.
 
@@ -83,7 +83,7 @@ by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.valida
 `get_urls_validation(url_inputs::String)`: gets URLs to all files present in a folder specified by `url_inputs`. 
 URLs are automatically saved to `EasyML.validation_data`. Does not require labels.
 
-`get_urls_validation()` opens folder dialogs where you can choose directories with input and label data (if available).
+`get_urls_validation()` opens folder dialogs where you can choose folders (or a folder and a file) with input and label data (if available).
 
 `prepare_validation_data()`: prepares your data for validation. Saves it to `EasyML.validation_data`. Progress is reported to REPL.
 
