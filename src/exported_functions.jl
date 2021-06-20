@@ -1,4 +1,31 @@
 
+function load_model()
+    name_filters = [ "*.model"]
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFileDialog.qml",
+        nameFilters = name_filters)
+    exec()
+    # Load model
+    load_model(url_out[1])
+end
+
+function save_model()
+    filename = string(training.name,".model")
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalSaveFileDialog.qml",
+        nameFilters = name_filters,
+        filename = filename)
+    exec()
+    # Load model
+    save_model(url_out[1])
+end
+
 # Design
 function design_network()
     # Launches GUI
