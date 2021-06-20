@@ -302,7 +302,7 @@ ApplicationWindow {
                                 value: 100*Julia.get_settings(
                                            ["Training","Options","Testing","test_data_fraction"])
                                 to: 99
-                                stepSize: 5
+                                stepSize: 1
                                 editable: true
                                 property real realValue
                                 textFromValue: function(value, locale) {
