@@ -124,15 +124,14 @@ function get_urls_training(input_dir::String)
 end
 
 function get_urls_training()
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Training",type = "input_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    sleep(0.1)
+    training.input_dir = url_out[1]
     if training.input_dir==""
         @error "Input data directory URL is empty."
         return nothing
@@ -141,13 +140,10 @@ function get_urls_training()
     end
 
     @info "Select a directory with label data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Training",type = "label_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    sleep(0.1)
+    training.label_dir = url_out[1]
     if training.label_dir==""
         @error "Label data directory URL is empty."
         return nothing
@@ -380,15 +376,14 @@ function get_urls_validation(input_dir::String)
 end
 
 function get_urls_validation()
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Validation",type = "input_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    sleep(0.1)
+    validation.input_dir = url_out[1]
     if validation.input_dir==""
         @error "Input data directory URL is empty. Aborted"
         return nothing
@@ -397,12 +392,10 @@ function get_urls_validation()
     end
 
     @info "Select a directory with label data if labels are available."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Validation",type = "label_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
+    validation.label_dir = url_out[1]
     if validation.input_dir==""
         @info string(training.label_dir, " was selected.")
         validation.use_labels = true
@@ -480,15 +473,15 @@ function get_urls_application(input_dir::String)
 end
 
 function get_urls_application()
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir,
         target = "Application",type = "input_dir")
     exec()
-    sleep(0.1)
+    application.input_dir = url_out[1]
     if application.input_dir==""
         @error "Input data directory URL is empty."
         return nothing
