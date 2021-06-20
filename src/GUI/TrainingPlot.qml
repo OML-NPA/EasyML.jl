@@ -525,7 +525,7 @@ ApplicationWindow {
                                 spacing: 0.3*margin
                                 Label {
                                     id: testingfrLabel
-                                    text: "Testing frequency:"
+                                    text: "Number of tests:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
