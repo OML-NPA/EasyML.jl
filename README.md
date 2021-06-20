@@ -36,7 +36,7 @@ A struct named `model_data` is exported.
 
 - `input_size::Tuple{Int64,Int64,Int64}`: model input size.
 
-- `input_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}}: model output size.
+- `input_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}}`: model output size.
 
 - `classes::Vector{<:AbstractClass}`: hold information about classes that a neural network outputs and what should be done with them.
 
