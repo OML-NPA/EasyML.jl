@@ -741,7 +741,7 @@ function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_chan
         while true
             # Abort if needed
             if abort[]==true
-                return (0.f0,0.f0)
+                return [0.f0,0.f0]
             end
             if isready(minibatch_test_channel)
                 minibatch_test_data = take!(minibatch_test_channel)
