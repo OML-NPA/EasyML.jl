@@ -778,7 +778,7 @@ function check_lr_change(opt,composite)
     return convert(Bool,allow_lr_change)
 end
 
-function train!(model_data::ModelData,training_data::TrainingData,training::Training,
+function train!(model_data::ModelData,training::Training,
         args::HyperparametersTraining,opt,accuracy::Function,loss::Function,
         train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
         use_GPU::Bool,channels::Channels) where {T1<:Vector{Array{Float32,3}},
@@ -857,13 +857,13 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     return data
 end
 
-function get_data_struct(training_data::TrainingData)
+function get_data_struct(local_data::Union{TrainingData,TestingData})
     if settings.problem_type==:Classification
-        data = training_data.ClassificationData
+        data = local_data.ClassificationData
     elseif settings.problem_type==:Regression
-        data = training_data.RegressionData
+        data = local_data.RegressionData
     elseif settings.problem_type==:Segmentation
-        data = training_data.SegmentationData
+        data = local_data.SegmentationData
     end
     return data
 end
@@ -888,8 +888,9 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
     end
     reset_training_data(training_plot_data,training_results_data)
     # Preparing train and test sets
-    data = get_data_struct(training_data)
-    train_set, test_set = get_sets(data,training)
+    typed_training_data = get_data_struct(training_data)
+    typed_testing_data = get_data_struct(testing_data)
+    train_set, test_set = get_sets(typed_training_data,typed_testing_data)
     # Setting functions and parameters
     opt = get_optimiser(training)
     if training.Options.General.manual_weight_accuracy
@@ -899,9 +900,9 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
     end
     accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss
-    testing_times = training_options.General.num_tests
+    testing_times = training_options.Testing.num_tests
     # Run training
-    data = train!(model_data,training_data,training,args,opt,accuracy,loss,
+    data = train!(model_data,training,args,opt,accuracy,loss,
         train_set,test_set,testing_times,use_GPU,channels)
     # Clean up
     clean_up_training(training_plot_data)

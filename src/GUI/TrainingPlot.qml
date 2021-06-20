@@ -521,7 +521,7 @@ ApplicationWindow {
                             }
                             Row {
                                 visible: Julia.get_settings(
-                                    ["Training","Options","General","test_data_fraction"])!==0
+                                    ["Training","Options","Testing","test_data_fraction"])!==0
                                 spacing: 0.3*margin
                                 Label {
                                     id: testingfrLabel
@@ -532,7 +532,7 @@ ApplicationWindow {
                                     anchors.verticalCenter: testingfrLabel.verticalCenter
                                     from: 0
                                     value: Julia.get_settings(
-                                               ["Training","Options","General","num_tests"])
+                                               ["Training","Options","Testing","num_tests"])
                                     to: 10000
                                     stepSize: 1
                                     editable: true
