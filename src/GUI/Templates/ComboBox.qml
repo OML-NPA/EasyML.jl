@@ -9,6 +9,7 @@ T.ComboBox {
     property double defaultWidth: 384*pix
     property double defaultHeight: buttonHeight
     property bool wasDown: false
+    property double popupHeight: 400*pix
     implicitWidth: defaultWidth
     implicitHeight: defaultHeight
     leftPadding: padding + (!control.mirrored || !indicator || !indicator.visible ? 0 : indicator.width + spacing)
@@ -78,7 +79,7 @@ T.ComboBox {
     popup: T.Popup {
         y: control.height
         width: control.width
-        height: Math.min(contentItem.implicitHeight)
+        height: Math.min(contentItem.implicitHeight,popupHeight)
         topMargin: 6*pix
         bottomMargin: 6*pix
         onOpened: {
@@ -103,7 +104,10 @@ T.ComboBox {
                 border.color: defaultpalette.border
             }
 
-            T.ScrollIndicator.vertical: ScrollIndicator { }
+            T.ScrollIndicator.vertical: ScrollIndicator { 
+                active: true
+                width: 10*pix
+            }
         }
 
         background: Rectangle {
