@@ -2,7 +2,8 @@
 module EasyML
 
 # Import packages
-using Base: Symbol
+using CUDA: CUstreamWaitValue_flags, state
+using Base: Symbol, String
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
@@ -10,6 +11,8 @@ QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
 Parameters, DataFrames, StaticArrays, Dates,
 # Data import/export
 FileIO, ImageIO, JSON, BSON, XLSX, CSVFiles,
+# Data manipulation
+Unicode,
 # Image manipulation
 Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
 ImageMorphology.FeatureTransform, ImageSegmentation, ColorTypes,

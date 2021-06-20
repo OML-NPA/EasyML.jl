@@ -102,7 +102,13 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
 end
 
 function load_regression_data(url::String)
-    labels_info = DataFrame(CSVFiles.load(url))
+    ext_raw = split(url,".")[end]
+    ext = Unicode.normalize(ext_raw, casefold=true)
+    if ext=="csv"
+        labels_info = DataFrame(CSVFiles.load(url))
+    else ext=="xlsx"
+        labels_info = DataFrame(XLSX.readtable(url,1)...)
+    end
     filenames_labels::Vector{String} = labels_info[:,1]
     labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
     loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
