@@ -712,7 +712,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                     iteration_global_counter += 1
                     Threads.atomic_xchg!(testing_mode, true)
                     # Calculate test accuracy and loss
-                    data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f)
+                    data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f,abort)
                     # Return testing information
                     put!(channels.training_progress,["Testing",data_test...,iteration])
                     push!(accuracy_test_vector,data_test[1])
@@ -733,7 +733,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
 end
 
 function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_channel::Channel,
-        counter_test,num_test::Int64,move_f)
+        counter_test,num_test::Int64,move_f,abort)
     test_accuracy = Vector{Float32}(undef,num_test)
     test_loss = Vector{Float32}(undef,num_test)
     local minibatch_test_data::eltype(minibatch_test_channel.data)
