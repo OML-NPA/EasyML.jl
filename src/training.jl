@@ -68,7 +68,8 @@ training_elapsed_time() = training_elapsed_time_main(training_plot_data)
 #---
 
 # Augments images and labels using rotation and mirroring
-function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angles::Int64)
+function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},
+        num_angles::Int64,mirroring_inds::Vector{Int64})
     data = Vector{Array{Float32,3}}(undef,0)
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
@@ -92,7 +93,7 @@ function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},num_angl
                 if std(I1)<0.01
                     continue
                 else
-                    for h = 1:2
+                    for h in mirroring_inds
                         if h==1
                             I1_out = I1
                         else
@@ -113,7 +114,7 @@ end
 
 # Augments images and labels using rotation and mirroring
 function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{Int64,Int64},
-        num_angles::Int64,min_fr_pix::Float64)
+        num_angles::Int64,min_fr_pix::Float64,mirroring_inds::Vector{Int64})
     data = Vector{Tuple{Array{Float32,3},BitArray{3}}}(undef,0)
     lim = prod(size12)*min_fr_pix
     angles_range = range(0,stop=2*pi,length=num_angles+1)
@@ -142,7 +143,7 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
                 if std(I1)<0.01 || sum(I2)<lim
                     continue
                 else
-                    for h = 1:2
+                    for h in mirroring_inds
                         if h==1
                             I1_out = I1
                             I2_out = I2
@@ -165,6 +166,11 @@ function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
         progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
+    if options.Processing.mirroring
+        mirroring_inds = [1,2]
+    else
+        mirroring_inds = [1]
+    end
     classification_data = training_data.ClassificationData
     input_urls = classification_data.input_urls
     label_urls = classification_data.label_urls
@@ -203,7 +209,7 @@ function prepare_data(classification_data::ClassificationData,
                 img = image_to_color_float(img_raw)
             end
             # Augment images
-            data = augment(img,size12,num_angles)
+            data = augment(img,size12,num_angles,mirroring_inds)
             data_input_temp[l] = data
             data_label_temp[l] = repeat([label[l]],length(data))
             # Return progress
@@ -268,7 +274,7 @@ function prepare_data(regression_data::RegressionData,
             img = image_to_color_float(img_raw)
         end
         # Augment images
-        temp_input = augment(img,size12,num_angles)
+        temp_input = augment(img,size12,num_angles,mirroring_inds)
         temp_label = repeat([label],length(temp_input))
         data_input[k] = temp_input
         data_label[k] = temp_label
@@ -331,7 +337,7 @@ function prepare_data(segmentation_data::SegmentationData,
         # Convert BitArray labels to Array{Float32}
         label = label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_thickness)
         # Augment images
-        data = augment(img,label,size12,num_angles,min_fr_pix)
+        data = augment(img,label,size12,num_angles,min_fr_pix,mirroring_inds)
         data_input[k] = getfield.(data, 1)
         data_label[k] = getfield.(data, 2)
         # Return progress
