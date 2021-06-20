@@ -165,11 +165,11 @@ function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
         progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
+    classification_data = training_data.ClassificationData
     input_urls = classification_data.input_urls
     label_urls = classification_data.label_urls
     labels = map(class -> class.name, model_data.classes)
-    labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),label_urls,length.(input_urls))
-    data_labels_initial = reduce(vcat,labels_int)
+    data_labels_initial = map((label,l) -> repeat([findfirst(label.==labels)],l),label_urls,length.(input_urls))
     num = length(input_urls)
     # Get number of images
     num_all = sum(length.(input_urls))
@@ -205,7 +205,7 @@ function prepare_data(classification_data::ClassificationData,
             # Augment images
             data = augment(img,size12,num_angles)
             data_input_temp[l] = data
-            data_label_temp[l] = repeat([label],length(data))
+            data_label_temp[l] = repeat([label[l]],length(data))
             # Return progress
             put!(progress, 1)
         end
@@ -739,14 +739,9 @@ function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_chan
     local minibatch_test_data::eltype(minibatch_test_channel.data)
     for j=1:num_test
         while true
-            # Update parameters or abort if needed
-            if isready(channels.training_modifiers)
-                num_tests = check_modifiers(model_data,model,model_name,
-                    accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                    max_iterations,num_tests,channels.training_modifiers,abort;gpu=use_GPU)
-                if abort[]==true
-                    return nothing
-                end
+            # Abort if needed
+            if abort[]==true
+                return (0.f0,0.f0)
             end
             if isready(minibatch_test_channel)
                 minibatch_test_data = take!(minibatch_test_channel)
