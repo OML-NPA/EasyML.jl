@@ -780,7 +780,7 @@ end
 
 function train!(model_data::ModelData,training::Training,
         args::HyperparametersTraining,opt,accuracy::Function,loss::Function,
-        train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},testing_times::Float64,
+        train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},num_tests::Float64,
         use_GPU::Bool,channels::Channels,tasks::Vector{Task}) where {T1<:Vector{Array{Float32,3}},
         T2<:Union{Vector{BitArray{3}},Vector{Int32},Vector{Vector{Float32}}}}
     # Initialize constants
@@ -806,7 +806,6 @@ function train!(model_data::ModelData,training::Training,
     data_labels = train_set[2]
     num_data = length(data_input)
     inds_start,inds_all,num = make_minibatch_inds(num_data,batch_size)
-    num_tests = num/testing_times
     data_input_test = test_set[1]
     data_labels_test = test_set[2]
     num_data_test = length(data_input_test)
@@ -901,10 +900,10 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
     end
     accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss
-    testing_times = training_options.Testing.num_tests
+    num_tests = training_options.Testing.num_tests
     # Run training
     data = train!(model_data,training,args,opt,accuracy,loss,
-        train_set,test_set,testing_times,use_GPU,channels,training_data.tasks)
+        train_set,test_set,num_tests,use_GPU,channels,training_data.tasks)
     # Clean up
     clean_up_training(training_plot_data)
     # Return training results
