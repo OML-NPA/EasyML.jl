@@ -1,6 +1,6 @@
 
 function load_model()
-    name_filters = [ "*.model"]
+    name_filters = ["*.model"]
     url_out = String[""]
     observe(url) = url_out[1] = url
     # Launches GUI
@@ -126,7 +126,7 @@ function get_urls_training(input_dir::String,label_dir::String)
             @error string(label_dir," does not exist.")
             return nothing
         end
-    else
+    elseif settings.problem_type==:Regression
         if !isfile(label_dir)
             @error string(label_dir," does not exist.")
             return nothing
@@ -137,7 +137,7 @@ function get_urls_training(input_dir::String,label_dir::String)
 end
 
 function get_urls_training(input_dir::String)
-    if eltype(model_data.classes)!=ImageClassificationClass
+    if settings.problem_type!=:Classification
         @error "Label data directory URL was not given."
         return nothing
     end
@@ -154,6 +154,7 @@ function get_urls_training()
     url_out = String[""]
     observe(url) = url_out[1] = url
     dir = pwd()
+
     @info "Select a directory with input data."
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
@@ -165,12 +166,22 @@ function get_urls_training()
     else
         @info string(training.input_dir, " was selected.")
     end
-
-    @info "Select a directory with label data."
-    @qmlfunction(observe)
-    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
-    exec()
-    training.label_dir = url_out[1]
+    if settings.problem_type==:Classification
+    
+    elseif settings.problem_type==:Regression
+        name_filters = ["*.csv","*.xlsx"]
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFileDialog.qml",
+            nameFilters = name_filters)
+        exec()
+        training.label_dir = url_out[1]
+    elseif settings.problem_type==:Segmentation
+        @info "Select a directory with label data."
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        exec()
+        training.label_dir = url_out[1]
+    end
     if training.label_dir==""
         @error "Label data directory URL is empty."
         return nothing
@@ -406,6 +417,7 @@ function get_urls_validation()
     url_out = String[""]
     observe(url) = url_out[1] = url
     dir = pwd()
+
     @info "Select a directory with input data."
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
@@ -417,12 +429,23 @@ function get_urls_validation()
     else
         @info string(training.input_dir, " was selected.")
     end
-
-    @info "Select a directory with label data if labels are available."
-    @qmlfunction(observe)
-    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
-    exec()
-    validation.label_dir = url_out[1]
+    if settings.problem_type==:Classification
+    
+    elseif settings.problem_type==:Regression
+        name_filters = ["*.csv","*.xlsx"]
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFileDialog.qml",
+            nameFilters = name_filters)
+        exec()
+        validation.label_dir = url_out[1]
+    elseif settings.problem_type==:Segmentation
+        @info "Select a directory with label data if labels are available."
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        exec()
+        validation.label_dir = url_out[1]
+    end
+    
     if validation.input_dir==""
         @info string(training.label_dir, " was selected.")
         validation.use_labels = true
