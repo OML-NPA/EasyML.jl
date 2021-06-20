@@ -5,6 +5,9 @@
     training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
     training_data_modifiers::Channel = Channel{Any}(Inf)
+    testing_data_progress::Channel = Channel{Int64}(Inf)
+    testing_data_results::Channel = Channel{Any}(Inf)
+    testing_data_modifiers::Channel = Channel{Any}(Inf)
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Any}(Inf)
@@ -335,10 +338,9 @@ training_results_data = TrainingResultsData()
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
-    labels::Vector{String} = Vector{String}(undef,0)
+    label_urls::Vector{String} = Vector{String}(undef,0)
     filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
 end
-classification_data = ClassificationData()
 
 @with_kw mutable struct RegressionData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
@@ -347,7 +349,6 @@ classification_data = ClassificationData()
     labels_url::String = ""
     filenames::Vector{String} = Vector{String}(undef,0)
 end
-regression_data = RegressionData()
 
 @with_kw mutable struct SegmentationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
@@ -358,16 +359,22 @@ regression_data = RegressionData()
     filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     fileindices::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
 end
-segmentation_data = SegmentationData()
 
 @with_kw mutable struct TrainingData
     PlotData::TrainingPlotData = training_plot_data
     Results::TrainingResultsData = training_results_data
-    ClassificationData::ClassificationData = classification_data
-    RegressionData::RegressionData = regression_data
-    SegmentationData::SegmentationData = segmentation_data
+    ClassificationData::ClassificationData = ClassificationData()
+    RegressionData::RegressionData = RegressionData()
+    SegmentationData::SegmentationData = SegmentationData()
 end
 training_data = TrainingData()
+
+@with_kw mutable struct TestingData
+    ClassificationData::ClassificationData = ClassificationData()
+    RegressionData::RegressionData = RegressionData()
+    SegmentationData::SegmentationData = SegmentationData()
+end
+testing_data = TestingData()
 
 @with_kw mutable struct ValidationImageClassificationResults
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
@@ -420,6 +427,7 @@ application_data = ApplicationData()
 @with_kw mutable struct AllData
     DesignData::DesignData = design_data
     TrainingData::TrainingData = training_data
+    TestingData::TestingData = testing_data
     ValidationData::ValidationData = validation_data
     ApplicationData::ApplicationData = application_data
     image::Array{RGB{Float32},2} = Array{RGB{Float32},2}(undef,0,0)
@@ -482,13 +490,19 @@ hyperparameters_training = HyperparametersTraining()
     allow_GPU::Bool = true
     weight_accuracy::Bool = true
     manual_weight_accuracy::Bool = false
-    test_data_fraction::Float64 = 0
-    num_tests::Float64 = 5
 end
 general_training = GeneralTraining()
 
+@with_kw mutable struct TestingTraining
+    test_data_fraction::Float64 = 0
+    num_tests::Float64 = 5
+    manual_testing_data::Bool = false
+end
+testing_training = TestingTraining()
+
 @with_kw mutable struct TrainingOptions
     General::GeneralTraining = general_training
+    Testing::TestingTraining = testing_training
     Processing::ProcessingTraining = processing_training
     Hyperparameters::HyperparametersTraining = hyperparameters_training
 end
@@ -503,9 +517,14 @@ training_options = TrainingOptions()
 end
 training = Training()
 
+@with_kw mutable struct Testing
+    input_url::String = ""
+    label_url::String = ""
+end
+testing = Testing()
+
 # Validation
 @with_kw mutable struct Validation
-    model_url::String = ""
     input_url::String = ""
     label_url::String = ""
     use_labels::Bool = false
@@ -546,6 +565,7 @@ visualisation = Visualisation()
     Options::Options = options
     Design::Design = design
     Training::Training = training
+    Testing::Testing = testing
     Validation::Validation = validation
     Application::Application = application
     Visualisation::Visualisation = visualisation

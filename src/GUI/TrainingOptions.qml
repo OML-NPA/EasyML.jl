@@ -77,6 +77,7 @@ ApplicationWindow {
                         id: menubuttonRepeater
                         Component.onCompleted: {menubuttonRepeater.itemAt(0).buttonfocus = true}
                         model: [{"name": "General", "stackview": generalView},
+                            {"name": "Testing", "stackview": testingView},
                             {"name": "Processing", "stackview": processingView},
                             {"name": "Hyperparameters", "stackview": hyperparametersView},]
                         delegate : MenuButton {
@@ -147,7 +148,7 @@ ApplicationWindow {
                             Label {
                                 id: usegpuLabel
                                 text: "Allow GPU:"
-                                width: testingfrLabel.width
+                                width: weightaccuracyLabel.width
                             }
                             CheckBox {
                                 anchors.verticalCenter: usegpuLabel.verticalCenter
@@ -164,13 +165,16 @@ ApplicationWindow {
                                 }
                             }
                         }
+                        Label {
+                            text: "Accuracy"
+                            font.bold: true
+                        }
                         Row {
                             height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: weightaccuracyLabel
                                 text: "Weight accuracy:"
-                                width: testingfrLabel.width
                             }
                             CheckBox {
                                 id: weightaccuracyCheckBox
@@ -194,7 +198,7 @@ ApplicationWindow {
                             Label {
                                 id: modeLabel
                                 text: "Mode:"
-                                width: testingfrLabel.width + 20*pix
+                                width: weightaccuracyLabel.width + 20*pix
                             }
                             ComboBox {
                                 id: optimisersComboBox
@@ -232,9 +236,61 @@ ApplicationWindow {
                                 }
                             }
                         }
+                    }
+                }
+
+                Component {
+                    id: testingView
+                    Column {
+                        property double rowHeight: 60*pix
+                        spacing: 0.4*margin
+                        Row {
+                            height: rowHeight
+                            Label {
+                                id: datapreparationmodeLabel
+                                text: "Data preparation mode:"
+                                width: testingfrLabel.width + 20*pix
+                            }
+                            ComboBox {
+                                id: datapreparationmodeComboBox
+                                anchors.verticalCenter: datapreparationmodeLabel.verticalCenter
+                                editable: false
+                                width: 0.4*buttonWidth
+                                model: ListModel {
+                                    id: datapreparationmodeModel
+                                }
+                                property var modes: ["Auto","Manual"]
+                                onActivated: {
+                                    if (currentIndex==0) {
+                                        Julia.set_settings(
+                                            ["Training","Options","Testing","manual_testing_data"],false)
+                                    }
+                                    else {
+                                        Julia.set_settings(
+                                            ["Training","Options","Testing","manual_testing_data"],true)
+                                    }
+                                }
+                                Component.onCompleted: {
+                                    for (var i=0;i<modes.length;i++) {
+                                        datapreparationmodeModel.append({"name": modes[i]})
+                                    }
+                                    var mode = Julia.get_settings(
+                                        ["Training","Options","Testing","manual_testing_data"])
+                                    
+                                    if (mode) {
+                                        currentIndex = 1
+                                    }
+                                    else {
+                                        currentIndex = 0
+                                    }
+                                    
+                                }
+                            }
+                        }
                         Row {
                             height: rowHeight
                             spacing: 0.3*margin
+                            visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
                             Label {
                                 id: testdatafractionLabel
                                 text: "Test data fraction:"
@@ -243,26 +299,27 @@ ApplicationWindow {
                             SpinBox {
                                 anchors.verticalCenter: testdatafractionLabel.verticalCenter
                                 from: 0
-                                value: 10*Julia.get_settings(
-                                           ["Training","Options","General","test_data_fraction"])
-                                to: 9
-                                stepSize: 1
+                                value: 100*Julia.get_settings(
+                                           ["Training","Options","Testing","test_data_fraction"])
+                                to: 99
+                                stepSize: 5
                                 editable: true
                                 property real realValue
                                 textFromValue: function(value, locale) {
-                                    realValue = value/10
-                                    return realValue.toLocaleString(locale,'f',1)
+                                    realValue = value/100
+                                    return realValue.toLocaleString(locale,'f',2)
                                 }
                                 onValueModified: {
                                     Julia.set_settings(
-                                        ["Training","Options","General","test_data_fraction"],
-                                        value/10)
+                                        ["Training","Options","Testing","test_data_fraction"],
+                                        value/100)
                                 }
                             }
                         }
                         Row {
                             height: rowHeight
                             spacing: 0.3*margin
+                            visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
                             Label {
                                 id: testingfrLabel
                                 text: "Number of tests (per epoch):"
@@ -270,18 +327,19 @@ ApplicationWindow {
                             SpinBox {
                                 from: 0
                                 value: Julia.get_settings(
-                                           ["Training","Options","General","num_tests"])
+                                           ["Training","Options","Testing","num_tests"])
                                 to: 10000
                                 stepSize: 1
                                 editable: true
                                 onValueModified: {
                                     Julia.set_settings(
-                                        ["Training","Options","General","num_tests"],value)
+                                        ["Training","Options","Testing","num_tests"],value)
                                 }
                             }
                         }
                     }
                 }
+
                 Component {
                     id: processingView
                     Column {

@@ -1,29 +1,43 @@
 
 # Get urls of files in selected folders
-function get_urls_training_main(training::Training,training_data::TrainingData,
-        model_data::ModelData)
+function get_urls_main(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},model_data::ModelData)
+    input_url = local_settings.input_url
+    label_url = local_settings.label_url
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type==:Classification
-        input_urls,dirs,_ = get_urls1(training,allowed_ext)
-        training_data.ClassificationData.input_urls = input_urls
-        training_data.ClassificationData.labels = dirs
+        input_urls,dirs,_ = get_urls1(input_url,allowed_ext)
+        labels = map(class -> class.name,model_data.classes)
+        dirs_raw = intersect(dirs,labels)
+        intersection_bool = map(x-> x in labels,dirs_raw)
+        if sum(intersection_bool)!=length(labels)
+            inds = findall((!).(intersection_bool))
+            for i in inds
+                @warn string(dirs_raw[i]," is not a name of one of the labels. The folder was ignored.")
+            end
+            dirs = dirs_raw[inds]
+            input_urls = input_urls[inds]
+        else
+            dirs = dirs_raw
+            input_urls = input_urls
+        end
+        local_data.ClassificationData.input_urls = input_urls
+        local_data.ClassificationData.label_urls = dirs
     elseif settings.problem_type==:Regression
-        input_urls,_,filenames = get_urls1(training,allowed_ext)
-        training_data.RegressionData.input_urls = reduce(vcat,input_urls)
-        training_data.RegressionData.labels_url = training.label_url
-        training_data.RegressionData.filenames = reduce(vcat,filenames)
+        input_urls,_,filenames = get_urls1(input_url,allowed_ext)
+        local_data.RegressionData.input_urls = reduce(vcat,input_urls)
+        local_data.RegressionData.labels_url = label_url
+        local_data.RegressionData.filenames = reduce(vcat,filenames)
     elseif settings.problem_type==:Segmentation
-        input_urls,label_urls,_,filenames,fileindices = get_urls2(training,allowed_ext)
-        training_data.SegmentationData.input_urls = reduce(vcat,input_urls)
-        training_data.SegmentationData.label_urls = reduce(vcat,label_urls)
-        training_data.SegmentationData.filenames = filenames
-        training_data.SegmentationData.fileindices = fileindices
+        input_urls,label_urls,_,filenames,fileindices = get_urls2(input_url,label_url,allowed_ext)
+        local_data.SegmentationData.input_urls = reduce(vcat,input_urls)
+        local_data.SegmentationData.label_urls = reduce(vcat,label_urls)
+        local_data.SegmentationData.filenames = filenames
+        local_data.SegmentationData.fileindices = fileindices
     end
     return nothing
 end
-#get_urls_training() = get_urls_training_main(training,training_data,model_data)
 
 # Set training starting time
 function set_training_starting_time_main(training_plot_data::TrainingPlotData)
@@ -147,25 +161,28 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
 end
 
 # Prepare data for training
-function prepare_training_data(classification_data::ClassificationData,
+function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
         progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
-    urls = classification_data.input_urls
+    input_urls = classification_data.input_urls
+    label_urls = classification_data.label_urls
+    labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),label_urls,length.(input_urls))
+    data_labels_initial = reduce(vcat,labels_int)
     # Get number of images
-    num = length(urls)
+    num = length(input_urls)
     # Return progress target value
     put!(progress, num+2)
     # Load images
-    imgs = load_images.(urls)
+    imgs = load_images.(input_urls)
     put!(progress, 1)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    @floop ThreadedEx() for k = 1:num
+    for k = 1:num #@floop ThreadedEx() 
         current_imgs = imgs[k]
         num2 = length(current_imgs)
-        label = convert(Int32,k)
+        label = data_labels_initial[k]
         data_input_temp = Vector{Vector{Array{Float32,3}}}(undef,num2)
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
         for l = 1:num2
@@ -186,7 +203,7 @@ function prepare_training_data(classification_data::ClassificationData,
             # Augment images
             data = augment(img,size12,num_angles)
             data_input_temp[l] = data
-            data_label_temp[l] = label*ones(Int32,length(data))
+            data_label_temp[l] = repeat([label],length(data))
         end
         data_input_flat_temp = reduce(vcat,data_input_temp)
         data_label_flat_temp = reduce(vcat,data_label_temp)
@@ -205,7 +222,7 @@ function prepare_training_data(classification_data::ClassificationData,
     return nothing
 end
 
-function prepare_training_data(regression_data::RegressionData,
+function prepare_data(regression_data::RegressionData,
         model_data::ModelData,options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     input_size = model_data.input_size
@@ -262,7 +279,7 @@ function prepare_training_data(regression_data::RegressionData,
     return nothing
 end
 
-function prepare_training_data(segmentation_data::SegmentationData,
+function prepare_data(segmentation_data::SegmentationData,
         model_data::ModelData,options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     classes = model_data.classes
@@ -321,24 +338,32 @@ function prepare_training_data(segmentation_data::SegmentationData,
 end
 
 # Wrapper allowing for remote execution
-function prepare_training_data_main(training::Training,training_data::TrainingData,
+function prepare_data_main(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
-    progress = channels.training_data_progress
-    results = channels.training_data_results
     # Initialize
-    options = training.Options
+    local_settings = training
+    local_data = training_data
+    options = settings.Training.Options
     size12 = model_data.input_size[1:2]
-    if settings.problem_type==:Classification
-        data = training_data.ClassificationData
-    elseif settings.problem_type==:Regression
-        data = training_data.RegressionData
-    elseif settings.problem_type==:Segmentation
-        data = training_data.SegmentationData
+    problem_type = settings.problem_type
+    if problem_type==:Classification
+        data = local_data.ClassificationData
+    elseif problem_type==:Regression
+        data = local_data.RegressionData
+    elseif problem_type==:Segmentation
+        data = local_data.SegmentationData
     end
-    t = Threads.@spawn prepare_training_data(data,model_data,options,size12,progress,results)
+    if local_settings isa Training
+        progress = channels.training_data_progress
+        results = channels.training_data_results
+    else
+        progress = channels.testing_data_progress
+        results = channels.testing_data_results
+    end
+    t = Threads.@spawn prepare_data(data,model_data,options,size12,progress,results)
     return nothing
 end
-#prepare_training_data() = prepare_training_data_main2(training,training_data,
+#prepare_data() = prepare_data_main2(training,training_data,
 #    model_data,channels.training_data_progress,channels.training_data_results)
 
 # Creates data sets for training and testing
@@ -797,7 +822,7 @@ function train!(model_data::ModelData,training_data::TrainingData,training::Trai
     put!(channels.training_progress,[epochs[],num,max_iterations[]])
     max_labels = Vector{Int32}(undef,0)
     if settings.problem_type==:Classification && settings.input_type==:Image
-        push!(max_labels,(1:length(training_data.ClassificationData.labels))...)
+        push!(max_labels,(1:length(model_data.classes))...)
     end
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
@@ -892,4 +917,3 @@ function train_main2(settings::Settings,training_data::TrainingData,
         model_data::ModelData,channels::Channels)
     Threads.@spawn train_main(settings,training_data,model_data,channels)
 end
-# train() = train_main2(settings,training_data,model_data,channels)

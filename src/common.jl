@@ -1,14 +1,12 @@
 
 # Get urls of files in selected folders. Requires only data
-function get_urls1(settings::Union{Training,Validation,Application},allowed_ext::Vector{String})
+function get_urls1(input_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
-    # Get directories containing data and labels
-    input_url = settings.input_url
-    # Return if no directories
+    # Return if empty
     if isempty(input_url)
         @warn "Directory is empty."
         return nothing
@@ -41,7 +39,7 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
 end
 
 # Get urls of files in selected folders. Requires data and labels
-function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{String})
+function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     label_urls = Vector{Vector{String}}(undef,0)
@@ -50,10 +48,7 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
     # Empty url accumulators
     empty!(input_urls)
     empty!(label_urls)
-    # Get directories containing images and labels
-    input_url = settings.input_url
-    label_url = settings.label_url
-    # Return if no directories
+    # Return if empty
     if isempty(input_url) || isempty(label_url)
         @error "Empty urls."
         return nothing,nothing,nothing
