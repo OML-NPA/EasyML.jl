@@ -25,6 +25,8 @@ and then write
 
 `using EasyML`
 
+NB! Add `QML` dependency using `add QML#master` because the package relies on recent changes that were not released yet.
+
 #### Model creation
 A struct named `model_data` is exported.
 
