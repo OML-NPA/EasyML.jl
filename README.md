@@ -44,9 +44,9 @@ A struct named `model_data` is exported.
 
 -  `OutputOptions::Vector{<:AbstractOutputOptions}`: hold information about output options for each class for application of the model.
 
-It is suggested to modify fields using a GUI. 
+It is suggested to modify the fields using a GUI. 
 
-`modify_classes()` allows to modify classes.
+`modify_classes()` allows to add and modify classes.
 
 `modify_output()` allows to modify output options.
 
