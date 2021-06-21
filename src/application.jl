@@ -5,7 +5,7 @@ function get_urls_application_main(application::Application,
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    input_urls,dirs = get_urls1(application,allowed_ext)
+    input_urls,dirs = get_urls1(application.input_url,allowed_ext)
     application_data.input_urls = input_urls
     application_data.folders = dirs
     return nothing
@@ -509,6 +509,14 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
 end
 
+function remove_application_data()
+    data = application_data
+    fields = fieldnames(ApplicationData)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
 # Main function that performs application
 function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
         model_data::ModelData,T::DataType,channels::Channels)
@@ -518,7 +526,14 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     processing = training.Options.Processing
     classes = model_data.classes
     output_options = model_data.OutputOptions
-    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
+    use_GPU = false
+    if training.Options.General.allow_GPU
+        if has_cuda()
+            use_GPU = true
+        else
+            @warn "No CUDA capable device was detected. Using CPU instead."
+        end
+    end
     scaling = application_options.scaling
     batch_size = application_options.minibatch_size
     apply_by_file = application_options.apply_by[1]=="file"
@@ -543,7 +558,8 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
+    t = Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
+    push!(application_data.tasks,t)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
@@ -558,7 +574,8 @@ function apply_main2(settings::Settings,training::Training,application_data::App
     elseif settings.problem_type==:Segmentation
         T = BitArray{4}
     end
-    Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    t = Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    push!(application_data.tasks,t)
 end
 #apply() = apply_main2(settings,application_data,
 #    model_data,channels)

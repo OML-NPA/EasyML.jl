@@ -4,11 +4,13 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::ValidationData,model_data::ModelData)
+    input_url = validation.input_url
+    label_url = validation.label_url
     if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type == :Classification
-        input_urls,dirs = get_urls1(validation,allowed_ext)
+        input_urls,dirs = get_urls1(input_url,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         if issubset(dirs,labels)
             validation.use_labels = true
@@ -16,21 +18,21 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
             validation_data.labels_classification = reduce(vcat,labels_int)
         end
     elseif settings.problem_type == :Regression
-        input_urls_raw,_,filenames_inputs_raw = get_urls1(validation,allowed_ext)
+        input_urls_raw,_,filenames_inputs_raw = get_urls1(input_url,allowed_ext)
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
         if validation.use_labels==true
-            filenames_labels,loaded_labels = load_regression_data(regression_data.labels_url)
+            filenames_labels,loaded_labels = load_regression_data(validation.label_url)
             intersect_regression_data!(input_urls,filenames_inputs,
                 loaded_labels,filenames_labels)
             validation_data.labels_regression = loaded_labels
         end
     elseif settings.problem_type == :Segmentation
         if validation.use_labels==true
-            input_urls,label_urls,_,_,_ = get_urls2(validation,allowed_ext)
+            input_urls,label_urls,_,_,_ = get_urls2(input_url,label_url,allowed_ext)
             validation_data.label_urls = reduce(vcat,label_urls)
         else
-            input_urls,_ = get_urls1(validation,allowed_ext)
+            input_urls,_ = get_urls1(input_url,allowed_ext)
         end
     end
     validation_data.input_urls = reduce(vcat,input_urls)
@@ -249,6 +251,24 @@ function remove_validation_data()
     end
 end
 
+function remove_validation_results()
+    data = validation_data.ImageClassificationResults
+    fields = fieldnames(ValidationImageClassificationResults)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+    data = validation_data.ImageRegressionResults
+    fields = fieldnames(ValidationImageRegressionResults)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+    data = validation_data.ImageSegmentationResults
+    fields = fieldnames(ValidationImageSegmentationResults)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
 # Main validation function
 function validate_main(settings::Settings,validation_data::ValidationData,
         model_data::ModelData,channels::Channels)
@@ -262,8 +282,16 @@ function validate_main(settings::Settings,validation_data::ValidationData,
     classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
-    accuracy::Function = get_accuracy_func(settings.Training)
-    use_GPU = settings.Options.HardwareResources.allow_GPU && has_cuda()
+    ws = get_weights(classes,settings)
+    accuracy::Function = get_accuracy_func(settings,ws)
+    use_GPU = false
+    if training.Options.General.allow_GPU
+        if has_cuda()
+            use_GPU = true
+        else
+            @warn "No CUDA capable device was detected. Using CPU instead."
+        end
+    end
     if settings.problem_type==:Classification || settings.problem_type==:Regression
         num_parts_current = 1
     else
@@ -289,6 +317,7 @@ function validate_main(settings::Settings,validation_data::ValidationData,
 end
 function validate_main2(settings::Settings,validation_data::ValidationData,
         model_data::ModelData,channels::Channels)
-    Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+    t = Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+    push!(validation_data.tasks,t)
     return nothing
 end

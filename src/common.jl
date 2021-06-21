@@ -1,20 +1,18 @@
 
 # Get urls of files in selected folders. Requires only data
-function get_urls1(settings::Union{Training,Validation,Application},allowed_ext::Vector{String})
+function get_urls1(input_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
-    # Get directories containing data and labels
-    input_dir = settings.input_dir
-    # Return if no directories
-    if isempty(input_dir)
+    # Return if empty
+    if isempty(input_url)
         @warn "Directory is empty."
         return nothing
     end
     # Get directories containing our images and labels
-    dirs = getdirs(input_dir)
+    dirs = getdirs(input_url)
     # If no directories, then set empty string
     if length(dirs)==0
         dirs = [""]
@@ -24,24 +22,24 @@ function get_urls1(settings::Union{Training,Validation,Application},allowed_ext:
         input_urls_temp = Vector{String}(undef,0)
         dir = dirs[k]
         # Get files in a directory
-        files_input = getfiles(string(input_dir,"/",dir))
+        files_input = getfiles(string(input_url,"/",dir))
         files_input = filter_ext(files_input,allowed_ext)
         # Push urls into an accumulator
         for l = 1:length(files_input)
-            push!(input_urls_temp,string(input_dir,"/",dir,"/",files_input[l]))
+            push!(input_urls_temp,string(input_url,"/",dir,"/",files_input[l]))
         end
         push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
-        url_split = split(input_dir,"/")
+        url_split = split(input_url,"/")
         dirs = [url_split[end]]
     end
     return input_urls,dirs,filenames
 end
 
 # Get urls of files in selected folders. Requires data and labels
-function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{String})
+function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     label_urls = Vector{Vector{String}}(undef,0)
@@ -50,17 +48,14 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
     # Empty url accumulators
     empty!(input_urls)
     empty!(label_urls)
-    # Get directories containing images and labels
-    input_dir = settings.input_dir
-    label_dir = settings.label_dir
-    # Return if no directories
-    if isempty(input_dir) || isempty(label_dir)
+    # Return if empty
+    if isempty(input_url) || isempty(label_url)
         @error "Empty urls."
         return nothing,nothing,nothing
     end
     # Get directories containing our images and labels
-    dirs_input= getdirs(input_dir)
-    dirs_labels = getdirs(label_dir)
+    dirs_input= getdirs(input_url)
+    dirs_labels = getdirs(label_url)
     # Keep only those present for both images and labels
     dirs = intersect(dirs_input,dirs_labels)
     # If no directories, then set empty string
@@ -73,8 +68,8 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
         input_urls_temp = Vector{String}(undef,0)
         label_urls_temp = Vector{String}(undef,0)
         # Get files in a directory
-        files_input = getfiles(string(input_dir,"/",dirs[k]))
-        files_labels = getfiles(string(label_dir,"/",dirs[k]))
+        files_input = getfiles(string(input_url,"/",dirs[k]))
+        files_labels = getfiles(string(label_url,"/",dirs[k]))
         # Filter files
         files_input = filter_ext(files_input,allowed_ext)
         files_labels = filter_ext(files_labels,allowed_ext)
@@ -89,8 +84,8 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
         # Push urls into accumulators
         num = length(files_input)
         for l = 1:num
-            push!(input_urls_temp,string(input_dir,"/",files_input[l]))
-            push!(label_urls_temp,string(label_dir,"/",files_labels[l]))
+            push!(input_urls_temp,string(input_url,"/",files_input[l]))
+            push!(label_urls_temp,string(label_url,"/",files_labels[l]))
         end
         push!(filenames,filenames_input[inds2])
         push!(fileindices,cnt+1:num)
@@ -102,7 +97,13 @@ function get_urls2(settings::Union{Training,Validation},allowed_ext::Vector{Stri
 end
 
 function load_regression_data(url::String)
-    labels_info = DataFrame(CSVFiles.load(url))
+    ext_raw = split(url,".")[end]
+    ext = Unicode.normalize(ext_raw, casefold=true)
+    if ext=="csv"
+        labels_info = DataFrame(CSVFiles.load(url))
+    else ext=="xlsx"
+        labels_info = DataFrame(XLSX.readtable(url,1)...)
+    end
     filenames_labels::Vector{String} = labels_info[:,1]
     labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
     loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
@@ -302,39 +303,39 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
         return data_in
     end
     num_border = length(inds_border)
-    num_feat = length(class_inds)
+    num_classes = length(class_inds)
     data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
     for i = 1:num_border #@floop ThreadedEx() 
         border_num_pixels = border_thickness[i]
-        ind_feat = inds_border[i]
-        ind_border = num_feat + ind_feat
-        data_feat_bool = data_in[:,:,ind_feat]
-        data_feat = convert(Array{Float32},data_feat_bool)
+        ind_classes = inds_border[i]
+        ind_border = num_classes + ind_classes
+        data_classes_bool = data_in[:,:,ind_classes]
+        data_classes = convert(Array{Float32},data_classes_bool)
         data_border = data_in[:,:,ind_border]
         border_bool = data_border
-        background1 = erode(data_feat_bool .& border_bool,border_num_pixels)
+        background1 = erode(data_classes_bool .& border_bool,border_num_pixels)
         background2 = outer_perim(border_bool)
-        background2[data_feat_bool] .= false
+        background2[data_classes_bool] .= false
         background2 = dilate(background2,border_num_pixels+1)
         background = background1 .| background2
         skel = thinning(border_bool)
         background[skel] .= true
         if classes[i].border_remove_objs
             components = label_components((!).(border_bool),conn(4))
-            intensities = component_intensity(components,data_feat)
+            intensities = component_intensity(components,data_classes)
             bad_components = findall(intensities.<0.7)
             for i = 1:length(bad_components)
                 components[components.==bad_components[i]] .= 0
             end
-            objects = data_feat.!=0
+            objects = data_classes.!=0
             objects[skel] .= false
             segmented = segment_objects(components,objects)
             borders = mapwindow(x->!allequal(x), segmented, (3,3))
             segmented[borders] .= 0
-            data[:,:,ind_feat] = segmented.>0
+            data[:,:,ind_classes] = segmented.>0
         else
-            data_feat_bool[background] .= false
-            data[:,:,i] = data_feat_bool
+            data_classes_bool[background] .= false
+            data[:,:,i] = data_classes_bool
         end
     end
     return data
@@ -353,6 +354,23 @@ function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:Ab
         end
     end
     return mean(acc)
+end
+
+function accuracy_classification_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T,2}}
+    l = size(predicted,2)
+    acc = Vector{Float32}(undef,l)
+    w = Vector{Float32}(undef,l)
+    for i = 1:l
+        _ , actual_ind = collect(findmax(actual[:,i]))
+        _ , predicted_ind = collect(findmax(predicted[:,i]))
+        w[i] = ws[actual_ind]
+        if actual_ind==predicted_ind
+            acc[i] = 1
+        else
+            acc[i] = 0
+        end
+    end
+    return mean(acc,StatsBase.weights(w))
 end
 
 function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
@@ -378,69 +396,106 @@ function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:Abst
 end
 
 # Weight accuracy using inverse frequency
-function accuracy_segmentation_weighted(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
-    # Get input dimensions
-    array_size = size(actual)
-    array_size12 = array_size[1:2]
-    num_feat = array_size[3]
-    num_batch = array_size[4]
+function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T,4}}
     # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
     # Calculate correct and incorrect class pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
     dif_bool = xor.(predicted_bool,actual_bool)
-    # Calculate correct and incorrect background pixels as a BitArray
-    correct_background_bool = (!).(dif_bool .| actual_bool)
-    dif_background_bool = dif_bool-actual_bool
-    # Number of elements
-    numel = prod(array_size12)
-    # Count number of class pixels
-    pix_sum::Array{Float32,4} = collect(sum(actual_bool,dims=(1,2,4)))
-    pix_sum_perm = permutedims(pix_sum,[3,1,2,4])
-    class_counts = pix_sum_perm[:,1,1,1]
-    # Calculate weight for each pixel
-    fr = class_counts./numel./num_batch
-    w = 1 ./fr
-    w2 = 1 ./(1 .- fr)
-    w_sum = w + w2
-    w = w./w_sum
-    w2 = w2./w_sum
-    w_adj = w./class_counts
-    w2_adj = w2./(numel*num_batch .- class_counts)
-    # Initialize vectors for storing accuracies
-    classes_accuracy = Vector{Float32}(undef,num_feat)
-    background_accuracy = Vector{Float32}(undef,num_feat)
-    # Calculate accuracies
-    for i = 1:num_feat
-        # Calculate accuracy for a class
-        sum_correct = sum(correct_bool[:,:,i,:])
-        sum_dif = sum(dif_bool[:,:,i,:])
-        sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        classes_accuracy[i] = w_adj[i]*sum_comb
-        # Calculate accuracy for a background
-        sum_correct = sum(correct_background_bool[:,:,i,:])
-        sum_dif = sum(dif_background_bool[:,:,i,:])
-        sum_comb = sum_correct*sum_correct/(sum_correct+sum_dif)
-        background_accuracy[i] = w2_adj[i]*sum_comb
-    end
-    # Calculate final accuracy
-    acc = mean(classes_accuracy+background_accuracy)
-    if acc>1.0
-        acc = 1.0f0
-    end
+    # Calculate class accuracies
+    sum_correct_int_dim4 = collect(sum(correct_bool, dims = [1,2,4]))
+    sum_dif_int_dim4 = collect(sum(dif_bool, dims = [1,2,4]))
+    sum_correct_int = collect(Iterators.flatten(sum_correct_int_dim4))
+    sum_dif_int = collect(Iterators.flatten(sum_dif_int_dim4))
+    sum_correct = convert(Vector{Float32},sum_correct_int)
+    sum_dif = convert(Vector{Float32},sum_dif_int)
+    classes_accuracy = sum_correct./(sum_correct.+sum_dif)
+    acc = sum(ws.*classes_accuracy)
     return acc
 end
 
+function get_weights(classes::Vector{<:AbstractClass},settings::Settings)
+    problem_type = settings.problem_type
+    if settings.Training.Options.General.weight_accuracy
+        if problem_type==:Classification
+            return map(class -> class.weight,classes)
+        elseif problem_type==:Regression
+            return Vector{Float32}(undef,0)
+        else # Segmentation
+            true_classes_bool = (!).(map(class -> class.not_class, classes))
+            classes = classes = classes[true_classes_bool]
+            weights = map(class -> class.weight,classes)
+            borders_bool = map(class -> class.border, classes)
+            border_weights = weights[borders_bool]
+            append!(weights,border_weights)
+            return weights
+        end
+    else
+        return Vector{Float32}(undef,0)
+    end
+end
+
+function calculate_weights(counts::Vector{Int64})
+    frequencies = counts./sum(counts)
+    inv_frequencies = 1 ./frequencies
+    weights64 = inv_frequencies./sum(inv_frequencies)
+    weights = convert(Vector{Float32},weights64)
+    return weights
+end
+
+function get_weights(classes::Vector{<:AbstractClass},settings::Settings,training_data::TrainingData)
+    training = settings.Training
+    problem_type = settings.problem_type
+    local counts::Vector{Int64}
+    if training.Options.General.weight_accuracy
+        if problem_type==:Classification
+            classification_labels = training_data.ClassificationData.data_labels
+            counts = map(x -> count(x.==classification_labels),1:length(classes))
+            weights = calculate_weights(counts)
+            for i = 1:length(classes)
+                classes[i].weight = weights[1]
+            end
+        elseif problem_type==:Regression
+            weights = Vector{Float32}(undef,0)
+        else # Segmentation
+            classes = model_data.classes
+            num = length(classes)
+            true_classes_bool = (!).(map(class -> class.not_class, classes))
+            classes = classes[true_classes_bool]
+            regression_labels = training_data.SegmentationData.data_labels
+            counts = zeros(Int64,num)
+            for data in regression_labels
+                counts .+= collect(Iterators.flatten(sum(data[:,:,1:num],dims = [1,2])))
+            end
+            borders_bool = map(class -> class.border, classes)
+            border_counts = counts[borders_bool]
+            append!(counts,border_counts)
+            weights = calculate_weights(counts)
+            for i = 1:length(classes)
+                classes[i].weight = weights[i]
+            end
+        end
+    else
+        weights = Vector{Float32}(undef,0)
+    end
+    return weights
+end
+
 # Returns an accuracy function
-function get_accuracy_func(training::Training)
+function get_accuracy_func(settings::Settings,weights::Vector{Float32})
+    weight = settings.Training.Options.General.weight_accuracy
     if settings.problem_type==:Classification
-        return accuracy_classification
+        if weight
+            return (x,y) -> accuracy_classification_weighted(x,y,weights)
+        else
+            return accuracy_classification
+        end
     elseif settings.problem_type==:Regression
         return accuracy_regression
     elseif settings.problem_type==:Segmentation
-        if training.Options.General.weight_accuracy
-            return accuracy_segmentation_weighted
+        if weight
+            return  (x,y) -> accuracy_segmentation_weighted(x,y,weights)
         else
             return accuracy_segmentation
         end

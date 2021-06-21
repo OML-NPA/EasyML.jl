@@ -11,7 +11,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: window
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
     minimumWidth: rowLayout.width
     minimumHeight: rowLayout.height
     maximumWidth: rowLayout.width

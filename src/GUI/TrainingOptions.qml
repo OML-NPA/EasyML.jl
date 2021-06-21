@@ -11,9 +11,9 @@ import org.julialang 1.0
 ApplicationWindow {
     id: window
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
     minimumWidth: gridLayout.width
-    minimumHeight: 800*pix
+    minimumHeight: 600*pix
     maximumWidth: gridLayout.width
     maximumHeight: gridLayout.height
 
@@ -77,6 +77,7 @@ ApplicationWindow {
                         id: menubuttonRepeater
                         Component.onCompleted: {menubuttonRepeater.itemAt(0).buttonfocus = true}
                         model: [{"name": "General", "stackview": generalView},
+                            {"name": "Testing", "stackview": testingView},
                             {"name": "Processing", "stackview": processingView},
                             {"name": "Hyperparameters", "stackview": hyperparametersView},]
                         delegate : MenuButton {
@@ -139,14 +140,45 @@ ApplicationWindow {
                 Component {
                     id: generalView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
-                                text: "Weight accuracy:"
-                                width: testingfrLabel.width
+                                id: usegpuLabel
+                                text: "Allow GPU:"
+                                width: weightaccuracyLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: usegpuLabel.verticalCenter
+                                padding: 0
+                                width: height
+                                checkState : Julia.get_settings(
+                                           ["Training","Options","General","allow_GPU"]) ?
+                                           Qt.Checked : Qt.Unchecked
+                                onClicked: {
+                                    var value = checkState==Qt.Checked ? true : false
+                                    Julia.set_settings(
+                                        ["Training","Options","General","allow_GPU"],
+                                        value)
+                                }
+                            }
+                        }
+                        Label {
+                            text: "Accuracy"
+                            font.bold: true
+                        }
+                        Row {
+                            height: rowHeight
+                            spacing: 0.3*margin
+                            Label {
+                                id: weightaccuracyLabel
+                                text: "Weight accuracy:"
+                            }
+                            CheckBox {
+                                id: weightaccuracyCheckBox
+                                anchors.verticalCenter: weightaccuracyLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -161,66 +193,168 @@ ApplicationWindow {
                             }
                         }
                         Row {
-                            spacing: 0.3*margin
+                            height: rowHeight
+                            visible: weightaccuracyCheckBox.checkState==Qt.Checked ? true : false
                             Label {
-                                Layout.alignment : Qt.AlignLeft
-                                Layout.row: 1
-                                text: "Test data fraction:"
-                                width: testingfrLabel.width
+                                id: modeLabel
+                                text: "Mode:"
+                                width: weightaccuracyLabel.width + 20*pix
                             }
-                            SpinBox {
-                                from: 0
-                                value: 10*Julia.get_settings(
-                                           ["Training","Options","General","test_data_fraction"])
-                                to: 9
-                                stepSize: 1
-                                editable: true
-                                property real realValue
-                                textFromValue: function(value, locale) {
-                                    realValue = value/10
-                                    return realValue.toLocaleString(locale,'f',1)
+                            ComboBox {
+                                id: optimisersComboBox
+                                anchors.verticalCenter: modeLabel.verticalCenter
+                                editable: false
+                                width: 0.4*buttonWidth
+                                model: ListModel {
+                                    id: modeModel
                                 }
-                                onValueModified: {
-                                    Julia.set_settings(
-                                        ["Training","Options","General","test_data_fraction"],
-                                        value/10)
+                                property var modes: ["Auto","Manual"]
+                                onActivated: {
+                                    if (currentIndex==0) {
+                                        Julia.set_settings(
+                                            ["Training","Options","General","manual_weight_accuracy"],false)
+                                    }
+                                    else {
+                                        Julia.set_settings(
+                                            ["Training","Options","General","manual_weight_accuracy"],true)
+                                    }
                                 }
-                            }
-                        }
-                        Row {
-                            spacing: 0.3*margin
-                            Label {
-                                id: testingfrLabel
-                                Layout.alignment : Qt.AlignLeft
-                                Layout.row: 1
-                                text: "Testing frequency (per epoch):"
-                            }
-                            SpinBox {
-                                from: 0
-                                value: Julia.get_settings(
-                                           ["Training","Options","General","testing_frequency"])
-                                to: 10000
-                                stepSize: 1
-                                editable: true
-                                onValueModified: {
-                                    Julia.set_settings(
-                                        ["Training","Options","General","testing_frequency"],value)
+                                Component.onCompleted: {
+                                    for (var i=0;i<modes.length;i++) {
+                                        modeModel.append({"name": modes[i]})
+                                    }
+                                    var mode = Julia.get_settings(
+                                        ["Training","Options","General","manual_weight_accuracy"])
+                                    
+                                    if (mode) {
+                                        currentIndex = 1
+                                    }
+                                    else {
+                                        currentIndex = 0
+                                    }
+                                    
                                 }
                             }
                         }
                     }
                 }
+
+                Component {
+                    id: testingView
+                    Column {
+                        property double rowHeight: 60*pix
+                        spacing: 0.4*margin
+                        Row {
+                            height: rowHeight
+                            Label {
+                                id: datapreparationmodeLabel
+                                text: "Data preparation mode:"
+                                width: testingfrLabel.width + 20*pix
+                            }
+                            ComboBox {
+                                id: datapreparationmodeComboBox
+                                anchors.verticalCenter: datapreparationmodeLabel.verticalCenter
+                                editable: false
+                                width: 0.4*buttonWidth
+                                model: ListModel {
+                                    id: datapreparationmodeModel
+                                }
+                                property var modes: ["Auto","Manual"]
+                                onActivated: {
+                                    if (currentIndex==0) {
+                                        Julia.set_settings(
+                                            ["Training","Options","Testing","manual_testing_data"],false)
+                                    }
+                                    else {
+                                        Julia.set_settings(
+                                            ["Training","Options","Testing","manual_testing_data"],true)
+                                    }
+                                }
+                                Component.onCompleted: {
+                                    for (var i=0;i<modes.length;i++) {
+                                        datapreparationmodeModel.append({"name": modes[i]})
+                                    }
+                                    var mode = Julia.get_settings(
+                                        ["Training","Options","Testing","manual_testing_data"])
+                                    
+                                    if (mode) {
+                                        currentIndex = 1
+                                    }
+                                    else {
+                                        currentIndex = 0
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        Row {
+                            height: rowHeight
+                            spacing: 0.3*margin
+                            visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
+                            Label {
+                                id: testdatafractionLabel
+                                text: "Test data fraction:"
+                                width: testingfrLabel.width
+                            }
+                            SpinBox {
+                                anchors.verticalCenter: testdatafractionLabel.verticalCenter
+                                from: 0
+                                value: 100*Julia.get_settings(
+                                           ["Training","Options","Testing","test_data_fraction"])
+                                to: 99
+                                stepSize: 1
+                                editable: true
+                                property real realValue
+                                textFromValue: function(value, locale) {
+                                    realValue = value/100
+                                    return realValue.toLocaleString(locale,'f',2)
+                                }
+                                onValueModified: {
+                                    Julia.set_settings(
+                                        ["Training","Options","Testing","test_data_fraction"],
+                                        value/100)
+                                }
+                            }
+                        }
+                        Row {
+                            height: rowHeight
+                            spacing: 0.3*margin
+                            visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
+                            Label {
+                                id: testingfrLabel
+                                text: "Number of tests (per epoch):"
+                            }
+                            SpinBox {
+                                from: 0
+                                value: Julia.get_settings(
+                                           ["Training","Options","Testing","num_tests"])
+                                to: 10000
+                                stepSize: 1
+                                editable: true
+                                onValueModified: {
+                                    Julia.set_settings(
+                                        ["Training","Options","Testing","num_tests"],value)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Component {
                     id: processingView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: grayscaleLabel
                                 text: "Convert to grayscale:"
                                 width: minfrpixLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: grayscaleLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -239,12 +373,15 @@ ApplicationWindow {
                             font.bold: true
                         }
                         Row {
+                            id: mirroringLabel
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 text: "Mirroring:"
                                 width: minfrpixLabel.width
                             }
                             CheckBox {
+                                anchors.verticalCenter: mirroringLabel.verticalCenter
                                 padding: 0
                                 width: height
                                 checkState : Julia.get_settings(
@@ -259,12 +396,15 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: rotationLabel
                                 text: "Rotation (number of angles):"
                                 width: minfrpixLabel.width
                             }
                             SpinBox {
+                                anchors.verticalCenter: rotationLabel.verticalCenter
                                 id: numanglesSpinBox
                                 from: 1
                                 value: Julia.get_settings(
@@ -277,12 +417,14 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: minfrpixLabel
                                 text: "Minimum fraction of labeled pixels:"
                             }
                             SpinBox {
+                                anchors.verticalCenter: minfrpixLabel.verticalCenter
                                 id: minfrpixSpinBox
                                 from: 0
                                 value: 100*Julia.get_settings(
@@ -306,16 +448,19 @@ ApplicationWindow {
                 Component {
                     id: hyperparametersView
                     Column {
+                        property double rowHeight: 60*pix
                         spacing: 0.4*margin
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: optimiserLabel
                                 text: "Optimiser:"
-                                topPadding: 10*pix
                                 width: numberofepochsLabel.width
                             }
                             ComboBox {
                                 id: optimisersComboBox
+                                anchors.verticalCenter: optimiserLabel.verticalCenter
                                 editable: false
                                 width: 0.6*buttonWidth
                                 topPadding: -100
@@ -385,15 +530,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param1Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param1TextField
+                                anchors.verticalCenter: param1Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -405,15 +551,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param2Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param2TextField
+                                anchors.verticalCenter: param2Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -425,15 +572,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: param3Label
                                 text: ""
                                 width: numberofepochsLabel.width
-                                topPadding: 10*pix
                             }
                             TextField {
                                 id: param3TextField
+                                anchors.verticalCenter: param3Label.verticalCenter
                                 width: 140*pix
                                 visible: false
                                 validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
@@ -445,13 +593,15 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
+                                id: batchsizeLabel
                                 text: "Batch size:"
-                                bottomPadding: 0.05*margin
                                 width: numberofepochsLabel.width
                             }
                             SpinBox {
+                                anchors.verticalCenter: batchsizeLabel.verticalCenter
                                 from: 1
                                 value: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","batch_size"])
@@ -466,13 +616,14 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: numberofepochsLabel
                                 text: "Number of epochs:"
-                                bottomPadding: 0.05*margin
                             }
                             SpinBox {
+                                anchors.verticalCenter: numberofepochsLabel.verticalCenter
                                 from: 1
                                 value: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","epochs"])
@@ -487,15 +638,16 @@ ApplicationWindow {
                             }
                         }
                         Row {
+                            height: rowHeight
                             spacing: 0.3*margin
                             Label {
                                 id: learningrateLabel
                                 text: "Learning rate:"
-                                bottomPadding: 0.05*margin
                                 width: numberofepochsLabel.width
                             }
                             SpinBox {
                                 id: learningrateSpinBox
+                                anchors.verticalCenter: learningrateLabel.verticalCenter
                                 visible: Julia.get_settings(
                                            ["Training","Options","Hyperparameters","allow_lr_change"])
                                 from: 1

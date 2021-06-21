@@ -4,6 +4,8 @@ function check_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     if field=="Training data preparation"
         channel_temp = channels.training_data_progress
+    elseif field=="Testing data preparation"
+        channel_temp = channels.training_data_progress
     elseif field=="Validation data preparation"
         channel_temp = channels.validation_data_progress
     elseif field=="Training"
@@ -24,6 +26,8 @@ function get_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     if field=="Training data preparation"
         channel_temp = channels.training_data_progress
+    elseif field=="Testing data preparation"
+        channel_temp = channels.testing_data_progress
     elseif field=="Validation data preparation"
         channel_temp = channels.validation_data_progress
     elseif field=="Application data preparation"
@@ -60,6 +64,26 @@ function get_results_main(channels::Channels,all_data::AllData,
                 regression_data.data_labels = data[2]
             elseif settings.problem_type==:Segmentation
                 segmentation_data = all_data.TrainingData.SegmentationData
+                segmentation_data.data_input = data[1]
+                segmentation_data.data_labels = data[2]
+            end
+            return true
+        else
+            return false
+        end
+    elseif field=="Testing data preparation"
+        if isready(channels.testing_data_results)
+            data = take!(EasyML.channels.testing_data_results)
+            if settings.problem_type==:Classification
+                classification_data = all_data.TestingData.ClassificationData
+                classification_data.data_input = data[1]
+                classification_data.data_labels = data[2]
+            elseif settings.problem_type==:Regression
+                regression_data = all_data.TestingData.RegressionData
+                regression_data.data_input = data[1]
+                regression_data.data_labels = data[2]
+            elseif settings.problem_type==:Segmentation
+                segmentation_data = all_data.TestingData.SegmentationData
                 segmentation_data.data_input = data[1]
                 segmentation_data.data_labels = data[2]
             end
@@ -134,6 +158,8 @@ function empty_progress_channel_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     if field=="Training data preparation"
         channel_temp = channels.training_data_progress
+    elseif field=="Testing data preparation"
+        channel_temp = channels.testing_data_progress
     elseif field=="Validation data preparation"
         channel_temp = channels.validation_data_progress
     elseif field=="Application data preparation"
@@ -172,6 +198,8 @@ function empty_results_channel_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     if field=="Training data preparation"
         channel_temp = channels.training_data_results
+    elseif field=="Testing data preparation"
+        channel_temp = channels.testing_data_progress
     elseif field=="Validation data preparation"
         channel_temp = channels.validation_data_results
     elseif field=="Application data preparation"
@@ -198,6 +226,8 @@ function put_channel_main(channels::Channels,field,value)
     value = fix_QML_types(value)
     if field=="Training data preparation"
         put!(channels.training_data_modifiers,value)
+    elseif field=="Testing data preparation"
+        put!(channels.testing_data_modifiers,value)
     elseif field=="Validation data preparation"
         put!(channels.validation_data_modifiers,value)
     elseif field=="Training"

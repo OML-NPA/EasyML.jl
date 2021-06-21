@@ -65,15 +65,24 @@ NB! A number of neurons for the final layer should equal to the number of classe
 Training options can be changed by running `modify(training_options)`.
 
 `get_urls_training(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (or a folder and a file) specified 
-by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.training_data`.
+by `url_inputs` and `url_labels` for training. URLs are automatically saved to `EasyML.training_data`. Running the function without arguments open folder (or file) dialog, where you can choose folders (or a folder and a file) with input and label data.
 
-`get_urls_training()` opens folder dialogs where you can choose folders (or a folder and a file) with input and label data.
+`get_urls_testing(url_inputs::String,url_labels::String)`: gets URLs to all files present in both folders (or a folder and a file) specified 
+by `url_inputs` and `url_labels` for testing. URLs are automatically saved to `EasyML.training_data`. Running the function without arguments takes a fraction specified in `training_options` of training files for testing. Skip if do not want to perform tests.
 
 `prepare_training_data()`: prepares your images and corresponding labels for training using URLs loaded previously. Saves data to `EasyML.training_data`.
+
+`prepare_testing_data()`: prepares your images and corresponding labels for testing using URLs loaded previously. Saves data to `EasyML.training_data`. Skip if do not want to perform tests.
 
 `results = train()`: opens a training window and trains your neural network. Returns a struct containing loss, accuracy and iterations at which tests were performed.
 
 <img  src="docs/screenshots/training.png" height = 340em>
+
+`remove_training_data()`: removes all training data except for result.
+
+`remove_testing_data()`: removes all testing data.
+
+`remove_training_results()`: removes training results.
 
 #### Validation
 
@@ -89,6 +98,10 @@ URLs are automatically saved to `EasyML.validation_data`. Does not require label
 
 `results = validate()`: opens a validation window and returns results with predicted masks, target masks and masks with differences between them.
 
+`remove_validation_data()`: removes all validation data except for result.
+
+`remove_validation_results()`: removes validation results.
+
 <img  src="docs/screenshots/validation.png" height = 340em>
 
 #### Application
@@ -101,6 +114,8 @@ URLs are automatically saved to `EasyML.application_data`.
 `get_urls_application()` opens a folder dialog where you can choose a directory with input data.
 
 `apply()`: starts application of your model. Progress is reported to REPL. Results are saved to a folder specified in `application_options`.
+
+`remove_application_data()`: removes all application data.
 
 #### Other
 
@@ -121,6 +136,8 @@ Classes can be of different types depending on a type of a problem.
 
 - `name::String`: name of a class.
 
+- `weight::Float32`: weight of a class used for weighted accuracy calculation
+
 - `Output::ImageClassificationOutputOptions`: holds settings for output of application of a model to new data.
 
 `ImageRegressionClass` contains
@@ -132,6 +149,8 @@ Classes can be of different types depending on a type of a problem.
 `ImageSegmentationClass` contains
 
 - `name::String`: name of a class.
+
+- `weight::Float32`: weight of a class used for weighted accuracy calculation
 
 - `color::Vector{Float64}`: RGB color of a class, which should correspond to its color on your images. Use 0-255 range.
 

@@ -2,7 +2,8 @@
 module EasyML
 
 # Import packages
-using Base: Symbol
+using CUDA: CUstreamWaitValue_flags, state
+using Base: Symbol, String
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
@@ -10,6 +11,8 @@ QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
 Parameters, DataFrames, StaticArrays, Dates,
 # Data import/export
 FileIO, ImageIO, JSON, BSON, XLSX, CSVFiles,
+# Data manipulation
+Unicode,
 # Image manipulation
 Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
 ImageMorphology.FeatureTransform, ImageSegmentation, ColorTypes,
@@ -41,15 +44,16 @@ export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmenta
     training_plot_data, training_results_data, training_options, validation_data, validation_results_data,
     application_data, application_options
 export load_settings, design_network, modify_classes, modify_output, modify, save_model, load_model, 
-    get_urls_training, prepare_training_data, remove_training_data, train, get_urls_validation, 
-    validate, remove_validation_data, get_urls_application, apply, forward, apply_border_data
+    get_urls_training, prepare_training_data, remove_training_data, remove_training_results, train, get_urls_validation, 
+    validate, remove_validation_data, get_urls_application, apply, remove_application_data, forward, apply_border_data
 export Join, Split, Addition, Activation, Identity
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
     ENV["QSG_RENDER_LOOP"] = "basic"
-    # Import a configutation file
-    load_settings()
+    if isfile("config.bson")
+        load_settings()
+    end
 end
 
 end

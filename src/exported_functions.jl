@@ -1,4 +1,31 @@
 
+function load_model()
+    name_filters = ["*.model"]
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFileDialog.qml",
+        nameFilters = name_filters)
+    exec()
+    # Load model
+    load_model(url_out[1])
+end
+
+function save_model()
+    filename = string(training.name,".model")
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalSaveFileDialog.qml",
+        nameFilters = name_filters,
+        filename = filename)
+    exec()
+    # Load model
+    save_model(url_out[1])
+end
+
 # Design
 function design_network()
     # Launches GUI
@@ -87,149 +114,234 @@ function modify_output()
 end
 
 # Training
-function get_urls_training(input_dir::String,label_dir::String)
-    training.input_dir = input_dir
-    training.label_dir = label_dir
-    if !isdir(input_dir)
-        @error string(input_dir," does not exist.")
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String,label_url::String)
+    some_settings.input_url = input_url
+    some_settings.label_url = label_url
+    if !isdir(input_url)
+        @error string(input_url," does not exist.")
         return nothing
     end
     if settings.problem_type==:Classification || settings.problem_type==:Segmentation
-        if !isdir(label_dir)
-            @error string(label_dir," does not exist.")
+        if !isdir(label_url)
+            @error string(label_url," does not exist.")
             return nothing
         end
-    else
-        if !isfile(label_dir)
-            @error string(label_dir," does not exist.")
+    elseif settings.problem_type==:Regression
+        if !isfile(label_url)
+            @error string(label_url," does not exist.")
             return nothing
         end
     end
-    get_urls_training_main(training,training_data,model_data)
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
+get_urls_training(input_url,label_url) = get_urls(training,training_data,input_url,label_url)
+get_urls_testing(input_url,label_url) = get_urls(testing,testing_data,input_url,label_url)
 
-function get_urls_training(input_dir::String)
-    if eltype(model_data.classes)!=ImageClassificationClass
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String)
+    if settings.problem_type!=:Classification
         @error "Label data directory URL was not given."
         return nothing
     end
-    training.input_dir = input_dir
-    if !isdir(input_dir)
-        @error string(input_dir," does not exist.")
+    some_settings.input_url = input_url
+    if !isdir(input_url)
+        @error string(input_url," does not exist.")
         return nothing
     end
-    get_urls_training_main(training,training_data,model_data)
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
 
-function get_urls_training()
+get_urls_training(input_url) = get_urls(training,training_data,input_url)
+
+function get_train_test_inds(num::Int64,fraction::Float64)
+    inds = randperm(num)  # Get shuffled indices
+    ind_last_test = convert(Int64,round(fraction*num))
+    inds_train = inds[ind_last_test+1:end]
+    inds_test = inds[1:ind_last_test]
+    return inds_train,inds_test
+end
+
+function get_urls_testing_main(training::Training,training_data::TrainingData,testing::Testing,testing_data::TestingData)
+    if training.Options.Testing.manual_testing_data
+        get_urls(testing,testing_data)
+    else
+        problem_type = settings.problem_type
+        if problem_type==:Classification
+            typed_training_data = training_data.ClassificationData
+            typed_testing_data = testing_data.ClassificationData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
+        elseif problem_type==:Regression
+            typed_training_data = training_data.RegressionData
+            typed_testing_data = testing_data.RegressionData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.data_labels
+            testing_labels = typed_testing_data.data_labels
+        elseif problem_type==:Segmentation
+            typed_training_data = training_data.SegmentationData
+            typed_testing_data = testing_data.SegmentationData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
+        end
+        if isempty(training_inputs) || isempty(training_labels)
+            @warn "Training data should be loaded first. Run 'get_urls_training'"
+            return nothing
+        end
+        training_inputs_copy = copy(training_inputs)
+        training_labels_copy = copy(training_labels)
+        empty!(training_inputs)
+        empty!(testing_inputs)
+        empty!(training_labels)
+        empty!(testing_labels)
+        fraction = training.Options.Testing.test_data_fraction
+        if problem_type==:Classification
+            nums = length.(training_inputs_copy) # Get the number of elements
+            for i = 1:length(nums)
+                num = nums[i]
+                inds_train,inds_test = get_train_test_inds(num,fraction)
+                push!(training_inputs,training_inputs_copy[i][inds_train])
+                push!(testing_inputs,training_inputs_copy[i][inds_test])
+            end
+            append!(training_labels,training_labels_copy)
+            append!(testing_labels,training_labels_copy)
+        elseif problem_type==:Regression || problem_type==:Segmentation
+            num = length(training_inputs_copy) # Get the number of elements
+            inds_train,inds_test = get_train_test_inds(num,fraction)
+            append!(training_inputs,training_inputs_copy[inds_train])
+            append!(testing_inputs,training_inputs_copy[inds_test])
+            append!(training_labels,training_labels_copy[inds_train])
+            append!(testing_labels,training_labels_copy[inds_test])
+        end
+    end
+    return nothing
+end
+get_urls_testing() = get_urls_testing_main(training,training_data,testing,testing_data)
+
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData})
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
+
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Training",type = "input_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    sleep(0.1)
-    if training.input_dir==""
+    some_settings.input_url = url_out[1]
+    if some_settings.input_url==""
         @error "Input data directory URL is empty."
         return nothing
     else
-        @info string(training.input_dir, " was selected.")
+        @info string(some_settings.input_url, " was selected.")
     end
-
-    @info "Select a directory with label data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Training",type = "label_dir")
-    exec()
-    sleep(0.1)
-    if training.label_dir==""
-        @error "Label data directory URL is empty."
-        return nothing
-    else
-        @info string(training.label_dir, " was selected.")
-    end
+    problem_type = settings.problem_type
+    if problem_type==:Classification
     
-    get_urls_training_main(training,training_data,model_data)
+    elseif problem_type==:Regression
+        name_filters = ["*.csv","*.xlsx"]
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFileDialog.qml",
+            nameFilters = name_filters)
+        exec()
+        some_settings.label_url = url_out[1]
+        if some_settings.label_url==""
+            @error "Label data file URL is empty."
+            return nothing
+        else
+            @info string(some_settings.label_url, " was selected.")
+        end
+    elseif problem_type==:Segmentation
+        @info "Select a directory with label data."
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        exec()
+        some_settings.label_url = url_out[1]
+        if some_settings.label_url==""
+            @error "Label data directory URL is empty."
+            return nothing
+        else
+            @info string(some_settings.label_url, " was selected.")
+        end
+    end
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
+get_urls_training() = get_urls(training,training_data)
 
-function prepare_training_data()
-    fields = [:data_input,:data_labels]
-    for i in fields
-        empty!(getfield(classification_data,i))
-    end
-    for i in fields
-        empty!(getfield(segmentation_data,i))
-    end
-    
-    empty_progress_channel("Training data preparation")
-    empty_results_channel("Training data preparation")
-
+function prepare_data(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},channel_name::String)
     if isempty(model_data.classes)
         @error "Empty classes."
         return nothing
     end
-    if training.Options.Processing.grayscale && model_data.input_size[3]==3
-        training.Options.Processing.grayscale = false
+    processing = settings.Training.Options.Processing
+    if processing.grayscale && model_data.input_size[3]==3
+        processing.grayscale = false
         @warn "Using RGB images because color channel has size 3."
-    elseif !training.Options.Processing.grayscale && model_data.input_size[3]==1
-        training.Options.Processing.grayscale = false
+    elseif !processing.grayscale && model_data.input_size[3]==1
+        processing.grayscale = false
         @warn "Using grayscale images because color channel has size 1."
     end
+
+    if channel_name=="Training data preparation"
+        error_message = "No input urls. Run 'get_urls_training'."
+    else
+        error_message = "No input urls. Run 'get_urls_testing'."
+    end
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(some_data.ClassificationData,i))
+        empty!(getfield(some_data.SegmentationData,i))
+    end
+    empty!(some_data.RegressionData.data_input)
+    empty_progress_channel(channel_name)
+    empty_results_channel(channel_name)
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
-            empty!(training_data.ClassificationData.data_input)
-            empty!(training_data.ClassificationData.data_labels)
-            empty!(training_data.SegmentationData.input_urls)
-            empty!(training_data.SegmentationData.label_urls)
-            empty!(training_data.RegressionData.input_urls)
-            if isempty(training_data.ClassificationData.input_urls)
-                @error "No input urls. Run 'get_urls_training'."
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.ClassificationData.input_urls)
+                @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Regression
-            empty!(training_data.RegressionData.data_input)
-            empty!(training_data.RegressionData.data_labels)
-            empty!(training_data.ClassificationData.input_urls)
-            empty!(training_data.ClassificationData.labels)
-            empty!(training_data.SegmentationData.input_urls)
-            empty!(training_data.SegmentationData.label_urls)
-            if isempty(training_data.RegressionData.input_urls)
-                @error "No input urls. Run 'get_urls_training'."
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.label_urls)
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            if isempty(some_data.RegressionData.input_urls)
+                @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Segmentation
-            empty!(training_data.SegmentationData.data_input)
-            empty!(training_data.SegmentationData.data_labels)
-            empty!(training_data.ClassificationData.input_urls)
-            empty!(training_data.ClassificationData.labels)
-            empty!(training_data.RegressionData.input_urls)
-            if isempty(training_data.SegmentationData.input_urls)
-                @error "No input urls. Run 'get_urls_training'."
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.label_urls)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.SegmentationData.input_urls)
+                @error error_message
                 return nothing
             end
         end
     end
 
-    prepare_training_data_main(training,training_data,model_data,channels)
+    prepare_data_main(some_settings,some_data,model_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
     while true
         if max_value!=0
-            temp_value = get_progress("Training data preparation")
+            temp_value = get_progress(channel_name)
             if temp_value!=false
                 value += temp_value
                 # handle progress here
                 next!(p)
             elseif value==max_value
-                state = get_results("Training data preparation")
+                state = get_results(channel_name)
                 if state==true
                     # reset progress here
                     break
@@ -238,7 +350,7 @@ function prepare_training_data()
                 sleep(0.1)
             end
         else
-            temp_value = get_progress("Training data preparation")
+            temp_value = get_progress(channel_name)
             if temp_value!=false
                 if temp_value!=0
                     max_value = temp_value
@@ -254,20 +366,8 @@ function prepare_training_data()
     end
     return nothing
 end
-
-function remove_training_data()
-    fields = [:data_input,:data_labels]
-    for i in fields
-        empty!(getfield(classification_data,i))
-    end
-    for i in fields
-        empty!(getfield(segmentation_data,i))
-    end
-    for i in fields
-        empty!(getfield(regression_data,i))
-    end
-    return nothing
-end
+prepare_training_data() = prepare_data(training,training_data,"Training data preparation")
+prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
 
 function modify(data)
     if typeof(data)==TrainingOptions
@@ -308,15 +408,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if settings.problem_type==:Classification
-        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    elseif settings.problem_type==:Regression
-        @warn "Weighted accuracy cannot be used for regression. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    end
-    #train_main2(settings,training_data,model_data,channels)
-    train_main2(settings,training_data,model_data,channels)
+    train_main2(settings,training_data,testing_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
         # Data handling
@@ -347,67 +439,75 @@ end
 
 # Validation
 
-function get_urls_validation(input_dir::String,label_dir::String)
-    if !isdir(input_dir)
-        @error string(input_dir," does not exist.")
+function get_urls_validation(input_url::String,label_url::String)
+    if !isdir(input_url)
+        @error string(input_url," does not exist.")
         return nothing
     end
     if settings.problem_type==:Classification || settings.problem_type==:Segmentation
-        if !isdir(label_dir)
-            @error string(label_dir," does not exist.")
+        if !isdir(label_url)
+            @error string(label_url," does not exist.")
             return nothing
         end
-        validation.label_dir = label_dir
     else
-        if !isfile(label_dir)
-            @error string(label_dir," does not exist.")
+        if !isfile(label_url)
+            @error string(label_url," does not exist.")
             return nothing
         end
-        regression_data.labels_url = label_dir
     end
-    validation.input_dir = input_dir
+    validation.input_url = input_url
+    validation.label_url = label_url
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
 
-function get_urls_validation(input_dir::String)
-    if !isdir(input_dir)
-        @error string(input_dir," does not exist.")
+function get_urls_validation(input_url::String)
+    if !isdir(input_url)
+        @error string(input_url," does not exist.")
         return nothing
     end
-    validation.input_dir = input_dir
+    validation.input_url = input_url
     validation.use_labels = false
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
 
 function get_urls_validation()
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
+
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Validation",type = "input_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    sleep(0.1)
-    if validation.input_dir==""
+    validation.input_url = url_out[1]
+    if validation.input_url==""
         @error "Input data directory URL is empty. Aborted"
         return nothing
     else
-        @info string(training.input_dir, " was selected.")
+        @info string(training.input_url, " was selected.")
     end
-
-    @info "Select a directory with label data if labels are available."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Validation",type = "label_dir")
-    exec()
-    if validation.input_dir==""
-        @info string(training.label_dir, " was selected.")
+    if settings.problem_type==:Classification
+    
+    elseif settings.problem_type==:Regression
+        name_filters = ["*.csv","*.xlsx"]
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFileDialog.qml",
+            nameFilters = name_filters)
+        exec()
+        validation.label_url = url_out[1]
+    elseif settings.problem_type==:Segmentation
+        @info "Select a directory with label data if labels are available."
+        @qmlfunction(observe)
+        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        exec()
+        validation.label_url = url_out[1]
+    end
+    
+    if validation.input_url==""
+        @info string(training.label_url, " was selected.")
         validation.use_labels = true
     else
         validation.use_labels = false
@@ -432,10 +532,6 @@ function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
-    if settings.problem_type==:Classification && training.Options.General.weight_accuracy
-        @warn "Weighted accuracy cannot be used for classification. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    end
     validate_main2(settings,validation_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
@@ -475,32 +571,32 @@ function validate()
 end
 
 # Application
-function get_urls_application(input_dir::String)
-    if !isdir(input_dir)
-        @error string(input_dir," does not exist.")
+function get_urls_application(input_url::String)
+    if !isdir(input_url)
+        @error string(input_url," does not exist.")
         return nothing
     end
-    application.input_dir = input_dir
+    application.input_url = input_url
     get_urls_application_main(application,application_data,model_data)
     application.checked_folders = application_data.folders
     return nothing
 end
 
 function get_urls_application()
+    url_out = String[""]
+    observe(url) = url_out[1] = url
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(
-        set_settings
-    )
-    loadqml("GUI/universalFolderDialog.qml",currentfolder = dir,
-        target = "Application",type = "input_dir")
+    @qmlfunction(observe)
+    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir,
+        target = "Application",type = "input_url")
     exec()
-    sleep(0.1)
-    if application.input_dir==""
+    application.input_url = url_out[1]
+    if application.input_url==""
         @error "Input data directory URL is empty."
         return nothing
     else
-        @info string(application.input_dir, " was selected.")
+        @info string(application.input_url, " was selected.")
     end
 
     get_urls_application_main(application,application_data,model_data)

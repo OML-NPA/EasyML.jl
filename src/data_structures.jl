@@ -5,6 +5,9 @@
     training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
     training_data_modifiers::Channel = Channel{Any}(Inf)
+    testing_data_progress::Channel = Channel{Int64}(Inf)
+    testing_data_results::Channel = Channel{Any}(Inf)
+    testing_data_modifiers::Channel = Channel{Any}(Inf)
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Any}(Inf)
@@ -28,6 +31,7 @@ abstract type AbstractClass end
 
 @with_kw mutable struct ImageClassificationClass<:AbstractClass
     name::String = ""
+    weight::Float32 = 1
 end
 
 @with_kw mutable struct ImageRegressionClass<:AbstractClass
@@ -36,6 +40,7 @@ end
 
 @with_kw mutable struct ImageSegmentationClass<:AbstractClass
     name::String = ""
+    weight::Float32 = 1
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
     border_thickness::Int64 = 3
@@ -300,7 +305,6 @@ end
     output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     OutputOptions::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
-    
 end
 model_data = ModelData()
 
@@ -323,31 +327,28 @@ end
 training_plot_data = TrainingPlotData()
 
 @with_kw mutable struct TrainingResultsData
-    loss::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    accuracy::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    test_accuracy::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
-    test_loss::Union{Vector{Float32},Vector{Float64}} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    test_accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    test_loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_iteration::Vector{Int64} = Vector{Int64}(undef,0)
 end
 training_results_data = TrainingResultsData()
 
 @with_kw mutable struct ClassificationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{Int32} = Vector{BitArray{3}}(undef,0)
+    data_labels::Vector{Int32} = Vector{Int32}(undef,0)
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
-    labels::Vector{String} = Vector{String}(undef,0)
+    label_urls::Vector{String} = Vector{String}(undef,0)
     filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
 end
-classification_data = ClassificationData()
 
 @with_kw mutable struct RegressionData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     labels_url::String = ""
-    filenames::Vector{String} = Vector{String}(undef,0)
 end
-regression_data = RegressionData()
 
 @with_kw mutable struct SegmentationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
@@ -355,19 +356,24 @@ regression_data = RegressionData()
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     foldernames::Vector{String} = Vector{String}(undef,0)
-    filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
-    fileindices::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
 end
-segmentation_data = SegmentationData()
 
 @with_kw mutable struct TrainingData
     PlotData::TrainingPlotData = training_plot_data
     Results::TrainingResultsData = training_results_data
-    ClassificationData::ClassificationData = classification_data
-    RegressionData::RegressionData = regression_data
-    SegmentationData::SegmentationData = segmentation_data
+    ClassificationData::ClassificationData = ClassificationData()
+    RegressionData::RegressionData = RegressionData()
+    SegmentationData::SegmentationData = SegmentationData()
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 training_data = TrainingData()
+
+@with_kw mutable struct TestingData
+    ClassificationData::ClassificationData = ClassificationData()
+    RegressionData::RegressionData = RegressionData()
+    SegmentationData::SegmentationData = SegmentationData()
+end
+testing_data = TestingData()
 
 @with_kw mutable struct ValidationImageClassificationResults
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
@@ -408,18 +414,21 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
 
 @with_kw mutable struct ApplicationData
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
 
 @with_kw mutable struct AllData
     DesignData::DesignData = design_data
     TrainingData::TrainingData = training_data
+    TestingData::TestingData = testing_data
     ValidationData::ValidationData = validation_data
     ApplicationData::ApplicationData = application_data
     image::Array{RGB{Float32},2} = Array{RGB{Float32},2}(undef,0,0)
@@ -479,14 +488,22 @@ end
 hyperparameters_training = HyperparametersTraining()
 
 @with_kw mutable struct GeneralTraining
+    allow_GPU::Bool = true
     weight_accuracy::Bool = true
-    test_data_fraction::Float64 = 0
-    testing_frequency::Float64 = 5
+    manual_weight_accuracy::Bool = false
 end
 general_training = GeneralTraining()
 
+@with_kw mutable struct TestingTraining
+    test_data_fraction::Float64 = 0
+    num_tests::Float64 = 5
+    manual_testing_data::Bool = false
+end
+testing_training = TestingTraining()
+
 @with_kw mutable struct TrainingOptions
     General::GeneralTraining = general_training
+    Testing::TestingTraining = testing_training
     Processing::ProcessingTraining = processing_training
     Hyperparameters::HyperparametersTraining = hyperparameters_training
 end
@@ -495,17 +512,22 @@ training_options = TrainingOptions()
 @with_kw mutable struct Training
     Options::TrainingOptions = training_options
     model_url::String = ""
-    input_dir::String = ""
-    label_dir::String = ""
+    input_url::String = ""
+    label_url::String = ""
     name::String = "new"
 end
 training = Training()
 
+@with_kw mutable struct Testing
+    input_url::String = ""
+    label_url::String = ""
+end
+testing = Testing()
+
 # Validation
 @with_kw mutable struct Validation
-    model_url::String = ""
-    input_dir::String = ""
-    label_dir::String = ""
+    input_url::String = ""
+    label_url::String = ""
     use_labels::Bool = false
 end
 validation = Validation()
@@ -526,7 +548,7 @@ application_options = ApplicationOptions()
 @with_kw mutable struct Application
     Options::ApplicationOptions = application_options
     model_url::String = ""
-    input_dir::String = ""
+    input_url::String = ""
     checked_folders::Vector{String} = String[]
 end
 application = Application()
@@ -544,6 +566,7 @@ visualisation = Visualisation()
     Options::Options = options
     Design::Design = design
     Training::Training = training
+    Testing::Testing = testing
     Validation::Validation = validation
     Application::Application = application
     Visualisation::Visualisation = visualisation

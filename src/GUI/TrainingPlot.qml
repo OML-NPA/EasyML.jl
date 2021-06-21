@@ -11,9 +11,9 @@ import org.julialang 1.0
 
 
 ApplicationWindow {
-    id: window
+    id: trainingWindow
     visible: true
-    title: qsTr("  Julia Machine Learning GUI")
+    title: qsTr("  EasyML")
     minimumWidth: gridLayout.width
     minimumHeight: gridLayout.height
     maximumWidth: gridLayout.width
@@ -72,8 +72,8 @@ ApplicationWindow {
         modal: true
         visible: true
         closePolicy: Popup.NoAutoClose
-        x: window.width/2 - width/2
-        y: window.height/2 - height/2
+        x: trainingWindow.width/2 - width/2
+        y: trainingWindow.height/2 - height/2
         width: titleLabel.width + 0.8*margin
         height: titleLabel.height + 0.4*margin + 15*pix + 0.2*margin
         Label {
@@ -469,10 +469,12 @@ ApplicationWindow {
                             Row {
                                 spacing: 0.3*margin
                                 Label {
+                                    id: numepochsLabel
                                     text: "Number of epochs:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: numepochsLabel.verticalCenter
                                     from: trainingTimer.epoch
                                     value: Julia.get_settings(
                                                ["Training","Options","Hyperparameters","epochs"])
@@ -491,12 +493,14 @@ ApplicationWindow {
                             Row {
                                 spacing: 0.3*margin
                                 Label {
+                                    id: learningrateLabel
                                     visible: Julia.get_settings(
                                                  ["Training","Options","Hyperparameters","allow_lr_change"])
                                     text: "Learning rate:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: learningrateLabel.verticalCenter
                                     visible: Julia.get_settings(
                                                  ["Training","Options","Hyperparameters","allow_lr_change"])
                                     from: 1
@@ -517,22 +521,23 @@ ApplicationWindow {
                             }
                             Row {
                                 visible: Julia.get_settings(
-                                    ["Training","Options","General","test_data_fraction"])!==0
+                                    ["Training","Options","Testing","test_data_fraction"])!==0
                                 spacing: 0.3*margin
                                 Label {
-                                    id: testingfrLabel
-                                    text: "Testing frequency:"
+                                    id: numtestsLabell
+                                    text: "Number of tests:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
+                                    anchors.verticalCenter: numtestsLabell.verticalCenter
                                     from: 0
                                     value: Julia.get_settings(
-                                               ["Training","Options","General","testing_frequency"])
+                                               ["Training","Options","Testing","num_tests"])
                                     to: 10000
                                     stepSize: 1
                                     editable: true
                                     onValueModified: {
-                                        Julia.put_channel("Training",["testing frequency",value])
+                                        Julia.put_channel("Training",["number of tests",value])
                                     }
                                 }
                             }
@@ -542,8 +547,8 @@ ApplicationWindow {
             }
         }
         MouseArea {
-            width: window.width
-            height: window.height
+            width: trainingWindow.width
+            height: trainingWindow.height
             onPressed: {
                 focus = true
                 mouse.accepted = false

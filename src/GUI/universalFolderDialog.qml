@@ -4,11 +4,10 @@ import org.julialang 1.0
 
 FolderDialog {
     id: folderDialog
-    currentFolder: currentfolder
     options: FolderDialog.ShowDirsOnly
     onAccepted: {
         var dir = folder.toString().replace("file:///","")
-        Julia.set_settings([target,type],dir)
+        Julia.observe(dir)
         Qt.quit()
     }
     onRejected: {

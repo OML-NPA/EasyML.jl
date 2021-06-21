@@ -4,10 +4,11 @@ import org.julialang 1.0
 
 FileDialog {
     id: fileDialog
-    nameFilters: [ "*.model"]
+    currentFile: "file:///"+filename
+    fileMode: FileDialog.SaveFile
     onAccepted: {
         var url = file.toString().replace("file:///","")
-        Julia.load_model(url)
+        Julia.observe(url)
         Qt.quit()
     }
     onRejected: {

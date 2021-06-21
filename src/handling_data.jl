@@ -402,13 +402,13 @@ function append_classes_main(model_data::ModelData,design_data::DesignData,id,da
     id = convert(Int64,id)
     type = eltype(model_data.classes)
     backup = design_data.output_options_backup
-    if type==ImageClassificationClass
+    if settings.problem_type==:Classification
         class = ImageClassificationClass()
         class.name = data[1]
-    elseif type==ImageRegressionClass
+    elseif settings.problem_type==:Regression
         class = ImageRegressionClass()
         class.name = data[1]
-    elseif type==ImageSegmentationClass
+    elseif settings.problem_type==:Segmentation
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
