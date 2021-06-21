@@ -168,8 +168,16 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     return data
 end
 
-function check_abort()
-
+function check_abort(training_data_modifiers)
+    if isready(training_data_modifiers)
+        if fetch(training_data_modifiers)[1]=="stop"
+            return true
+        else
+            false
+        end
+    else
+        false
+    end
 end
 
 # Prepare data for training
@@ -207,10 +215,8 @@ function prepare_data(classification_data::ClassificationData,
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
         for l = 1:num2
             # Abort if requested
-            if isready(channels.training_data_modifiers)
-                if fetch(channels.training_data_modifiers)[1]=="stop"
-                    return nothing
-                end
+            if check_abort(channels.training_data_modifiers)
+                return nothing
             end
             # Get a current image
             img_raw = current_imgs[l]
@@ -273,10 +279,8 @@ function prepare_data(regression_data::RegressionData,
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if isready(channels.training_data_modifiers)
-            if fetch(channels.training_data_modifiers)[1]=="stop"
-                return nothing
-            end
+        if check_abort(channels.training_data_modifiers)
+            return nothing
         end
         # Get a current image
         img_raw = imgs[k]
@@ -340,10 +344,8 @@ function prepare_data(segmentation_data::SegmentationData,
     # Make input images
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if isready(channels.training_data_modifiers)
-            if fetch(channels.training_data_modifiers)[1]=="stop"
-                return nothing
-            end
+        if check_abort(channels.training_data_modifiers)
+            return nothing
         end
         # Get current images
         img_raw = imgs[k]
