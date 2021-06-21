@@ -369,25 +369,6 @@ end
 prepare_training_data() = prepare_data(training,training_data,"Training data preparation")
 prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
 
-function remove_data(some_data::Union{TrainingData,TestingData})
-    fields = [:data_input,:data_labels]
-    for i in fields
-        empty!(getfield(some_data.ClassificationData,i))
-        empty!(getfield(some_data.RegressionData,i))
-        empty!(getfield(some_data.SegmentationData,i))
-    end
-    if settings.input_type==:Image
-        empty!(some_data.ClassificationData.input_urls)
-        empty!(some_data.ClassificationData.label_urls)
-        empty!(some_data.RegressionData.input_urls)
-        empty!(some_data.SegmentationData.input_urls)
-        empty!(some_data.SegmentationData.label_urls)
-    end
-    return nothing
-end
-remove_training_data() = remove_data(training_data)
-remove_testing_data() = remove_data(testing_data)
-
 function modify(data)
     if typeof(data)==TrainingOptions
         @qmlfunction(

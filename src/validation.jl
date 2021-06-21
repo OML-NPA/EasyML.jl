@@ -243,9 +243,27 @@ function remove_validation_data()
             fields = fieldnames(ValidationImageRegressionResults)
         elseif settings.problem_type==:Segmentation
             data = validation_data.ImageSegmentationResults
-            fields = fieldnames(ValidationImageSegmentationResults)
+            fields = fieldnames()
         end
     end
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
+function remove_validation_results()
+    data = validation_data.ImageClassificationResults
+    fields = fieldnames(ValidationImageClassificationResults)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+    data = validation_data.ImageRegressionResults
+    fields = fieldnames(ValidationImageRegressionResults)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+    data = validation_data.ImageSegmentationResults
+    fields = fieldnames(ValidationImageSegmentationResults)
     for field in fields
         empty!(getfield(data, field))
     end

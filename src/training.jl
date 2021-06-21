@@ -893,6 +893,33 @@ function get_data_struct(some_data::Union{TrainingData,TestingData})
     return data
 end
 
+function remove_data(some_data::Union{TrainingData,TestingData})
+    fields = [:data_input,:data_labels]
+    for i in fields
+        empty!(getfield(some_data.ClassificationData,i))
+        empty!(getfield(some_data.RegressionData,i))
+        empty!(getfield(some_data.SegmentationData,i))
+    end
+    if settings.input_type==:Image
+        empty!(some_data.ClassificationData.input_urls)
+        empty!(some_data.ClassificationData.label_urls)
+        empty!(some_data.RegressionData.input_urls)
+        empty!(some_data.SegmentationData.input_urls)
+        empty!(some_data.SegmentationData.label_urls)
+    end
+    return nothing
+end
+remove_training_data() = remove_data(training_data)
+remove_testing_data() = remove_data(testing_data)
+
+function remove_training_results()
+    data = training_data.Results
+    fields = fieldnames(TrainingResultsData)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
 # Main training function
 function train_main(settings::Settings,training_data::TrainingData,testing_data::TestingData,
         model_data::ModelData,channels::Channels)
