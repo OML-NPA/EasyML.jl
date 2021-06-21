@@ -416,8 +416,21 @@ function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) wh
 end
 
 function get_weights(classes::Vector{<:AbstractClass},settings::Settings)
-    if settings.Training.Options.General.weight_accuracy && settings.problem_type!=:Regression
-        return map(class -> class.weight,classes)
+    problem_type = settings.problem_type
+    if settings.Training.Options.General.weight_accuracy
+        if problem_type==:Classification
+            return map(class -> class.weight,classes)
+        elseif problem_type==:Regression
+            return Vector{Float32}(undef,0)
+        else # Segmentation
+            true_classes_bool = (!).(map(class -> class.not_class, classes))
+            classes = classes = classes[true_classes_bool]
+            weights = map(class -> class.weight,classes)
+            borders_bool = map(class -> class.border, classes)
+            border_weights = weights[borders_bool]
+            append!(weights,border_weights)
+            return weights
+        end
     else
         return Vector{Float32}(undef,0)
     end

@@ -243,7 +243,7 @@ function remove_validation_data()
             fields = fieldnames(ValidationImageRegressionResults)
         elseif settings.problem_type==:Segmentation
             data = validation_data.ImageSegmentationResults
-            fields = fieldnames()
+            fields = fieldnames(ValidationImageSegmentationResults)
         end
     end
     for field in fields
@@ -282,7 +282,7 @@ function validate_main(settings::Settings,validation_data::ValidationData,
     classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
-    ws = get_weigths(training,classes)
+    ws = get_weights(classes,settings)
     accuracy::Function = get_accuracy_func(settings,ws)
     use_GPU = false
     if training.Options.General.allow_GPU
