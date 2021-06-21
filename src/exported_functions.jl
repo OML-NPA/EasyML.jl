@@ -472,15 +472,14 @@ function get_urls_validation(input_url::String,label_url::String)
             @error string(label_url," does not exist.")
             return nothing
         end
-        validation.label_url = label_url
     else
         if !isfile(label_url)
             @error string(label_url," does not exist.")
             return nothing
         end
-        regression_data.labels_url = label_url
     end
     validation.input_url = input_url
+    validation.label_url = label_url
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing

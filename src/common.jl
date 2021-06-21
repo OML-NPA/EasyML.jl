@@ -451,7 +451,7 @@ function accuracy_segmentation_weighted(predicted::A,actual::A) where {T<:Float3
 end
 
 function get_weigths(training::Training,classes::Vector{<:AbstractClass})
-    if training.Options.General.weight_accuracy
+    if training.Options.General.weight_accuracy && settings.problem_type!=:Regression
         return map(class -> class.weight,classes)
     else
         return Vector{Float32}(undef,0)
@@ -459,7 +459,7 @@ function get_weigths(training::Training,classes::Vector{<:AbstractClass})
 end
 
 function get_weigths(training::Training,training_data::TrainingData,classes::Vector{<:AbstractClass})
-    if training.Options.General.weight_accuracy
+    if training.Options.General.weight_accuracy && settings.problem_type!=:Regression
         data_labels = training_data.ClassificationData.data_labels
         label_counts = map(x -> count(x.==data_labels),1:length(classes))
         frequencies = label_counts/length(data_labels)

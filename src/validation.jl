@@ -22,7 +22,7 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
         if validation.use_labels==true
-            filenames_labels,loaded_labels = load_regression_data(regression_data.labels_url)
+            filenames_labels,loaded_labels = load_regression_data(validation.label_url)
             intersect_regression_data!(input_urls,filenames_inputs,
                 loaded_labels,filenames_labels)
             validation_data.labels_regression = loaded_labels
