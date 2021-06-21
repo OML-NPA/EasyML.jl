@@ -168,15 +168,20 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     return data
 end
 
+function check_abort()
+
+end
+
 # Prepare data for training
 function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
         progress::Channel,results::Channel)
     num_angles = options.Processing.num_angles
+    mirroring_inds = Vector{Int64}(undef,0)
     if options.Processing.mirroring
-        mirroring_inds = [1,2]
+        append!(mirroring_inds,[1,2])
     else
-        mirroring_inds = [1]
+        push!(mirroring_inds,1)
     end
     classification_data = training_data.ClassificationData
     input_urls = classification_data.input_urls
@@ -312,10 +317,11 @@ function prepare_data(segmentation_data::SegmentationData,
     classes = model_data.classes
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
+    mirroring_inds = Vector{Int64}(undef,0)
     if options.Processing.mirroring
-        mirroring_inds = [1,2]
+        append!(mirroring_inds,[1,2])
     else
-        mirroring_inds = [1]
+        push!(mirroring_inds,1)
     end
     input_urls = segmentation_data.input_urls
     # Get number of images
