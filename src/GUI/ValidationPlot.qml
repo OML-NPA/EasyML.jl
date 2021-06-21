@@ -147,6 +147,7 @@ ApplicationWindow {
     property double mean_loss
     property double accuracy_std
     property double loss_std
+    property int decimals: 4
     property var predicted_labels: []
     property var target_labels: []
     property string fieldname
@@ -284,11 +285,12 @@ ApplicationWindow {
                             showclassLabel.visible = true
                             if (use_labels) {
                                 var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
+                                decimals = countDecimals(target_label)
                                 target_labels.push(target_label)
-                                showclassLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
+                                showclassLabel.text = "Predicted: " + arrayToFixed(predicted_label,decimals) + "; Real: " + target_label
                             }
                             else {
-                                showclassLabel.text = "Predicted: " + predicted_label
+                                showclassLabel.text = "Predicted: " + arrayToFixed(predicted_label,decimals)
                             }
                         }
                         else if (problem_type==2) {
@@ -577,18 +579,18 @@ ApplicationWindow {
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1].toFixed(decimals) + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1].toFixed(decimals)
                                 }
                             }
                             if (problem_type==1) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + arrayToFixed(predicted_labels[ind1],decimals) + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + arrayToFixed(predicted_labels[ind1],decimals)
                                 }
                             }
                             else if (problem_type==2) {
@@ -779,4 +781,22 @@ ApplicationWindow {
         }
         return(total/array.length)
     }
+
+    function countDecimals(value) {
+        if (Math.floor(value) == value) {
+            return 0
+        }
+        else {
+            return value.toString().split(".")[1].length
+        }
+    }
+
+    function arrayToFixed(array,decimals) {
+        var out = []
+        for(var i = 0;i<array.length;i++) {
+            out.push(array[i].toFixed(decimals))
+        }
+        return out
+    }
+
 }
