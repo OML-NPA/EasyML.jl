@@ -114,9 +114,9 @@ function modify_output()
 end
 
 # Training
-function get_urls(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},input_url::String,label_url::String)
-    local_settings.input_url = input_url
-    local_settings.label_url = label_url
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String,label_url::String)
+    some_settings.input_url = input_url
+    some_settings.label_url = label_url
     if !isdir(input_url)
         @error string(input_url," does not exist.")
         return nothing
@@ -132,23 +132,23 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
             return nothing
         end
     end
-    get_urls_main(local_settings,local_data,model_data)
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
 get_urls_training(input_url,label_url) = get_urls(training,training_data,input_url,label_url)
 get_urls_testing(input_url,label_url) = get_urls(testing,testing_data,input_url,label_url)
 
-function get_urls(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},input_url::String)
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String)
     if settings.problem_type!=:Classification
         @error "Label data directory URL was not given."
         return nothing
     end
-    local_settings.input_url = input_url
+    some_settings.input_url = input_url
     if !isdir(input_url)
         @error string(input_url," does not exist.")
         return nothing
     end
-    get_urls_main(local_settings,local_data,model_data)
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
 
@@ -204,7 +204,7 @@ function get_urls_testing_main(training::Training,training_data::TrainingData,te
 end
 get_urls_testing() = get_urls_testing_main(training,training_data,testing,testing_data)
 
-function get_urls(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData})
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData})
     url_out = String[""]
     observe(url) = url_out[1] = url
     dir = pwd()
@@ -213,12 +213,12 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    local_settings.input_url = url_out[1]
-    if local_settings.input_url==""
+    some_settings.input_url = url_out[1]
+    if some_settings.input_url==""
         @error "Input data directory URL is empty."
         return nothing
     else
-        @info string(local_settings.input_url, " was selected.")
+        @info string(some_settings.input_url, " was selected.")
     end
     problem_type = settings.problem_type
     if problem_type==:Classification
@@ -229,32 +229,32 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
         loadqml("GUI/UniversalFileDialog.qml",
             nameFilters = name_filters)
         exec()
-        local_settings.label_url = url_out[1]
-        if local_settings.label_url==""
+        some_settings.label_url = url_out[1]
+        if some_settings.label_url==""
             @error "Label data file URL is empty."
             return nothing
         else
-            @info string(local_settings.label_url, " was selected.")
+            @info string(some_settings.label_url, " was selected.")
         end
     elseif problem_type==:Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe)
         loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
         exec()
-        local_settings.label_url = url_out[1]
-        if local_settings.label_url==""
+        some_settings.label_url = url_out[1]
+        if some_settings.label_url==""
             @error "Label data directory URL is empty."
             return nothing
         else
-            @info string(local_settings.label_url, " was selected.")
+            @info string(some_settings.label_url, " was selected.")
         end
     end
-    get_urls_main(local_settings,local_data,model_data)
+    get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
 get_urls_training() = get_urls(training,training_data)
 
-function prepare_data(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},channel_name::String)
+function prepare_data(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},channel_name::String)
     if isempty(model_data.classes)
         @error "Empty classes."
         return nothing
@@ -275,42 +275,42 @@ function prepare_data(local_settings::Union{Training,Testing},local_data::Union{
     end
     fields = [:data_input,:data_labels]
     for i in fields
-        empty!(getfield(local_data.ClassificationData,i))
-        empty!(getfield(local_data.RegressionData,i))
-        empty!(getfield(local_data.SegmentationData,i))
+        empty!(getfield(some_data.ClassificationData,i))
+        empty!(getfield(some_data.RegressionData,i))
+        empty!(getfield(some_data.SegmentationData,i))
     end
     empty_progress_channel(channel_name)
     empty_results_channel(channel_name)
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
-            empty!(local_data.SegmentationData.input_urls)
-            empty!(local_data.SegmentationData.label_urls)
-            empty!(local_data.RegressionData.input_urls)
-            if isempty(local_data.ClassificationData.input_urls)
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.ClassificationData.input_urls)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Regression
-            empty!(local_data.ClassificationData.input_urls)
-            empty!(local_data.ClassificationData.labels)
-            empty!(local_data.SegmentationData.input_urls)
-            empty!(local_data.SegmentationData.label_urls)
-            if isempty(local_data.RegressionData.input_urls)
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.labels)
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            if isempty(some_data.RegressionData.input_urls)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Segmentation
-            empty!(local_data.ClassificationData.input_urls)
-            empty!(local_data.ClassificationData.labels)
-            empty!(local_data.RegressionData.input_urls)
-            if isempty(local_data.SegmentationData.input_urls)
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.labels)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.SegmentationData.input_urls)
                 @error error_message
                 return nothing
             end
         end
     end
 
-    prepare_data_main(local_settings,local_data,model_data,channels)
+    prepare_data_main(some_settings,some_data,model_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
@@ -350,19 +350,19 @@ end
 prepare_training_data() = prepare_data(training,training_data,"Training data preparation")
 prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
 
-function remove_data(local_data::Union{TrainingData,TestingData})
+function remove_data(some_data::Union{TrainingData,TestingData})
     fields = [:data_input,:data_labels]
     for i in fields
-        empty!(getfield(local_data.ClassificationData,i))
-        empty!(getfield(local_data.RegressionData,i))
-        empty!(getfield(local_data.SegmentationData,i))
+        empty!(getfield(some_data.ClassificationData,i))
+        empty!(getfield(some_data.RegressionData,i))
+        empty!(getfield(some_data.SegmentationData,i))
     end
     if settings.input_type==:Image
-        empty!(local_data.ClassificationData.input_urls)
-        empty!(local_data.ClassificationData.label_urls)
-        empty!(local_data.RegressionData.input_urls)
-        empty!(local_data.SegmentationData.input_urls)
-        empty!(local_data.SegmentationData.label_urls)
+        empty!(some_data.ClassificationData.input_urls)
+        empty!(some_data.ClassificationData.label_urls)
+        empty!(some_data.RegressionData.input_urls)
+        empty!(some_data.SegmentationData.input_urls)
+        empty!(some_data.SegmentationData.label_urls)
     end
     return nothing
 end

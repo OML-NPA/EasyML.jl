@@ -1,13 +1,13 @@
 
 # Get urls of files in selected folders
-function get_urls_main(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},model_data::ModelData)
-    input_url = local_settings.input_url
-    label_url = local_settings.label_url
+function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},model_data::ModelData)
+    input_url = some_settings.input_url
+    label_url = some_settings.label_url
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type==:Classification
-        classification_data = local_data.ClassificationData
+        classification_data = some_data.ClassificationData
         input_urls,dirs,_ = get_urls1(input_url,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         dirs_raw = intersect(dirs,labels)
@@ -26,7 +26,7 @@ function get_urls_main(local_settings::Union{Training,Testing},local_data::Union
         classification_data.input_urls = input_urls
         classification_data.label_urls = dirs
     elseif settings.problem_type==:Regression
-        regression_data = local_data.RegressionData
+        regression_data = some_data.RegressionData
         input_urls_raw,_,filenames_inputs_raw = get_urls1(input_url,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
         filenames_inputs = reduce(vcat,filenames_inputs_raw)
@@ -37,7 +37,7 @@ function get_urls_main(local_settings::Union{Training,Testing},local_data::Union
         regression_data.labels_url = label_url
         regression_data.filenames = filenames_inputs
     elseif settings.problem_type==:Segmentation
-        segmentation_data = local_data.SegmentationData
+        segmentation_data = some_data.SegmentationData
         input_urls,label_urls,_,filenames,fileindices = get_urls2(input_url,label_url,allowed_ext)
         segmentation_data.input_urls = reduce(vcat,input_urls)
         segmentation_data.label_urls = reduce(vcat,label_urls)
@@ -366,20 +366,20 @@ function prepare_data(segmentation_data::SegmentationData,
 end
 
 # Wrapper allowing for remote execution
-function prepare_data_main(local_settings::Union{Training,Testing},local_data::Union{TrainingData,TestingData},
+function prepare_data_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
     options = settings.Training.Options
     size12 = model_data.input_size[1:2]
     problem_type = settings.problem_type
     if problem_type==:Classification
-        data = local_data.ClassificationData
+        data = some_data.ClassificationData
     elseif problem_type==:Regression
-        data = local_data.RegressionData
+        data = some_data.RegressionData
     elseif problem_type==:Segmentation
-        data = local_data.SegmentationData
+        data = some_data.SegmentationData
     end
-    if local_settings isa Training
+    if some_settings isa Training
         progress = channels.training_data_progress
         results = channels.training_data_results
     else
@@ -865,13 +865,13 @@ function train!(model_data::ModelData,training::Training,
     return data
 end
 
-function get_data_struct(local_data::Union{TrainingData,TestingData})
+function get_data_struct(some_data::Union{TrainingData,TestingData})
     if settings.problem_type==:Classification
-        data = local_data.ClassificationData
+        data = some_data.ClassificationData
     elseif settings.problem_type==:Regression
-        data = local_data.RegressionData
+        data = some_data.RegressionData
     elseif settings.problem_type==:Segmentation
-        data = local_data.SegmentationData
+        data = some_data.SegmentationData
     end
     return data
 end
