@@ -427,10 +427,6 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    if settings.problem_type==:Regression
-        @warn "Weighted accuracy cannot be used for regression. Using regular accuracy."
-        training.Options.General.weight_accuracy = false
-    end
     train_main2(settings,training_data,testing_data,model_data,channels)
     # Launches GUI
     @qmlfunction(
