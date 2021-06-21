@@ -37,11 +37,9 @@ function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{T
         regression_data.data_labels = loaded_labels
     elseif settings.problem_type==:Segmentation
         segmentation_data = some_data.SegmentationData
-        input_urls,label_urls,_,filenames,fileindices = get_urls2(input_url,label_url,allowed_ext)
+        input_urls,label_urls,_,_,_ = get_urls2(input_url,label_url,allowed_ext)
         segmentation_data.input_urls = reduce(vcat,input_urls)
         segmentation_data.label_urls = reduce(vcat,label_urls)
-        segmentation_data.filenames = filenames
-        segmentation_data.fileindices = fileindices
     end
     return nothing
 end
@@ -945,10 +943,11 @@ function train_main(settings::Settings,training_data::TrainingData,testing_data:
     train_set, test_set = get_sets(typed_training_data,typed_testing_data)
     # Setting functions and parameters
     opt = get_optimiser(training)
+    local ws::Vector{Float32}
     if training.Options.General.manual_weight_accuracy
-        ws = get_weigths(training,model_data.classes)
+        ws = get_weights(model_data.classes,settings)
     else
-        ws = get_weigths(training,training_data,model_data.classes)
+        ws = get_weights(model_data.classes,settings,training_data)
     end
     accuracy = get_accuracy_func(settings,ws)
     loss = model_data.loss

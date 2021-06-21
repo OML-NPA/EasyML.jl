@@ -40,6 +40,7 @@ end
 
 @with_kw mutable struct ImageSegmentationClass<:AbstractClass
     name::String = ""
+    weight::Float32 = 1
     color::Vector{Float64} = Vector{Float64}(undef,3)
     border::Bool = false
     border_thickness::Int64 = 3
@@ -355,8 +356,6 @@ end
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     foldernames::Vector{String} = Vector{String}(undef,0)
-    filenames::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
-    fileindices::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
 end
 
 @with_kw mutable struct TrainingData

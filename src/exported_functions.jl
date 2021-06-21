@@ -320,7 +320,7 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
             end
         elseif settings.problem_type==:Segmentation
             empty!(some_data.ClassificationData.input_urls)
-            empty!(some_data.ClassificationData.labels)
+            empty!(some_data.ClassificationData.label_urls)
             empty!(some_data.RegressionData.input_urls)
             if isempty(some_data.SegmentationData.input_urls)
                 @error error_message

@@ -16,8 +16,8 @@ ApplicationWindow {
     height: rowLayout.height + applyButton.height + 0.75*margin
     minimumWidth: rowLayout.width
     minimumHeight: rowLayout.height + applyButton.height + 0.75*margin
-    maximumWidth: rowLayout.width
-    maximumHeight: rowLayout.height + applyButton.height + 0.75*margin
+    //maximumWidth: rowLayout.width
+    //maximumHeight: minimumHeight
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
 
@@ -92,6 +92,7 @@ ApplicationWindow {
                 class_var = {
                     "id": id,
                     "name": Julia.get_class_field(ind,"name"),
+                    "weight": Julia.get_class_field(ind,"weight"),
                     "colorR": color[0],
                     "colorG": color[1],
                     "colorB": color[2],
@@ -130,6 +131,12 @@ ApplicationWindow {
 
         }
         else if (problemComboBox.currentIndex==2) {
+            if (indTree>0 && classModel.get(indTree).not_class) {
+                weightRow.visible = false
+            }
+            else {
+                weightRow.visible = true
+            }
             colorLabel.visible = true
             colorRow.visible = true
             minareaRow.visible = true
@@ -158,6 +165,8 @@ ApplicationWindow {
 
         }
         else if (problemComboBox.currentIndex==2) {
+
+            weightTextField.text = classModel.get(indTree).weight.toFixed(2)
 
             redTextField.text = classModel.get(indTree).colorR
             greenTextField.text = classModel.get(indTree).colorG
@@ -415,6 +424,7 @@ ApplicationWindow {
                                     else if (problemComboBox.currentIndex==2) {
                                         var class_var = {
                                             "name": name,
+                                            "weight": 1,
                                             "id": id,
                                             "colorR": Math.floor(Math.random()*255)+1,
                                             "colorG": Math.floor(Math.random()*255)+1,
