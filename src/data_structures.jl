@@ -421,6 +421,7 @@ validation_data = ValidationData()
 @with_kw mutable struct ApplicationData
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
+    tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
 
