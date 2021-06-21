@@ -230,14 +230,18 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
             nameFilters = name_filters)
         exec()
         local_settings.label_url = url_out[1]
+        if local_settings.label_url==""
+            @error "Label data file URL is empty."
+            return nothing
+        else
+            @info string(local_settings.label_url, " was selected.")
+        end
     elseif problem_type==:Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe)
         loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
         exec()
         local_settings.label_url = url_out[1]
-    end
-    if  problem_type!=:Classification
         if local_settings.label_url==""
             @error "Label data directory URL is empty."
             return nothing
