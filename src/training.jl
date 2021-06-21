@@ -246,9 +246,15 @@ function prepare_data(regression_data::RegressionData,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
     input_size = model_data.input_size
     num_angles = options.Processing.num_angles
+    mirroring_inds = Vector{Int64}(undef,0)
+    if options.Processing.mirroring
+        append!(mirroring_inds,[1,2])
+    else
+        push!(mirroring_inds,1)
+    end
     input_urls = regression_data.input_urls
-    initial_label_data = regression_data.data_labels
-    filenames_inputs = regression_data.filenames
+    initial_label_data = copy(regression_data.data_labels)
+    empty!(regression_data.data_labels)
     # Get number of images
     num = length(input_urls)
     # Return progress target value
@@ -306,6 +312,11 @@ function prepare_data(segmentation_data::SegmentationData,
     classes = model_data.classes
     min_fr_pix = options.Processing.min_fr_pix
     num_angles = options.Processing.num_angles
+    if options.Processing.mirroring
+        mirroring_inds = [1,2]
+    else
+        mirroring_inds = [1]
+    end
     input_urls = segmentation_data.input_urls
     # Get number of images
     num = length(input_urls)
@@ -384,6 +395,7 @@ function prepare_data_main(some_settings::Union{Training,Testing},some_data::Uni
         results = channels.testing_data_results
     end
     t = Threads.@spawn prepare_data(data,model_data,options,size12,progress,results)
+    push!(training_data.tasks,t)
     return nothing
 end
 #prepare_data() = prepare_data_main2(training,training_data,

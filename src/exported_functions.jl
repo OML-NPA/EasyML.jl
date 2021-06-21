@@ -295,9 +295,9 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
     fields = [:data_input,:data_labels]
     for i in fields
         empty!(getfield(some_data.ClassificationData,i))
-        empty!(getfield(some_data.RegressionData,i))
         empty!(getfield(some_data.SegmentationData,i))
     end
+    empty!(some_data.RegressionData.data_input)
     empty_progress_channel(channel_name)
     empty_results_channel(channel_name)
     if settings.input_type==:Image
@@ -311,7 +311,7 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
             end
         elseif settings.problem_type==:Regression
             empty!(some_data.ClassificationData.input_urls)
-            empty!(some_data.ClassificationData.labels)
+            empty!(some_data.ClassificationData.label_urls)
             empty!(some_data.SegmentationData.input_urls)
             empty!(some_data.SegmentationData.label_urls)
             if isempty(some_data.RegressionData.input_urls)
