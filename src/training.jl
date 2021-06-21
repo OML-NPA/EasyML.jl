@@ -33,9 +33,8 @@ function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{T
         filenames_labels,loaded_labels = load_regression_data(label_url)
         intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
         regression_data.input_urls = input_urls
-        regression_data.filenames = filenames_inputs
         regression_data.labels_url = label_url
-        regression_data.filenames = filenames_inputs
+        regression_data.data_labels = loaded_labels
     elseif settings.problem_type==:Segmentation
         segmentation_data = some_data.SegmentationData
         input_urls,label_urls,_,filenames,fileindices = get_urls2(input_url,label_url,allowed_ext)
@@ -248,14 +247,12 @@ function prepare_data(regression_data::RegressionData,
     input_size = model_data.input_size
     num_angles = options.Processing.num_angles
     input_urls = regression_data.input_urls
+    initial_label_data = regression_data.data_labels
     filenames_inputs = regression_data.filenames
     # Get number of images
     num = length(input_urls)
     # Return progress target value
     put!(progress, num+2)
-    # Load labels
-    filenames_labels,loaded_labels = load_regression_data(regression_data.labels_url)
-    intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
     num = length(input_urls)
     # Load images
     imgs = load_images(input_urls)
@@ -274,7 +271,7 @@ function prepare_data(regression_data::RegressionData,
         img_raw = imgs[k]
         img_raw = imresize(img_raw,input_size[1:2])
         # Get current label
-        label = loaded_labels[k]
+        label = initial_label_data[k]
         # Convert to float
         if options.Processing.grayscale
             img = image_to_gray_float(img_raw)

@@ -154,6 +154,14 @@ end
 
 get_urls_training(input_url) = get_urls(training,training_data,input_url)
 
+function get_train_test_inds(num::Int64,fraction::Float64)
+    inds = randperm(num)  # Get shuffled indices
+    ind_last_test = convert(Int64,round(fraction*num))
+    inds_train = inds[ind_last_test+1:end]
+    inds_test = inds[1:ind_last_test]
+    return inds_train,inds_test
+end
+
 function get_urls_testing_main(training::Training,training_data::TrainingData,testing::Testing,testing_data::TestingData)
     if training.Options.Testing.manual_testing_data
         get_urls(testing,testing_data)
@@ -162,43 +170,54 @@ function get_urls_testing_main(training::Training,training_data::TrainingData,te
         if problem_type==:Classification
             typed_training_data = training_data.ClassificationData
             typed_testing_data = testing_data.ClassificationData
-        elseif problem_type==:RegressionData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
+        elseif problem_type==:Regression
             typed_training_data = training_data.RegressionData
             typed_testing_data = testing_data.RegressionData
-        elseif problem_type==:SegmentationData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.data_labels
+            testing_labels = typed_testing_data.data_labels
+        elseif problem_type==:Segmentation
             typed_training_data = training_data.SegmentationData
             typed_testing_data = testing_data.SegmentationData
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
         end
-        input_urls = copy(typed_training_data.input_urls)
-        label_urls = copy(typed_training_data.label_urls)
-        if isempty(input_urls)
+        if isempty(training_inputs) || isempty(training_labels)
             @warn "Training data should be loaded first. Run 'get_urls_training'"
             return nothing
         end
-        empty!(typed_training_data.input_urls)
-        empty!(typed_training_data.label_urls)
-        empty!(typed_testing_data.input_urls)
-        empty!(typed_testing_data.label_urls)
+        training_inputs_copy = copy(training_inputs)
+        training_labels_copy = copy(training_labels)
+        empty!(training_inputs)
+        empty!(testing_inputs)
+        empty!(training_labels)
+        empty!(testing_labels)
+        fraction = training.Options.Testing.test_data_fraction
         if problem_type==:Classification
-            fraction = training.Options.Testing.test_data_fraction
-            nums = length.(input_urls) # Get the number of elements
+            nums = length.(training_inputs_copy) # Get the number of elements
             for i = 1:length(nums)
                 num = nums[i]
-                inds = randperm(num)  # Get shuffled indices
-                ind_last_test = convert(Int64,round(fraction*num))
-                inds_train = inds[ind_last_test+1:end]
-                inds_test = inds[1:ind_last_test]
-                push!(typed_training_data.input_urls,input_urls[i][inds_train])
-                push!(typed_testing_data.input_urls,input_urls[i][inds_test])
+                inds_train,inds_test = get_train_test_inds(num,fraction)
+                push!(training_inputs,training_inputs_copy[i][inds_train])
+                push!(testing_inputs,training_inputs_copy[i][inds_test])
             end
-            typed_training_data.label_urls = label_urls
-            typed_testing_data.label_urls = label_urls
-        elseif problem_type==:RegressionData
-
-        elseif problem_type==:SegmentationData
-
+            append!(training_labels,training_labels_copy)
+            append!(testing_labels,training_labels_copy)
+        elseif problem_type==:Regression || problem_type==:Segmentation
+            num = length(training_inputs_copy) # Get the number of elements
+            inds_train,inds_test = get_train_test_inds(num,fraction)
+            append!(training_inputs,training_inputs_copy[inds_train])
+            append!(testing_inputs,training_inputs_copy[inds_test])
+            append!(training_labels,training_labels_copy[inds_train])
+            append!(testing_labels,training_labels_copy[inds_test])
         end
-        
     end
     return nothing
 end

@@ -347,7 +347,6 @@ end
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     labels_url::String = ""
-    filenames::Vector{String} = Vector{String}(undef,0)
 end
 
 @with_kw mutable struct SegmentationData
