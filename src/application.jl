@@ -509,6 +509,14 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
 end
 
+function remove_application_data()
+    data = application_data
+    fields = fieldnames(ApplicationData)
+    for field in fields
+        empty!(getfield(data, field))
+    end
+end
+
 # Main function that performs application
 function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
         model_data::ModelData,T::DataType,channels::Channels)
