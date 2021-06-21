@@ -132,7 +132,7 @@ function get_urls(local_settings::Union{Training,Testing},local_data::Union{Trai
             return nothing
         end
     end
-    get_urls_training_main(local_settings,local_data,model_data)
+    get_urls_main(local_settings,local_data,model_data)
     return nothing
 end
 get_urls_training(input_url,label_url) = get_urls(training,training_data,input_url,label_url)

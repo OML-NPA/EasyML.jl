@@ -7,6 +7,7 @@ function get_urls_main(local_settings::Union{Training,Testing},local_data::Union
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type==:Classification
+        classification_data = local_data.ClassificationData
         input_urls,dirs,_ = get_urls1(input_url,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         dirs_raw = intersect(dirs,labels)
@@ -22,19 +23,26 @@ function get_urls_main(local_settings::Union{Training,Testing},local_data::Union
             dirs = dirs_raw
             input_urls = input_urls
         end
-        local_data.ClassificationData.input_urls = input_urls
-        local_data.ClassificationData.label_urls = dirs
+        classification_data.input_urls = input_urls
+        classification_data.label_urls = dirs
     elseif settings.problem_type==:Regression
-        input_urls,_,filenames = get_urls1(input_url,allowed_ext)
-        local_data.RegressionData.input_urls = reduce(vcat,input_urls)
-        local_data.RegressionData.labels_url = label_url
-        local_data.RegressionData.filenames = reduce(vcat,filenames)
+        regression_data = local_data.RegressionData
+        input_urls_raw,_,filenames_inputs_raw = get_urls1(input_url,allowed_ext)
+        input_urls = reduce(vcat,input_urls_raw)
+        filenames_inputs = reduce(vcat,filenames_inputs_raw)
+        filenames_labels,loaded_labels = load_regression_data(label_url)
+        intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
+        regression_data.input_urls = input_urls
+        regression_data.filenames = filenames_inputs
+        regression_data.labels_url = label_url
+        regression_data.filenames = filenames_inputs
     elseif settings.problem_type==:Segmentation
+        segmentation_data = local_data.SegmentationData
         input_urls,label_urls,_,filenames,fileindices = get_urls2(input_url,label_url,allowed_ext)
-        local_data.SegmentationData.input_urls = reduce(vcat,input_urls)
-        local_data.SegmentationData.label_urls = reduce(vcat,label_urls)
-        local_data.SegmentationData.filenames = filenames
-        local_data.SegmentationData.fileindices = fileindices
+        segmentation_data.input_urls = reduce(vcat,input_urls)
+        segmentation_data.label_urls = reduce(vcat,label_urls)
+        segmentation_data.filenames = filenames
+        segmentation_data.fileindices = fileindices
     end
     return nothing
 end
