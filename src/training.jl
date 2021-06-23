@@ -605,7 +605,7 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
                         inds_start_sh,inds_all_sh,cnt)
                     put!(minibatch_channel,minibatch)
                     break
-                elseif testing_mode[]
+                elseif run_test && testing_mode[]
                     break
                 else
                     sleep(0.01)
@@ -613,7 +613,6 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
             end
             if run_test && testing_mode[]
                 cnt_test = 0
-                
                 while true
                     numel_test_channel = (iteration_test_local-counter_test.iteration)
                     if numel_test_channel<10
