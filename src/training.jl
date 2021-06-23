@@ -645,8 +645,8 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
 end
 
 function check_modifiers(model_data,model,model_name,accuracy_vector,
-        loss_vector,allow_lr_change,composite,opt,num,epochs,max_iterations,
-        num_tests,modifiers_channel,abort;gpu=false)
+        loss_vector,allow_lr_change,composite,opt,i,num,epochs,max_iterations,
+        num_tests,global_iteration_test,modifiers_channel,abort;gpu=false)
     while isready(modifiers_channel)
         modifs = fix_QML_types(take!(modifiers_channel))
         modif1::String = modifs[1]
@@ -677,9 +677,11 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             resize!(loss_vector,max_iterations[])
         elseif modif1=="number of tests"
             num_tests::Float64 = modifs[2]
+            frequency = num/num_tests
+            global_iteration_test = floor(i/frequency)
         end
     end
-    return num_tests
+    return num_tests,global_iteration_test
 end
 
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
@@ -689,16 +691,19 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
-        iteration_global_counter = 0
+        global_iteration_test = 0
         for i = 1:num
+            counter()
+            iteration = counter.iteration
             # Prepare training data
             local minibatch_data::eltype(minibatch_channel.data)
             while true
                 # Update parameters or abort if needed
                 if isready(channels.training_modifiers)
-                    num_tests = check_modifiers(model_data,model,model_name,
-                        accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                        max_iterations,num_tests,channels.training_modifiers,abort;gpu=use_GPU)
+                    num_tests,iteration_global_counter = check_modifiers(model_data,model,model_name,
+                        accuracy_vector,loss_vector,allow_lr_change,composite,opt,i,num,epochs,
+                        max_iterations,num_tests,global_iteration_test,
+                        channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
                         return nothing
                     end
@@ -710,8 +715,6 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                     sleep(0.01)
                 end
             end
-            counter()
-            iteration = counter.iteration
             input_data = move_f(minibatch_data[1])
             actual = move_f(minibatch_data[2])
             # Calculate gradient
@@ -733,11 +736,11 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             # Testing part
             if run_test
                 training_started_cond = i==1 && epoch_idx==1
-                num_tests_cond = i>iteration_global_counter*ceil(num/num_tests)
+                num_tests_cond = i>global_iteration_test*ceil(num/num_tests)
                 training_finished_cond = iteration==(max_iterations[]-1)
                 # Test if testing frequency reached or training is done
                 if num_tests_cond ||  training_started_cond || training_finished_cond
-                    iteration_global_counter += 1
+                    global_iteration_test += 1
                     Threads.atomic_xchg!(testing_mode, true)
                     # Calculate test accuracy and loss
                     data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f,abort)
