@@ -125,7 +125,7 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
-    @floop ThreadedEx() for g = 1:num
+    for g = 1:num
         angle_val = angles[g]
         img2 = rotate_img(float_img,angle_val)
         label2 = rotate_img(label,angle_val)
