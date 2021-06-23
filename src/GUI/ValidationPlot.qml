@@ -287,10 +287,10 @@ ApplicationWindow {
                                 var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
                                 decimals = countDecimals(target_label)
                                 target_labels.push(target_label)
-                                showclassLabel.text = "Predicted: " + arrayToFixed(predicted_label,decimals) + "; Real: " + target_label
+                                showclassLabel.text = "Predicted: " + anyToFixed(predicted_label,decimals) + "; Real: " + target_label
                             }
                             else {
-                                showclassLabel.text = "Predicted: " + arrayToFixed(predicted_label,decimals)
+                                showclassLabel.text = "Predicted: " + anyToFixed(predicted_label,decimals)
                             }
                         }
                         else if (problem_type==2) {
@@ -579,18 +579,18 @@ ApplicationWindow {
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1].toFixed(decimals) + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1].toFixed(decimals)
+                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
                                 }
                             }
                             if (problem_type==1) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + arrayToFixed(predicted_labels[ind1],decimals) + "; Real: " + target_labels[ind1]
+                                    showclassLabel.text = "Predicted: " + anyToFixed(predicted_labels[ind1],decimals) + "; Real: " + target_labels[ind1]
                                 }
                                 else {
-                                    showclassLabel.text = "Predicted: " + arrayToFixed(predicted_labels[ind1],decimals)
+                                    showclassLabel.text = "Predicted: " + anyToFixed(predicted_labels[ind1],decimals)
                                 }
                             }
                             else if (problem_type==2) {
@@ -791,12 +791,17 @@ ApplicationWindow {
         }
     }
 
-    function arrayToFixed(array,decimals) {
-        var out = []
-        for(var i = 0;i<array.length;i++) {
-            out.push(array[i].toFixed(decimals))
+    function anyToFixed(input,decimals) {
+        if (Array.isArray(input)) {
+            var out = []
+            for(var i = 0;i<input.length;i++) {
+                out.push(input[i].toFixed(decimals))
+            }
+            return out
         }
-        return out
+        else {
+            return input.toFixed(decimals)
+        }
     }
 
 }
