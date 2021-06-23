@@ -177,7 +177,7 @@ function load_settings!(settings::Settings)
     if isfile("config.bson")
         try
             data = BSON.load("config.bson")
-            copystruct!(settings,data[:settings])
+            dict_to_struct!(settings,data[:dict])
         catch e
             @error string("Settings were not loaded. Error: ",e)
             save_settings()
