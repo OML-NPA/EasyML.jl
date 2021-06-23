@@ -624,8 +624,8 @@ end
 
 function check_abort_signal(channel::Channel)
     if isready(channel)
-        stop_cond::String = fetch(channel)[1]
-        if stop_cond=="stop"
+        value = fetch(channel)[1]
+        if value==0
             return true
         else
             return false

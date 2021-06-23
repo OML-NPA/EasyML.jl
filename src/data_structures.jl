@@ -1,27 +1,21 @@
 
 #---Channels
-# 
+
 @with_kw struct Channels
     training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
-    training_data_modifiers::Channel = Channel{Any}(Inf)
+    training_data_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
     testing_data_progress::Channel = Channel{Int64}(Inf)
     testing_data_results::Channel = Channel{Any}(Inf)
-    testing_data_modifiers::Channel = Channel{Any}(Inf)
+    testing_data_modifiers::Channel = Channel{Int64}(Inf) # 0 - abort
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
-    training_modifiers::Channel = Channel{Any}(Inf)
-    validation_data_progress::Channel = Channel{Int64}(Inf)
-    validation_data_results::Channel = Channel{Any}(Inf)
-    validation_data_modifiers::Channel = Channel{Any}(Inf)
+    training_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort; 1 - learning rate; 2 - epochs; 3 - number of tests
     validation_progress::Channel = Channel{Any}(Inf)
     validation_results::Channel = Channel{Any}(Inf)
-    validation_modifiers::Channel = Channel{Any}(Inf)
-    training_labels_colors::Channel = Channel{Any}(Inf)
-    application_data_progress::Channel = Channel{Int64}(Inf)
-    application_data_results::Channel = Channel{Any}(Inf)
-    application_progress::Channel = Channel{Any}(Inf)
-    application_modifiers::Channel = Channel{Any}(Inf)
+    validation_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
+    application_progress::Channel = Channel{Int64}(Inf)
+    application_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
 end
 channels = Channels()
 

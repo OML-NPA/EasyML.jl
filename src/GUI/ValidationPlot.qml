@@ -153,7 +153,7 @@ ApplicationWindow {
     property string fieldname
 
     onClosing: {
-        Julia.put_channel("Validation",["stop"])
+        Julia.put_channel("Validation",[0.0,0.0])
         //validateButton.text = "Validate"
         //progressbar.value = 0
         //validationplotLoader.sourceComponent = undefined
@@ -508,7 +508,7 @@ ApplicationWindow {
                         id: stoptraining
                         width: buttonHeight
                         height: buttonHeight
-                        onClicked: Julia.put_channel("Validation",["stop"])
+                        onClicked: Julia.put_channel("Validation",[0.0,0.0])
                     }
                 }
                 Label {

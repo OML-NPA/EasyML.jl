@@ -40,7 +40,13 @@ function get_progress_main(channels::Channels,field)
         channel_temp = channels.application_progress
     end
     if isready(channel_temp)
-        return take!(channel_temp)
+        value_raw = take!(channel_temp)
+        if value_raw isa Tuple
+            value = [value_raw...]
+        else
+            value = value_raw
+        end
+        return value
     else
         return false
     end
@@ -54,6 +60,7 @@ function get_results_main(channels::Channels,all_data::AllData,
     if field=="Training data preparation"
         if isready(channels.training_data_results)
             data = take!(EasyML.channels.training_data_results)
+            typeof(data)
             if settings.problem_type==:Classification
                 classification_data = all_data.TrainingData.ClassificationData
                 classification_data.data_input = data[1]
@@ -222,8 +229,12 @@ empty_results_channel(field) = empty_results_channel_main(channels,field)
 #---
 # Puts data into modifiers channels
 function put_channel_main(channels::Channels,field,value)
-    field::String = fix_QML_types(field)
-    value = fix_QML_types(value)
+    field = fix_QML_types(field)
+    value_raw = [2.0,10.0]
+    value_raw::Vector{Float64} = fix_QML_types(value)
+    value1 = convert(Int64,value_raw[1])
+    value2 = convert(Float64,value_raw[2])
+    value = (value1,value2)
     if field=="Training data preparation"
         put!(channels.training_data_modifiers,value)
     elseif field=="Testing data preparation"

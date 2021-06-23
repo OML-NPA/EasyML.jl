@@ -166,18 +166,6 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     return data
 end
 
-function check_abort(training_data_modifiers)
-    if isready(training_data_modifiers)
-        if fetch(training_data_modifiers)[1]=="stop"
-            return true
-        else
-            false
-        end
-    else
-        false
-    end
-end
-
 # Prepare data for training
 function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
@@ -213,7 +201,7 @@ function prepare_data(classification_data::ClassificationData,
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
         for l = 1:num2
             # Abort if requested
-            if check_abort(channels.training_data_modifiers)
+            if check_abort_signal(channels.training_data_modifiers)
                 return nothing
             end
             # Get a current image
@@ -277,7 +265,7 @@ function prepare_data(regression_data::RegressionData,
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if check_abort(channels.training_data_modifiers)
+        if check_abort_signal(channels.training_data_modifiers)
             return nothing
         end
         # Get a current image
@@ -342,7 +330,7 @@ function prepare_data(segmentation_data::SegmentationData,
     # Make input images
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if check_abort(channels.training_data_modifiers)
+        if check_abort_signal(channels.training_data_modifiers)
             return nothing
         end
         # Get current images
@@ -647,9 +635,9 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
         loss_vector,allow_lr_change,composite,opt,i,num,epochs,max_iterations,
         num_tests,global_iteration_test,modifiers_channel,abort;gpu=false)
     while isready(modifiers_channel)
-        modifs = fix_QML_types(take!(modifiers_channel))
-        modif1::String = modifs[1]
-        if modif1=="stop"
+        modifs = take!(modifiers_channel)
+        modif1 = modifs[1]
+        if modif1==0 # stop
             Threads.atomic_xchg!(abort, true)
             # Save model
             if gpu==true
@@ -659,7 +647,7 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             end
             save_model_main(model_data,model_name)
             break
-        elseif modif1=="learning rate"
+        elseif modif1==1 # learning rate
             if allow_lr_change
                 if composite
                     opt[1].eta = convert(Float64,modifs[2])
@@ -667,14 +655,14 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
                     opt.eta = convert(Float64,modifs[2])
                 end
             end
-        elseif modif1=="epochs"
+        elseif modif1==2 # epochs
             new_epochs::Int64 = convert(Int64,modifs[2])
             new_max_iterations::Int64 = convert(Int64,new_epochs*num)
             Threads.atomic_xchg!(epochs, new_epochs)
             Threads.atomic_xchg!(max_iterations, new_max_iterations)
             resize!(accuracy_vector,max_iterations[])
             resize!(loss_vector,max_iterations[])
-        elseif modif1=="number of tests"
+        elseif modif1==3 # number of tests
             num_tests::Float64 = modifs[2]
             frequency = num/num_tests
             global_iteration_test = floor(i/frequency)
@@ -729,7 +717,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             # Calculate accuracy
             accuracy_val = accuracy(predicted,actual)
             # Return training information
-            put!(channels.training_progress,["Training",accuracy_val,loss_val])
+            put!(channels.training_progress,("Training",accuracy_val,loss_val,iteration))
             accuracy_vector[iteration] = accuracy_val
             loss_vector[iteration] = loss_val
             # Testing part
@@ -744,7 +732,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                     # Calculate test accuracy and loss
                     data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f,abort)
                     # Return testing information
-                    put!(channels.training_progress,["Testing",data_test...,iteration])
+                    put!(channels.training_progress,("Testing",data_test...,iteration))
                     push!(accuracy_test_vector,data_test[1])
                     push!(loss_test_vector,data_test[2])
                     push!(iteration_test_vector,iteration)
@@ -839,7 +827,7 @@ function train!(model_data::ModelData,training::Training,
     # Return epoch information
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
-    put!(channels.training_progress,[epochs[],num,max_iterations[]])
+    put!(channels.training_progress,(epochs[],num,max_iterations[]))
     max_labels = Vector{Int32}(undef,0)
     if settings.problem_type==:Classification && settings.input_type==:Image
         push!(max_labels,(1:length(model_data.classes))...)
