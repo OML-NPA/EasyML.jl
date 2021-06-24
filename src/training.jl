@@ -186,14 +186,13 @@ function prepare_data(classification_data::ClassificationData,
     # Get number of images
     num_all = sum(length.(input_urls))
     # Return progress target value
-    put!(progress, num_all + 2)
+    put!(progress, 2*num_all + 1)
     # Load images
-    imgs = load_images.(input_urls)
-    put!(progress, 1)
+    imgs = map(x -> load_images(x,progress),input_urls)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    @floop ThreadedEx() for k = 1:num
+    for k = 1:num #@floop ThreadedEx() 
         current_imgs = imgs[k]
         num2 = length(current_imgs)
         label = data_labels_initial[k]
@@ -241,6 +240,7 @@ end
 function prepare_data(regression_data::RegressionData,
         model_data::ModelData,options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
+    
     input_size = model_data.input_size
     num_angles = options.Processing.num_angles
     mirroring_inds = Vector{Int64}(undef,0)
@@ -255,15 +255,14 @@ function prepare_data(regression_data::RegressionData,
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, num+2)
+    put!(progress, 2*num+2)
     num = length(input_urls)
     # Load images
-    imgs = load_images(input_urls)
-    put!(progress, 1)
+    imgs = load_images(input_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
-    @floop ThreadedEx() for k = 1:num
+    for k = 1:num #@floop ThreadedEx() 
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)
             return nothing
@@ -317,18 +316,17 @@ function prepare_data(segmentation_data::SegmentationData,
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, num+2)
+    put!(progress, 3*num+2)
     # Get class data
     class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     # Load images
-    imgs = load_images(input_urls)
-    labels = load_images(segmentation_data.label_urls)
-    put!(progress, 1)
+    imgs = load_images(input_urls,progress)
+    labels = load_images(segmentation_data.label_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
     # Make input images
-    @floop ThreadedEx() for k = 1:num
+    for k = 1:num #@floop ThreadedEx() 
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)
             return nothing
@@ -371,6 +369,8 @@ end
 function prepare_data_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
+    some_settings = training
+    some_data = training_data
     options = settings.Training.Options
     size12 = model_data.input_size[1:2]
     problem_type = settings.problem_type
