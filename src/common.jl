@@ -376,11 +376,7 @@ end
 function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     err = abs.(actual .- predicted)
     err_relative = mean(err./actual)
-    if err_relative>0.5f0
-        acc = 0.25f0/err_relative
-    else
-        acc = 1f0 - err_relative
-    end
+    acc = 1/(1+err_relative)
     return acc
 end
 
