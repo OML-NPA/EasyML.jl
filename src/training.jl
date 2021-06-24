@@ -192,7 +192,7 @@ function prepare_data(classification_data::ClassificationData,
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    for k = 1:num #@floop ThreadedEx() 
+    @floop ThreadedEx() for k = 1:num
         current_imgs = imgs[k]
         num2 = length(current_imgs)
         label = data_labels_initial[k]
@@ -261,7 +261,7 @@ function prepare_data(regression_data::RegressionData,
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
-    for k = 1:num #@floop ThreadedEx() 
+    @floop ThreadedEx() for k = 1:num
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)
             return nothing
@@ -325,7 +325,7 @@ function prepare_data(segmentation_data::SegmentationData,
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
     # Make input images
-    for k = 1:num #@floop ThreadedEx() 
+    @floop ThreadedEx() for k = 1:num
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)
             return nothing
