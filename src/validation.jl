@@ -233,6 +233,11 @@ function process_output(predicted::AbstractArray{Float32,4},data_label::Abstract
     return nothing
 end
 
+"""
+    remove_validation_data()
+
+Removes all validation data except for result.
+"""
 function remove_validation_data()
     if settings.input_type==:Image
         if settings.problem_type==:Classification
@@ -251,6 +256,11 @@ function remove_validation_data()
     end
 end
 
+"""
+    remove_validation_data()
+
+Removes validation results.
+"""
 function remove_validation_results()
     data = validation_data.ImageClassificationResults
     fields = fieldnames(ValidationImageClassificationResults)
@@ -293,9 +303,9 @@ function validate_main(settings::Settings,validation_data::ValidationData,
         end
     end
     if settings.problem_type==:Classification || settings.problem_type==:Regression
-        num_parts_current = 1
+        num_slices_current = 1
     else
-        num_parts_current = 30
+        num_slices_current = 30
     end
     for i = 1:num
         if check_abort_signal(channels.validation_modifiers)
@@ -303,7 +313,7 @@ function validate_main(settings::Settings,validation_data::ValidationData,
         end
         data_input,label,other = prepare_validation_data(model_data,validation,validation_data,
             processing,classes,i)
-        predicted = forward(model,data_input,num_parts=num_parts_current,use_GPU=use_GPU)
+        predicted = forward(model,data_input,num_slices=num_slices_current,use_GPU=use_GPU)
         if use_labels
             accuracy_val = accuracy(predicted,label)
             loss_val = loss(predicted,label)

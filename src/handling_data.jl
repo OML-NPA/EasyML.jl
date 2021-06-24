@@ -495,6 +495,12 @@ function save_model_main(model_data,url)
     bson(String(url),dict)
   return nothing
 end
+"""
+    save_model(url::String)
+
+Saves a model to a specified URL. The URL can be absolute or relative. 
+Use '.model' extension.
+"""
 save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
@@ -539,6 +545,11 @@ function load_model_main(settings,model_data,url)
     end
     return nothing
 end
+"""
+    load_model(url::String)
+
+Loads a model from a specified URL. The URL can be absolute or relative.
+"""
 load_model(url) = load_model_main(settings,model_data,url)
 
 function empty_field!(str,field::Symbol)

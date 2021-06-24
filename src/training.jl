@@ -250,8 +250,7 @@ function prepare_data(regression_data::RegressionData,
         push!(mirroring_inds,1)
     end
     input_urls = regression_data.input_urls
-    initial_label_data = copy(regression_data.data_labels)
-    empty!(regression_data.data_labels)
+    initial_label_data = copy(regression_data.initial_data_labels)
     # Get number of images
     num = length(input_urls)
     # Return progress target value
@@ -892,14 +891,30 @@ function remove_data(some_data::Union{TrainingData,TestingData})
         empty!(some_data.ClassificationData.input_urls)
         empty!(some_data.ClassificationData.label_urls)
         empty!(some_data.RegressionData.input_urls)
+        empty!(some_data.RegressionData.initial_data_labels)
         empty!(some_data.SegmentationData.input_urls)
         empty!(some_data.SegmentationData.label_urls)
     end
     return nothing
 end
+"""
+    remove_training_data()
+
+Removes all training data except for result.
+"""
 remove_training_data() = remove_data(training_data)
+"""
+    remove_testing_data()
+
+Removes all testing data.
+"""
 remove_testing_data() = remove_data(testing_data)
 
+"""
+    remove_training_data()
+
+Removes training results.
+"""
 function remove_training_results()
     data = training_data.Results
     fields = fieldnames(TrainingResultsData)

@@ -1,4 +1,9 @@
 
+"""
+    load_model()
+
+Opens a file dialog where you can select a model to be loaded and loads it.
+"""
 function load_model()
     name_filters = ["*.model"]
     url_out = String[""]
@@ -12,6 +17,11 @@ function load_model()
     load_model(url_out[1])
 end
 
+"""
+    save_model()
+
+Opens a file dialog where you can select where to save a model and how it should be called.
+"""
 function save_model()
     filename = string(training.name,".model")
     url_out = String[""]
@@ -26,6 +36,11 @@ function save_model()
     save_model(url_out[1])
 end
 
+"""
+    design_network()
+
+Opens a GUI for creation of a neural network.
+"""
 # Design
 function design_network()
     # Launches GUI
@@ -60,6 +75,11 @@ function design_network()
     return nothing
 end
 
+"""
+    modify_classes()
+
+Opens a GUI for addition or modification of classes.
+"""
 function modify_classes()
     classes = model_data.classes
     if length(classes)==0
@@ -87,6 +107,11 @@ function modify_classes()
     return nothing
 end
 
+"""
+    modify_output()
+
+Opens a GUI for addition or modification of output options for classes.
+"""
 function modify_output()
     if isempty(model_data.classes)
         @error "There are no classes. Add classes using 'modify_classes()'."
@@ -114,45 +139,70 @@ function modify_output()
 end
 
 # Training
-function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String,label_url::String)
-    some_settings.input_url = input_url
-    some_settings.label_url = label_url
-    if !isdir(input_url)
-        @error string(input_url," does not exist.")
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},url_inputs::String,url_labels::String)
+    some_settings.url_inputs = url_inputs
+    some_settings.url_labels = url_labels
+    if !isdir(url_inputs)
+        @error string(url_inputs," does not exist.")
         return nothing
     end
     if settings.problem_type==:Classification || settings.problem_type==:Segmentation
-        if !isdir(label_url)
-            @error string(label_url," does not exist.")
+        if !isdir(url_labels)
+            @error string(url_labels," does not exist.")
             return nothing
         end
     elseif settings.problem_type==:Regression
-        if !isfile(label_url)
-            @error string(label_url," does not exist.")
+        if !isfile(url_labels)
+            @error string(url_labels," does not exist.")
             return nothing
         end
     end
     get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
-get_urls_training(input_url,label_url) = get_urls(training,training_data,input_url,label_url)
-get_urls_testing(input_url,label_url) = get_urls(testing,testing_data,input_url,label_url)
 
-function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},input_url::String)
+"""
+    get_urls_training(url_inputs::String,url_labels::String)
+
+Gets URLs to all files present in both folders (or a folder and a file) 
+specified by 'url_inputs' and 'url_labels' for training. URLs are automatically saved to 'EasyML.training_data'.
+"""
+get_urls_training(url_inputs,url_labels) = get_urls(training,training_data,url_inputs,url_labels)
+"""
+    get_urls_testing(url_inputs::String,url_labels::String)
+
+Gets URLs to all files present in both folders (or a folder and a file) 
+specified by 'url_inputs' and 'url_labels' for testing. URLs are automatically saved to 'EasyML.testing_data'.
+"""
+get_urls_testing(url_inputs,url_labels) = get_urls(testing,testing_data,url_inputs,url_labels)
+
+function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},url_inputs::String)
     if settings.problem_type!=:Classification
         @error "Label data directory URL was not given."
         return nothing
     end
-    some_settings.input_url = input_url
-    if !isdir(input_url)
-        @error string(input_url," does not exist.")
+    some_settings.url_inputs = url_inputs
+    if !isdir(url_inputs)
+        @error string(url_inputs," does not exist.")
         return nothing
     end
     get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
+"""
+    get_urls_training(url_inputs::String)
 
-get_urls_training(input_url) = get_urls(training,training_data,input_url)
+Used for classification. Gets URLs to all files present in folders located at a folder specified by 'url_inputs' 
+for training. Folders should have names identical to the name of classes. URLs are automatically saved to 'EasyML.training_data'.
+"""
+get_urls_training(url_inputs) = get_urls(training,training_data,url_inputs)
+"""
+    get_urls_testing(url_inputs::String)
+
+Used for classification. Gets URLs to all files present in folders located at a folder specified by 'url_inputs' 
+for testing. Folders should have names identical to the name of classes. URLs are automatically saved to 'EasyML.testing_data'.
+"""
+get_urls_testing(url_inputs) = get_urls(testing,testing_data,url_inputs)
 
 function get_train_test_inds(num::Int64,fraction::Float64)
     inds = randperm(num)  # Get shuffled indices
@@ -170,24 +220,24 @@ function get_urls_testing_main(training::Training,training_data::TrainingData,te
         if problem_type==:Classification
             typed_training_data = training_data.ClassificationData
             typed_testing_data = testing_data.ClassificationData
-            training_inputs = typed_training_data.input_urls
-            testing_inputs = typed_testing_data.input_urls
-            training_labels = typed_training_data.label_urls
-            testing_labels = typed_testing_data.label_urls
+            training_inputs = typed_training_data.url_inputss
+            testing_inputs = typed_testing_data.url_inputss
+            training_labels = typed_training_data.url_labelss
+            testing_labels = typed_testing_data.url_labelss
         elseif problem_type==:Regression
             typed_training_data = training_data.RegressionData
             typed_testing_data = testing_data.RegressionData
-            training_inputs = typed_training_data.input_urls
-            testing_inputs = typed_testing_data.input_urls
+            training_inputs = typed_training_data.url_inputss
+            testing_inputs = typed_testing_data.url_inputss
             training_labels = typed_training_data.data_labels
             testing_labels = typed_testing_data.data_labels
         elseif problem_type==:Segmentation
             typed_training_data = training_data.SegmentationData
             typed_testing_data = testing_data.SegmentationData
-            training_inputs = typed_training_data.input_urls
-            testing_inputs = typed_testing_data.input_urls
-            training_labels = typed_training_data.label_urls
-            testing_labels = typed_testing_data.label_urls
+            training_inputs = typed_training_data.url_inputss
+            testing_inputs = typed_testing_data.url_inputss
+            training_labels = typed_training_data.url_labelss
+            testing_labels = typed_testing_data.url_labelss
         end
         if isempty(training_inputs) || isempty(training_labels)
             @warn "Training data should be loaded first. Run 'get_urls_training'"
@@ -221,6 +271,14 @@ function get_urls_testing_main(training::Training,training_data::TrainingData,te
     end
     return nothing
 end
+"""
+    get_urls_testing()
+
+If testing data preparation in 'modify(training_options)' is set to auto, then a percentage 
+of training data specified in 'modify(training_options)' is reserved for testing. If testing data 
+preparation is set to manual, then it opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
+and labels. URLs are automatically saved to 'EasyML.testing_data'.
+"""
 get_urls_testing() = get_urls_testing_main(training,training_data,testing,testing_data)
 
 function get_urls(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData})
@@ -232,12 +290,12 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    some_settings.input_url = url_out[1]
-    if some_settings.input_url==""
+    some_settings.url_inputs = url_out[1]
+    if some_settings.url_inputs==""
         @error "Input data directory URL is empty."
         return nothing
     else
-        @info string(some_settings.input_url, " was selected.")
+        @info string(some_settings.url_inputs, " was selected.")
     end
     problem_type = settings.problem_type
     if problem_type==:Classification
@@ -248,29 +306,35 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
         loadqml("GUI/UniversalFileDialog.qml",
             nameFilters = name_filters)
         exec()
-        some_settings.label_url = url_out[1]
-        if some_settings.label_url==""
+        some_settings.url_labels = url_out[1]
+        if some_settings.url_labels==""
             @error "Label data file URL is empty."
             return nothing
         else
-            @info string(some_settings.label_url, " was selected.")
+            @info string(some_settings.url_labels, " was selected.")
         end
     elseif problem_type==:Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe)
         loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
         exec()
-        some_settings.label_url = url_out[1]
-        if some_settings.label_url==""
+        some_settings.url_labels = url_out[1]
+        if some_settings.url_labels==""
             @error "Label data directory URL is empty."
             return nothing
         else
-            @info string(some_settings.label_url, " was selected.")
+            @info string(some_settings.url_labels, " was selected.")
         end
     end
     get_urls_main(some_settings,some_data,model_data)
     return nothing
 end
+"""
+    get_urls_training()
+
+Opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
+and labels. URLs are automatically saved to 'EasyML.training_data'.
+"""
 get_urls_training() = get_urls(training,training_data)
 
 function prepare_data(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},channel_name::String)
@@ -302,27 +366,27 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
     empty_results_channel(channel_name)
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
-            empty!(some_data.SegmentationData.input_urls)
-            empty!(some_data.SegmentationData.label_urls)
-            empty!(some_data.RegressionData.input_urls)
-            if isempty(some_data.ClassificationData.input_urls)
+            empty!(some_data.SegmentationData.url_inputss)
+            empty!(some_data.SegmentationData.url_labelss)
+            empty!(some_data.RegressionData.url_inputss)
+            if isempty(some_data.ClassificationData.url_inputss)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Regression
-            empty!(some_data.ClassificationData.input_urls)
-            empty!(some_data.ClassificationData.label_urls)
-            empty!(some_data.SegmentationData.input_urls)
-            empty!(some_data.SegmentationData.label_urls)
-            if isempty(some_data.RegressionData.input_urls)
+            empty!(some_data.ClassificationData.url_inputss)
+            empty!(some_data.ClassificationData.url_labelss)
+            empty!(some_data.SegmentationData.url_inputss)
+            empty!(some_data.SegmentationData.url_labelss)
+            if isempty(some_data.RegressionData.url_inputss)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Segmentation
-            empty!(some_data.ClassificationData.input_urls)
-            empty!(some_data.ClassificationData.label_urls)
-            empty!(some_data.RegressionData.input_urls)
-            if isempty(some_data.SegmentationData.input_urls)
+            empty!(some_data.ClassificationData.url_inputss)
+            empty!(some_data.ClassificationData.url_labelss)
+            empty!(some_data.RegressionData.url_inputss)
+            if isempty(some_data.SegmentationData.url_inputss)
                 @error error_message
                 return nothing
             end
@@ -366,9 +430,27 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
     end
     return nothing
 end
+"""
+    prepare_training_data() 
+
+Prepares images and corresponding labels for training using URLs loaded previously using 
+'get_urls_training'. Saves data to EasyML.training_data.
+"""
 prepare_training_data() = prepare_data(training,training_data,"Training data preparation")
+"""
+    prepare_testing_data() 
+
+Prepares images and corresponding labels for testing using URLs loaded previously using 
+'get_urls_testing'. Saves data to EasyML.testing_data.
+"""
 prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
 
+"""
+    modify(data) 
+
+Allows to modify 'training_options' or 'application_options' in a GUI by passing one of 
+them as an input argument.
+"""
 function modify(data)
     if typeof(data)==TrainingOptions
         @qmlfunction(
@@ -393,6 +475,13 @@ function modify(data)
     return nothing
 end
 
+"""
+    train()
+
+Opens a GUI where training progress can be observed. Training parameters 
+such as a number of epochs, learning rate and a number of tests per epoch 
+can be changed during training.
+"""
 function train()
     if settings.problem_type==:Classification && settings.input_type==:Image
         if isempty(training_data.ClassificationData.data_input)
@@ -438,41 +527,60 @@ function train()
 end
 
 # Validation
+"""
+    get_urls_validation(url_inputs::String,url_labels::String)
 
-function get_urls_validation(input_url::String,label_url::String)
-    if !isdir(input_url)
-        @error string(input_url," does not exist.")
+Gets URLs to all files present in both folders (or a folder and a file) 
+specified by 'url_inputs' and 'url_labels' for validation. URLs are automatically 
+saved to 'EasyML.validation_data'.
+"""
+function get_urls_validation(url_inputs::String,url_labels::String)
+    if !isdir(url_inputs)
+        @error string(url_inputs," does not exist.")
         return nothing
     end
     if settings.problem_type==:Classification || settings.problem_type==:Segmentation
-        if !isdir(label_url)
-            @error string(label_url," does not exist.")
+        if !isdir(url_labels)
+            @error string(url_labels," does not exist.")
             return nothing
         end
     else
-        if !isfile(label_url)
-            @error string(label_url," does not exist.")
+        if !isfile(url_labels)
+            @error string(url_labels," does not exist.")
             return nothing
         end
     end
-    validation.input_url = input_url
-    validation.label_url = label_url
+    validation.url_inputs = url_inputs
+    validation.url_labels = url_labels
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
 
-function get_urls_validation(input_url::String)
-    if !isdir(input_url)
-        @error string(input_url," does not exist.")
+"""
+    get_urls_validation(url_inputs::String)
+
+Gets URLs to all files present in a folders specified by 'url_inputs' 
+for validation. URLs are automatically saved to 'EasyML.validation_data'.
+"""
+function get_urls_validation(url_inputs::String)
+    if !isdir(url_inputs)
+        @error string(url_inputs," does not exist.")
         return nothing
     end
-    validation.input_url = input_url
+    validation.url_inputs = url_inputs
     validation.use_labels = false
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
 end
 
+"""
+    get_urls_validation()
+
+Opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
+and labels. Folder/file dialog for labels can be skipped if there are no labels available. 
+URLs are automatically saved to 'EasyML.validation_data'.
+"""
 function get_urls_validation()
     url_out = String[""]
     observe(url) = url_out[1] = url
@@ -482,12 +590,12 @@ function get_urls_validation()
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
     exec()
-    validation.input_url = url_out[1]
-    if validation.input_url==""
+    validation.url_inputs = url_out[1]
+    if validation.url_inputs==""
         @error "Input data directory URL is empty. Aborted"
         return nothing
     else
-        @info string(training.input_url, " was selected.")
+        @info string(training.url_inputs, " was selected.")
     end
     if settings.problem_type==:Classification
     
@@ -497,17 +605,17 @@ function get_urls_validation()
         loadqml("GUI/UniversalFileDialog.qml",
             nameFilters = name_filters)
         exec()
-        validation.label_url = url_out[1]
+        validation.url_labels = url_out[1]
     elseif settings.problem_type==:Segmentation
         @info "Select a directory with label data if labels are available."
         @qmlfunction(observe)
         loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
         exec()
-        validation.label_url = url_out[1]
+        validation.url_labels = url_out[1]
     end
     
-    if validation.input_url==""
-        @info string(training.label_url, " was selected.")
+    if validation.url_inputs==""
+        @info string(training.url_labels, " was selected.")
         validation.use_labels = true
     else
         validation.use_labels = false
@@ -517,6 +625,12 @@ function get_urls_validation()
     return nothing
 end
 
+
+"""
+    validate()
+
+Opens a GUI where validation progress and results can be observed.
+"""
 function validate()
     if model_data.model isa Chain{Tuple{}}
         @error "Model is empty."
@@ -525,7 +639,7 @@ function validate()
         @error "Classes are empty."
         return nothing
     end
-    if isempty(validation_data.input_urls)
+    if isempty(validation_data.url_inputss)
         @error "No input urls. Run 'get_urls_validation'."
         return nothing
     end
@@ -571,17 +685,29 @@ function validate()
 end
 
 # Application
-function get_urls_application(input_url::String)
-    if !isdir(input_url)
-        @error string(input_url," does not exist.")
+"""
+    get_urls_application(url_inputs::String)
+
+Gets URLs to all files present in a folders specified by 'url_inputs' 
+for application. URLs are automatically saved to 'EasyML.application_data'.
+"""
+function get_urls_application(url_inputs::String)
+    if !isdir(url_inputs)
+        @error string(url_inputs," does not exist.")
         return nothing
     end
-    application.input_url = input_url
+    application.url_inputs = url_inputs
     get_urls_application_main(application,application_data,model_data)
     application.checked_folders = application_data.folders
     return nothing
 end
 
+"""
+    get_urls_application()
+
+Opens a folder dialog to choose a folder containing files to which a model should be applied. 
+URLs are automatically saved to 'EasyML.application_data'.
+"""
 function get_urls_application()
     url_out = String[""]
     observe(url) = url_out[1] = url
@@ -589,22 +715,27 @@ function get_urls_application()
     @info "Select a directory with input data."
     @qmlfunction(observe)
     loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir,
-        target = "Application",type = "input_url")
+        target = "Application",type = "url_inputs")
     exec()
-    application.input_url = url_out[1]
-    if application.input_url==""
+    application.url_inputs = url_out[1]
+    if application.url_inputs==""
         @error "Input data directory URL is empty."
         return nothing
     else
-        @info string(application.input_url, " was selected.")
+        @info string(application.url_inputs, " was selected.")
     end
 
     get_urls_application_main(application,application_data,model_data)
     return nothing
 end
 
+"""
+    apply()
+
+Starts application of a model.
+"""
 function apply()
-    if isempty(application_data.input_urls)
+    if isempty(application_data.url_inputss)
         @error "No input urls. Run 'get_urls_application'."
         return nothing
     end

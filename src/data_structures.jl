@@ -340,6 +340,7 @@ end
 @with_kw mutable struct RegressionData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+    initial_data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     labels_url::String = ""
 end

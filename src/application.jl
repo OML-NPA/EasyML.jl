@@ -116,8 +116,9 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,
+        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+        data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -129,7 +130,7 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
             predicted_labels = reshape(predicted,:)
             # Return result
             put!(data_channel,(l,predicted_labels))
@@ -138,8 +139,9 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
     return nothing
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-    urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,
+    num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+    data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -151,7 +153,7 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
             _, predicted_labels4 = findmax(predicted,dims=2)
             predicted_labels = map(x-> x.I[2],predicted_labels4[:])
             # Return result
@@ -175,8 +177,8 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
+function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,
+        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -191,7 +193,7 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Adjust input size if required to avoid incorrect size of output 
             input_data,change_size,s = adjust_size(input_data,model_data.input_size[1:2])
             # Get output
-            predicted = forward(model_data.model,input_data,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
             if change_size
                 predicted = predicted[1:s[1],1:s[2],:,:]
             end
@@ -509,6 +511,11 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
 end
 
+"""
+    remove_application_data()
+
+Removes all application data.
+"""
 function remove_application_data()
     data = application_data
     fields = fieldnames(ApplicationData)
@@ -558,7 +565,13 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    t = Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
+    if settings.problem_type==:Classification || settings.problem_type==:Regression
+        num_slices_current = 1
+    else
+        num_slices_current = 30
+    end
+    t = Threads.@spawn get_output(model_data,classes,processing,num,
+        urls_batched,num_slices_current,use_GPU,data_channel,channels)
     push!(application_data.tasks,t)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
