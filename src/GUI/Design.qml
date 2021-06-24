@@ -2586,32 +2586,52 @@ ApplicationWindow {
                                         upNode_other.connectedNode===upNode.connectedNode) &&
                                         upNodeRec_other!==
                                         upNode.connectedNode.parent.parent.parent.children[j].children[1]) {
-                                    var connectedItem = upNode.connectedItem
-                                    var connectedNode = upNode.connectedNode
-                                    connectedItem.connectedNode = upNode_other
-                                    upNode_other.connectedNode = upNode.connectedNode
-                                    upNode_other.connectedItem = upNode.connectedItem
-                                    upNode_other.visible = true
-                                    var upNodePoint = upNodeRec_other.mapToItem(layers,0,0)
-                                    var downNodePoint = connectedItem.mapToItem(layers,0,0)
-                                    var adjX = downNodePoint.x - upNodePoint.x
-                                    var adjY = downNodePoint.y - upNodePoint.y
-                                    upNodeRectangle.x = unit.width*index/(inputnum+1)-upNode.radius
-                                    upNodeRectangle.y = -upNode.radius + 2*pix
-                                    connectedItem.x = connectedItem.x - adjX
-                                    connectedItem.y = connectedItem.y - adjY
-                                    var connection = connectedItem.connection
-                                    var connection_data = connection.data[0]
-                                    var pathElement = connection_data.pathElements[0]
-                                    var beginX = connectedItem.unit.x + connectedItem.unit.width*
-                                            connectedItem.index/(connectedItem.outputnum+1)
-                                    var beginY = connectedItem.unit.y + connectedItem.unit.height - 2*pix
-                                    var finishX = pathElement.x + adjX
-                                    var finishY = pathElement.y + adjY - 2*pix
-                                    updateConnection(connection,beginX,beginY,finishX,finishY)
-                                    if (upNode!==upNode_other) {
-                                        connectedNode = null
-                                        connectedItem = null
+                                    if (upNode==upNode_other) {
+                                        var connectedItem = upNode.connectedItem
+                                        var connectedNode = upNode.connectedNode
+                                        connectedItem.connectedNode = upNode_other
+                                        upNode_other.connectedNode = upNode.connectedNode
+                                        upNode_other.connectedItem = upNode.connectedItem
+                                        upNode_other.visible = true
+                                        var upNodePoint = upNodeRec_other.mapToItem(layers,0,0)
+                                        var downNodePoint = connectedItem.mapToItem(layers,0,0)
+                                        var adjX = downNodePoint.x - upNodePoint.x
+                                        var adjY = downNodePoint.y - upNodePoint.y
+                                        upNodeRectangle.x = unit.width*index/(inputnum+1)-upNode.radius
+                                        upNodeRectangle.y = -upNode.radius + 2*pix
+                                        connectedItem.x = connectedItem.x - adjX
+                                        connectedItem.y = connectedItem.y - adjY
+                                        var connection = connectedItem.connection
+                                        var connection_data = connection.data[0]
+                                        var pathElement = connection_data.pathElements[0]
+                                        var beginX = connectedItem.unit.x + connectedItem.unit.width*
+                                                connectedItem.index/(connectedItem.outputnum+1)
+                                        var beginY = connectedItem.unit.y + connectedItem.unit.height - 2*pix
+                                        var finishX = pathElement.x + adjX
+                                        var finishY = pathElement.y + adjY - 2*pix
+                                        updateConnection(connection,beginX,beginY,finishX,finishY)
+                                    }
+                                    else {
+                                        // Initialize
+                                        var unit_source = nodetolayer(upNode.connectedNode)
+                                        var downNode_source = upNode.connectedNode
+                                        var downNodeRectangle_source = upNode.connectedItem
+                                        // Clean up
+                                        connectedNode = upNode.connectedNode
+                                        connectedItem = upNode.connectedItem
+                                        connectedItem.connectedNode = null
+                                        connectedItem.connection.destroy()
+                                        connectedItem.connection = null
+                                        if (connectedNode.parent.children.length===2) {
+                                            connectedNode.visible = false
+                                        }
+                                        upNode.connectedNode = null
+                                        upNode.connectedItem = null
+                                        upNodeRectangle.x = unit.width*index/(inputnum+1)-upNode.radius
+                                        upNodeRectangle.y = -upNode.radius + 2*pix
+                                        upNode.visible = false
+                                        // Connect
+                                        makeConnection(unit_source,downNode_source,downNodeRectangle_source,upNode_other)
                                     }
                                     return
                                 }
