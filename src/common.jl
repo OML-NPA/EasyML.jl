@@ -315,7 +315,7 @@ function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentatio
     num_border = length(inds_border)
     num_classes = length(class_inds)
     data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
-    for i = 1:num_border #@floop ThreadedEx() 
+    for i = 1:num_border
         border_num_pixels = border_thickness[i]
         ind_classes = inds_border[i]
         ind_border = num_classes + ind_classes
