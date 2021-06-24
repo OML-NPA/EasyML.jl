@@ -92,12 +92,14 @@ ApplicationWindow {
                 var inds = mainPane.selectioninds
                 for (var k=0;k<inds.length;k++) {
                     var unit = layers.children[inds[k]]
-                    var upNodes = unit.children[2].children[0]
-                    var downNodes = unit.children[2].children[1]
+                    var upNodes = getUpNodes(unit)
+                    var downNodes = getDownNodes(unit) 
                     for (var i=0;i<upNodes.children.length;i++) {
                         var upNode = upNodes.children[i].children[0]
                         if (upNode.connectedNode!==null) {
-                            upNode.connectedNode.visible = false
+                            if (upNode.connectedNode.parent.children.length<4) {
+                                upNode.connectedNode.visible = false
+                            }
                             upNode.connectedItem.connectedNode = null
                             upNode.connectedItem.connection.destroy()
                             upNode.connectedItem.destroy()
