@@ -188,6 +188,7 @@ ApplicationWindow {
                     //}
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
+                    addEpochLine()
                     epoch += 1
                     epochLabel.text = epoch
                 }
@@ -560,4 +561,18 @@ ApplicationWindow {
             onClicked: mouse.accepted = false;
         }
     }
+
+    function addEpochLine() {
+        var accuracyEpochLine = accuracyChartView.createSeries(ChartView.SeriesTypeLine, "Epoch line", accuracyAxisX, accuracyAxisY);
+        var lossEpochLine = lossChartView.createSeries(ChartView.SeriesTypeLine, "Epoch line", lossAxisX, lossAxisY);
+        accuracyEpochLine.append(trainingTimer.iteration,0)
+        accuracyEpochLine.append(trainingTimer.iteration,200)
+        lossEpochLine.append(trainingTimer.iteration,0)
+        lossEpochLine.append(trainingTimer.iteration,100000000)
+        accuracyEpochLine.color = "black"
+        lossEpochLine.color = "black"
+        accuracyEpochLine.opacity = 0.25
+        lossEpochLine.opacity = 0.25
+    }
+
 }
