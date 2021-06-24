@@ -1783,35 +1783,6 @@ ApplicationWindow {
         return {"up": connections_up,"down": connections_down}
     }
 
-    function unitindex(layer) {
-        for (var i=0;i<layers.children.length;i++) {
-            if (layer===layers.children[i]) {
-                return(i)
-            }
-        }
-    }
-
-    function nodetolayer(node) {
-        return(node.parent.parent.parent.parent)
-    }
-
-    function itemindex(item) {
-        var nodeItem = item.parent
-        for (var i=1;i<nodeItem.children.length;i++) {
-            if (item===nodeItem.children[i]) {
-                return i
-            }
-        }
-    }
-
-    function nodeindex(nodes,node) {
-        for (var i=0;i<nodes.children.length;i++) {
-            if (nodes.children[i].children[0]===node) {
-                return i
-            }
-        }
-    }
-
     function indexofmin(a) {
         var lowest = 0;
         for (var i = 1; i < a.length; i++) {
@@ -2104,6 +2075,35 @@ ApplicationWindow {
             flickableMainPane.ScrollBar.horizontal.visible = false
         }
         updateOverview()
+    }
+
+    function unitindex(layer) {
+        for (var i=0;i<layers.children.length;i++) {
+            if (layer===layers.children[i]) {
+                return(i)
+            }
+        }
+    }
+
+    function nodetolayer(node) {
+        return(node.parent.parent.parent.parent)
+    }
+
+    function itemindex(item) {
+        var nodeItem = item.parent
+        for (var i=1;i<nodeItem.children.length;i++) {
+            if (item===nodeItem.children[i]) {
+                return i
+            }
+        }
+    }
+
+    function nodeindex(nodes,node) {
+        for (var i=0;i<nodes.children.length;i++) {
+            if (nodes.children[i].children[0]===node) {
+                return i
+            }
+        }
     }
 
     function getUpNode(unit,ind) {
