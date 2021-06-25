@@ -369,8 +369,6 @@ end
 function prepare_data_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
-    some_settings = training
-    some_data = training_data
     options = settings.Training.Options
     size12 = model_data.input_size[1:2]
     problem_type = settings.problem_type
