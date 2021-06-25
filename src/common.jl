@@ -306,22 +306,35 @@ function rotate_img(img::BitArray{3},angle_val::Float64)
 end
 
 # Use border data to better separate objects
-function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentationClass})
+"""
+    apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
+
+Used for segmentation. Uses borders of objects that a neural network detected in order 
+to separate objects from each other. Output from a neural network should be fed after 
+converting to BitArray.
+
+# Examples
+```julia-repl
+output = forward(model_data.model,input_data);
+output_with_borders = apply_border_data(output.>0.5,model_data.classes)
+```
+"""
+function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
     inds_border = findall(border)
     if isnothing(inds_border)
-        return data_in
+        return input_data
     end
     num_border = length(inds_border)
     num_classes = length(class_inds)
-    data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
+    data = BitArray{3}(undef,size(input_data)[1:2]...,num_border)
     for i = 1:num_border
         border_num_pixels = border_thickness[i]
         ind_classes = inds_border[i]
         ind_border = num_classes + ind_classes
-        data_classes_bool = data_in[:,:,ind_classes]
+        data_classes_bool = input_data[:,:,ind_classes]
         data_classes = convert(Array{Float32},data_classes_bool)
-        data_border = data_in[:,:,ind_border]
+        data_border = input_data[:,:,ind_border]
         border_bool = data_border
         background1 = erode(data_classes_bool .& border_bool,border_num_pixels)
         background2 = outer_perim(border_bool)
