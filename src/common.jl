@@ -624,10 +624,10 @@ end
 """
     forward(model::Chain, input_data::Array{Float32}; num_slices::Int64=1, offset::Int64=20, use_GPU::Bool=false)
 
-The function takes in a model and input data and returns output from that model. 'num_slices' specifies in how many 
+The function takes in a model and input data and returns output from that model. `num_slices` specifies in how many 
 slices should an array be run thorugh a neural network. Allows to process images that otherwise cause an out of memory error.
-'offset' specifies the size of an overlap that should be taken from the left and right side of each slice to allow for 
-an absense of a seam.
+`offset` specifies the size of an overlap that should be taken from the left and right side of each slice to allow for 
+an absense of a seam. `use_GPU` enables or disables GPU usage.
 """
 function forward(model::Chain,input_data::Array{Float32};
         num_slices::Int64=1,offset::Int64=20,use_GPU::Bool=false)
