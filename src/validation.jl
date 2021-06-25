@@ -22,10 +22,18 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
         if validation.use_labels==true
+            input_urls_copy = copy(input_urls)
+            filenames_inputs_copy = copy(filenames_inputs)
             filenames_labels,loaded_labels = load_regression_data(validation.url_labels)
-            intersect_regression_data!(input_urls,filenames_inputs,
+            intersect_regression_data!(input_urls_copy,filenames_inputs_copy,
                 loaded_labels,filenames_labels)
-            validation_data.labels_regression = loaded_labels
+            if isempty(loaded_labels)
+                validation.use_labels = false
+                @warn string("No file names in ",url_labels ," correspond to file names in ",url_inputs," . Files were loaded without labels.")
+            else
+                validation_data.labels_regression = loaded_labels
+                input_urls = input_urls_copy
+            end
         end
     elseif settings.problem_type == :Segmentation
         if validation.use_labels==true

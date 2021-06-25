@@ -628,7 +628,7 @@ function get_urls_validation()
         exec()
         if isready(url_channel)
             validation.url_labels = take!(url_channel)
-            @info string(training.url_labels, " was selected.")
+            @info string(validation.url_labels, " was selected.")
         else
             @error "Label data directory URL is empty."
             return nothing
