@@ -549,7 +549,7 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     img_ext,img_sym_ext = get_image_ext(application_options.image_type)
     data_ext,data_sym_ext = get_data_ext(application_options.data_type)
     # Get folders and names
-    folders = application.checked_folders
+    folders = application_data.folders
     num = length(folders)
     urls = application_data.input_urls
     urls_batched,filenames_batched = batch_urls_filenames(urls,batch_size)
