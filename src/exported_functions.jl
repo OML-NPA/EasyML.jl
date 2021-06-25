@@ -118,7 +118,7 @@ function save_model()
     @info @__DIR__
     path_qml = string(@__DIR__,"/GUI/UniversalSaveFileDialog.qml")
     loadqml(path_qml,
-        nameFilters = name_filters,
+        name_filters = name_filters,
         filename = filename)
     exec()
     # Load model
@@ -160,7 +160,7 @@ function load_model()
     # Launches GUI
     @qmlfunction(observe)
     loadqml("/GUI/UniversalFileDialog.qml",
-        nameFilters = name_filters)
+        name_filters = name_filters)
     exec()
     # Load model
     load_model(url_out[1])
@@ -347,7 +347,7 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
         @qmlfunction(observe)
         path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
         loadqml(path_qml,
-            nameFilters = name_filters)
+            name_filters = name_filters)
         exec()
         some_settings.url_labels = url_out[1]
         if some_settings.url_labels==""
@@ -622,7 +622,7 @@ function get_urls_validation()
         @qmlfunction(observe)
         path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
         loadqml(path_qml,
-            nameFilters = name_filters)
+            name_filters = name_filters)
         exec()
         validation.url_labels = url_out[1]
     elseif settings.problem_type==:Segmentation
