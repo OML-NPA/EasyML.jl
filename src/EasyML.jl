@@ -2,28 +2,26 @@
 module EasyML
 
 # Import packages
-using CUDA: CUstreamWaitValue_flags, state
-using Base: Symbol, String
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,
 # Data structuring
-Parameters, DataFrames, StaticArrays, Dates,
+Parameters, DataFrames, Dates,
 # Data import/export
 FileIO, ImageIO, JSON, BSON, XLSX, CSVFiles,
 # Data manipulation
 Unicode,
 # Image manipulation
-Images, ImageFiltering, ImageTransformations, ImageMorphology, DSP,
-ImageMorphology.FeatureTransform, ImageSegmentation, ColorTypes,
+ImageCore, FixedPointNumbers, ColorTypes, ImageFiltering, ImageTransformations, 
+ImageMorphology, DSP, ImageMorphology.FeatureTransform, ImageSegmentation, 
 # Machine learning
 Flux, Flux.Losses, FluxExtra,
 # Math functions
-Random, StatsBase, Statistics, LinearAlgebra, Combinatorics, Distances,
+Random, StatsBase, LinearAlgebra, Combinatorics, Distances,
 # Other
 ProgressMeter, FLoops
 
-import CUDA.CuArray, Flux.outdims
+import CUDA.CuArray, Flux.outdims, StatsBase.std
 
 # Include functions
 include("data_structures.jl")
@@ -51,9 +49,7 @@ export Join, Split, Addition, Activation, Identity
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
     ENV["QSG_RENDER_LOOP"] = "basic"
-    if isfile("config.bson")
-        load_settings()
-    end
+    load_settings()
 end
 
 end
