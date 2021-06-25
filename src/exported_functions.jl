@@ -68,7 +68,7 @@ end
 """
     design_model()
 
-Opens a GUI for creation of a neural model.
+Opens a GUI for creation of a model.
 """
 function design_model()
     # Launches GUI
