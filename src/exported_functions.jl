@@ -1,6 +1,6 @@
 
 """
-modify_classes()
+    modify_classes()
 
 Opens a GUI for addition or modification of classes.
 """
@@ -33,7 +33,7 @@ function modify_classes()
 end
 
 """
-modify_output()
+    modify_output()
 
 Opens a GUI for addition or modification of output options for classes.
 """
