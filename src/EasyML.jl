@@ -12,7 +12,7 @@ FileIO, ImageIO, JSON, BSON, XLSX, CSVFiles,
 # Data manipulation
 Unicode,
 # Image manipulation
-ImageCore, FixedPointNumbers, ColorTypes, ImageFiltering, ImageTransformations, 
+Images, ColorTypes, ImageFiltering, ImageTransformations, 
 ImageMorphology, DSP, ImageMorphology.FeatureTransform, ImageSegmentation, 
 # Machine learning
 Flux, Flux.Losses, FluxExtra,
@@ -45,6 +45,12 @@ export load_settings, design_network, modify_classes, modify_output, modify, sav
     get_urls_training, prepare_training_data, remove_training_data, remove_training_results, train, get_urls_validation, 
     validate, remove_validation_data, get_urls_application, apply, remove_application_data, forward, apply_border_data
 export Join, Split, Addition, Activation, Identity
+
+for n in names(@__MODULE__; all=true)
+    if Base.isidentifier(n) && n ∉ (Symbol(@__MODULE__), :eval, :include)
+        @eval export $n
+    end
+end
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
