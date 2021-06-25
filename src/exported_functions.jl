@@ -257,24 +257,24 @@ function get_urls_testing_main(training::Training,training_data::TrainingData,te
         if problem_type==:Classification
             typed_training_data = training_data.ClassificationData
             typed_testing_data = testing_data.ClassificationData
-            training_inputs = typed_training_data.url_inputss
-            testing_inputs = typed_testing_data.url_inputss
-            training_labels = typed_training_data.url_labelss
-            testing_labels = typed_testing_data.url_labelss
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
         elseif problem_type==:Regression
             typed_training_data = training_data.RegressionData
             typed_testing_data = testing_data.RegressionData
-            training_inputs = typed_training_data.url_inputss
-            testing_inputs = typed_testing_data.url_inputss
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
             training_labels = typed_training_data.data_labels
             testing_labels = typed_testing_data.data_labels
         elseif problem_type==:Segmentation
             typed_training_data = training_data.SegmentationData
             typed_testing_data = testing_data.SegmentationData
-            training_inputs = typed_training_data.url_inputss
-            testing_inputs = typed_testing_data.url_inputss
-            training_labels = typed_training_data.url_labelss
-            testing_labels = typed_testing_data.url_labelss
+            training_inputs = typed_training_data.input_urls
+            testing_inputs = typed_testing_data.input_urls
+            training_labels = typed_training_data.label_urls
+            testing_labels = typed_testing_data.label_urls
         end
         if isempty(training_inputs) || isempty(training_labels)
             @warn "Training data should be loaded first. Run 'get_urls_training'"
@@ -406,27 +406,27 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
     empty_results_channel(channel_name)
     if settings.input_type==:Image
         if settings.problem_type==:Classification 
-            empty!(some_data.SegmentationData.url_inputss)
-            empty!(some_data.SegmentationData.url_labelss)
-            empty!(some_data.RegressionData.url_inputss)
-            if isempty(some_data.ClassificationData.url_inputss)
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.ClassificationData.input_urls)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Regression
-            empty!(some_data.ClassificationData.url_inputss)
-            empty!(some_data.ClassificationData.url_labelss)
-            empty!(some_data.SegmentationData.url_inputss)
-            empty!(some_data.SegmentationData.url_labelss)
-            if isempty(some_data.RegressionData.url_inputss)
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.label_urls)
+            empty!(some_data.SegmentationData.input_urls)
+            empty!(some_data.SegmentationData.label_urls)
+            if isempty(some_data.RegressionData.input_urls)
                 @error error_message
                 return nothing
             end
         elseif settings.problem_type==:Segmentation
-            empty!(some_data.ClassificationData.url_inputss)
-            empty!(some_data.ClassificationData.url_labelss)
-            empty!(some_data.RegressionData.url_inputss)
-            if isempty(some_data.SegmentationData.url_inputss)
+            empty!(some_data.ClassificationData.input_urls)
+            empty!(some_data.ClassificationData.label_urls)
+            empty!(some_data.RegressionData.input_urls)
+            if isempty(some_data.SegmentationData.input_urls)
                 @error error_message
                 return nothing
             end
@@ -607,7 +607,7 @@ function get_urls_validation()
         @error "Input data directory URL is empty. Aborted"
         return nothing
     else
-        @info string(training.url_inputs, " was selected.")
+        @info string(validation.url_inputs, " was selected.")
     end
     if settings.problem_type==:Classification
     
@@ -653,7 +653,7 @@ function validate()
         @error "Classes are empty."
         return nothing
     end
-    if isempty(validation_data.url_inputss)
+    if isempty(validation_data.input_urls)
         @error "No input urls. Run 'get_urls_validation'."
         return nothing
     end
@@ -751,7 +751,7 @@ end
 Starts application of a model.
 """
 function apply()
-    if isempty(application_data.url_inputss)
+    if isempty(application_data.input_urls)
         @error "No input urls. Run 'get_urls_application'."
         return nothing
     end

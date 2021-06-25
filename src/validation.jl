@@ -4,13 +4,13 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::ValidationData,model_data::ModelData)
-    input_url = validation.input_url
-    label_url = validation.label_url
+    url_inputs = validation.url_inputs
+    url_labels = validation.url_labels
     if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type == :Classification
-        input_urls,dirs = get_urls1(input_url,allowed_ext)
+        input_urls,dirs = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         if issubset(dirs,labels)
             validation.use_labels = true
@@ -18,21 +18,21 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
             validation_data.labels_classification = reduce(vcat,labels_int)
         end
     elseif settings.problem_type == :Regression
-        input_urls_raw,_,filenames_inputs_raw = get_urls1(input_url,allowed_ext)
+        input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
         if validation.use_labels==true
-            filenames_labels,loaded_labels = load_regression_data(validation.label_url)
+            filenames_labels,loaded_labels = load_regression_data(validation.url_labels)
             intersect_regression_data!(input_urls,filenames_inputs,
                 loaded_labels,filenames_labels)
             validation_data.labels_regression = loaded_labels
         end
     elseif settings.problem_type == :Segmentation
         if validation.use_labels==true
-            input_urls,label_urls,_,_,_ = get_urls2(input_url,label_url,allowed_ext)
+            input_urls,label_urls,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
             validation_data.label_urls = reduce(vcat,label_urls)
         else
-            input_urls,_ = get_urls1(input_url,allowed_ext)
+            input_urls,_ = get_urls1(url_inputs,allowed_ext)
         end
     end
     validation_data.input_urls = reduce(vcat,input_urls)

@@ -1,18 +1,18 @@
 
 # Get urls of files in selected folders. Requires only data
-function get_urls1(input_url::String,allowed_ext::Vector{String})
+function get_urls1(url_inputs::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
     # Return if empty
-    if isempty(input_url)
+    if isempty(url_inputs)
         @warn "Directory is empty."
         return nothing
     end
     # Get directories containing our images and labels
-    dirs = getdirs(input_url)
+    dirs = getdirs(url_inputs)
     # If no directories, then set empty string
     if length(dirs)==0
         dirs = [""]
@@ -22,24 +22,24 @@ function get_urls1(input_url::String,allowed_ext::Vector{String})
         input_urls_temp = Vector{String}(undef,0)
         dir = dirs[k]
         # Get files in a directory
-        files_input = getfiles(string(input_url,"/",dir))
+        files_input = getfiles(string(url_inputs,"/",dir))
         files_input = filter_ext(files_input,allowed_ext)
         # Push urls into an accumulator
         for l = 1:length(files_input)
-            push!(input_urls_temp,string(input_url,"/",dir,"/",files_input[l]))
+            push!(input_urls_temp,string(url_inputs,"/",dir,"/",files_input[l]))
         end
         push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
-        url_split = split(input_url,"/")
+        url_split = split(url_inputs,"/")
         dirs = [url_split[end]]
     end
     return input_urls,dirs,filenames
 end
 
 # Get urls of files in selected folders. Requires data and labels
-function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{String})
+function get_urls2(url_inputs::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     label_urls = Vector{Vector{String}}(undef,0)
@@ -49,12 +49,12 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
     empty!(input_urls)
     empty!(label_urls)
     # Return if empty
-    if isempty(input_url) || isempty(label_url)
+    if isempty(url_inputs) || isempty(label_url)
         @error "Empty urls."
         return nothing,nothing,nothing
     end
     # Get directories containing our images and labels
-    dirs_input= getdirs(input_url)
+    dirs_input= getdirs(url_inputs)
     dirs_labels = getdirs(label_url)
     # Keep only those present for both images and labels
     dirs = intersect(dirs_input,dirs_labels)
@@ -68,7 +68,7 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
         input_urls_temp = Vector{String}(undef,0)
         label_urls_temp = Vector{String}(undef,0)
         # Get files in a directory
-        files_input = getfiles(string(input_url,"/",dirs[k]))
+        files_input = getfiles(string(url_inputs,"/",dirs[k]))
         files_labels = getfiles(string(label_url,"/",dirs[k]))
         # Filter files
         files_input = filter_ext(files_input,allowed_ext)
@@ -84,7 +84,7 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
         # Push urls into accumulators
         num = length(files_input)
         for l = 1:num
-            push!(input_urls_temp,string(input_url,"/",files_input[l]))
+            push!(input_urls_temp,string(url_inputs,"/",files_input[l]))
             push!(label_urls_temp,string(label_url,"/",files_labels[l]))
         end
         push!(filenames,filenames_input[inds2])
