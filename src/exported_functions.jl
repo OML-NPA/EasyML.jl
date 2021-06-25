@@ -37,12 +37,12 @@ function save_model()
 end
 
 """
-    design_network()
+    design_model()
 
-Opens a GUI for creation of a neural network.
+Opens a GUI for creation of a neural model.
 """
 # Design
-function design_network()
+function design_model()
     # Launches GUI
     @qmlfunction(
         # Handle classes
