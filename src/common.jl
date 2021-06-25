@@ -316,7 +316,8 @@ converting to BitArray.
 # Examples
 ```julia-repl
 output = forward(model_data.model,input_data);
-output_with_borders = apply_border_data(output.>0.5,model_data.classes)
+output_bitarray = output[:,:,:,1].>0.5
+output_with_borders = apply_border_data(output_bitarray,model_data.classes)
 ```
 """
 function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
