@@ -64,12 +64,12 @@ function modify_output()
     return nothing
 end
 
+# Design
 """
     design_model()
 
 Opens a GUI for creation of a neural model.
 """
-# Design
 function design_model()
     # Launches GUI
     @qmlfunction(
