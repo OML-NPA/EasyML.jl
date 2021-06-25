@@ -28,7 +28,8 @@ function save_model()
     observe(url) = url_out[1] = url
     # Launches GUI
     @qmlfunction(observe)
-    loadqml("GUI/UniversalSaveFileDialog.qml",
+    path_qml = string(pathof(EasyML),"GUI/UniversalSaveFileDialog.qml")
+    loadqml(path_qml,
         nameFilters = name_filters,
         filename = filename)
     exec()
@@ -69,7 +70,8 @@ function design_model()
         # Other
         source_dir
     )
-    loadqml("GUI/Design.qml")
+    path_qml = string(pathof(EasyML),"GUI/Design.qml")
+    loadqml(path_qml)
     exec()
 
     return nothing
@@ -102,7 +104,8 @@ function modify_classes()
         set_settings,
         save_settings
     )
-    loadqml("GUI/ClassDialog.qml",JindTree = JindTree, ids = ids)
+    path_qml = string(pathof(EasyML),"GUI/ClassDialog.qml")
+    loadqml(path_qml,JindTree = JindTree, ids = ids)
     exec()
     return nothing
 end
@@ -132,7 +135,8 @@ function modify_output()
             get_problem_type,
             num_classes
         )
-        loadqml("GUI/OutputDialog.qml",indTree = 0)
+        path_qml = string(pathof(EasyML),"GUI/OutputDialog.qml")
+        loadqml(ath_qml,indTree = 0)
         exec()
     end
     return nothing
@@ -288,7 +292,8 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
 
     @info "Select a directory with input data."
     @qmlfunction(observe)
-    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+    path_qml = string(pathof(EasyML),"GUI/UniversalFolderDialog.qml")
+    loadqml(path_qml,currentfolder = dir)
     exec()
     some_settings.url_inputs = url_out[1]
     if some_settings.url_inputs==""
@@ -303,7 +308,8 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
     elseif problem_type==:Regression
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe)
-        loadqml("GUI/UniversalFileDialog.qml",
+        path_qml = string(pathof(EasyML),"GUI/UniversalFileDialog.qml")
+        loadqml(path_qml,
             nameFilters = name_filters)
         exec()
         some_settings.url_labels = url_out[1]
@@ -316,7 +322,8 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
     elseif problem_type==:Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe)
-        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        path_qml = string(pathof(EasyML),"GUI/UniversalFolderDialog.qml")
+        loadqml(path_qml,currentfolder = dir)
         exec()
         some_settings.url_labels = url_out[1]
         if some_settings.url_labels==""
@@ -458,7 +465,8 @@ function modify(data)
             set_settings,
             save_settings
         )
-        loadqml("GUI/TrainingOptions.qml")
+        path_qml = string(pathof(EasyML),"GUI/TrainingOptions.qml")
+        loadqml(path_qml)
         exec()
 
     elseif typeof(data)==ApplicationOptions
@@ -469,7 +477,8 @@ function modify(data)
             pwd,
             fix_slashes
         )
-        loadqml("GUI/ApplicationOptions.qml")
+        path_qml = string(pathof(EasyML),"GUI/ApplicationOptions.qml")
+        loadqml(path_qml)
         exec()
     end
     return nothing
@@ -513,7 +522,8 @@ function train()
         info,
         time
     )
-    loadqml("GUI/TrainingPlot.qml")
+    path_qml = string(pathof(EasyML),"GUI/TrainingPlot.qml")
+    loadqml(path_qml)
     exec()
 
     while true
@@ -588,7 +598,8 @@ function get_urls_validation()
 
     @info "Select a directory with input data."
     @qmlfunction(observe)
-    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+    path_qml = string(pathof(EasyML),"GUI/UniversalFolderDialog.qml")
+    loadqml(path_qml,currentfolder = dir)
     exec()
     validation.url_inputs = url_out[1]
     if validation.url_inputs==""
@@ -602,14 +613,16 @@ function get_urls_validation()
     elseif settings.problem_type==:Regression
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe)
-        loadqml("GUI/UniversalFileDialog.qml",
+        path_qml = string(pathof(EasyML),"GUI/UniversalFileDialog.qml")
+        loadqml(path_qml,
             nameFilters = name_filters)
         exec()
         validation.url_labels = url_out[1]
     elseif settings.problem_type==:Segmentation
         @info "Select a directory with label data if labels are available."
         @qmlfunction(observe)
-        loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir)
+        path_qml = string(pathof(EasyML),"GUI/UniversalFolderDialog.qml")
+        loadqml(path_qml,currentfolder = dir)
         exec()
         validation.url_labels = url_out[1]
     end
@@ -665,7 +678,8 @@ function validate()
     )
     f1 = CxxWrap.@safe_cfunction(display_original_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
     f2 = CxxWrap.@safe_cfunction(display_result_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
-    loadqml("GUI/ValidationPlot.qml",
+    path_qml = string(pathof(EasyML),"GUI/ValidationPlot.qml")
+    loadqml(path_qml,
         display_original_image = f1,
         display_result_image = f2
     )
@@ -714,7 +728,8 @@ function get_urls_application()
     dir = pwd()
     @info "Select a directory with input data."
     @qmlfunction(observe)
-    loadqml("GUI/UniversalFolderDialog.qml",currentfolder = dir,
+    path_qml = string(pathof(EasyML),"GUI/UniversalFolderDialog.qml")
+    loadqml(path_qml,currentfolder = dir,
         target = "Application",type = "url_inputs")
     exec()
     application.url_inputs = url_out[1]
