@@ -188,6 +188,13 @@ function load_settings!(settings::Settings)
     
     return nothing
 end
+
+"""
+    load_settings()
+
+Loads settings from your previous run which are located in 'config.bson'. 
+Uses present working directory. It is run automatically after 'using EasyML'.
+"""
 load_settings() = load_settings!(settings)
 
 function source_dir()
