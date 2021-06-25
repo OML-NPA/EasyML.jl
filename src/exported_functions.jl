@@ -395,9 +395,11 @@ function prepare_data(some_settings::Union{Training,Testing},some_data::Union{Tr
         @warn "Using grayscale images because color channel has size 1."
     end
 
-    if channel_name=="Training data preparation"
+    if some_settings isa Training
+        println("Training data preparation:")
         error_message = "No input urls. Run 'get_urls_training'."
     else
+        println("Testing data preparation:")
         error_message = "No input urls. Run 'get_urls_testing'."
     end
     fields = [:data_input,:data_labels]
@@ -755,6 +757,7 @@ end
 Starts application of a model.
 """
 function apply()
+    println("Application:")
     if isempty(application_data.input_urls)
         @error "No input urls. Run 'get_urls_application'."
         return nothing
