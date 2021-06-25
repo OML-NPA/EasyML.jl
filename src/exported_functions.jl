@@ -1,41 +1,67 @@
 
 """
-    load_model()
+modify_classes()
 
-Opens a file dialog where you can select a model to be loaded and loads it.
+Opens a GUI for addition or modification of classes.
 """
-function load_model()
-    name_filters = ["*.model"]
-    url_out = String[""]
-    observe(url) = url_out[1] = url
-    # Launches GUI
-    @qmlfunction(observe)
-    loadqml("/GUI/UniversalFileDialog.qml",
-        nameFilters = name_filters)
+function modify_classes()
+    classes = model_data.classes
+    if length(classes)==0
+        ids = [0]
+        JindTree = -1
+    else
+        ids = 1:length(classes)
+        JindTree = 0
+    end
+    @qmlfunction(
+        get_class_field,
+        num_classes,
+        append_classes,
+        reset_classes,
+        reset_output_options,
+        backup_options,
+        get_problem_type,
+        set_problem_type,
+        get_settings,
+        set_settings,
+        save_settings
+    )
+    path_qml = string(@__DIR__,"/GUI/ClassDialog.qml")
+    loadqml(path_qml,JindTree = JindTree, ids = ids)
     exec()
-    # Load model
-    load_model(url_out[1])
+    return nothing
 end
 
 """
-    save_model()
+modify_output()
 
-Opens a file dialog where you can select where to save a model and how it should be called.
+Opens a GUI for addition or modification of output options for classes.
 """
-function save_model()
-    filename = string(training.name,".model")
-    url_out = String[""]
-    observe(url) = url_out[1] = url
-    # Launches GUI
-    @qmlfunction(observe)
-    @info @__DIR__
-    path_qml = string(@__DIR__,"/GUI/UniversalSaveFileDialog.qml")
-    loadqml(path_qml,
-        nameFilters = name_filters,
-        filename = filename)
-    exec()
-    # Load model
-    save_model(url_out[1])
+function modify_output()
+    if isempty(model_data.classes)
+        @error "There are no classes. Add classes using 'modify_classes()'."
+        return nothing
+    end
+    if settings.problem_type==:Classification
+        @info "Classification has no output to modify."
+    elseif settings.problem_type==:Regression
+        @info "Regression has no output to modify."
+    elseif settings.problem_type==:Segmentation
+        @qmlfunction(
+            save_model,
+            get_class_field,
+            get_settings,
+            get_output,
+            set_output,
+            get_class_field,
+            get_problem_type,
+            num_classes
+        )
+        path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
+        loadqml(ath_qml,indTree = 0)
+        exec()
+    end
+    return nothing
 end
 
 """
@@ -79,68 +105,24 @@ function design_model()
 end
 
 """
-    modify_classes()
+    save_model()
 
-Opens a GUI for addition or modification of classes.
+Opens a file dialog where you can select where to save a model and how it should be called.
 """
-function modify_classes()
-    classes = model_data.classes
-    if length(classes)==0
-        ids = [0]
-        JindTree = -1
-    else
-        ids = 1:length(classes)
-        JindTree = 0
-    end
-    @qmlfunction(
-        get_class_field,
-        num_classes,
-        append_classes,
-        reset_classes,
-        reset_output_options,
-        backup_options,
-        get_problem_type,
-        set_problem_type,
-        get_settings,
-        set_settings,
-        save_settings
-    )
-    path_qml = string(@__DIR__,"/GUI/ClassDialog.qml")
-    loadqml(path_qml,JindTree = JindTree, ids = ids)
+function save_model()
+    filename = string(training.name,".model")
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    @info @__DIR__
+    path_qml = string(@__DIR__,"/GUI/UniversalSaveFileDialog.qml")
+    loadqml(path_qml,
+        nameFilters = name_filters,
+        filename = filename)
     exec()
-    return nothing
-end
-
-"""
-    modify_output()
-
-Opens a GUI for addition or modification of output options for classes.
-"""
-function modify_output()
-    if isempty(model_data.classes)
-        @error "There are no classes. Add classes using 'modify_classes()'."
-        return nothing
-    end
-    if settings.problem_type==:Classification
-        @info "Classification has no output to modify."
-    elseif settings.problem_type==:Regression
-        @info "Regression has no output to modify."
-    elseif settings.problem_type==:Segmentation
-        @qmlfunction(
-            save_model,
-            get_class_field,
-            get_settings,
-            get_output,
-            set_output,
-            get_class_field,
-            get_problem_type,
-            num_classes
-        )
-        path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
-        loadqml(ath_qml,indTree = 0)
-        exec()
-    end
-    return nothing
+    # Load model
+    save_model(url_out[1])
 end
 
 # Training
@@ -163,6 +145,56 @@ function get_urls(some_settings::Union{Training,Testing},some_data::Union{Traini
         end
     end
     get_urls_main(some_settings,some_data,model_data)
+    return nothing
+end
+
+"""
+    load_model()
+
+Opens a file dialog where you can select a model to be loaded and loads it.
+"""
+function load_model()
+    name_filters = ["*.model"]
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launches GUI
+    @qmlfunction(observe)
+    loadqml("/GUI/UniversalFileDialog.qml",
+        nameFilters = name_filters)
+    exec()
+    # Load model
+    load_model(url_out[1])
+end
+
+"""
+    modify(data) 
+
+Allows to modify 'training_options' or 'application_options' in a GUI by passing one of 
+them as an input argument.
+"""
+function modify(data)
+    if typeof(data)==TrainingOptions
+        @qmlfunction(
+            get_settings,
+            set_settings,
+            save_settings
+        )
+        path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
+        loadqml(path_qml)
+        exec()
+
+    elseif typeof(data)==ApplicationOptions
+        @qmlfunction(
+            get_settings,
+            set_settings,
+            save_settings,
+            pwd,
+            fix_slashes
+        )
+        path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")
+        loadqml(path_qml)
+        exec()
+    end
     return nothing
 end
 
@@ -452,38 +484,6 @@ Prepares images and corresponding labels for testing using URLs loaded previousl
 'get_urls_testing'. Saves data to EasyML.testing_data.
 """
 prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
-
-"""
-    modify(data) 
-
-Allows to modify 'training_options' or 'application_options' in a GUI by passing one of 
-them as an input argument.
-"""
-function modify(data)
-    if typeof(data)==TrainingOptions
-        @qmlfunction(
-            get_settings,
-            set_settings,
-            save_settings
-        )
-        path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
-        loadqml(path_qml)
-        exec()
-
-    elseif typeof(data)==ApplicationOptions
-        @qmlfunction(
-            get_settings,
-            set_settings,
-            save_settings,
-            pwd,
-            fix_slashes
-        )
-        path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")
-        loadqml(path_qml)
-        exec()
-    end
-    return nothing
-end
 
 """
     train()
