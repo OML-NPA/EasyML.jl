@@ -169,7 +169,7 @@ end
 """
     modify(data) 
 
-Allows to modify 'training_options' or 'application_options' in a GUI by passing one of 
+Allows to modify `training_options` or `application_options` in a GUI by passing one of 
 them as an input argument.
 """
 function modify(data)
@@ -202,14 +202,14 @@ end
     get_urls_training(url_inputs::String,url_labels::String)
 
 Gets URLs to all files present in both folders (or a folder and a file) 
-specified by 'url_inputs' and 'url_labels' for training. URLs are automatically saved to 'EasyML.training_data'.
+specified by `url_inputs` and `url_labels` for training. URLs are automatically saved to `EasyML.training_data`.
 """
 get_urls_training(url_inputs,url_labels) = get_urls(training,training_data,url_inputs,url_labels)
 """
     get_urls_testing(url_inputs::String,url_labels::String)
 
 Gets URLs to all files present in both folders (or a folder and a file) 
-specified by 'url_inputs' and 'url_labels' for testing. URLs are automatically saved to 'EasyML.testing_data'.
+specified by `url_inputs` and `url_labels` for testing. URLs are automatically saved to `EasyML.testing_data`.
 """
 get_urls_testing(url_inputs,url_labels) = get_urls(testing,testing_data,url_inputs,url_labels)
 
@@ -229,15 +229,15 @@ end
 """
     get_urls_training(url_inputs::String)
 
-Used for classification. Gets URLs to all files present in folders located at a folder specified by 'url_inputs' 
-for training. Folders should have names identical to the name of classes. URLs are automatically saved to 'EasyML.training_data'.
+Used for classification. Gets URLs to all files present in folders located at a folder specified by `url_inputs` 
+for training. Folders should have names identical to the name of classes. URLs are automatically saved to `EasyML.training_data`.
 """
 get_urls_training(url_inputs) = get_urls(training,training_data,url_inputs)
 """
     get_urls_testing(url_inputs::String)
 
-Used for classification. Gets URLs to all files present in folders located at a folder specified by 'url_inputs' 
-for testing. Folders should have names identical to the name of classes. URLs are automatically saved to 'EasyML.testing_data'.
+Used for classification. Gets URLs to all files present in folders located at a folder specified by `url_inputs` 
+for testing. Folders should have names identical to the name of classes. URLs are automatically saved to `EasyML.testing_data`.
 """
 get_urls_testing(url_inputs) = get_urls(testing,testing_data,url_inputs)
 
@@ -315,10 +315,10 @@ end
 """
     get_urls_testing()
 
-If testing data preparation in 'modify(training_options)' is set to auto, then a percentage 
-of training data specified in 'modify(training_options)' is reserved for testing. If testing data 
+If testing data preparation in `modify(training_options)` is set to auto, then a percentage 
+of training data also specified there is reserved for testing. If testing data 
 preparation is set to manual, then it opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
-and labels. URLs are automatically saved to 'EasyML.testing_data'.
+and labels. URLs are automatically saved to `EasyML.testing_data`.
 """
 get_urls_testing() = get_urls_testing_main(training,training_data,testing,testing_data)
 
@@ -377,7 +377,7 @@ end
     get_urls_training()
 
 Opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
-and labels. URLs are automatically saved to 'EasyML.training_data'.
+and labels. URLs are automatically saved to `EasyML.training_data`.
 """
 get_urls_training() = get_urls(training,training_data)
 
@@ -480,14 +480,14 @@ end
     prepare_training_data() 
 
 Prepares images and corresponding labels for training using URLs loaded previously using 
-'get_urls_training'. Saves data to EasyML.training_data.
+`get_urls_training`. Saves data to EasyML.training_data.
 """
 prepare_training_data() = prepare_data(training,training_data,"Training data preparation")
 """
     prepare_testing_data() 
 
 Prepares images and corresponding labels for testing using URLs loaded previously using 
-'get_urls_testing'. Saves data to EasyML.testing_data.
+`get_urls_testing`. Saves data to `EasyML.testing_data`.
 """
 prepare_testing_data() = prepare_data(testing,testing_data,"Testing data preparation")
 
@@ -548,8 +548,8 @@ end
     get_urls_validation(url_inputs::String,url_labels::String)
 
 Gets URLs to all files present in both folders (or a folder and a file) 
-specified by 'url_inputs' and 'url_labels' for validation. URLs are automatically 
-saved to 'EasyML.validation_data'.
+specified by `url_inputs` and `url_labels` for validation. URLs are automatically 
+saved to `EasyML.validation_data`.
 """
 function get_urls_validation(url_inputs::String,url_labels::String)
     if !isdir(url_inputs)
@@ -577,8 +577,8 @@ end
 """
     get_urls_validation(url_inputs::String)
 
-Gets URLs to all files present in a folders specified by 'url_inputs' 
-for validation. URLs are automatically saved to 'EasyML.validation_data'.
+Gets URLs to all files present in a folders specified by `url_inputs` 
+for validation. URLs are automatically saved to `EasyML.validation_data`.
 """
 function get_urls_validation(url_inputs::String)
     if !isdir(url_inputs)
@@ -596,7 +596,7 @@ end
 
 Opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
 and labels. Folder/file dialog for labels can be skipped if there are no labels available. 
-URLs are automatically saved to 'EasyML.validation_data'.
+URLs are automatically saved to `EasyML.validation_data`.
 """
 function get_urls_validation()
     url_out = String[""]
@@ -709,8 +709,8 @@ end
 """
     get_urls_application(url_inputs::String)
 
-Gets URLs to all files present in a folders specified by 'url_inputs' 
-for application. URLs are automatically saved to 'EasyML.application_data'.
+Gets URLs to all files present in a folders specified by `url_inputs` 
+for application. URLs are automatically saved to `EasyML.application_data`.
 """
 function get_urls_application(url_inputs::String)
     if !isdir(url_inputs)
@@ -727,7 +727,7 @@ end
     get_urls_application()
 
 Opens a folder dialog to choose a folder containing files to which a model should be applied. 
-URLs are automatically saved to 'EasyML.application_data'.
+URLs are automatically saved to `EasyML.application_data`.
 """
 function get_urls_application()
     url_out = String[""]
