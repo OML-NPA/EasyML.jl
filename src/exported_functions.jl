@@ -246,6 +246,10 @@ function get_train_test_inds(num::Int64,fraction::Float64)
     ind_last_test = convert(Int64,round(fraction*num))
     inds_train = inds[ind_last_test+1:end]
     inds_test = inds[1:ind_last_test]
+    if isempty(inds_test)
+        @warn string("Fraction of ",fraction," from ",num,
+        " files is 0. Increase the fraction of data used for testing to at least ",round(1/num,digits=2),".")
+    end
     return inds_train,inds_test
 end
 
