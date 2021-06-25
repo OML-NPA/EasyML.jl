@@ -257,7 +257,7 @@ function remove_validation_data()
 end
 
 """
-    remove_validation_data()
+    remove_validation_results()
 
 Removes validation results.
 """

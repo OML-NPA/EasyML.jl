@@ -912,7 +912,7 @@ Removes all testing data.
 remove_testing_data() = remove_data(testing_data)
 
 """
-    remove_training_data()
+    remove_training_results()
 
 Removes training results.
 """
