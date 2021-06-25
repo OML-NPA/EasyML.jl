@@ -456,8 +456,8 @@ design = Design()
 @with_kw mutable struct ProcessingTraining
     grayscale::Bool = false
     mirroring::Bool = true
-    num_angles::Int64 = 2
-    min_fr_pix::Float64 = 0.1
+    num_angles::Int64 = 1
+    min_fr_pix::Float64 = 0.0
 end
 processing_training = ProcessingTraining()
 
@@ -490,7 +490,7 @@ end
 general_training = GeneralTraining()
 
 @with_kw mutable struct TestingTraining
-    test_data_fraction::Float64 = 0
+    test_data_fraction::Float64 = 0.1
     num_tests::Float64 = 5
     manual_testing_data::Bool = false
 end
