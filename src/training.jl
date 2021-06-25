@@ -34,7 +34,7 @@ function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{T
         intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
         regression_data.input_urls = input_urls
         regression_data.labels_url = url_labels
-        regression_data.data_labels = loaded_labels
+        regression_data.initial_data_labels = loaded_labels
     elseif settings.problem_type==:Segmentation
         segmentation_data = some_data.SegmentationData
         input_urls,label_urls,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
