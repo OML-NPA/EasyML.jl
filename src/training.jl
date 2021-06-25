@@ -254,7 +254,7 @@ function prepare_data(regression_data::RegressionData,
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, 2*num+2)
+    put!(progress, 2*num+1)
     num = length(input_urls)
     # Load images
     imgs = load_images(input_urls,progress)
@@ -312,15 +312,16 @@ function prepare_data(segmentation_data::SegmentationData,
         push!(mirroring_inds,1)
     end
     input_urls = segmentation_data.input_urls
+    label_urls = segmentation_data.label_urls
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, 3*num+2)
+    put!(progress, 3*num+1)
     # Get class data
     class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     # Load images
     imgs = load_images(input_urls,progress)
-    labels = load_images(segmentation_data.label_urls,progress)
+    labels = load_images(label_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
