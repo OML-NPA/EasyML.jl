@@ -16,7 +16,7 @@ ApplicationWindow {
     title: qsTr("  EasyML")
 
     //---Universal property block-----------------------------------------------
-    property double pix: Screen.width/3840
+    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_settings(["Options","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
