@@ -95,7 +95,7 @@ ApplicationWindow {
                             {"name": "Volume", "stackview": volumeView}]
 
     onClosing: {
-        var url = Julia.get_settings(["Application","model_url"])
+        var url = Julia.get_settings(["model_url"])
         Julia.save_model(url)
         // applicationclassdialogLoader.sourceComponent = null
     }
