@@ -16,7 +16,7 @@ Classification, regression and segmentation on images are currently supported.
 
 Flux.jl neural network library is used.
 
-#### Installation
+### Installation
 
 Add the package from this repository to Julia using 
 
