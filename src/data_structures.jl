@@ -446,7 +446,14 @@ all_data = AllData()
     num_cores::Int64 = Threads.nthreads()
 end
 hardware_resources = HardwareResources()
+
+@with_kw mutable struct Graphics
+    scaling_factor::Float32 = 1
+end
+graphics = Graphics()
+
 @with_kw mutable struct Options
+    Graphics::Graphics = graphics
     HardwareResources::HardwareResources = hardware_resources
 end
 options = Options()
