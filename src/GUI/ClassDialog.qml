@@ -735,7 +735,7 @@ ApplicationWindow {
                     Label {
                         id: notclassLabel
                         width: 350*pix
-                        text: "Not a class:"
+                        text: "Overlap of classes:"
                     }
                     CheckBox {
                         id: notclassCheckBox
@@ -743,9 +743,17 @@ ApplicationWindow {
                         onClicked: {
                             if (checkState==Qt.Checked) {
                                 classModel.get(indTree).notClass = true
+                                borderRow.visible = false
+                                bordernumpixelsRow.visible = false
+                                borderremoveobjsRow.visible = false
+                                minareaRow.visible = false
                             }
                             if (checkState==Qt.Unchecked) {
                                 classModel.get(indTree).notClass = false
+                                borderRow.visible = true
+                                bordernumpixelsRow.visible = true
+                                borderremoveobjsRow.visible = true
+                                minareaRow.visible = true
                             }
                         }
                     }
@@ -856,6 +864,9 @@ ApplicationWindow {
                 Julia.reset_output_options()
                 for (var i=0;i<classModel.count;i++) {
                     var class_var = classModel.get(i)
+                    if (class_var.notClass) {
+                        class_var.border = false
+                    }
                     Julia.append_classes(class_var.id,
                         [class_var.name,
                         class_var.colorR,
