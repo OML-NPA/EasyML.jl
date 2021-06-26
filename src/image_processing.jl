@@ -2,7 +2,8 @@
 function areaopen!(im::BitArray{2},area::Int64)
     im_segm = label_components(im)
     num = maximum(im_segm)
-    @floop ThreadedEx() for i=1:num
+    chunk_size = convert(Int64,round(num/num_cores()))
+    @floop ThreadedEx(basesize = chunk_size) for i=1:num
         mask = im_segm.==i
         if sum(mask)<area
             im[mask] .= false
@@ -13,7 +14,8 @@ end
 
 function areaopen!(im_segm::Array{Int64},area::Int64)
     num = maximum(im_segm)
-    @floop ThreadedEx() for i=1:num
+    chunk_size = convert(Int64,round(num/num_cores()))
+    @floop ThreadedEx(basesize = chunk_size) for i=1:num
         mask = im_segm.==i
         if sum(mask)<area
             im[mask] .= false

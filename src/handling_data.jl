@@ -33,7 +33,8 @@ function get_labels_colors_main(training_data::TrainingData,channels::Channels)
     for i=1:num
         push!(labelimgs,RGB.(load(url_labels[i])))
     end
-    @floop ThreadedEx() for i=1:num
+    chunk_size = convert(Int64,round(num/num_cores()))
+    @floop ThreadedEx(basesize = chunk_size) for i=1:num
             labelimg = labelimgs[i]
             unique_colors = unique(labelimg)
             ind = findfirst(unique_colors.==RGB.(0,0,0))

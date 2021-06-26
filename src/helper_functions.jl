@@ -244,10 +244,6 @@ function intersect_inds(ar1,ar2)
     return (inds1, inds2)
 end
 
-function num_cores()
-    return Threads.nthreads()
-end
-
 function time()
       date = string(now())
       date = date[1:19]

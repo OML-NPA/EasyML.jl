@@ -580,3 +580,5 @@ mutable struct Counter
     Counter() = new(0)
 end
 (c::Counter)() = (c.iteration += 1)
+
+num_cores() = settings.Options.HardwareResources.num_cores
