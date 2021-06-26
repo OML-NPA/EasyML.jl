@@ -108,9 +108,9 @@ version = "0.2.2"
 
 [[ChainRules]]
 deps = ["ChainRulesCore", "Compat", "LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "1fd011887c6a54d77537079e6cf76301809b23ba"
+git-tree-sha1 = "df2f310b991d6cdc3fe317f9a4e5472a8d690af1"
 uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
-version = "0.8.14"
+version = "0.8.15"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -226,9 +226,9 @@ uuid = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 version = "0.7.2"
 
 [[DataAPI]]
-git-tree-sha1 = "dfb3b7e89e395be1e25c2ad6d7690dc29cc53b1d"
+git-tree-sha1 = "ee400abb2298bd13bfc3df1c412ed228061a2385"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.6.0"
+version = "1.7.0"
 
 [[DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
@@ -1040,9 +1040,7 @@ version = "1.7.1"
 
 [[QML]]
 deps = ["ColorTypes", "CxxWrap", "Libdl", "MacroTools", "Mesa_jll", "Observables", "Requires", "jlqml_jll"]
-git-tree-sha1 = "65c14579c1d509cd73d0d7299d0d6bc351ee1fd5"
-repo-rev = "master"
-repo-url = "https://github.com/barche/QML.jl.git"
+git-tree-sha1 = "fb1858a2f058d4a3d8c765edae0e909722d19dbf"
 uuid = "2db162a6-7e43-52c3-8d84-290c1c42d82a"
 version = "0.7.0"
 
@@ -1294,9 +1292,9 @@ version = "1.5.5"
 
 [[TimerOutputs]]
 deps = ["ExprTools", "Printf"]
-git-tree-sha1 = "bf8aacc899a1bd16522d0350e1e2310510d77236"
+git-tree-sha1 = "9f494bc54b4c31404a9eff449235836615929de1"
 uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
-version = "0.5.9"
+version = "0.5.10"
 
 [[TranscodingStreams]]
 deps = ["Random", "Test"]
