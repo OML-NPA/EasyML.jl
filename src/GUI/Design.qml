@@ -215,1055 +215,1055 @@ ApplicationWindow {
                 updateOverview()
             }
         }
-        Row {
-            spacing: 0
-            Frame {
-                id: leftFrame
-                x: -1*pix
-                z: 1
-                height: customizationWindow.height + 1*pix
-                width: 530*pix + 1*pix
-                padding:0
-                Item {
-                    id: layersItem
-                    Label {
-                        id: layersLabel
-                        width: leftFrame.width
-                        text: "Layers:"
-                        font.pixelSize: 33*1.1*pix
-                        padding: 0.2*margin
-                        leftPadding: 0.2*margin
-                        background: Rectangle {
-                            anchors.fill: parent.fill
-                            color: "transparent"
-                            border.color: defaultpalette.border
-                            border.width: 2*pix
-                        }
+        Frame {
+            id: leftFrame
+            z: 1
+            height: customizationWindow.height + 1*pix
+            width: 530*pix + 1*pix
+            padding:0
+            Item {
+                id: layersItem
+                Label {
+                    id: layersLabel
+                    width: leftFrame.width
+                    text: "Layers:"
+                    font.pixelSize: 33*1.1*pix
+                    padding: 0.2*margin
+                    leftPadding: 0.2*margin
+                    background: Rectangle {
+                        anchors.fill: parent.fill
+                        color: "transparent"
+                        border.color: defaultpalette.border
+                        border.width: 2*pix
                     }
-                    Frame {
-                        id: layersFrame
-                        y: layersLabel.height -2*pix
-                        height: 1*(customizationWindow.height - 1*layersLabel.height)
-                        width: leftFrame.width
-                        padding: 0
-                        backgroundColor: defaultpalette.listview
-                        ScrollableItem {
-                            y: 2*pix
-                            id: layersFlickable
-                            height: layersFrame.height-4*pix
-                            width: leftFrame.width-2*pix
-                            contentHeight: 1.25*buttonHeight*(inoutlayerView.count + linearlayerView.count +
-                                normlayerView.count + activationlayerView.count + poolinglayerView.count +
-                                resizinglayerView.count) + 6*0.9*buttonHeight
-                            ScrollBar.horizontal.visible: false
-                            Item {
-                                id: listItem
+                }
+                Frame {
+                    id: layersFrame
+                    y: layersLabel.height - 2*pix
+                    height: 1*(customizationWindow.height - 1*layersLabel.height) + 1*pix
+                    width: leftFrame.width
+                    padding: 0
+                    backgroundColor: defaultpalette.listview
+                    ScrollableItem {
+                        y: 2*pix
+                        id: layersFlickable
+                        height: layersFrame.height-4*pix
+                        width: leftFrame.width-3*pix
+                        contentHeight: 1.25*buttonHeight*(inoutlayerView.count + linearlayerView.count +
+                            normlayerView.count + activationlayerView.count + poolinglayerView.count +
+                            resizinglayerView.count) + 6*0.9*buttonHeight
+                        ScrollBar.horizontal.visible: false
+                        Item {
+                            id: listItem
 
-                                Label {
-                                    id: inoutLabel
+                            Label {
+                                id: inoutLabel
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*linearLabel.height
+                                text: "Input and output layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*linearLabel.height
-                                    text: "Input and output layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
                                 }
-                                ListView {
-                                        id: inoutlayerView
-                                        height: childrenRect.height
-                                        anchors.top: inoutLabel.bottom
-                                        spacing: 0
-                                        boundsBehavior: Flickable.StopAtBounds
-                                        model: ListModel {id: inoutlayerModel
-                                                          ListElement{
-                                                              type: "Input"
-                                                              group: "inout"
-                                                              name: "input"
-                                                              colorR: 0
-                                                              colorG: 0
-                                                              colorB: 250
-                                                              inputnum: 0
-                                                              outputnum: 1}
-                                                          ListElement{
-                                                              type: "Output"
-                                                              group: "inout"
-                                                              name: "output"
-                                                              colorR: 0
-                                                              colorG: 0
-                                                              colorB: 250
-                                                              inputnum: 1
-                                                              outputnum: 0}
-                                                        }
-                                        delegate: buttonComponent
-                                    }
-                                Label {
-                                    id: linearLabel
-                                    width: leftFrame.width-4*pix
-                                    height: 0.9*buttonHeight
-                                    anchors.top: inoutlayerView.bottom
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*linearLabel.height
-                                    text: "Linear layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
-                                }
-                                ListView {
-                                        id: linearlayerView
-                                        height: childrenRect.height
-                                        anchors.top: linearLabel.bottom
-                                        spacing: 0
-                                        boundsBehavior: Flickable.StopAtBounds
-                                        model: ListModel {id: linearlayerModel
-                                                          ListElement{
-                                                              type: "Convolution"
-                                                              group: "linear"
-                                                              name: "conv"
-                                                              colorR: 250
-                                                              colorG: 250
-                                                              colorB: 0
-                                                              inputnum: 1
-                                                              outputnum: 1}
-                                                          ListElement{
-                                                              type: "Transposed convolution"
-                                                              group: "linear"
-                                                              name: "tconv"
-                                                              colorR: 250
-                                                              colorG: 250
-                                                              colorB: 0
-                                                              inputnum: 1
-                                                              outputnum: 1}
-                                                          ListElement{
-                                                              type: "Dense"
-                                                              group: "linear"
-                                                              name: "dense"
-                                                              colorR: 250
-                                                              colorG: 250
-                                                              colorB: 0
-                                                              inputnum: 1
-                                                              outputnum: 1}
-                                                        }
-                                        delegate: buttonComponent
-                                    }
-                                Label {
-                                    id: normLabel
-                                    anchors.top: linearlayerView.bottom
-                                    width: leftFrame.width-4*pix
-                                    height: 0.9*buttonHeight
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*activationLabel.height
-                                    text: "Normalisation layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
-                                }
-                                ListView {
-                                    id: normlayerView
-                                    anchors.top: normLabel.bottom
+                            }
+                            ListView {
+                                    id: inoutlayerView
                                     height: childrenRect.height
+                                    anchors.top: inoutLabel.bottom
                                     spacing: 0
                                     boundsBehavior: Flickable.StopAtBounds
-                                    model: ListModel {id: normlayerModel
-                                                      ListElement{
-                                                          type: "Drop-out"
-                                                          group: "norm"
-                                                          name: "dropout"
-                                                          colorR: 0
-                                                          colorG: 250
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Batch normalisation"
-                                                          group: "norm"
-                                                          name: "batchnorm"
-                                                          colorR: 0
-                                                          colorG: 250
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
+                                    model: ListModel {id: inoutlayerModel
+                                                        ListElement{
+                                                            type: "Input"
+                                                            group: "inout"
+                                                            name: "input"
+                                                            colorR: 0
+                                                            colorG: 0
+                                                            colorB: 250
+                                                            inputnum: 0
+                                                            outputnum: 1}
+                                                        ListElement{
+                                                            type: "Output"
+                                                            group: "inout"
+                                                            name: "output"
+                                                            colorR: 0
+                                                            colorG: 0
+                                                            colorB: 250
+                                                            inputnum: 1
+                                                            outputnum: 0}
                                                     }
                                     delegate: buttonComponent
                                 }
-                                Label {
-                                    id: activationLabel
-                                    anchors.top: normlayerView.bottom
+                            Label {
+                                id: linearLabel
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                anchors.top: inoutlayerView.bottom
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*linearLabel.height
+                                text: "Linear layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*activationLabel.height
-                                    text: "Activation layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
                                 }
-                                ListView {
-                                    id: activationlayerView
-                                    anchors.top: activationLabel.bottom
+                            }
+                            ListView {
+                                    id: linearlayerView
                                     height: childrenRect.height
+                                    anchors.top: linearLabel.bottom
                                     spacing: 0
                                     boundsBehavior: Flickable.StopAtBounds
-                                    model: ListModel {id: activationlayerModel
-                                                      ListElement{
-                                                          type: "ReLU"
-                                                          group: "activation"
-                                                          name: "relu"
-                                                          colorR: 250
-                                                          colorG: 0
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Laeky ReLU"
-                                                          group: "activation"
-                                                          name: "leakyrelu"
-                                                          colorR: 250
-                                                          colorG: 0
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "ELU"
-                                                          group: "activation"
-                                                          name: "elu"
-                                                          colorR: 250
-                                                          colorG: 0
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Tanh"
-                                                          group: "activation"
-                                                          name: "tanh"
-                                                          colorR: 250
-                                                          colorG: 0
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Sigmoid"
-                                                          group: "activation"
-                                                          name: "sigmoid"
-                                                          colorR: 250
-                                                          colorG: 0
-                                                          colorB: 0
-                                                          inputnum: 1
-                                                          outputnum: 1}
+                                    model: ListModel {id: linearlayerModel
+                                                        ListElement{
+                                                            type: "Convolution"
+                                                            group: "linear"
+                                                            name: "conv"
+                                                            colorR: 250
+                                                            colorG: 250
+                                                            colorB: 0
+                                                            inputnum: 1
+                                                            outputnum: 1}
+                                                        ListElement{
+                                                            type: "Transposed convolution"
+                                                            group: "linear"
+                                                            name: "tconv"
+                                                            colorR: 250
+                                                            colorG: 250
+                                                            colorB: 0
+                                                            inputnum: 1
+                                                            outputnum: 1}
+                                                        ListElement{
+                                                            type: "Dense"
+                                                            group: "linear"
+                                                            name: "dense"
+                                                            colorR: 250
+                                                            colorG: 250
+                                                            colorB: 0
+                                                            inputnum: 1
+                                                            outputnum: 1}
                                                     }
                                     delegate: buttonComponent
                                 }
-                                Label {
-                                    id: poolingLabel
-                                    anchors.top: activationlayerView.bottom
+                            Label {
+                                id: normLabel
+                                anchors.top: linearlayerView.bottom
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*activationLabel.height
+                                text: "Normalisation layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*poolingLabel.height
-                                    text: "Pooling layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
                                 }
-                                ListView {
-                                    id: poolinglayerView
-                                    anchors.top: poolingLabel.bottom
-                                    height: childrenRect.height
-                                    spacing: 0
-                                    boundsBehavior: Flickable.StopAtBounds
-                                    model: ListModel {id: poolinglayerModel
-                                                      ListElement{
-                                                          type: "Max pooling"
-                                                          group: "pooling"
-                                                          name: "maxpool"
-                                                          colorR: 150
-                                                          colorG: 0
-                                                          colorB: 255
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Average pooling"
-                                                          group: "pooling"
-                                                          name: "avgpool"
-                                                          colorR: 150
-                                                          colorG: 0
-                                                          colorB: 255
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                    }
-                                    delegate: buttonComponent
-                                }
-
-                                Label {
-                                    id: resizingLabel
-                                    anchors.top: poolinglayerView.bottom
-                                    width: leftFrame.width-4*pix
-                                    height: 0.9*buttonHeight
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*activationLabel.height
-                                    text: "Resizing layers"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
-                                }
-                                ListView {
-                                    id: resizinglayerView
-                                    anchors.top: resizingLabel.bottom
-                                    height: childrenRect.height
-                                    spacing: 0
-                                    boundsBehavior: Flickable.StopAtBounds
-                                    model: ListModel {id: resizinglayerModel
+                            }
+                            ListView {
+                                id: normlayerView
+                                anchors.top: normLabel.bottom
+                                height: childrenRect.height
+                                spacing: 0
+                                boundsBehavior: Flickable.StopAtBounds
+                                model: ListModel {id: normlayerModel
                                                     ListElement{
-                                                        type: "Addition"
+                                                        type: "Drop-out"
+                                                        group: "norm"
+                                                        name: "dropout"
+                                                        colorR: 0
+                                                        colorG: 250
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Batch normalisation"
+                                                        group: "norm"
+                                                        name: "batchnorm"
+                                                        colorR: 0
+                                                        colorG: 250
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                }
+                                delegate: buttonComponent
+                            }
+                            Label {
+                                id: activationLabel
+                                anchors.top: normlayerView.bottom
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*activationLabel.height
+                                text: "Activation layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
+                                    width: leftFrame.width-4*pix
+                                    height: 0.9*buttonHeight
+                                }
+                            }
+                            ListView {
+                                id: activationlayerView
+                                anchors.top: activationLabel.bottom
+                                height: childrenRect.height
+                                spacing: 0
+                                boundsBehavior: Flickable.StopAtBounds
+                                model: ListModel {id: activationlayerModel
+                                                    ListElement{
+                                                        type: "ReLU"
+                                                        group: "activation"
+                                                        name: "relu"
+                                                        colorR: 250
+                                                        colorG: 0
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Laeky ReLU"
+                                                        group: "activation"
+                                                        name: "leakyrelu"
+                                                        colorR: 250
+                                                        colorG: 0
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "ELU"
+                                                        group: "activation"
+                                                        name: "elu"
+                                                        colorR: 250
+                                                        colorG: 0
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Tanh"
+                                                        group: "activation"
+                                                        name: "tanh"
+                                                        colorR: 250
+                                                        colorG: 0
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Sigmoid"
+                                                        group: "activation"
+                                                        name: "sigmoid"
+                                                        colorR: 250
+                                                        colorG: 0
+                                                        colorB: 0
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                }
+                                delegate: buttonComponent
+                            }
+                            Label {
+                                id: poolingLabel
+                                anchors.top: activationlayerView.bottom
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*poolingLabel.height
+                                text: "Pooling layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
+                                    width: leftFrame.width-4*pix
+                                    height: 0.9*buttonHeight
+                                }
+                            }
+                            ListView {
+                                id: poolinglayerView
+                                anchors.top: poolingLabel.bottom
+                                height: childrenRect.height
+                                spacing: 0
+                                boundsBehavior: Flickable.StopAtBounds
+                                model: ListModel {id: poolinglayerModel
+                                                    ListElement{
+                                                        type: "Max pooling"
+                                                        group: "pooling"
+                                                        name: "maxpool"
+                                                        colorR: 150
+                                                        colorG: 0
+                                                        colorB: 255
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Average pooling"
+                                                        group: "pooling"
+                                                        name: "avgpool"
+                                                        colorR: 150
+                                                        colorG: 0
+                                                        colorB: 255
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                }
+                                delegate: buttonComponent
+                            }
+
+                            Label {
+                                id: resizingLabel
+                                anchors.top: poolinglayerView.bottom
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*activationLabel.height
+                                text: "Resizing layers"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
+                                    width: leftFrame.width-4*pix
+                                    height: 0.9*buttonHeight
+                                }
+                            }
+                            ListView {
+                                id: resizinglayerView
+                                anchors.top: resizingLabel.bottom
+                                height: childrenRect.height
+                                spacing: 0
+                                boundsBehavior: Flickable.StopAtBounds
+                                model: ListModel {id: resizinglayerModel
+                                                ListElement{
+                                                    type: "Addition"
+                                                    group: "resizing"
+                                                    name: "addition"
+                                                    colorR: 180
+                                                    colorG: 180
+                                                    colorB: 180
+                                                    inputnum: 2
+                                                    outputnum: 1}
+                                                    ListElement{
+                                                        type: "Join"
                                                         group: "resizing"
-                                                        name: "addition"
+                                                        name: "join"
                                                         colorR: 180
                                                         colorG: 180
                                                         colorB: 180
                                                         inputnum: 2
                                                         outputnum: 1}
-                                                      ListElement{
-                                                          type: "Join"
-                                                          group: "resizing"
-                                                          name: "join"
-                                                          colorR: 180
-                                                          colorG: 180
-                                                          colorB: 180
-                                                          inputnum: 2
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Split"
-                                                          group: "resizing"
-                                                          name: "split"
-                                                          colorR: 180
-                                                          colorG: 180
-                                                          colorB: 180
-                                                          inputnum: 1
-                                                          outputnum: 2}
-                                                      ListElement{
-                                                          type: "Upsample"
-                                                          group: "resizing"
-                                                          name: "upsample"
-                                                          colorR: 180
-                                                          colorG: 180
-                                                          colorB: 180
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                      ListElement{
-                                                          type: "Flatten"
-                                                          group: "resizing"
-                                                          name: "flatten"
-                                                          colorR: 180
-                                                          colorG: 180
-                                                          colorB: 180
-                                                          inputnum: 1
-                                                          outputnum: 1}
-                                                    }
-                                    delegate: buttonComponent
-                                }
+                                                    ListElement{
+                                                        type: "Split"
+                                                        group: "resizing"
+                                                        name: "split"
+                                                        colorR: 180
+                                                        colorG: 180
+                                                        colorB: 180
+                                                        inputnum: 1
+                                                        outputnum: 2}
+                                                    ListElement{
+                                                        type: "Upsample"
+                                                        group: "resizing"
+                                                        name: "upsample"
+                                                        colorR: 180
+                                                        colorG: 180
+                                                        colorB: 180
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                    ListElement{
+                                                        type: "Flatten"
+                                                        group: "resizing"
+                                                        name: "flatten"
+                                                        colorR: 180
+                                                        colorG: 180
+                                                        colorB: 180
+                                                        inputnum: 1
+                                                        outputnum: 1}
+                                                }
+                                delegate: buttonComponent
                             }
                         }
                     }
                 }
-                Item {
-                    id: layergroupsItem
-                    visible: false
-                    y: layersLabel.height + layersFrame.height - 2*pix
-                    Label {
-                        id: layergroupsLabel
-                        width: leftFrame.width
-                        text: "Layer groups:"
-                        font.pixelSize: defaultPixelSize*1.1
-                        padding: 0.2*margin
-                        leftPadding: 0.2*margin
-                        background: Rectangle {
-                            anchors.fill: parent.fill
-                            color: defaultpalette.window
-                            border.color: defaultpalette.border
-                            border.width: 2*pix
-                        }
+            }
+            /*Item {
+                id: layergroupsItem
+                visible: false
+                y: layersLabel.height + layersFrame.height - 2*pix
+                Label {
+                    id: layergroupsLabel
+                    width: leftFrame.width
+                    text: "Layer groups:"
+                    font.pixelSize: defaultPixelSize*1.1
+                    padding: 0.2*margin
+                    leftPadding: 0.2*margin
+                    background: Rectangle {
+                        anchors.fill: parent.fill
+                        color: defaultpalette.window
+                        border.color: defaultpalette.border
+                        border.width: 2*pix
                     }
-                    Frame {
-                        y: layergroupsLabel.height - 2*pix
-                        height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)+4*pix
-                        width: leftFrame.width
-                        padding: 0
-                        backgroundColor: defaultpalette.listview
+                }
+                Frame {
+                    y: layergroupsLabel.height - 2*pix
+                    height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)+4*pix
+                    width: leftFrame.width
+                    padding: 0
+                    backgroundColor: defaultpalette.listview
 
-                        ScrollableItem {
-                            clip: true
-                            y: 2*pix
-                            height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)
-                            width: leftFrame.width-2*pix
-                            contentHeight: 1.25*buttonHeight*(defaultgroupsView.count)
-                                           +0.75*buttonHeight
-                            ScrollBar.horizontal.visible: false
-                            Item {
-                                id: groupsRow
-                                Label {
-                                    id: defaultLabel
+                    ScrollableItem {
+                        clip: true
+                        y: 2*pix
+                        height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)
+                        width: leftFrame.width-2*pix
+                        contentHeight: 1.25*buttonHeight*(defaultgroupsView.count)
+                                        +0.75*buttonHeight
+                        ScrollBar.horizontal.visible: false
+                        Item {
+                            id: groupsRow
+                            Label {
+                                id: defaultLabel
+                                width: leftFrame.width-4*pix
+                                height: 0.9*buttonHeight
+                                font.pixelSize: defaultPixelSize*1.1
+                                color: "#777777"
+                                topPadding: 0.10*defaultLabel.height
+                                text: "Default layer groups"
+                                leftPadding: 0.25*margin
+                                background: Rectangle {
+                                    anchors.fill: parent.fill
+                                    x: 2*pix
+                                    color: defaultpalette.window
                                     width: leftFrame.width-4*pix
                                     height: 0.9*buttonHeight
-                                    font.pixelSize: defaultPixelSize*1.1
-                                    color: "#777777"
-                                    topPadding: 0.10*defaultLabel.height
-                                    text: "Default layer groups"
-                                    leftPadding: 0.25*margin
-                                    background: Rectangle {
-                                        anchors.fill: parent.fill
-                                        x: 2*pix
-                                        color: defaultpalette.window
-                                        width: leftFrame.width-4*pix
-                                        height: 0.9*buttonHeight
-                                    }
                                 }
-                                ListView {
-                                        id: defaultgroupsView
-                                        height: childrenRect.height
-                                        anchors.top: defaultLabel.bottom
-                                        spacing: 0
-                                        boundsBehavior: Flickable.StopAtBounds
-                                        model: ListModel {id: deafultmodulesModel
-                                                        }
-                                        delegate: ButtonNN {
-                                            x: +2
-                                            width: leftFrame.width-23*pix
-                                            height: 1.25*buttonHeight
-                                            RowLayout {
-                                                anchors.fill: parent.fill
-                                                ColorBox {
-                                                    Layout.leftMargin: 0.2*margin
-                                                    Layout.bottomMargin: 0.03*margin
-                                                    Layout.preferredWidth: 0.4*margin
-                                                    Layout.preferredHeight: 0.4*margin
-                                                    height: 20*margin
-                                                    Layout.alignment: Qt.AlignBottom
-                                                    colorRGB: [colorR,colorG,colorB]
-                                                }
-                                                Label {
-                                                    topPadding: 0.28*margin
-                                                    leftPadding: 0.10*margin
-                                                    text: name
-                                                    Layout.alignment: Qt.AlignBottom
-                                                }
+                            }
+                            ListView {
+                                    id: defaultgroupsView
+                                    height: childrenRect.height
+                                    anchors.top: defaultLabel.bottom
+                                    spacing: 0
+                                    boundsBehavior: Flickable.StopAtBounds
+                                    model: ListModel {id: deafultmodulesModel
+                                                    }
+                                    delegate: ButtonNN {
+                                        x: +2
+                                        width: leftFrame.width-23*pix
+                                        height: 1.25*buttonHeight
+                                        RowLayout {
+                                            anchors.fill: parent.fill
+                                            ColorBox {
+                                                Layout.leftMargin: 0.2*margin
+                                                Layout.bottomMargin: 0.03*margin
+                                                Layout.preferredWidth: 0.4*margin
+                                                Layout.preferredHeight: 0.4*margin
+                                                height: 20*margin
+                                                Layout.alignment: Qt.AlignBottom
+                                                colorRGB: [colorR,colorG,colorB]
+                                            }
+                                            Label {
+                                                topPadding: 0.28*margin
+                                                leftPadding: 0.10*margin
+                                                text: name
+                                                Layout.alignment: Qt.AlignBottom
                                             }
                                         }
                                     }
-                              }
-                        }
+                                }
+                            }
                     }
                 }
+            }*/
 
+        }
+        Frame {
+            id: mainFrame
+            anchors.left: leftFrame.right
+            anchors.leftMargin: -1
+            z: 0
+            width : customizationWindow.width-leftFrame.width-rightFrame.width + 3*pix
+            height : customizationWindow.height
+            backgroundColor: defaultpalette.listview
+            padding: 0
+            antialiasing: true
+            layer.enabled: true
+            layer.samples: 8
+            onWidthChanged: {
+                flickableMainPane.width = mainFrame.width - 4*pix
+                mainPane.width = flickableMainPane.width
             }
-            Frame {
-                id: mainFrame
-                z: 0
-                width : customizationWindow.width-leftFrame.width-rightFrame.width
-                height : customizationWindow.height
-                backgroundColor: defaultpalette.listview
-                padding: 0
-                antialiasing: true
-                layer.enabled: true
-                layer.samples: 8
-                onWidthChanged: {
-                    flickableMainPane.width = mainFrame.width - 4*pix
-                    mainPane.width = flickableMainPane.width
-                }
-                onHeightChanged: {
-                    flickableMainPane.height = mainFrame.height - 4*pix
-                    mainPane.height = flickableMainPane.height
-                }
-                ScrollableItem {
-                   id: flickableMainPane
-                   width : mainFrame.width - 4*pix
-                   height : mainFrame.height - 4*pix
-                   contentWidth: flickableMainPane.width
-                   contentHeight: flickableMainPane.height
-                   showBackground: false
-                   clip: false
-                   Pane {
-                        id: mainPane
-                        width: flickableMainPane.width
-                        height: flickableMainPane.height-2*pix
-                        padding: 0
-                        backgroundColor: defaultpalette.listview
-                        Component.onCompleted: {
-                            flickableMainPane.ScrollBar.vertical.visible = false
-                            flickableMainPane.ScrollBar.horizontal.visible = false
-                            for (var i=0;i<model.length;i++) {
-                                var data = model[i]
-                                var datastore = copy(data)
-                                var names = ["connections_down","connections_up",
-                                    "label_color","x","y"]
-                                for (var j=0;j<names.length;j++) {
-                                    delete datastore[names[j]]
-                                }
-                                layerComponent.createObject(layers,{"color" : adjustcolor(data.label_color),
-                                    "id": data.id,
-                                    "name": data.name,
-                                    "group": data.group,
-                                    "type": data.type,
-                                    "label_color": data.label_color,
-                                    "inputnum": data.connections_up.length,
-                                    "outputnum": data.connections_down.length,
-                                    "x": data.x,
-                                    "y": data.y,
-                                    "datastore": datastore});
+            onHeightChanged: {
+                flickableMainPane.height = mainFrame.height - 4*pix
+                mainPane.height = flickableMainPane.height
+            }
+            ScrollableItem {
+                id: flickableMainPane
+                width : mainFrame.width - 4*pix
+                height : mainFrame.height - 4*pix
+                contentWidth: flickableMainPane.width
+                contentHeight: flickableMainPane.height
+                showBackground: false
+                clip: false
+                Pane {
+                    id: mainPane
+                    width: flickableMainPane.width
+                    height: flickableMainPane.height-2*pix
+                    padding: 0
+                    backgroundColor: defaultpalette.listview
+                    Component.onCompleted: {
+                        flickableMainPane.ScrollBar.vertical.visible = false
+                        flickableMainPane.ScrollBar.horizontal.visible = false
+                        for (var i=0;i<model.length;i++) {
+                            var data = model[i]
+                            var datastore = copy(data)
+                            var names = ["connections_down","connections_up",
+                                "label_color","x","y"]
+                            for (var j=0;j<names.length;j++) {
+                                delete datastore[names[j]]
                             }
+                            layerComponent.createObject(layers,{"color" : adjustcolor(data.label_color),
+                                "id": data.id,
+                                "name": data.name,
+                                "group": data.group,
+                                "type": data.type,
+                                "label_color": data.label_color,
+                                "inputnum": data.connections_up.length,
+                                "outputnum": data.connections_down.length,
+                                "x": data.x,
+                                "y": data.y,
+                                "datastore": datastore});
+                        }
 
-                            for (i=0;i<model.length;i++) {
-                                data = model[i]
-                                var connections_down = data.connections_down
-                                for (j=0;j<connections_down.length;j++) {
-                                    var conns = connections_down[j]
-                                    for (var l=0;l<conns.length;l++) {
-                                        var conn = conns[l]-1
-                                        var unit = layers.children[i]
-                                        var unit_connected = layers.children[conn]
-                                        var downNode = getDownNode(unit,j)
-                                        var downNodeRectangle = getDownNodeRec(unit,j,l+1)
-                                        var ind = -1
-                                        var connections_up = model[conn].connections_up
-                                        for (var a=0;a<connections_up.length;a++) {
-                                            if ((connections_up[a]-1)===i) {
-                                                ind = a
-                                            }
+                        for (i=0;i<model.length;i++) {
+                            data = model[i]
+                            var connections_down = data.connections_down
+                            for (j=0;j<connections_down.length;j++) {
+                                var conns = connections_down[j]
+                                for (var l=0;l<conns.length;l++) {
+                                    var conn = conns[l]-1
+                                    var unit = layers.children[i]
+                                    var unit_connected = layers.children[conn]
+                                    var downNode = getDownNode(unit,j)
+                                    var downNodeRectangle = getDownNodeRec(unit,j,l+1)
+                                    var ind = -1
+                                    var connections_up = model[conn].connections_up
+                                    for (var a=0;a<connections_up.length;a++) {
+                                        if ((connections_up[a]-1)===i) {
+                                            ind = a
                                         }
-                                        var upNode = getUpNode(unit_connected,ind)
-                                        makeConnection(unit,downNode,downNodeRectangle,upNode)
                                     }
+                                    var upNode = getUpNode(unit_connected,ind)
+                                    makeConnection(unit,downNode,downNodeRectangle,upNode)
                                 }
                             }
-                            deselectunits()
-                            if (layers.children.length!==0) {
-                                updateMainPane(layers.children[0])
-                            }
-                            propertiesStackView.push(generalpropertiesComponent)
-                            updateOverview()
                         }
-                        property var selectioninds: []
-                        property var justselected: false
-                        Timer {
-                            id: mainframeTimer
-                            running: true
-                            repeat: true
-                            interval: 50
-                            property double prevY: 0
-                            property double prevX: 0
-                            property double prevMouseY: 0
-                            property double prevMouseX: 0
-                            property double prevValY: 0.5
-                            property double prevValX: 0.5
-                            property double prevAdjY: 0
-                            property double prevAdjX: 0
-                            property double mouseY: 0
-                            property double mouseX: 0
-                            property bool pressed: false
-                            property var object: null
-                            property var object_data: null
-                            onTriggered: {
-                                // During scrolling
-                                if (flickableMainPane.contentY!==prevY) {
-                                    var startY = flickableMainPane.ScrollBar.vertical.height/
-                                        mainPane.height
-                                    var valY = (flickableMainPane.contentY +
-                                        flickableMainPane.ScrollBar.vertical.height)/
-                                        mainPane.height
-                                    var maxheightchildren = getbottomchild(layers)
-                                    var minheightchildren = gettopchild(layers)
-                                    var adjY = 50*pix
-                                    if (valY>0.99) {
-                                        mainPane.height = mainPane.height + adjY
-                                        flickableMainPane.contentHeight = mainPane.height
-                                    }
-                                    else if (valY<0.98 && valY>maxheightchildren/mainPane.height) {
-                                        mainPane.height = mainPane.height - adjY
-                                        flickableMainPane.contentHeight = mainPane.height
-                                    }
-                                    prevY = flickableMainPane.contentY
+                        deselectunits()
+                        if (layers.children.length!==0) {
+                            updateMainPane(layers.children[0])
+                        }
+                        propertiesStackView.push(generalpropertiesComponent)
+                        updateOverview()
+                    }
+                    property var selectioninds: []
+                    property var justselected: false
+                    Timer {
+                        id: mainframeTimer
+                        running: true
+                        repeat: true
+                        interval: 50
+                        property double prevY: 0
+                        property double prevX: 0
+                        property double prevMouseY: 0
+                        property double prevMouseX: 0
+                        property double prevValY: 0.5
+                        property double prevValX: 0.5
+                        property double prevAdjY: 0
+                        property double prevAdjX: 0
+                        property double mouseY: 0
+                        property double mouseX: 0
+                        property bool pressed: false
+                        property var object: null
+                        property var object_data: null
+                        onTriggered: {
+                            // During scrolling
+                            if (flickableMainPane.contentY!==prevY) {
+                                var startY = flickableMainPane.ScrollBar.vertical.height/
+                                    mainPane.height
+                                var valY = (flickableMainPane.contentY +
+                                    flickableMainPane.ScrollBar.vertical.height)/
+                                    mainPane.height
+                                var maxheightchildren = getbottomchild(layers)
+                                var minheightchildren = gettopchild(layers)
+                                var adjY = 50*pix
+                                if (valY>0.99) {
+                                    mainPane.height = mainPane.height + adjY
+                                    flickableMainPane.contentHeight = mainPane.height
                                 }
-                                if (flickableMainPane.contentX!==prevX) {
-                                    var valX = (flickableMainPane.contentX +
-                                        flickableMainPane.ScrollBar.horizontal.width)/
-                                        mainPane.width
-                                    var maxwidthchildren = getrightchild(layers)
-                                    var adjX = 50*pix
-                                    if (valX>0.99) {
-                                        mainPane.width = mainPane.width + adjX
-                                        flickableMainPane.contentWidth = mainPane.width
-                                    }
-                                    else if (valX>maxwidthchildren/mainPane.width && valX<0.98) {
-                                        mainPane.width = mainPane.width - adjX
-                                        flickableMainPane.contentWidth = mainPane.width
-                                    }
-                                    prevX = flickableMainPane.contentX
+                                else if (valY<0.98 && valY>maxheightchildren/mainPane.height) {
+                                    mainPane.height = mainPane.height - adjY
+                                    flickableMainPane.contentHeight = mainPane.height
                                 }
-                                // Object moving
-                                if (pressed) {
-                                    adjY = 0
-                                    valY = (mouseY-
-                                        flickableMainPane.contentY)/flickableMainPane.height
-                                    if (valY>0.95 && ((prevAdjY===0) || (mouseY!==prevMouseY))) {
-                                        adjY = 30*pix*(valY-0.95)/0.05
-                                        prevAdjY = adjY
-                                        prevValY = valY
-                                    }
-                                    else if ((mouseY==prevMouseY) && (prevValY>=0.95)) {
-                                        adjY = prevAdjY
-                                        mouseY = mouseY + adjY
-                                        prevMouseY = mouseY
-                                    }
-                                    else if (valY<0.05 && ((prevAdjY===0) || (mouseY!==prevMouseY))) {
-                                        adjY = 30*pix*(valY-0.05)/0.05
-                                        prevAdjY = adjY
-                                        prevValY = valY
-                                    }
-                                    else if ((mouseY==prevMouseY) && (prevValY<=0.05)) {
-                                        adjY = prevAdjY
-                                        mouseY = mouseY + adjY
-                                        prevMouseY = mouseY
-                                    }
-                                    else {
-                                        prevAdjY = 0
-                                    }
-                                    if (adjY!==0) {
-                                        var newY = flickableMainPane.contentY + adjY
-                                        if (newY>0) {
-                                            flickableMainPane.contentY = newY
-                                        }
-                                        else if (newY<0) {
-                                            flickableMainPane.contentY = 0
-                                        }
-                                    }
-                                    adjX = 0
-                                    valX = (mouseX-
-                                        flickableMainPane.contentX)/flickableMainPane.width
-                                    if (valX>0.95 && ((prevAdjX===0) || (mouseX!==prevMouseX))) {
-                                        adjX = 30*pix*(valX-0.95)/0.05
-                                        prevAdjX = adjX
-                                        prevValX = valX
-                                    }
-                                    else if ((mouseX==prevMouseX) && (prevValX>=0.95)) {
-                                        adjX = prevAdjX
-                                        mouseX = mouseX + adjX
-                                        prevMouseX = mouseX
-                                    }
-                                    else if (valX<0.05 && ((prevAdjX===0) || (mouseX!==prevMouseX))) {
-                                        adjX = 30*pix*(valX-0.05)/0.05
-                                        prevAdjX = adjX
-                                        prevValX = valX
-                                    }
-                                    else if ((mouseX==prevMouseX) && (prevValX<=0.05)) {
-                                        adjX = prevAdjX
-                                        mouseX = mouseX + adjX
-                                        prevMouseX = mouseX
-                                    }
-                                    else {
-                                        prevAdjX = 0
-                                    }
-                                    if (adjX!==0) {
-                                        var newX = flickableMainPane.contentX + adjX
-                                        if (newX>0) {
-                                            flickableMainPane.contentX = newX
-                                        }
-                                        else if (newX<0) {
-                                            flickableMainPane.contentX = 0
-                                        }
-                                    }
+                                prevY = flickableMainPane.contentY
+                            }
+                            if (flickableMainPane.contentX!==prevX) {
+                                var valX = (flickableMainPane.contentX +
+                                    flickableMainPane.ScrollBar.horizontal.width)/
+                                    mainPane.width
+                                var maxwidthchildren = getrightchild(layers)
+                                var adjX = 50*pix
+                                if (valX>0.99) {
+                                    mainPane.width = mainPane.width + adjX
+                                    flickableMainPane.contentWidth = mainPane.width
+                                }
+                                else if (valX>maxwidthchildren/mainPane.width && valX<0.98) {
+                                    mainPane.width = mainPane.width - adjX
+                                    flickableMainPane.contentWidth = mainPane.width
+                                }
+                                prevX = flickableMainPane.contentX
+                            }
+                            // Object moving
+                            if (pressed) {
+                                adjY = 0
+                                valY = (mouseY-
+                                    flickableMainPane.contentY)/flickableMainPane.height
+                                if (valY>0.95 && ((prevAdjY===0) || (mouseY!==prevMouseY))) {
+                                    adjY = 30*pix*(valY-0.95)/0.05
+                                    prevAdjY = adjY
+                                    prevValY = valY
+                                }
+                                else if ((mouseY==prevMouseY) && (prevValY>=0.95)) {
+                                    adjY = prevAdjY
+                                    mouseY = mouseY + adjY
                                     prevMouseY = mouseY
-                                    prevMouseX = mouseX
-                                    if (mouseX>mainPane.width) {
-                                        mouseX = mainPane.width
-                                    }
-                                    else if (flickableMainPane.contentX==0) {
-                                        adjX = 0
-                                    }
-                                    if (mouseY>mainPane.height) {
-                                        mouseY = mainPane.height
-                                    }
-                                    else if (flickableMainPane.contentY==0) {
-                                        adjY = 0
-                                    }
-                                    // Update object position
-                                    if (adjX!==0 || adjY!==0) {
-                                        if (object==="mainMouseArea") {
-                                            var mouse = {x: mouseX, y: mouseY}
-                                            updatePosSelectRect(mouse,object_data[0],object_data[1])
-                                        }
-                                        else if (object==="unit") {
-                                            var unit = object_data[0]
-                                            unit.x = unit.x + adjX
-                                            unit.y = unit.y + adjY
-                                            updatePosUnit(unit)
-                                        }
-                                        else if (object==="upnode") {
-                                            var upNodeRectangle = object_data[1]
-                                            upNodeRectangle.x = upNodeRectangle.x + adjX
-                                            upNodeRectangle.y = upNodeRectangle.y + adjY
-                                            updatePosUpNode(object_data[0],upNodeRectangle,object_data[2])
-                                        }
-                                        else if (object==="downnode") {
-                                            var downNodeRectangle = object_data[2]
-                                            if (downNodeRectangle===undefined) {
-                                                return
-                                            }
-                                            downNodeRectangle.x = downNodeRectangle.x + adjX
-                                            downNodeRectangle.y = downNodeRectangle.y + adjY
-                                            updatePosDownNode(object_data[0],
-                                                object_data[1],downNodeRectangle,object_data[3])
-                                        }
-                                    }
                                 }
-                            }
-                        }
-                        MouseArea {
-                            id: mainMouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            property int initialXPos
-                            property int initialYPos
-                            onClicked: {
-                                propertiesStackView.push(generalpropertiesComponent)
-                                if (mainPane.justselected===true) {
-                                    mainPane.justselected = false
+                                else if (valY<0.05 && ((prevAdjY===0) || (mouseY!==prevMouseY))) {
+                                    adjY = 30*pix*(valY-0.05)/0.05
+                                    prevAdjY = adjY
+                                    prevValY = valY
+                                }
+                                else if ((mouseY==prevMouseY) && (prevValY<=0.05)) {
+                                    adjY = prevAdjY
+                                    mouseY = mouseY + adjY
+                                    prevMouseY = mouseY
                                 }
                                 else {
-                                    mainPane.selectioninds = []
+                                    prevAdjY = 0
                                 }
-                            }
-                            onPressed: {
-                                deselectunits()
-                                if (mouse.button == Qt.LeftButton) {
-                                    // initialize local variables to determine the selection orientation
-                                    initialXPos = mouse.x
-                                    initialYPos = mouse.y
-
-                                    flickableMainPane.interactive = false // in case the event started over a Flickable element
-                                    selectionRect.x = mouse.x
-                                    selectionRect.y = mouse.y
-                                    selectionRect.width = 0
-                                    selectionRect.height = 0
-                                    selectionRect.visible = true
-                                    mainframeTimer.pressed = true
-                                    mainframeTimer.object = "mainMouseArea"
-                                }
-                            }
-                            onPositionChanged: {
-                                updatePosSelectRect(mouse,initialXPos,initialYPos)
-                                mainframeTimer.object_data = [initialXPos,initialYPos]
-                                var mapped_point = mapToItem(mainMouseArea,mouse.x,mouse.y)
-                                mainframeTimer.mouseY = mapped_point.y
-                                mainframeTimer.mouseX = mapped_point.x
-                            }
-
-                            onReleased: {
-                                selectionRect.visible = false
-                                flickableMainPane.interactive = true
-                                var finishX = mouse.x
-                                var finishY = mouse.y
-                                var maxX = Math.max(initialXPos,finishX)
-                                var minX = Math.min(initialXPos,finishX)
-                                var maxY = Math.max(initialYPos,finishY)
-                                var minY = Math.min(initialYPos,finishY)
-                                for (var i=0;i<layers.children.length;i++) {
-                                    if (layers.children[i].x >minX && layers.children[i].x <maxX &&
-                                            layers.children[i].y >minY && layers.children[i].y <maxY &&
-                                            (layers.children[i].x + layers.children[i].width)>minX &&
-                                            (layers.children[i].x + layers.children[i].width)<maxX &&
-                                            (layers.children[i].y + layers.children[i].height) >minY &&
-                                            (layers.children[i].y + layers.children[i].height) <maxY) {
-                                        mainPane.selectioninds.push(i)
-                                        layers.children[i].border.color = defaultcolors.dark
-                                        layers.children[i].border.width = 4*pix
+                                if (adjY!==0) {
+                                    var newY = flickableMainPane.contentY + adjY
+                                    if (newY>0) {
+                                        flickableMainPane.contentY = newY
+                                    }
+                                    else if (newY<0) {
+                                        flickableMainPane.contentY = 0
                                     }
                                 }
-                                mainPane.justselected = true
-                                mainframeTimer.pressed = false
-                                mainframeTimer.object = null
+                                adjX = 0
+                                valX = (mouseX-
+                                    flickableMainPane.contentX)/flickableMainPane.width
+                                if (valX>0.95 && ((prevAdjX===0) || (mouseX!==prevMouseX))) {
+                                    adjX = 30*pix*(valX-0.95)/0.05
+                                    prevAdjX = adjX
+                                    prevValX = valX
+                                }
+                                else if ((mouseX==prevMouseX) && (prevValX>=0.95)) {
+                                    adjX = prevAdjX
+                                    mouseX = mouseX + adjX
+                                    prevMouseX = mouseX
+                                }
+                                else if (valX<0.05 && ((prevAdjX===0) || (mouseX!==prevMouseX))) {
+                                    adjX = 30*pix*(valX-0.05)/0.05
+                                    prevAdjX = adjX
+                                    prevValX = valX
+                                }
+                                else if ((mouseX==prevMouseX) && (prevValX<=0.05)) {
+                                    adjX = prevAdjX
+                                    mouseX = mouseX + adjX
+                                    prevMouseX = mouseX
+                                }
+                                else {
+                                    prevAdjX = 0
+                                }
+                                if (adjX!==0) {
+                                    var newX = flickableMainPane.contentX + adjX
+                                    if (newX>0) {
+                                        flickableMainPane.contentX = newX
+                                    }
+                                    else if (newX<0) {
+                                        flickableMainPane.contentX = 0
+                                    }
+                                }
+                                prevMouseY = mouseY
+                                prevMouseX = mouseX
+                                if (mouseX>mainPane.width) {
+                                    mouseX = mainPane.width
+                                }
+                                else if (flickableMainPane.contentX==0) {
+                                    adjX = 0
+                                }
+                                if (mouseY>mainPane.height) {
+                                    mouseY = mainPane.height
+                                }
+                                else if (flickableMainPane.contentY==0) {
+                                    adjY = 0
+                                }
+                                // Update object position
+                                if (adjX!==0 || adjY!==0) {
+                                    if (object==="mainMouseArea") {
+                                        var mouse = {x: mouseX, y: mouseY}
+                                        updatePosSelectRect(mouse,object_data[0],object_data[1])
+                                    }
+                                    else if (object==="unit") {
+                                        var unit = object_data[0]
+                                        unit.x = unit.x + adjX
+                                        unit.y = unit.y + adjY
+                                        updatePosUnit(unit)
+                                    }
+                                    else if (object==="upnode") {
+                                        var upNodeRectangle = object_data[1]
+                                        upNodeRectangle.x = upNodeRectangle.x + adjX
+                                        upNodeRectangle.y = upNodeRectangle.y + adjY
+                                        updatePosUpNode(object_data[0],upNodeRectangle,object_data[2])
+                                    }
+                                    else if (object==="downnode") {
+                                        var downNodeRectangle = object_data[2]
+                                        if (downNodeRectangle===undefined) {
+                                            return
+                                        }
+                                        downNodeRectangle.x = downNodeRectangle.x + adjX
+                                        downNodeRectangle.y = downNodeRectangle.y + adjY
+                                        updatePosDownNode(object_data[0],
+                                            object_data[1],downNodeRectangle,object_data[3])
+                                    }
+                                }
                             }
                         }
+                    }
+                    MouseArea {
+                        id: mainMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        property int initialXPos
+                        property int initialYPos
+                        onClicked: {
+                            propertiesStackView.push(generalpropertiesComponent)
+                            if (mainPane.justselected===true) {
+                                mainPane.justselected = false
+                            }
+                            else {
+                                mainPane.selectioninds = []
+                            }
+                        }
+                        onPressed: {
+                            deselectunits()
+                            if (mouse.button == Qt.LeftButton) {
+                                // initialize local variables to determine the selection orientation
+                                initialXPos = mouse.x
+                                initialYPos = mouse.y
 
-                        Item {
-                            property int cnt: 0
-                            id: layers
+                                flickableMainPane.interactive = false // in case the event started over a Flickable element
+                                selectionRect.x = mouse.x
+                                selectionRect.y = mouse.y
+                                selectionRect.width = 0
+                                selectionRect.height = 0
+                                selectionRect.visible = true
+                                mainframeTimer.pressed = true
+                                mainframeTimer.object = "mainMouseArea"
+                            }
                         }
-                        Item {
-                            id: connections
-                            property int num: 0
+                        onPositionChanged: {
+                            updatePosSelectRect(mouse,initialXPos,initialYPos)
+                            mainframeTimer.object_data = [initialXPos,initialYPos]
+                            var mapped_point = mapToItem(mainMouseArea,mouse.x,mouse.y)
+                            mainframeTimer.mouseY = mapped_point.y
+                            mainframeTimer.mouseX = mapped_point.x
                         }
-                        Rectangle {
-                            id: selectionRect
-                            visible: false
-                            x: 0
-                            y: 0
-                            z: 99
-                            width: 0
-                            height: 0
-                            rotation: 0
-                            transformOrigin: Item.TopLeft
-                            border.width: 2*pix
-                            border.color: Qt.rgba(0.2,0.5,0.8,0.8)
-                            color: Qt.rgba(0.2,0.5,0.8,0.05)
-                        }
-                    }
-                }
-                Button {
-                    id: saveButton
-                    x: mainFrame.width-iconSize*1.5
-                    y: iconSize*0.5
-                    width: iconSize
-                    height: iconSize
-                    background: Image {
-                        source: "Icons/saveIcon.png"
-                        fillMode: Image.PreserveAspectFit
-                    }
-                    Component.onCompleted: {
-                        customToolTip.createObject(saveButton,
-                           {"parent": saveButton,
-                           text: "Save"})
-                    }
-                    onPressed: {opacity = 0.5}
-                    onClicked: {
-                       getarchitecture()
-                       customizationItem.forceActiveFocus()
-                       var name = Julia.get_settings(["model_name"])
-                       var url = Julia.source_dir()+"/models/"+name+".model"
-                       // neuralnetworkTextField.text = url
-                       var state = Julia.make_model()
-                       if (state) {
-                           state = Julia.check_model()
-                       }
-                       Julia.move_model()
-                       Julia.save_model(url)
-                       if (state==false) {
-                           show_warnings()
-                       }
-                       opacity = 1
-                    }
-                }
-                Button {
-                    id: optionsButton
-                    x: mainFrame.width-iconSize*1.5
-                    y: iconSize*0.5 + 1.25*iconSize
-                    width: iconSize
-                    height: iconSize
-                    Component.onCompleted: {
-                        customToolTip.createObject(optionsButton,
-                           {"parent": optionsButton,
-                           text: "Options"})
-                    }
-                    background: Image {
-                        source: "Icons/optionsIcon.png"
-                        fillMode: Image.PreserveAspectFit
-                    }
-                    onPressed: {opacity = 0.5}
-                    onClicked: {
-                        opacity = 1
-                        if (designoptionsLoader.sourceComponent === null) {
-                            designoptionsLoader.source = "DesignOptions.qml"
+
+                        onReleased: {
+                            selectionRect.visible = false
+                            flickableMainPane.interactive = true
+                            var finishX = mouse.x
+                            var finishY = mouse.y
+                            var maxX = Math.max(initialXPos,finishX)
+                            var minX = Math.min(initialXPos,finishX)
+                            var maxY = Math.max(initialYPos,finishY)
+                            var minY = Math.min(initialYPos,finishY)
+                            for (var i=0;i<layers.children.length;i++) {
+                                if (layers.children[i].x >minX && layers.children[i].x <maxX &&
+                                        layers.children[i].y >minY && layers.children[i].y <maxY &&
+                                        (layers.children[i].x + layers.children[i].width)>minX &&
+                                        (layers.children[i].x + layers.children[i].width)<maxX &&
+                                        (layers.children[i].y + layers.children[i].height) >minY &&
+                                        (layers.children[i].y + layers.children[i].height) <maxY) {
+                                    mainPane.selectioninds.push(i)
+                                    layers.children[i].border.color = defaultcolors.dark
+                                    layers.children[i].border.width = 4*pix
+                                }
+                            }
+                            mainPane.justselected = true
+                            mainframeTimer.pressed = false
+                            mainframeTimer.object = null
                         }
                     }
-                }
-                Button {
-                    id: arrangeButton
-                    x: mainFrame.width-iconSize*1.5
-                    y: iconSize*0.5 + 2*1.25*iconSize
-                    width: iconSize
-                    height: iconSize
-                    Component.onCompleted: {
-                        customToolTip.createObject(arrangeButton,
-                           {"parent": arrangeButton,
-                           text: "Arrange"})
+
+                    Item {
+                        property int cnt: 0
+                        id: layers
                     }
-                    background: Image {
-                        source: "Icons/arrangeIcon.png"
-                        fillMode: Image.PreserveAspectFit
+                    Item {
+                        id: connections
+                        property int num: 0
                     }
-                    onPressed: {opacity = 0.5}
-                    onClicked: {
-                        getarchitecture()
-                        var data = Julia.arrange()
-                        var coordinates = data[0]
-                        var inds = data[1]
-                        for (var i=0;i<inds.length;i++) {
-                            var layer = layers.children[inds[i]]
-                            layer.x = coordinates[i][0]
-                            layer.y = coordinates[i][1]
-                            layer.oldpos = [layer.x,layer.y]
-                        }
-                        updateMainPane(layers.children[0])
-                        for (i=0;i<layers.children.length;i++) {
-                            updatePosition(layers.children[i],layers.children[i])
-                        }
-                        updateConnections()
-                        customizationItem.forceActiveFocus()
-                        opacity = 1
+                    Rectangle {
+                        id: selectionRect
+                        visible: false
+                        x: 0
+                        y: 0
+                        z: 99
+                        width: 0
+                        height: 0
+                        rotation: 0
+                        transformOrigin: Item.TopLeft
+                        border.width: 2*pix
+                        border.color: Qt.rgba(0.2,0.5,0.8,0.8)
+                        color: Qt.rgba(0.2,0.5,0.8,0.05)
                     }
-                }
-                Rectangle {
-                    color: "transparent"
-                    anchors.fill: parent
-                    border.width: 2*pix
-                    border.color: defaultpalette.border
                 }
             }
-            Frame {
-                id: rightFrame
-                x: 1*pix
-                z: 3
-                height: customizationWindow.height
-                width: 530*pix + 1*pix
-                padding:0
-                Item {
-                    id: propertiesColumn
-                    Label {
-                        id: propertiesLabel
-                        width: rightFrame.width
-                        text: "Properties:"
-                        font.pixelSize: defaultPixelSize*1.1
-                        padding: 0.2*margin
-                        leftPadding: 0.2*margin
-                        background: Rectangle {
-                            anchors.fill: parent.fill
-                            color: defaultpalette.window
-                            border.color: defaultpalette.border
-                            border.width: 2*pix
-                        }
+            Button {
+                id: saveButton
+                x: mainFrame.width-iconSize*1.5
+                y: iconSize*0.5
+                width: iconSize
+                height: iconSize
+                background: Image {
+                    source: "Icons/saveIcon.png"
+                    fillMode: Image.PreserveAspectFit
+                }
+                Component.onCompleted: {
+                    customToolTip.createObject(saveButton,
+                        {"parent": saveButton,
+                        text: "Save"})
+                }
+                onPressed: {opacity = 0.5}
+                onClicked: {
+                    getarchitecture()
+                    customizationItem.forceActiveFocus()
+                    var name = Julia.get_settings(["model_name"])
+                    var url = Julia.source_dir()+"/models/"+name+".model"
+                    // neuralnetworkTextField.text = url
+                    var state = Julia.make_model()
+                    if (state) {
+                        state = Julia.check_model()
                     }
-                    Frame {
-                        id: propertiesFrame
-                        y: propertiesLabel.height -2*pix
-                        height: 0.6*(customizationWindow.height - 2*layersLabel.height)
-                        width: rightFrame.width
-                        padding: 0
-                        backgroundColor: defaultpalette.window
-                        ScrollableItem {
-                            id: propertiesFlickable
-                            y: 2*pix
-                            height: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
-                            width: rightFrame.width-2*pix
-                            contentHeight: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
-                            ScrollBar.horizontal.visible: false
-                            Item {
-                                MouseArea {
-                                    width: propertiesFrame.width
-                                    height: propertiesFrame.height
-                                    onClicked: {
-                                        focus = true
-                                        mouse.accepted = false
+                    Julia.move_model()
+                    Julia.save_model(url)
+                    if (state==false) {
+                        show_warnings()
+                    }
+                    opacity = 1
+                }
+            }
+            Button {
+                id: optionsButton
+                x: mainFrame.width-iconSize*1.5
+                y: iconSize*0.5 + 1.25*iconSize
+                width: iconSize
+                height: iconSize
+                Component.onCompleted: {
+                    customToolTip.createObject(optionsButton,
+                        {"parent": optionsButton,
+                        text: "Options"})
+                }
+                background: Image {
+                    source: "Icons/optionsIcon.png"
+                    fillMode: Image.PreserveAspectFit
+                }
+                onPressed: {opacity = 0.5}
+                onClicked: {
+                    opacity = 1
+                    if (designoptionsLoader.sourceComponent === null) {
+                        designoptionsLoader.source = "DesignOptions.qml"
+                    }
+                }
+            }
+            Button {
+                id: arrangeButton
+                x: mainFrame.width-iconSize*1.5
+                y: iconSize*0.5 + 2*1.25*iconSize
+                width: iconSize
+                height: iconSize
+                Component.onCompleted: {
+                    customToolTip.createObject(arrangeButton,
+                        {"parent": arrangeButton,
+                        text: "Arrange"})
+                }
+                background: Image {
+                    source: "Icons/arrangeIcon.png"
+                    fillMode: Image.PreserveAspectFit
+                }
+                onPressed: {opacity = 0.5}
+                onClicked: {
+                    getarchitecture()
+                    var data = Julia.arrange()
+                    var coordinates = data[0]
+                    var inds = data[1]
+                    for (var i=0;i<inds.length;i++) {
+                        var layer = layers.children[inds[i]]
+                        layer.x = coordinates[i][0]
+                        layer.y = coordinates[i][1]
+                        layer.oldpos = [layer.x,layer.y]
+                    }
+                    updateMainPane(layers.children[0])
+                    for (i=0;i<layers.children.length;i++) {
+                        updatePosition(layers.children[i],layers.children[i])
+                    }
+                    updateConnections()
+                    customizationItem.forceActiveFocus()
+                    opacity = 1
+                }
+            }
+            Rectangle {
+                color: "transparent"
+                anchors.fill: parent
+                border.width: 2*pix
+                border.color: defaultpalette.border
+            }
+        }
+        Frame {
+            id: rightFrame
+            anchors.left: mainFrame.right
+            anchors.leftMargin: -1
+            z: 3
+            height: customizationWindow.height
+            width: 530*pix + 1*pix
+            padding:0
+            Item {
+                id: propertiesColumn
+                Label {
+                    id: propertiesLabel
+                    width: rightFrame.width
+                    text: "Properties:"
+                    font.pixelSize: defaultPixelSize*1.1
+                    padding: 0.2*margin
+                    leftPadding: 0.2*margin
+                    background: Rectangle {
+                        anchors.fill: parent.fill
+                        color: defaultpalette.window
+                        border.color: defaultpalette.border
+                        border.width: 2*pix
+                    }
+                }
+                Frame {
+                    id: propertiesFrame
+                    y: propertiesLabel.height -4*pix
+                    height: 0.6*(customizationWindow.height - 2*layersLabel.height)
+                    width: rightFrame.width
+                    padding: 0
+                    backgroundColor: defaultpalette.window
+                    ScrollableItem {
+                        id: propertiesFlickable
+                        y: 2*pix
+                        height: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
+                        width: rightFrame.width-2*pix
+                        contentHeight: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
+                        ScrollBar.horizontal.visible: false
+                        Item {
+                            MouseArea {
+                                width: propertiesFrame.width
+                                height: propertiesFrame.height
+                                onClicked: {
+                                    focus = true
+                                    mouse.accepted = false
+                                }
+                            }
+                            StackView {
+                                id: propertiesStackView
+                                initialItem: generalpropertiesComponent
+                                pushEnter: Transition {
+                                    PropertyAnimation {
+                                        from: 0
+                                        to:1
+                                        duration: 0
                                     }
                                 }
-                                StackView {
-                                    id: propertiesStackView
-                                    initialItem: generalpropertiesComponent
-                                    pushEnter: Transition {
-                                        PropertyAnimation {
-                                            from: 0
-                                            to:1
-                                            duration: 0
-                                        }
+                                pushExit: Transition {
+                                    PropertyAnimation {
+                                        from: 1
+                                        to:0
+                                        duration: 0
                                     }
-                                    pushExit: Transition {
-                                        PropertyAnimation {
-                                            from: 1
-                                            to:0
-                                            duration: 0
-                                        }
+                                }
+                                popEnter: Transition {
+                                    PropertyAnimation {
+                                        property: "opacity"
+                                        from: 0
+                                        to:1
+                                        duration: 0
                                     }
-                                    popEnter: Transition {
-                                        PropertyAnimation {
-                                            property: "opacity"
-                                            from: 0
-                                            to:1
-                                            duration: 0
-                                        }
-                                    }
-                                    popExit: Transition {
-                                        PropertyAnimation {
-                                            from: 1
-                                            to:0
-                                            duration: 0
-                                        }
+                                }
+                                popExit: Transition {
+                                    PropertyAnimation {
+                                        from: 1
+                                        to:0
+                                        duration: 0
                                     }
                                 }
                             }
                         }
                     }
                 }
-                Item {
-                    id: overviewItem
-                    y: propertiesLabel.height + propertiesFrame.height - 2*pix
-                    Label {
-                        id: overviewLabel
-                        width: rightFrame.width
-                        text: "Overview:"
-                        font.pixelSize: defaultPixelSize*1.1
-                        padding: 0.2*margin
-                        leftPadding: 0.2*margin
-                        background: Rectangle {
-                            anchors.fill: parent.fill
-                            color: defaultpalette.window
-                            border.color: defaultpalette.border
-                            border.width: 2*pix
-                        }
+            }
+            Item {
+                id: overviewItem
+                y: propertiesLabel.height + propertiesFrame.height - 6*pix
+                Label {
+                    id: overviewLabel
+                    width: rightFrame.width
+                    text: "Overview:"
+                    font.pixelSize: defaultPixelSize*1.1
+                    padding: 0.2*margin
+                    leftPadding: 0.2*margin
+                    background: Rectangle {
+                        anchors.fill: parent.fill
+                        color: defaultpalette.window
+                        border.color: defaultpalette.border
+                        border.width: 2*pix
                     }
-                    Frame {
-                        id: overviewFrame
-                        y: overviewLabel.height - 2*pix
-                        height: 0.4*(customizationWindow.height - 2*layersLabel.height) + 4*pix
-                        width: rightFrame.width
-                        padding: 0
-                        backgroundColor: defaultpalette.listview
-                        Image {
-                            id: overviewImage
-                            x: 2*pix
-                            y: 2*pix
-                            height: overviewFrame.height - 4*pix
-                            width: overviewFrame.width - 4*pix
-                            fillMode: Image.PreserveAspectFit
-                        }
+                }
+                Frame {
+                    id: overviewFrame
+                    y: overviewLabel.height - 2*pix
+                    height: 0.4*(customizationWindow.height - 2*layersLabel.height) + 8*pix
+                    width: rightFrame.width
+                    padding: 0
+                    backgroundColor: defaultpalette.listview
+                    Image {
+                        id: overviewImage
+                        x: 2*pix
+                        y: 2*pix
+                        height: overviewFrame.height - 4*pix
+                        width: overviewFrame.width - 4*pix
+                        fillMode: Image.PreserveAspectFit
                     }
                 }
             }
         }
+
         MouseArea {
             width: customizationWindow.width
             height: customizationWindow.height
