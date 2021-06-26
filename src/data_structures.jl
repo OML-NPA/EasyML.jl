@@ -359,6 +359,8 @@ end
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 training_data = TrainingData()
@@ -409,6 +411,8 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
@@ -416,6 +420,8 @@ validation_data = ValidationData()
 @with_kw mutable struct ApplicationData
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
@@ -506,23 +512,13 @@ training_options = TrainingOptions()
 
 @with_kw mutable struct Training
     Options::TrainingOptions = training_options
-    model_url::String = ""
     url_inputs::String = ""
     url_labels::String = ""
-    name::String = "new"
 end
 training = Training()
 
-@with_kw mutable struct Testing
-    url_inputs::String = ""
-    url_labels::String = ""
-end
-testing = Testing()
-
 # Validation
 @with_kw mutable struct Validation
-    url_inputs::String = ""
-    url_labels::String = ""
     use_labels::Bool = false
 end
 validation = Validation()
@@ -542,9 +538,7 @@ application_options = ApplicationOptions()
 
 @with_kw mutable struct Application
     Options::ApplicationOptions = application_options
-    model_url::String = ""
     url_inputs::String = ""
-    checked_folders::Vector{String} = String[]
 end
 application = Application()
 
@@ -556,15 +550,17 @@ visualisation = Visualisation()
 
 # Settings
 @with_kw mutable struct Settings
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
     Options::Options = options
     Design::Design = design
     Training::Training = training
-    Testing::Testing = testing
     Validation::Validation = validation
     Application::Application = application
     Visualisation::Visualisation = visualisation
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
+    model_url::String = ""
+    model_name::String = ""
+    
 end
 settings = Settings()
 
