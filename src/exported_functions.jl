@@ -58,7 +58,7 @@ function modify_output()
             num_classes
         )
         path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
-        loadqml(ath_qml,indTree = 0)
+        loadqml(path_qml,indTree = 0)
         exec()
     end
     return nothing
