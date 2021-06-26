@@ -110,7 +110,7 @@ end
 Opens a file dialog where you can select where to save a model and how it should be called.
 """
 function save_model()
-    filename = string(training.name,".model")
+    filename = string(settings.model_name,".model")
     url_out = String[""]
     observe(url) = url_out[1] = url
     # Launches GUI
@@ -556,8 +556,8 @@ function get_urls_validation(url_inputs::String,url_labels::String)
             return nothing
         end
     end
-    validation.url_inputs = url_inputs
-    validation.url_labels = url_labels
+    validation_data.url_inputs = url_inputs
+    validation_data.url_labels = url_labels
     validation.use_labels = true
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
@@ -574,7 +574,7 @@ function get_urls_validation(url_inputs::String)
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    validation.url_inputs = url_inputs
+    validation_data.url_inputs = url_inputs
     validation.use_labels = false
     get_urls_validation_main(validation,validation_data,model_data)
     return nothing
@@ -627,7 +627,7 @@ function get_urls_validation()
         exec()
         if isready(url_channel)
             validation_data.url_labels = take!(url_channel)
-            @info string(training.url_labels, " was selected.")
+            @info string(validation_data.url_labels, " was selected.")
         else
             @warn "Label data directory URL is empty. Continuing without labels."
         end
@@ -737,7 +737,6 @@ function get_urls_application(url_inputs::String)
     end
     application_data.url_inputs = url_inputs
     get_urls_application_main(application_data)
-    application.checked_folders = application_data.folders
     return nothing
 end
 
