@@ -18,7 +18,7 @@ ApplicationWindow {
     maximumHeight: gridLayout.height
 
     //---Universal property block-----------------------------------------------
-    property double pix: Screen.width/3840
+    property double pix: Screen.width/3840*Julia.get_settings(["Options","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -312,7 +312,7 @@ ApplicationWindow {
                                 onValueModified: {
                                     Julia.set_settings(
                                         ["Training","Options","Testing","test_data_fraction"],
-                                        value/100)
+                                        realValue)
                                 }
                             }
                         }

@@ -11,7 +11,6 @@ FolderDialog {
         Qt.quit()
     }
     onRejected: {
-        Julia.set_settings([target,type],"")
         Qt.quit()
     }
     Component.onCompleted: {

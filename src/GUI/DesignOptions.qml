@@ -23,7 +23,7 @@ ApplicationWindow {
     property double buttonWidth: 0.1*Screen.width
     property double buttonHeight: 0.03*Screen.height
     property double tabmargin: 0.5*margin
-    property double pix: Screen.width/3840
+    property double pix: Screen.width/3840*Julia.get_settings(["Options","Graphics","scaling_factor"])
     property double defaultPixelSize: 33*pix
 
     FolderDialog {

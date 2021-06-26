@@ -1,14 +1,14 @@
 
 # Get urls of files in selected folders
-function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},model_data::ModelData)
-    input_url = some_settings.input_url
-    label_url = some_settings.label_url
+function get_urls_main(some_data::Union{TrainingData,TestingData},model_data::ModelData)
+    url_inputs = some_data.url_inputs
+    url_labels = some_data.url_labels
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     if settings.problem_type==:Classification
         classification_data = some_data.ClassificationData
-        input_urls,dirs,_ = get_urls1(input_url,allowed_ext)
+        input_urls,dirs,_ = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         dirs_raw = intersect(dirs,labels)
         intersection_bool = map(x-> x in labels,dirs_raw)
@@ -23,23 +23,37 @@ function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{T
             dirs = dirs_raw
             input_urls = input_urls
         end
-        classification_data.input_urls = input_urls
-        classification_data.label_urls = dirs
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."           
+        else
+            classification_data.input_urls = input_urls
+            classification_data.label_urls = dirs
+        end
     elseif settings.problem_type==:Regression
         regression_data = some_data.RegressionData
-        input_urls_raw,_,filenames_inputs_raw = get_urls1(input_url,allowed_ext)
+        input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
         filenames_inputs = reduce(vcat,filenames_inputs_raw)
-        filenames_labels,loaded_labels = load_regression_data(label_url)
+        filenames_labels,loaded_labels = load_regression_data(url_labels)
         intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
-        regression_data.input_urls = input_urls
-        regression_data.labels_url = label_url
-        regression_data.data_labels = loaded_labels
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."
+        else
+            regression_data.input_urls = input_urls
+            regression_data.labels_url = url_labels
+            regression_data.initial_data_labels = loaded_labels
+        end
     elseif settings.problem_type==:Segmentation
         segmentation_data = some_data.SegmentationData
-        input_urls,label_urls,_,_,_ = get_urls2(input_url,label_url,allowed_ext)
-        segmentation_data.input_urls = reduce(vcat,input_urls)
-        segmentation_data.label_urls = reduce(vcat,label_urls)
+        input_urls_raw,label_urls_raw,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
+        input_urls = reduce(vcat,input_urls_raw)
+        label_urls = reduce(vcat,label_urls_raw)
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."           
+        else
+            segmentation_data.input_urls = input_urls
+            segmentation_data.label_urls = label_urls
+        end
     end
     return nothing
 end
@@ -125,7 +139,7 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     angles_range = range(0,stop=2*pi,length=num_angles+1)
     angles = collect(angles_range[1:end-1])
     num = length(angles)
-    @floop ThreadedEx() for g = 1:num
+    for g = 1:num
         angle_val = angles[g]
         img2 = rotate_img(float_img,angle_val)
         label2 = rotate_img(label,angle_val)
@@ -166,18 +180,6 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     return data
 end
 
-function check_abort(training_data_modifiers)
-    if isready(training_data_modifiers)
-        if fetch(training_data_modifiers)[1]=="stop"
-            return true
-        else
-            false
-        end
-    else
-        false
-    end
-end
-
 # Prepare data for training
 function prepare_data(classification_data::ClassificationData,
         model_data::ModelData,options::TrainingOptions,size12::Tuple{Int64,Int64},
@@ -189,7 +191,6 @@ function prepare_data(classification_data::ClassificationData,
     else
         push!(mirroring_inds,1)
     end
-    classification_data = training_data.ClassificationData
     input_urls = classification_data.input_urls
     label_urls = classification_data.label_urls
     labels = map(class -> class.name, model_data.classes)
@@ -198,10 +199,9 @@ function prepare_data(classification_data::ClassificationData,
     # Get number of images
     num_all = sum(length.(input_urls))
     # Return progress target value
-    put!(progress, num_all + 2)
+    put!(progress, 2*num_all + 1)
     # Load images
-    imgs = load_images.(input_urls)
-    put!(progress, 1)
+    imgs = map(x -> load_images(x,progress),input_urls)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
@@ -213,7 +213,7 @@ function prepare_data(classification_data::ClassificationData,
         data_label_temp = Vector{Vector{Int32}}(undef,num2)
         for l = 1:num2
             # Abort if requested
-            if check_abort(channels.training_data_modifiers)
+            if check_abort_signal(channels.training_data_modifiers)
                 return nothing
             end
             # Get a current image
@@ -262,22 +262,20 @@ function prepare_data(regression_data::RegressionData,
         push!(mirroring_inds,1)
     end
     input_urls = regression_data.input_urls
-    initial_label_data = copy(regression_data.data_labels)
-    empty!(regression_data.data_labels)
+    initial_label_data = copy(regression_data.initial_data_labels)
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, num+2)
+    put!(progress, 2*num+1)
     num = length(input_urls)
     # Load images
-    imgs = load_images(input_urls)
-    put!(progress, 1)
+    imgs = load_images(input_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if check_abort(channels.training_data_modifiers)
+        if check_abort_signal(channels.training_data_modifiers)
             return nothing
         end
         # Get a current image
@@ -326,23 +324,23 @@ function prepare_data(segmentation_data::SegmentationData,
         push!(mirroring_inds,1)
     end
     input_urls = segmentation_data.input_urls
+    label_urls = segmentation_data.label_urls
     # Get number of images
     num = length(input_urls)
     # Return progress target value
-    put!(progress, num+2)
+    put!(progress, 3*num+1)
     # Get class data
     class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     # Load images
-    imgs = load_images(input_urls)
-    labels = load_images(segmentation_data.label_urls)
-    put!(progress, 1)
+    imgs = load_images(input_urls,progress)
+    labels = load_images(label_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
     # Make input images
     @floop ThreadedEx() for k = 1:num
         # Abort if requested
-        if check_abort(channels.training_data_modifiers)
+        if check_abort_signal(channels.training_data_modifiers)
             return nothing
         end
         # Get current images
@@ -380,7 +378,7 @@ function prepare_data(segmentation_data::SegmentationData,
 end
 
 # Wrapper allowing for remote execution
-function prepare_data_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},
+function prepare_data_main(some_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
     options = settings.Training.Options
@@ -393,7 +391,7 @@ function prepare_data_main(some_settings::Union{Training,Testing},some_data::Uni
     elseif problem_type==:Segmentation
         data = some_data.SegmentationData
     end
-    if some_settings isa Training
+    if some_data isa TrainingData
         progress = channels.training_data_progress
         results = channels.training_data_results
     else
@@ -605,7 +603,7 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
                         inds_start_sh,inds_all_sh,cnt)
                     put!(minibatch_channel,minibatch)
                     break
-                elseif testing_mode[]
+                elseif run_test && testing_mode[]
                     break
                 else
                     sleep(0.01)
@@ -613,7 +611,6 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
             end
             if run_test && testing_mode[]
                 cnt_test = 0
-                
                 while true
                     numel_test_channel = (iteration_test_local-counter_test.iteration)
                     if numel_test_channel<10
@@ -645,12 +642,12 @@ function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,
 end
 
 function check_modifiers(model_data,model,model_name,accuracy_vector,
-        loss_vector,allow_lr_change,composite,opt,num,epochs,max_iterations,
-        num_tests,modifiers_channel,abort;gpu=false)
+        loss_vector,allow_lr_change,composite,opt,i,num,epochs,max_iterations,
+        num_tests,global_iteration_test,modifiers_channel,abort;gpu=false)
     while isready(modifiers_channel)
-        modifs = fix_QML_types(take!(modifiers_channel))
-        modif1::String = modifs[1]
-        if modif1=="stop"
+        modifs = take!(modifiers_channel)
+        modif1 = modifs[1]
+        if modif1==0 # stop
             Threads.atomic_xchg!(abort, true)
             # Save model
             if gpu==true
@@ -660,7 +657,7 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             end
             save_model_main(model_data,model_name)
             break
-        elseif modif1=="learning rate"
+        elseif modif1==1 # learning rate
             if allow_lr_change
                 if composite
                     opt[1].eta = convert(Float64,modifs[2])
@@ -668,18 +665,20 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
                     opt.eta = convert(Float64,modifs[2])
                 end
             end
-        elseif modif1=="epochs"
+        elseif modif1==2 # epochs
             new_epochs::Int64 = convert(Int64,modifs[2])
             new_max_iterations::Int64 = convert(Int64,new_epochs*num)
             Threads.atomic_xchg!(epochs, new_epochs)
             Threads.atomic_xchg!(max_iterations, new_max_iterations)
             resize!(accuracy_vector,max_iterations[])
             resize!(loss_vector,max_iterations[])
-        elseif modif1=="number of tests"
+        elseif modif1==3 # number of tests
             num_tests::Float64 = modifs[2]
+            frequency = num/num_tests
+            global_iteration_test = floor(i/frequency)
         end
     end
-    return num_tests
+    return num_tests,global_iteration_test
 end
 
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
@@ -689,16 +688,19 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         minibatch_test_channel,channels,use_GPU,testing_mode,abort)
     epoch_idx = 1
     while epoch_idx<=epochs[]
-        iteration_global_counter = 0
+        global_iteration_test = 0
         for i = 1:num
+            counter()
+            iteration = counter.iteration
             # Prepare training data
             local minibatch_data::eltype(minibatch_channel.data)
             while true
                 # Update parameters or abort if needed
                 if isready(channels.training_modifiers)
-                    num_tests = check_modifiers(model_data,model,model_name,
-                        accuracy_vector,loss_vector,allow_lr_change,composite,opt,num,epochs,
-                        max_iterations,num_tests,channels.training_modifiers,abort;gpu=use_GPU)
+                    num_tests,iteration_global_counter = check_modifiers(model_data,model,model_name,
+                        accuracy_vector,loss_vector,allow_lr_change,composite,opt,i,num,epochs,
+                        max_iterations,num_tests,global_iteration_test,
+                        channels.training_modifiers,abort;gpu=use_GPU)
                     if abort[]==true
                         return nothing
                     end
@@ -710,8 +712,6 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
                     sleep(0.01)
                 end
             end
-            counter()
-            iteration = counter.iteration
             input_data = move_f(minibatch_data[1])
             actual = move_f(minibatch_data[2])
             # Calculate gradient
@@ -727,22 +727,22 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             # Calculate accuracy
             accuracy_val = accuracy(predicted,actual)
             # Return training information
-            put!(channels.training_progress,["Training",accuracy_val,loss_val])
+            put!(channels.training_progress,("Training",accuracy_val,loss_val,iteration))
             accuracy_vector[iteration] = accuracy_val
             loss_vector[iteration] = loss_val
             # Testing part
             if run_test
                 training_started_cond = i==1 && epoch_idx==1
-                num_tests_cond = i>iteration_global_counter*ceil(num/num_tests)
+                num_tests_cond = i>global_iteration_test*ceil(num/num_tests)
                 training_finished_cond = iteration==(max_iterations[]-1)
                 # Test if testing frequency reached or training is done
                 if num_tests_cond ||  training_started_cond || training_finished_cond
-                    iteration_global_counter += 1
+                    global_iteration_test += 1
                     Threads.atomic_xchg!(testing_mode, true)
                     # Calculate test accuracy and loss
                     data_test = test(model,accuracy,loss,minibatch_test_channel,counter_test,num_test,move_f,abort)
                     # Return testing information
-                    put!(channels.training_progress,["Testing",data_test...,iteration])
+                    put!(channels.training_progress,("Testing",data_test...,iteration))
                     push!(accuracy_test_vector,data_test[1])
                     push!(loss_test_vector,data_test[2])
                     push!(iteration_test_vector,iteration)
@@ -822,7 +822,7 @@ function train!(model_data::ModelData,training::Training,
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     testing_mode = Threads.Atomic{Bool}(true)
-    model_name = string("models/",training.name,".model")
+    model_name = string("models/",settings.model_name,".model")
     output_N = length(model_data.output_size) + 1
     # Initialize data
     data_input = train_set[1]
@@ -837,7 +837,7 @@ function train!(model_data::ModelData,training::Training,
     # Return epoch information
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
-    put!(channels.training_progress,[epochs[],num,max_iterations[]])
+    put!(channels.training_progress,(epochs[],num,max_iterations[]))
     max_labels = Vector{Int32}(undef,0)
     if settings.problem_type==:Classification && settings.input_type==:Image
         push!(max_labels,(1:length(model_data.classes))...)
@@ -902,14 +902,30 @@ function remove_data(some_data::Union{TrainingData,TestingData})
         empty!(some_data.ClassificationData.input_urls)
         empty!(some_data.ClassificationData.label_urls)
         empty!(some_data.RegressionData.input_urls)
+        empty!(some_data.RegressionData.initial_data_labels)
         empty!(some_data.SegmentationData.input_urls)
         empty!(some_data.SegmentationData.label_urls)
     end
     return nothing
 end
+"""
+    remove_training_data()
+
+Removes all training data except for result.
+"""
 remove_training_data() = remove_data(training_data)
+"""
+    remove_testing_data()
+
+Removes all testing data.
+"""
 remove_testing_data() = remove_data(testing_data)
 
+"""
+    remove_training_results()
+
+Removes training results.
+"""
 function remove_training_results()
     data = training_data.Results
     fields = fieldnames(TrainingResultsData)

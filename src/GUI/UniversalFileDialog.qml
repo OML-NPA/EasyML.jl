@@ -4,6 +4,7 @@ import org.julialang 1.0
 
 FileDialog {
     id: fileDialog
+    nameFilters: name_filters
     onAccepted: {
         var url = file.toString().replace("file:///","")
         Julia.observe(url)

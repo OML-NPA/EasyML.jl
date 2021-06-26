@@ -1,11 +1,10 @@
 
 # Get urls of files in a selected folder. Files are used for application.
-function get_urls_application_main(application::Application,
-        application_data::ApplicationData,model_data::ModelData)
+function get_urls_application_main(application_data::ApplicationData)
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    input_urls,dirs = get_urls1(application.input_url,allowed_ext)
+    input_urls,dirs = get_urls1(application_data.url_inputs,allowed_ext)
     application_data.input_urls = input_urls
     application_data.folders = dirs
     return nothing
@@ -116,8 +115,9 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
+function get_output(model_data::ModelData,classes::Vector{ImageClassificationClass},processing::ProcessingTraining,
+    num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+    data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -129,8 +129,9 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
-            predicted_labels = reshape(predicted,:)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
+            _, predicted_labels4 = findmax(predicted,dims=1)
+            predicted_labels = map(x-> x.I[1],predicted_labels4[:])
             # Return result
             put!(data_channel,(l,predicted_labels))
         end
@@ -138,8 +139,9 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
     return nothing
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-    urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
+function get_output(model_data::ModelData,classes::Vector{ImageRegressionClass},processing::ProcessingTraining,
+        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+        data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
         num_batch = length(urls_batch)
@@ -151,9 +153,8 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Get input
             input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_parts=1,use_GPU=use_GPU)
-            _, predicted_labels4 = findmax(predicted,dims=2)
-            predicted_labels = map(x-> x.I[2],predicted_labels4[:])
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
+            predicted_labels = reshape(predicted,:)
             # Return result
             put!(data_channel,(l,predicted_labels))
         end
@@ -175,8 +176,8 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},processing::ProcessingTraining,num::Int64,
-        urls_batched::Vector{Vector{Vector{String}}},use_GPU::Bool,
+function get_output(model_data::ModelData,classes::Vector{ImageSegmentationClass},processing::ProcessingTraining,
+        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -191,7 +192,7 @@ function get_output(model_data::ModelData,classes::Vector{<:AbstractClass},proce
             # Adjust input size if required to avoid incorrect size of output 
             input_data,change_size,s = adjust_size(input_data,model_data.input_size[1:2])
             # Get output
-            predicted = forward(model_data.model,input_data,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
             if change_size
                 predicted = predicted[1:s[1],1:s[2],:,:]
             end
@@ -508,77 +509,6 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
         log_volume_obj_sum,log_volume_dist,num_obj_area,num_obj_area_sum,
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
 end
-
-function remove_application_data()
-    data = application_data
-    fields = fieldnames(ApplicationData)
-    for field in fields
-        empty!(getfield(data, field))
-    end
-end
-
-# Main function that performs application
-function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
-        model_data::ModelData,T::DataType,channels::Channels)
-    # Initialize constants
-    application = settings.Application
-    application_options = application.Options
-    processing = training.Options.Processing
-    classes = model_data.classes
-    output_options = model_data.OutputOptions
-    use_GPU = false
-    if training.Options.General.allow_GPU
-        if has_cuda()
-            use_GPU = true
-        else
-            @warn "No CUDA capable device was detected. Using CPU instead."
-        end
-    end
-    scaling = application_options.scaling
-    batch_size = application_options.minibatch_size
-    apply_by_file = application_options.apply_by[1]=="file"
-    data_channel = Channel{Tuple{Int64,T}}(Inf)
-    # Get file extensions
-    img_ext,img_sym_ext = get_image_ext(application_options.image_type)
-    data_ext,data_sym_ext = get_data_ext(application_options.data_type)
-    # Get folders and names
-    folders = application.checked_folders
-    num = length(folders)
-    urls = application_data.input_urls
-    urls_batched,filenames_batched = batch_urls_filenames(urls,batch_size)
-    # Get savepath directory
-    savepath_main = application_options.savepath
-    if isempty(savepath_main)
-        savepath_main = pwd()
-    end
-    # Make savepath directory if does not exist
-    make_dir(savepath_main)
-    # Send number of iterations
-    put!(channels.application_progress,sum(length.(urls_batched))+length(urls_batched))
-    # Output information
-    classes,output_info = get_output_info(classes,output_options)
-    # Prepare output
-    t = Threads.@spawn get_output(model_data,classes,processing,num,urls_batched,use_GPU,data_channel,channels)
-    push!(application_data.tasks,t)
-    # Process output and save data
-    process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
-        img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
-    return nothing
-end
-function apply_main2(settings::Settings,training::Training,application_data::ApplicationData,
-        model_data::ModelData,channels::Channels)
-    if settings.problem_type==:Classification
-        T = Vector{Int64}
-    elseif settings.problem_type==:Regression
-        T = Vector{Float32}
-    elseif settings.problem_type==:Segmentation
-        T = BitArray{4}
-    end
-    t = Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
-    push!(application_data.tasks,t)
-end
-#apply() = apply_main2(settings,application_data,
-#    model_data,channels)
 
 #---Histogram and objects related functions
 function objects_count(components::Array{Int64,2})
@@ -1016,4 +946,87 @@ function save(data,path::String,name::String,ext::Symbol)
     else
         FileIO.save(url,data)
     end
+end
+
+"""
+    remove_application_data()
+
+Removes all application data.
+"""
+function remove_application_data()
+    data = application_data
+    fields = fieldnames(ApplicationData)
+    for field in fields
+        data_field = getfield(data, field)
+        if data_field isa Array
+            empty!(data_field)
+        end
+    end
+end
+
+# Main function that performs application
+function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
+        model_data::ModelData,T::DataType,channels::Channels)
+    # Initialize constants
+    application = settings.Application
+    application_options = application.Options
+    processing = training.Options.Processing
+    classes = model_data.classes
+    output_options = model_data.OutputOptions
+    use_GPU = false
+    if training.Options.General.allow_GPU
+        if has_cuda()
+            use_GPU = true
+        else
+            @warn "No CUDA capable device was detected. Using CPU instead."
+        end
+    end
+    scaling = application_options.scaling
+    batch_size = application_options.minibatch_size
+    apply_by_file = application_options.apply_by[1]=="file"
+    data_channel = Channel{Tuple{Int64,T}}(Inf)
+    # Get file extensions
+    img_ext,img_sym_ext = get_image_ext(application_options.image_type)
+    data_ext,data_sym_ext = get_data_ext(application_options.data_type)
+    # Get folders and names
+    folders = application_data.folders
+    num = length(folders)
+    urls = application_data.input_urls
+    urls_batched,filenames_batched = batch_urls_filenames(urls,batch_size)
+    # Get savepath directory
+    savepath_main = application_options.savepath
+    if isempty(savepath_main)
+        savepath_main = string(pwd(),"/Output data/")
+    end
+    # Make savepath directory if does not exist
+    make_dir(savepath_main)
+    # Send number of iterations
+    put!(channels.application_progress,sum(length.(urls_batched)))
+    # Output information
+    classes,output_info = get_output_info(classes,output_options)
+    # Prepare output
+    if settings.problem_type==:Classification || settings.problem_type==:Regression
+        num_slices_current = 1
+    else
+        num_slices_current = 30
+    end
+    t = Threads.@spawn get_output(model_data,classes,processing,num,
+        urls_batched,num_slices_current,use_GPU,data_channel,channels)
+    push!(application_data.tasks,t)
+    # Process output and save data
+    process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
+        img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
+    return nothing
+end
+function apply_main2(settings::Settings,training::Training,application_data::ApplicationData,
+        model_data::ModelData,channels::Channels)
+    if settings.problem_type==:Classification
+        T = Vector{Int64}
+    elseif settings.problem_type==:Regression
+        T = Vector{Float32}
+    elseif settings.problem_type==:Segmentation
+        T = BitArray{4}
+    end
+    t = Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    push!(application_data.tasks,t)
 end

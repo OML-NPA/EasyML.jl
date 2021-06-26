@@ -20,7 +20,7 @@ ApplicationWindow {
     maximumHeight: gridLayout.height
     
     //---Universal property block-----------------------------------------------
-    property double pix: Screen.width/3840
+    property double pix: Screen.width/3840*Julia.get_settings(["Options","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -61,7 +61,7 @@ ApplicationWindow {
     color: defaultpalette.window
 
     onClosing: {
-        Julia.put_channel("Training",["stop"])
+        Julia.put_channel("Training",[0.0,0.0])
         //trainButton.text = "Train"
         //progressbar.value = 0
         //trainingplotLoader.sourceComponent = undefined
@@ -188,6 +188,7 @@ ApplicationWindow {
                     //}
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
+                    addEpochLine()
                     epoch += 1
                     epochLabel.text = epoch
                 }
@@ -376,7 +377,7 @@ ApplicationWindow {
                                 Layout.preferredHeight: buttonHeight
                                 Layout.leftMargin: 0.3*margin
                                 onClicked: {
-                                    Julia.put_channel("Training",["stop"])
+                                    Julia.put_channel("Training",[0.0,0.0])
                                     //var stop = false
                                     //while (!stop) {
                                     //    stop = Julia.get_results("Training")
@@ -482,7 +483,7 @@ ApplicationWindow {
                                     stepSize: 1
                                     editable: false
                                     onValueModified: {
-                                        Julia.put_channel("Training",["epochs",value])
+                                        Julia.put_channel("Training",[2.0,value])
                                         trainingTimer.epochs = value
                                         trainingTimer.max_iterations =
                                                 value*trainingTimer.iterations_per_epoch
@@ -515,7 +516,7 @@ ApplicationWindow {
                                         return Number(value/100000).toLocaleString(locale,'e',0)
                                     }
                                     onValueModified: {
-                                        Julia.put_channel("Training",["learning rate",value/100000])
+                                        Julia.put_channel("Training",[1.0,value/100000])
                                     }
                                 }
                             }
@@ -537,7 +538,7 @@ ApplicationWindow {
                                     stepSize: 1
                                     editable: true
                                     onValueModified: {
-                                        Julia.put_channel("Training",["number of tests",value])
+                                        Julia.put_channel("Training",[3.0,value])
                                     }
                                 }
                             }
@@ -560,4 +561,18 @@ ApplicationWindow {
             onClicked: mouse.accepted = false;
         }
     }
+
+    function addEpochLine() {
+        var accuracyEpochLine = accuracyChartView.createSeries(ChartView.SeriesTypeLine, "Epoch line", accuracyAxisX, accuracyAxisY);
+        var lossEpochLine = lossChartView.createSeries(ChartView.SeriesTypeLine, "Epoch line", lossAxisX, lossAxisY);
+        accuracyEpochLine.append(trainingTimer.iteration,0)
+        accuracyEpochLine.append(trainingTimer.iteration,200)
+        lossEpochLine.append(trainingTimer.iteration,0)
+        lossEpochLine.append(trainingTimer.iteration,100000000)
+        accuracyEpochLine.color = "black"
+        lossEpochLine.color = "black"
+        accuracyEpochLine.opacity = 0.25
+        lossEpochLine.opacity = 0.25
+    }
+
 }

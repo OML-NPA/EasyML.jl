@@ -250,32 +250,55 @@ function topology_linear(layers_arranged::Vector,inds_arranged::Vector,
     ind = connections[ind]
     return ind
 end
-
+# ind = ind[1]
 function topology_split(layers_arranged::Vector,inds_arranged::Vector,
         layers::Vector{AbstractLayerInfo},connections::Vector{Array{Vector{Int64}}},
         connections_in::Vector{Vector{Int64}},types::Vector{String},ind)
+    types_all = map(i -> types[i],ind)
+    joining_types_bool = map(type -> all(type=="Join") || all(type=="Addition"),types_all)
     num = length(ind)
-    par_inds = Vector(undef,num)
-    fill!(par_inds,[])
-    inds_return = Array{Array}(undef, num)
-    par_layers_arranged = Vector(undef,num)
-    fill!(par_layers_arranged,[])
+    par_inds = []
+    inds_return = []
+    par_layers_arranged = []
+    next_connections = connections[ind]
+    unique_connections = unique(next_connections)
+    if (length(unique_connections)!=length(ind)) && length(unique_connections)>1
+        ind_new = Vector{Vector}(undef, 0)
+        joining_types_bool_new = []
+        con = unique_connections[1]
+        for con in unique_connections
+            bool_inds = map(next_con -> next_con==con,next_connections)
+            new_cons = ind[bool_inds]
+            push!(ind_new,new_cons)
+            push!(joining_types_bool_new,joining_types_bool[bool_inds][1])
+        end
+        ind = ind_new
+        joining_types_bool = joining_types_bool_new
+        num = length(ind_new)
+    end
     for i = 1:num
-        layers_temp = Vector(undef,0)
-        inds_temp = Vector(undef,0)
-        ind_temp = [[ind[i]]]
-        inds_return[i] = get_topology_branches(layers_temp,inds_temp,layers,
-            connections,connections_in,types,ind_temp)[1]
-        type = types[inds_return[i][1]]
-        if isempty(inds_temp)
-            inds_temp = [0]
-        end
-        if (type=="Join" || type=="Addition") && isnothing(inds_temp[1])
-            # Happens if one of input nodes is empty
+        layers_temp = []
+        inds_temp = []
+        if joining_types_bool[i] && !allcmp(next_connections)
+            push!(inds_return,[ind[i]])
+            push!(inds_temp,0)
         else
-            par_layers_arranged[i] = layers_temp
-            par_inds[i] = inds_temp
+            if ind isa Vector{<:Vector}
+                ind_temp = [ind[i]]
+            else
+                ind_temp = [[ind[i]]]
+            end
+            ind_out = get_topology_branches(layers_temp,inds_temp,layers,
+            connections,connections_in,types,ind_temp)[1]
+            push!(inds_return,ind_out)
+            type = types[inds_return[i][1]]
+            if type != "Join" && type != "Addition"
+                return
+                # Do not support this
+            end
         end
+        push!(par_layers_arranged,layers_temp)
+        push!(par_inds,inds_temp)
     end
     push!(layers_arranged,par_layers_arranged)
     push!(inds_arranged,par_inds)
@@ -287,43 +310,78 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
         connections_in::Vector{Vector{Int64}},types::Vector{String},ind)
     while !isempty.([ind])[1]
         numk = length(ind)
-        if any(map(x -> x.=="Join" || x.=="Addition",types[vcat(vcat(ind...)...)]))
-            if all(length.(ind).==1) && allcmp(ind) &&
-                    length(ind)==length(connections_in[ind[1][1][1]])
-                prev_ind = ind[1][1][1]
-                to_arrange_inds = map(x->x[end],inds_arranged[end])
-                inds_zero = findall(map(x-> x[1]==0,to_arrange_inds))
-                if length(inds_zero)>0
-                    to_arrange_inds[inds_zero] .= inds_arranged[end-1]
-                end
-                input_inds = connections_in[prev_ind]
-
-                inds_rearrange = map(x->
-                    findfirst(x.==input_inds),to_arrange_inds)
-                inds_arranged[end] = inds_arranged[end][inds_rearrange]
-                layers_arranged[end] = layers_arranged[end][inds_rearrange]
-                push!(layers_arranged,layers[prev_ind])
-                push!(inds_arranged,prev_ind)
-                ind = connections[prev_ind]
-                continue
-            elseif length(ind[1])==1
-                return ind
-            end
-        end
         if numk==1
-            if length(ind[1])==1
-                ind = topology_linear(layers_arranged,inds_arranged,
-                    layers,connections,types,ind[1][1])
+            if any(map(x -> x.=="Join" || x.=="Addition",types[vcat(vcat(ind...)...)]))
+                if length(ind)==1 && length(ind[1])>1 
+                    ind = topology_split(layers_arranged,inds_arranged,layers,
+                        connections,connections_in,types,ind[1])
+                elseif length(ind)>1 && allcmp(ind[1])
+                    ind_in_actual = connections_in[ind[1][1]]
+                    ind_in_arranged = vcat(vcat(inds_arranged[end]...)...)
+                    ind_0 = findfirst(ind_in_arranged.==0)
+                    if !isempty(ind_0)
+                        ind_in_arranged[ind_0] = vcat(vcat(inds_arranged[end-1]...)...)
+                    end
+                    inds_to_use = map(x -> findfirst(x.==ind_in_actual),ind_in_arranged)
+                    if inds_to_use!=1:length(inds_to_use)
+                        layers_arranged[end] = layers_arranged[end][inds_to_use]
+                        inds_arranged[end] = inds_arranged[end][inds_to_use]
+                    end
+                    ind = topology_linear(layers_arranged,inds_arranged,
+                            layers,connections,types,ind[1][1])
+                else
+                    return ind
+                end
             else
-                ind = topology_split(layers_arranged,inds_arranged,layers,
-                    connections,connections_in,types,ind[1])
+                if length(ind[1])==1
+                    ind = topology_linear(layers_arranged,inds_arranged,
+                        layers,connections,types,ind[1][1])
+                else
+                    ind = topology_split(layers_arranged,inds_arranged,layers,
+                        connections,connections_in,types,ind[1])
+                end
             end
         else
-            if all(length.(ind).==1)
-                ind = topology_split(layers_arranged,inds_arranged,layers,
-                    connections,connections_in,types,vcat(ind...))
+            if any(map(x -> x.=="Join" || x.=="Addition",types[vcat(vcat(ind...)...)]))
+                if length(ind)>1 && allcmp(ind)
+                    ind_in_actual = connections_in[ind[1][1]]
+                    ind_in_arranged_raw = inds_arranged[end]
+                    ind_in_arranged = Vector{Int64}(undef,length(ind_in_actual))
+                    for i = 1:length(ind_in_actual)
+                        ind_current = ind_in_arranged_raw[i]
+                        while true
+                            if ind_current isa Vector
+                                ind_current = ind_current[end]
+                            else
+                                break
+                            end
+                        end
+                        ind_in_arranged[i] = ind_current
+                    end
+                    ind_0 = findfirst(ind_in_arranged.==0)
+                    if !isnothing(ind_0)
+                        ind_in_arranged[ind_0] = vcat(vcat(inds_arranged[end-1]...)...)[1]
+                    end
+                    inds_to_use = map(x -> findfirst(x.==ind_in_actual),ind_in_arranged)
+                    if inds_to_use!=1:length(inds_to_use)
+                        layers_arranged[end] = layers_arranged[end][inds_to_use]
+                        inds_arranged[end] = inds_arranged[end][inds_to_use]
+                    end
+                    ind = topology_linear(layers_arranged,inds_arranged,
+                                layers,connections,types,ind[1][1])
+                elseif all(length.(ind).==1)
+                    ind = topology_split(layers_arranged,inds_arranged,layers,
+                        connections,connections_in,types,vcat(ind...))
+                else
+                    return
+                end
             else
-                return ind
+                if all(length.(ind).==1)
+                    ind = topology_split(layers_arranged,inds_arranged,layers,
+                        connections,connections_in,types,vcat(ind...))
+                else
+                    return ind
+                end
             end
         end
     end
@@ -331,14 +389,8 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
 end
 
 function get_topology(model_data::ModelData)
-    layers = model_data.layers_info
+    layers = design_data.ModelData.layers_info #model_data.layers_info
     types = [layers[i].type for i = 1:length(layers)]
-    connections = Vector{Array{Vector{Int64}}}(undef,0)
-    connections_in = Vector{Vector{Int64}}(undef,0)
-    for i = 1:length(layers)
-        push!(connections,layers[i].connections_down)
-        push!(connections_in,layers[i].connections_up)
-    end
     ind_vec = findall(types .== "Input")
     if isempty(ind_vec)
         @warn "No input layer."
@@ -348,11 +400,16 @@ function get_topology(model_data::ModelData)
         @warn "More than one input layer."
         push!(design_data.warnings,"More than one input layer.")
         return nothing,nothing
-    else
-        ind = ind_vec[1]
     end
-    layers_arranged = Vector(undef,0)
-    inds_arranged = Vector(undef,0)
+    connections = Vector{Array{Vector{Int64}}}(undef,0)
+    connections_in = Vector{Vector{Int64}}(undef,0)
+    for i = 1:length(layers)
+        push!(connections,layers[i].connections_down)
+        push!(connections_in,layers[i].connections_up)
+    end
+    ind = ind_vec[1]
+    layers_arranged = []
+    inds_arranged = []
     push!(layers_arranged,layers[ind])
     push!(inds_arranged,ind)
     ind = connections[ind]
@@ -447,8 +504,9 @@ function check_model_main(design_data::DesignData,settings::Settings)
             push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
             return false
         end
-    catch
+    catch e
         @warn "Something is wrong with your model."
+        @warn e
         push!(design_data.warnings,"Something is wrong with your model.")
         return false
     end
@@ -468,37 +526,49 @@ move_model() = move_model_main(model_data,design_data)
 
 #---Model visual representation constructors
 function arrange_layer(coordinates::Array,coordinate::Array{Float64},
-    desing::Design)
-    coordinate[2] = coordinate[2] + desing.min_dist_y + desing.height
+    design::Design)
+    coordinate[2] = coordinate[2] + design.min_dist_y + design.height
     push!(coordinates,copy(coordinate))
     return coordinate
 end
 
 function arrange_branches(coordinates,coordinate::Vector{Float64},
-        desing::Design,layers_arranged)
-    num = layers_arranged isa AbstractLayerInfo ? 1 : length(layers_arranged)
+        design::Design,layers)
+    num = layers isa AbstractLayerInfo ? 1 : length(layers)
     if num==1
-        coordinate = arrange_layer(coordinates,coordinate,desing)
+        coordinate = arrange_layer(coordinates,coordinate,design)
     else
+        max_num = ones(Int64,num)
+        for i = 1:length(layers)
+            temp1 = layers[i]
+            for temp2 in temp1
+                if temp2 isa Vector
+                    width = length(temp2)
+                    if width>max_num[i]
+                        max_num[i] = width
+                    end
+                end
+            end
+        end
         par_coordinates = []
         x_coordinates = []
         push!(x_coordinates,coordinate[1])
-        num2 = num-1
-        for i=1:num2
-            push!(x_coordinates,coordinate[1].+
-                (i+1+(i-1))*desing.min_dist_x+i*desing.width)
+        for i=2:num
+            prev_layer_right = x_coordinates[end] .+ max_num[i-1]*design.width .+ (max_num[i-1]-1)*design.min_dist_x
+            current_layer_left = prev_layer_right .+ (max_num[i]-1)*design.width .+ max_num[i]*design.min_dist_x
+            push!(x_coordinates,current_layer_left)
         end
         x_coordinates = x_coordinates .-
             (mean([x_coordinates[1],x_coordinates[end]])-coordinate[1])
         for i = 1:num
             temp_coordinates = []
             temp_coordinate = [x_coordinates[i],coordinate[2]]
-            if isempty(layers_arranged[i])
+            if isempty(layers[i])
                 push!(temp_coordinates,[x_coordinates[i],coordinate[2]])
             else
-                for j = 1:length(layers_arranged[i])
+                for j = 1:length(layers[i])
                     temp_coordinate = arrange_branches(temp_coordinates,temp_coordinate,
-                        desing,layers_arranged[i][j])
+                        design,layers[i][j])
                 end
             end
             push!(par_coordinates,temp_coordinates)
@@ -528,16 +598,18 @@ function arrange_main(design_data::DesignData,design::Design)
     coordinate = [layers_arranged[1].x,layers_arranged[1].y-
         (design.height+design.min_dist_y)]
     for i = 1:length(inds_arranged)
+        layers = layers_arranged[i]
         coordinate = arrange_branches(coordinates,
-            coordinate,design,layers_arranged[i])
+            coordinate,design,layers)
     end
     coordinates_flattened = []
     get_values!(coordinates_flattened,coordinates,
         x-> x isa Array && x[1] isa Array)
     inds_flattened = []
     get_values!(inds_flattened,inds_arranged,x-> x isa Array)
-    coordinates_flattened = coordinates_flattened[inds_flattened.>0]
-    inds_flattened = inds_flattened[inds_flattened.>0]
+    true_elements = inds_flattened.>0
+    coordinates_flattened = coordinates_flattened[true_elements]
+    inds_flattened = inds_flattened[true_elements]
     return [coordinates_flattened,inds_flattened.-1]
 end
 arrange() = arrange_main(design_data,design)

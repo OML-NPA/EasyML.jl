@@ -1,18 +1,18 @@
 
 # Get urls of files in selected folders. Requires only data
-function get_urls1(input_url::String,allowed_ext::Vector{String})
+function get_urls1(url_inputs::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     filenames = Vector{Vector{String}}(undef,0)
     # Empty a url accumulator
     empty!(input_urls)
     # Return if empty
-    if isempty(input_url)
+    if isempty(url_inputs)
         @warn "Directory is empty."
         return nothing
     end
     # Get directories containing our images and labels
-    dirs = getdirs(input_url)
+    dirs = getdirs(url_inputs)
     # If no directories, then set empty string
     if length(dirs)==0
         dirs = [""]
@@ -22,24 +22,24 @@ function get_urls1(input_url::String,allowed_ext::Vector{String})
         input_urls_temp = Vector{String}(undef,0)
         dir = dirs[k]
         # Get files in a directory
-        files_input = getfiles(string(input_url,"/",dir))
+        files_input = getfiles(string(url_inputs,"/",dir))
         files_input = filter_ext(files_input,allowed_ext)
         # Push urls into an accumulator
         for l = 1:length(files_input)
-            push!(input_urls_temp,string(input_url,"/",dir,"/",files_input[l]))
+            push!(input_urls_temp,string(url_inputs,"/",dir,"/",files_input[l]))
         end
         push!(filenames,files_input)
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
-        url_split = split(input_url,"/")
+        url_split = split(url_inputs,"/")
         dirs = [url_split[end]]
     end
     return input_urls,dirs,filenames
 end
 
 # Get urls of files in selected folders. Requires data and labels
-function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{String})
+function get_urls2(url_inputs::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
     input_urls = Vector{Vector{String}}(undef,0)
     label_urls = Vector{Vector{String}}(undef,0)
@@ -49,12 +49,12 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
     empty!(input_urls)
     empty!(label_urls)
     # Return if empty
-    if isempty(input_url) || isempty(label_url)
+    if isempty(url_inputs) || isempty(label_url)
         @error "Empty urls."
         return nothing,nothing,nothing
     end
     # Get directories containing our images and labels
-    dirs_input= getdirs(input_url)
+    dirs_input= getdirs(url_inputs)
     dirs_labels = getdirs(label_url)
     # Keep only those present for both images and labels
     dirs = intersect(dirs_input,dirs_labels)
@@ -68,7 +68,7 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
         input_urls_temp = Vector{String}(undef,0)
         label_urls_temp = Vector{String}(undef,0)
         # Get files in a directory
-        files_input = getfiles(string(input_url,"/",dirs[k]))
+        files_input = getfiles(string(url_inputs,"/",dirs[k]))
         files_labels = getfiles(string(label_url,"/",dirs[k]))
         # Filter files
         files_input = filter_ext(files_input,allowed_ext)
@@ -84,7 +84,7 @@ function get_urls2(input_url::String,label_url::String,allowed_ext::Vector{Strin
         # Push urls into accumulators
         num = length(files_input)
         for l = 1:num
-            push!(input_urls_temp,string(input_url,"/",files_input[l]))
+            push!(input_urls_temp,string(url_inputs,"/",files_input[l]))
             push!(label_urls_temp,string(label_url,"/",files_labels[l]))
         end
         push!(filenames,filenames_input[inds2])
@@ -147,6 +147,16 @@ function load_images(urls::Vector{String})
     imgs = Vector{Array{RGB{N0f8},2}}(undef,num)
     for i = 1:num
         imgs[i] = load_image(urls[i])
+    end
+    return imgs
+end
+
+function load_images(urls::Vector{String},channel::Channel)
+    num = length(urls)
+    imgs = Vector{Array{RGB{N0f8},2}}(undef,num)
+    for i = 1:num
+        imgs[i] = load_image(urls[i])
+        put!(channel,1)
     end
     return imgs
 end
@@ -296,22 +306,36 @@ function rotate_img(img::BitArray{3},angle_val::Float64)
 end
 
 # Use border data to better separate objects
-function apply_border_data(data_in::BitArray{3},classes::Vector{ImageSegmentationClass})
+"""
+    apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
+
+Used for segmentation. Uses borders of objects that a neural network detected in order 
+to separate objects from each other. Output from a neural network should be fed after 
+converting to BitArray.
+
+# Examples
+```julia-repl
+output = forward(model_data.model,input_data);
+output_bitarray = output[:,:,:,1].>0.5
+output_with_borders = apply_border_data(output_bitarray,model_data.classes)
+```
+"""
+function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
     inds_border = findall(border)
     if isnothing(inds_border)
-        return data_in
+        return input_data
     end
     num_border = length(inds_border)
     num_classes = length(class_inds)
-    data = BitArray{3}(undef,size(data_in)[1:2]...,num_border)
-    for i = 1:num_border #@floop ThreadedEx() 
+    data = BitArray{3}(undef,size(input_data)[1:2]...,num_border)
+    for i = 1:num_border
         border_num_pixels = border_thickness[i]
         ind_classes = inds_border[i]
         ind_border = num_classes + ind_classes
-        data_classes_bool = data_in[:,:,ind_classes]
+        data_classes_bool = input_data[:,:,ind_classes]
         data_classes = convert(Array{Float32},data_classes_bool)
-        data_border = data_in[:,:,ind_border]
+        data_border = input_data[:,:,ind_border]
         border_bool = data_border
         background1 = erode(data_classes_bool .& border_bool,border_num_pixels)
         background2 = outer_perim(border_bool)
@@ -376,11 +400,7 @@ end
 function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     err = abs.(actual .- predicted)
     err_relative = mean(err./actual)
-    if err_relative>0.5f0
-        acc = 0.25f0/err_relative
-    else
-        acc = 1f0 - err_relative
-    end
+    acc = 1/(1+err_relative)
     return acc
 end
 
@@ -505,9 +525,9 @@ end
 #--- Applying a neural network
 # Getting a slice and its information
 function prepare_data(input_data::Union{Array{Float32,4},CuArray{Float32,4}},ind_max::Int64,
-        max_value::Int64,offset::Int64,num_parts::Int64,ind_split::Int64,j::Int64)
+        max_value::Int64,offset::Int64,num_slices::Int64,ind_split::Int64,j::Int64)
     start_ind = 1 + (j-1)*ind_split
-    if j==num_parts
+    if j==num_slices
         end_ind = max_value
     else
         end_ind = start_ind + ind_split-1
@@ -527,7 +547,7 @@ end
 
 # Makes output mask to have a correct size for stiching
 function fix_size(temp_predicted::Union{Array{Float32,4},CuArray{Float32,4}},
-        num_parts::Int64,correct_size::Int64,ind_max::Int64,
+        num_slices::Int64,correct_size::Int64,ind_max::Int64,
         offset_add::Int64,j::Int64)
     temp_size = size(temp_predicted,ind_max)
     offset_temp = (temp_size - correct_size) - offset_add
@@ -538,7 +558,7 @@ function fix_size(temp_predicted::Union{Array{Float32,4},CuArray{Float32,4}},
         if j==1
             temp_predicted = temp_predicted[:,
                 (1+offset_add1):(end-offset_temp-offset_add2),:,:]
-        elseif j==num_parts
+        elseif j==num_slices
             temp_predicted = temp_predicted[:,
                 (1+offset_temp+offset_add1):(end-offset_add2),:,:]
         else
@@ -554,18 +574,18 @@ function fix_size(temp_predicted::Union{Array{Float32,4},CuArray{Float32,4}},
 end
 
 # Accumulates and stiches slices (CPU)
-function accum_parts(model::Chain,input_data::Array{Float32,4},
-        num_parts::Int64,offset::Int64)
+function accum_slices(model::Chain,input_data::Array{Float32,4},
+        num_slices::Int64,offset::Int64)
     input_size = size(input_data)
     max_value = maximum(input_size)
     ind_max = findfirst(max_value.==input_size)
-    ind_split = convert(Int64,floor(max_value/num_parts))
+    ind_split = convert(Int64,floor(max_value/num_slices))
     predicted = Vector{Array{Float32,4}}(undef,0)
-    for j = 1:num_parts
+    for j = 1:num_slices
         temp_data,correct_size,offset_add =
-            prepare_data(input_data,ind_max,max_value,num_parts,offset,ind_split,j)
+            prepare_data(input_data,ind_max,max_value,num_slices,offset,ind_split,j)
         temp_predicted::Array{Float32,4} = model(temp_data)
-        temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
+        temp_predicted = fix_size(temp_predicted,num_slices,correct_size,ind_max,offset_add,j)
         push!(predicted,temp_predicted)
     end
     if ind_max==1
@@ -577,18 +597,18 @@ function accum_parts(model::Chain,input_data::Array{Float32,4},
 end
 
 # Accumulates and stiches slices (GPU)
-function accum_parts(model::Chain,input_data::CuArray{Float32,4},
-        num_parts::Int64,offset::Int64)
+function accum_slices(model::Chain,input_data::CuArray{Float32,4},
+        num_slices::Int64,offset::Int64)
     input_size = size(input_data)
     max_value = maximum(input_size)
     ind_max = findfirst(max_value.==input_size)
-    ind_split = convert(Int64,floor(max_value/num_parts))
+    ind_split = convert(Int64,floor(max_value/num_slices))
     predicted = Vector{CuArray{Float32,4}}(undef,0)
-    for j = 1:num_parts
+    for j = 1:num_slices
         temp_data,correct_size,offset_add =
-            prepare_data(input_data,ind_max,max_value,offset,num_parts,ind_split,j)
+            prepare_data(input_data,ind_max,max_value,offset,num_slices,ind_split,j)
         temp_predicted = model(temp_data)
-        temp_predicted = fix_size(temp_predicted,num_parts,correct_size,ind_max,offset_add,j)
+        temp_predicted = fix_size(temp_predicted,num_slices,correct_size,ind_max,offset_add,j)
         push!(predicted,collect(temp_predicted))
         cleanup!(temp_predicted)
     end
@@ -601,22 +621,30 @@ function accum_parts(model::Chain,input_data::CuArray{Float32,4},
 end
 
 # Runs data thorugh a neural network
+"""
+    forward(model::Chain, input_data::Array{Float32}; num_slices::Int64=1, offset::Int64=20, use_GPU::Bool=false)
+
+The function takes in a model and input data and returns output from that model. `num_slices` specifies in how many 
+slices should an array be run thorugh a neural network. Allows to process images that otherwise cause an out of memory error.
+`offset` specifies the size of an overlap that should be taken from the left and right side of each slice to allow for 
+an absense of a seam. `use_GPU` enables or disables GPU usage.
+"""
 function forward(model::Chain,input_data::Array{Float32};
-        num_parts::Int64=30,offset::Int64=20,use_GPU::Bool=true)
+        num_slices::Int64=1,offset::Int64=20,use_GPU::Bool=false)
     if use_GPU
         input_data_gpu = CuArray(input_data)
         model = move(model,gpu)
-        if num_parts==1
+        if num_slices==1
             predicted = collect(model(input_data_gpu))
             cleanup!(predicted)
         else
-            predicted = collect(accum_parts(model,input_data_gpu,num_parts,offset))
+            predicted = collect(accum_slices(model,input_data_gpu,num_slices,offset))
         end
     else
-        if num_parts==1
+        if num_slices==1
             predicted = model(input_data)
         else
-            predicted = accum_parts(model,input_data,num_parts,offset)
+            predicted = accum_slices(model,input_data,num_slices,offset)
         end
     end
     return predicted
@@ -624,8 +652,8 @@ end
 
 function check_abort_signal(channel::Channel)
     if isready(channel)
-        stop_cond::String = fetch(channel)[1]
-        if stop_cond=="stop"
+        value = fetch(channel)[1]
+        if value==0
             return true
         else
             return false

@@ -177,7 +177,7 @@ function load_settings!(settings::Settings)
     if isfile("config.bson")
         try
             data = BSON.load("config.bson")
-            copystruct!(settings,data[:settings])
+            dict_to_struct!(settings,data[:dict])
         catch e
             @error string("Settings were not loaded. Error: ",e)
             save_settings()
@@ -188,6 +188,13 @@ function load_settings!(settings::Settings)
     
     return nothing
 end
+
+"""
+    load_settings()
+
+Loads settings from your previous run which are located in 'config.bson'. 
+Uses present working directory. It is run automatically after 'using EasyML'.
+"""
 load_settings() = load_settings!(settings)
 
 function source_dir()
@@ -495,6 +502,12 @@ function save_model_main(model_data,url)
     bson(String(url),dict)
   return nothing
 end
+"""
+    save_model(url::String)
+
+Saves a model to a specified URL. The URL can be absolute or relative. 
+Use '.model' extension.
+"""
 save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
@@ -523,10 +536,9 @@ function load_model_main(settings,model_data,url)
             @warn string("Loading of ",k," failed. Exception: ",e)
         end
     end
-    settings.Application.model_url = url
-    settings.Training.model_url = url
+    settings.model_url = url
     url_split = split(url,('/','.'))
-    settings.Training.name = url_split[end-1]
+    settings.model_name = url_split[end-1]
     if model_data.classes isa Vector{ImageClassificationClass}
         settings.input_type = :Image
         settings.problem_type = :Classification
@@ -539,6 +551,11 @@ function load_model_main(settings,model_data,url)
     end
     return nothing
 end
+"""
+    load_model(url::String)
+
+Loads a model from a specified URL. The URL can be absolute or relative.
+"""
 load_model(url) = load_model_main(settings,model_data,url)
 
 function empty_field!(str,field::Symbol)

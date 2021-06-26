@@ -1,27 +1,21 @@
 
 #---Channels
-# 
+
 @with_kw struct Channels
     training_data_progress::Channel = Channel{Int64}(Inf)
     training_data_results::Channel = Channel{Any}(Inf)
-    training_data_modifiers::Channel = Channel{Any}(Inf)
+    training_data_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
     testing_data_progress::Channel = Channel{Int64}(Inf)
     testing_data_results::Channel = Channel{Any}(Inf)
-    testing_data_modifiers::Channel = Channel{Any}(Inf)
+    testing_data_modifiers::Channel = Channel{Int64}(Inf) # 0 - abort
     training_progress::Channel = Channel{Any}(Inf)
     training_results::Channel = Channel{Any}(Inf)
-    training_modifiers::Channel = Channel{Any}(Inf)
-    validation_data_progress::Channel = Channel{Int64}(Inf)
-    validation_data_results::Channel = Channel{Any}(Inf)
-    validation_data_modifiers::Channel = Channel{Any}(Inf)
+    training_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort; 1 - learning rate; 2 - epochs; 3 - number of tests
     validation_progress::Channel = Channel{Any}(Inf)
     validation_results::Channel = Channel{Any}(Inf)
-    validation_modifiers::Channel = Channel{Any}(Inf)
-    training_labels_colors::Channel = Channel{Any}(Inf)
-    application_data_progress::Channel = Channel{Int64}(Inf)
-    application_data_results::Channel = Channel{Any}(Inf)
-    application_progress::Channel = Channel{Any}(Inf)
-    application_modifiers::Channel = Channel{Any}(Inf)
+    validation_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
+    application_progress::Channel = Channel{Int64}(Inf)
+    application_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort
 end
 channels = Channels()
 
@@ -346,6 +340,7 @@ end
 @with_kw mutable struct RegressionData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+    initial_data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     labels_url::String = ""
 end
@@ -364,6 +359,8 @@ end
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 training_data = TrainingData()
@@ -372,6 +369,8 @@ training_data = TrainingData()
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    url_inputs::String = ""
+    url_labels::String = ""
 end
 testing_data = TestingData()
 
@@ -414,6 +413,8 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels_classification::Vector{Int32} = Vector{Int32}(undef,0)
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
@@ -421,6 +422,8 @@ validation_data = ValidationData()
 @with_kw mutable struct ApplicationData
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
+    url_inputs::String = ""
+    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
@@ -443,7 +446,14 @@ all_data = AllData()
     num_cores::Int64 = Threads.nthreads()
 end
 hardware_resources = HardwareResources()
+
+@with_kw mutable struct Graphics
+    scaling_factor::Float32 = 1
+end
+graphics = Graphics()
+
 @with_kw mutable struct Options
+    Graphics::Graphics = graphics
     HardwareResources::HardwareResources = hardware_resources
 end
 options = Options()
@@ -461,8 +471,8 @@ design = Design()
 @with_kw mutable struct ProcessingTraining
     grayscale::Bool = false
     mirroring::Bool = true
-    num_angles::Int64 = 2
-    min_fr_pix::Float64 = 0.1
+    num_angles::Int64 = 1
+    min_fr_pix::Float64 = 0.0
 end
 processing_training = ProcessingTraining()
 
@@ -495,7 +505,7 @@ end
 general_training = GeneralTraining()
 
 @with_kw mutable struct TestingTraining
-    test_data_fraction::Float64 = 0
+    test_data_fraction::Float64 = 0.1
     num_tests::Float64 = 5
     manual_testing_data::Bool = false
 end
@@ -511,23 +521,13 @@ training_options = TrainingOptions()
 
 @with_kw mutable struct Training
     Options::TrainingOptions = training_options
-    model_url::String = ""
-    input_url::String = ""
-    label_url::String = ""
-    name::String = "new"
+    url_inputs::String = ""
+    url_labels::String = ""
 end
 training = Training()
 
-@with_kw mutable struct Testing
-    input_url::String = ""
-    label_url::String = ""
-end
-testing = Testing()
-
 # Validation
 @with_kw mutable struct Validation
-    input_url::String = ""
-    label_url::String = ""
     use_labels::Bool = false
 end
 validation = Validation()
@@ -547,9 +547,7 @@ application_options = ApplicationOptions()
 
 @with_kw mutable struct Application
     Options::ApplicationOptions = application_options
-    model_url::String = ""
-    input_url::String = ""
-    checked_folders::Vector{String} = String[]
+    url_inputs::String = ""
 end
 application = Application()
 
@@ -561,15 +559,17 @@ visualisation = Visualisation()
 
 # Settings
 @with_kw mutable struct Settings
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
     Options::Options = options
     Design::Design = design
     Training::Training = training
-    Testing::Testing = testing
     Validation::Validation = validation
     Application::Application = application
     Visualisation::Visualisation = visualisation
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
+    model_url::String = ""
+    model_name::String = ""
+    
 end
 settings = Settings()
 
