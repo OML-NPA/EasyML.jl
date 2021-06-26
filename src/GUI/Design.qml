@@ -1064,7 +1064,7 @@ ApplicationWindow {
                     onClicked: {
                        getarchitecture()
                        customizationItem.forceActiveFocus()
-                       var name = Julia.get_settings(["Training","name"])
+                       var name = Julia.get_settings(["model_name"])
                        var url = Julia.source_dir()+"/models/"+name+".model"
                        // neuralnetworkTextField.text = url
                        var state = Julia.make_model()
@@ -2860,10 +2860,10 @@ ApplicationWindow {
                     height: buttonHeight
                     width: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        Julia.set_settings(["Training","name"],displayText)
+                        Julia.set_settings(["model_name"],displayText)
                     }
                     Component.onCompleted: {
-                        var name = Julia.get_settings(["Training","name"])
+                        var name = Julia.get_settings(["model_name"])
                         if (name.length===0) {
                             text = "model"
                         }
