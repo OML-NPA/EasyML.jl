@@ -312,7 +312,7 @@ ApplicationWindow {
                                 onValueModified: {
                                     Julia.set_settings(
                                         ["Training","Options","Testing","test_data_fraction"],
-                                        value/100)
+                                        realValue)
                                 }
                             }
                         }
