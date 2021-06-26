@@ -177,7 +177,6 @@ function prepare_data(classification_data::ClassificationData,
     else
         push!(mirroring_inds,1)
     end
-    classification_data = training_data.ClassificationData
     input_urls = classification_data.input_urls
     label_urls = classification_data.label_urls
     labels = map(class -> class.name, model_data.classes)
@@ -240,7 +239,6 @@ end
 function prepare_data(regression_data::RegressionData,
         model_data::ModelData,options::TrainingOptions,
         size12::Tuple{Int64,Int64},progress::Channel,results::Channel)
-    
     input_size = model_data.input_size
     num_angles = options.Processing.num_angles
     mirroring_inds = Vector{Int64}(undef,0)

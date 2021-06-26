@@ -369,6 +369,8 @@ training_data = TrainingData()
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    url_inputs::String = ""
+    url_labels::String = ""
 end
 testing_data = TestingData()
 
