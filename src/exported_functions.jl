@@ -262,6 +262,7 @@ function get_urls(some_data::Union{TrainingData,TestingData})
     if problem_type==:Classification
     
     elseif problem_type==:Regression
+        @info "Select a file with label data."
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe)
         path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
@@ -620,6 +621,7 @@ function get_urls_validation()
     if settings.problem_type==:Classification
     
     elseif settings.problem_type==:Regression
+        @info "Select a file with label data if labels are available."
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe)
         path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
