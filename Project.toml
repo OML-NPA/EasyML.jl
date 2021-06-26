@@ -1,7 +1,7 @@
 name = "EasyML"
 uuid = "807c15e4-954b-4072-b0d2-8db75ef7308a"
 authors = ["Aleksandr Illarionov <a_ill@outlook.com>"]
-version = "0.0.1"
+version = "0.1.0"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
