@@ -957,7 +957,10 @@ function remove_application_data()
     data = application_data
     fields = fieldnames(ApplicationData)
     for field in fields
-        empty!(getfield(data, field))
+        data_field = getfield(data, field)
+        if data_field isa Array
+            empty!(data_field)
+        end
     end
 end
 
