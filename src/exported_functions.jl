@@ -167,34 +167,19 @@ function load_model()
 end
 
 """
-    modify(data) 
+    modify(training_options::TrainingOptions) 
 
-Allows to modify `training_options` or `application_options` in a GUI by passing one of 
-them as an input argument.
+Allows to modify `training_options` in a GUI.
 """
-function modify(data)
-    if typeof(data)==TrainingOptions
-        @qmlfunction(
-            get_settings,
-            set_settings,
-            save_settings
-        )
-        path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
-        loadqml(path_qml)
-        exec()
-
-    elseif typeof(data)==ApplicationOptions
-        @qmlfunction(
-            get_settings,
-            set_settings,
-            save_settings,
-            pwd,
-            fix_slashes
-        )
-        path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")
-        loadqml(path_qml)
-        exec()
-    end
+function modify(data::TrainingOptions)
+    @qmlfunction(
+        get_settings,
+        set_settings,
+        save_settings
+    )
+    path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
+    loadqml(path_qml)
+    exec()
     return nothing
 end
 
@@ -719,6 +704,26 @@ function validate()
 end
 
 # Application
+
+"""
+    modify(application_options::ApplicationOptions) 
+
+Allows to modify `application_options` in a GUI.
+"""
+function modify(application_options::ApplicationOptions)
+    @qmlfunction(
+        get_settings,
+        set_settings,
+        save_settings,
+        pwd,
+        fix_slashes
+    )
+    path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")
+    loadqml(path_qml)
+    exec()
+    return nothing
+end
+
 """
     get_urls_application(url_inputs::String)
 
