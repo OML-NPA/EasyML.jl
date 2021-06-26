@@ -1,8 +1,8 @@
 
 # Get urls of files in selected folders
-function get_urls_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},model_data::ModelData)
-    url_inputs = some_settings.url_inputs
-    url_labels = some_settings.url_labels
+function get_urls_main(some_data::Union{TrainingData,TestingData},model_data::ModelData)
+    url_inputs = some_data.url_inputs
+    url_labels = some_data.url_labels
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
@@ -366,7 +366,7 @@ function prepare_data(segmentation_data::SegmentationData,
 end
 
 # Wrapper allowing for remote execution
-function prepare_data_main(some_settings::Union{Training,Testing},some_data::Union{TrainingData,TestingData},
+function prepare_data_main(some_data::Union{TrainingData,TestingData},
         model_data::ModelData,channels::Channels)
     # Initialize
     options = settings.Training.Options
@@ -379,7 +379,7 @@ function prepare_data_main(some_settings::Union{Training,Testing},some_data::Uni
     elseif problem_type==:Segmentation
         data = some_data.SegmentationData
     end
-    if some_settings isa Training
+    if some_data isa TrainingData
         progress = channels.training_data_progress
         results = channels.training_data_results
     else
@@ -810,7 +810,7 @@ function train!(model_data::ModelData,training::Training,
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     testing_mode = Threads.Atomic{Bool}(true)
-    model_name = string("models/",training.name,".model")
+    model_name = string("models/",settings.model_name,".model")
     output_N = length(model_data.output_size) + 1
     # Initialize data
     data_input = train_set[1]

@@ -4,8 +4,8 @@
 # Get urls of files in selected folders
 
 function get_urls_validation_main(validation::Validation,validation_data::ValidationData,model_data::ModelData)
-    url_inputs = validation.url_inputs
-    url_labels = validation.url_labels
+    url_inputs = validation_data.url_inputs
+    url_labels = validation_data.url_labels
     if settings.input_type == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end

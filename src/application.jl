@@ -1,11 +1,10 @@
 
 # Get urls of files in a selected folder. Files are used for application.
-function get_urls_application_main(application::Application,
-        application_data::ApplicationData,model_data::ModelData)
+function get_urls_application_main(application_data::ApplicationData)
     if settings.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    input_urls,dirs = get_urls1(application.url_inputs,allowed_ext)
+    input_urls,dirs = get_urls1(application_data.url_inputs,allowed_ext)
     application_data.input_urls = input_urls
     application_data.folders = dirs
     return nothing

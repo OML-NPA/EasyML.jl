@@ -109,7 +109,7 @@ function get_results_main(channels::Channels,all_data::AllData,
                 training_results_data.test_accuracy = data[4]
                 training_results_data.test_loss = data[5]
                 training_results_data.test_iteration = data[6]
-                save_model(training.model_url)
+                save_model(settings.model_url)
             end
             return true
         else

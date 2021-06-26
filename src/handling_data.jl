@@ -536,10 +536,9 @@ function load_model_main(settings,model_data,url)
             @warn string("Loading of ",k," failed. Exception: ",e)
         end
     end
-    settings.Application.model_url = url
-    settings.Training.model_url = url
+    settings.model_url = url
     url_split = split(url,('/','.'))
-    settings.Training.name = url_split[end-1]
+    settings.model_name = url_split[end-1]
     if model_data.classes isa Vector{ImageClassificationClass}
         settings.input_type = :Image
         settings.problem_type = :Classification
