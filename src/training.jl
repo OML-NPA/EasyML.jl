@@ -23,8 +23,12 @@ function get_urls_main(some_data::Union{TrainingData,TestingData},model_data::Mo
             dirs = dirs_raw
             input_urls = input_urls
         end
-        classification_data.input_urls = input_urls
-        classification_data.label_urls = dirs
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."           
+        else
+            classification_data.input_urls = input_urls
+            classification_data.label_urls = dirs
+        end
     elseif settings.problem_type==:Regression
         regression_data = some_data.RegressionData
         input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
@@ -32,14 +36,24 @@ function get_urls_main(some_data::Union{TrainingData,TestingData},model_data::Mo
         filenames_inputs = reduce(vcat,filenames_inputs_raw)
         filenames_labels,loaded_labels = load_regression_data(url_labels)
         intersect_regression_data!(input_urls,filenames_inputs,loaded_labels,filenames_labels)
-        regression_data.input_urls = input_urls
-        regression_data.labels_url = url_labels
-        regression_data.initial_data_labels = loaded_labels
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."
+        else
+            regression_data.input_urls = input_urls
+            regression_data.labels_url = url_labels
+            regression_data.initial_data_labels = loaded_labels
+        end
     elseif settings.problem_type==:Segmentation
         segmentation_data = some_data.SegmentationData
-        input_urls,label_urls,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
-        segmentation_data.input_urls = reduce(vcat,input_urls)
-        segmentation_data.label_urls = reduce(vcat,label_urls)
+        input_urls_raw,label_urls_raw,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
+        input_urls = reduce(vcat,input_urls_raw)
+        label_urls = reduce(vcat,label_urls_raw)
+        if isempty(input_urls)
+            @warn "The folder did not have any suitable data."           
+        else
+            segmentation_data.input_urls = input_urls
+            segmentation_data.label_urls = label_urls
+        end
     end
     return nothing
 end
