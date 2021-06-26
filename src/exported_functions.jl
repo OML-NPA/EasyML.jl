@@ -630,8 +630,7 @@ function get_urls_validation()
             validation_data.url_labels = take!(url_channel)
             @info string(validation_data.url_labels, " was selected.")
         else
-            @error "Label data directory URL is empty."
-            return nothing
+            @warn "Label data URL is empty. Continuing without labels."
         end
     elseif settings.problem_type==:Segmentation
         @info "Select a directory with label data if labels are available."
@@ -643,8 +642,7 @@ function get_urls_validation()
             validation_data.url_labels = take!(url_channel)
             @info string(training.url_labels, " was selected.")
         else
-            @error "Label data directory URL is empty."
-            return nothing
+            @warn "Label data directory URL is empty. Continuing without labels."
         end
     end
     
@@ -786,7 +784,6 @@ function apply()
             temp_value = get_progress("Application")
             if temp_value!=false
                 value += temp_value
-                @info (value,max_value)
                 # handle progress here
                 next!(p)
             elseif value==max_value

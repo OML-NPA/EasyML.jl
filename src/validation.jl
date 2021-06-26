@@ -24,7 +24,7 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
         if validation.use_labels==true
             input_urls_copy = copy(input_urls)
             filenames_inputs_copy = copy(filenames_inputs)
-            filenames_labels,loaded_labels = load_regression_data(validation.url_labels)
+            filenames_labels,loaded_labels = load_regression_data(validation_data.url_labels)
             intersect_regression_data!(input_urls_copy,filenames_inputs_copy,
                 loaded_labels,filenames_labels)
             if isempty(loaded_labels)
