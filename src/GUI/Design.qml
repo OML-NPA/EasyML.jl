@@ -57,7 +57,6 @@ ApplicationWindow {
 //---Julia package block--------------------------------------------------
     property var model: []
     Component.onCompleted: {
-        console.log(Screen.pixelDensity)
         importmodel(model)
     }
 //------------------------------------------------------------------------
