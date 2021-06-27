@@ -1,7 +1,6 @@
 
 Examples/
 docs/build
-docs/src
 *.bson
 *.bson
 .vscode/settings.json
