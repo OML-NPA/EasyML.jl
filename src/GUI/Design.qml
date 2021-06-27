@@ -20,7 +20,7 @@ ApplicationWindow {
     color: defaultpalette.window
 
 //---Universal property block-----------------------------------------------
-    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_settings(["Options","Graphics","scaling_factor"])
+    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_options(["GlobalOptions","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -1063,7 +1063,7 @@ ApplicationWindow {
                 onClicked: {
                     getarchitecture()
                     customizationItem.forceActiveFocus()
-                    var name = Julia.get_settings(["model_name"])
+                    var name = Julia.get_data(["model_name"])
                     var url = Julia.source_dir()+"/models/"+name+".model"
                     // neuralnetworkTextField.text = url
                     var state = Julia.make_model()
@@ -1132,6 +1132,7 @@ ApplicationWindow {
                     for (i=0;i<layers.children.length;i++) {
                         updatePosition(layers.children[i],layers.children[i])
                     }
+                    updateConnections()
                     updateConnections()
                     customizationItem.forceActiveFocus()
                     opacity = 1
@@ -2860,10 +2861,10 @@ ApplicationWindow {
                     height: buttonHeight
                     width: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        Julia.set_settings(["model_name"],displayText)
+                        Julia.set_data(["model_name"],displayText)
                     }
                     Component.onCompleted: {
-                        var name = Julia.get_settings(["model_name"])
+                        var name = Julia.get_data(["model_name"])
                         if (name.length===0) {
                             text = "model"
                         }

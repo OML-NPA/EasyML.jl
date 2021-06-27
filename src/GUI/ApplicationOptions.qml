@@ -18,7 +18,7 @@ ApplicationWindow {
     maximumHeight: rowLayout.height
     
     //---Universal property block-----------------------------------------------
-    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_settings(["Options","Graphics","scaling_factor"])
+    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_options(["GlobalOptions","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -50,7 +50,7 @@ ApplicationWindow {
     color: defaultpalette.window
 
      onClosing: { 
-        Julia.save_settings()
+        Julia.save_options()
         //applicationoptionsLoader.sourceComponent = null
      }
 
@@ -176,10 +176,10 @@ ApplicationWindow {
                                             height: buttonHeight
                                             readOnly: true
                                             Component.onCompleted: {
-                                                text = Julia.get_settings(["Application","Options","savepath"])
+                                                text = Julia.get_options(["ApplicationOptions","savepath"])
                                                 if (text==="") {
                                                     text = Julia.fix_slashes(Julia.pwd()+"/Output data")
-                                                    Julia.set_settings(["Application","Options","savepath"],text)
+                                                    Julia.set_options(["ApplicationOptions","savepath"],text)
                                                 }
                                                 applicationoptionsFolderDialog.currentFolder = text
                                             }
@@ -187,7 +187,7 @@ ApplicationWindow {
                                                 id: applicationoptionsFolderDialog
                                                 onAccepted: {
                                                     var url = stripURL(folder)
-                                                    Julia.set_settings(["Application","Options","savepath"],url)
+                                                    Julia.set_options(["ApplicationOptions","savepath"],url)
                                                     savepathTextField.text = url
                                                 }
                                             }
@@ -209,10 +209,10 @@ ApplicationWindow {
                                         }
                                         Component.onCompleted: {
                                             currentIndex =
-                                                Julia.get_settings(["Application","Options","apply_by"],2)
+                                                Julia.get_options(["ApplicationOptions","apply_by"],2)
                                         }
                                         onActivated: {
-                                            Julia.set_settings(["Application","Options","apply_by"],
+                                            Julia.set_options(["ApplicationOptions","apply_by"],
                                                 [currentText,currentIndex],"make_tuple")
                                         }
                                     }
@@ -227,10 +227,10 @@ ApplicationWindow {
                                         }
                                         Component.onCompleted: {
                                             currentIndex =
-                                                Julia.get_settings(["Application","Options","data_type"])
+                                                Julia.get_options(["ApplicationOptions","data_type"])
                                         }
                                         onActivated: {
-                                            Julia.set_settings(["Application","Options","data_type"],currentIndex)
+                                            Julia.set_options(["ApplicationOptions","data_type"],currentIndex)
                                         }
                                     }
                                     ComboBox {
@@ -243,10 +243,10 @@ ApplicationWindow {
                                         }
                                         Component.onCompleted: {
                                             currentIndex =
-                                                Julia.get_settings(["Application","Options","image_type"])
+                                                Julia.get_options(["ApplicationOptions","image_type"])
                                         }
                                         onActivated: {
-                                            Julia.set_settings(["Application","Options","image_type"],currentIndex)
+                                            Julia.set_options(["ApplicationOptions","image_type"],currentIndex)
                                         }
                                     }
                                     /*ComboBox {
@@ -261,11 +261,11 @@ ApplicationWindow {
                                         }
                                         Component.onCompleted: {
                                             currentIndex =
-                                                Julia.get_settings(["Application","Options","downsize"])
+                                                Julia.get_options(["ApplicationOptions","downsize"])
                                         }
                                         onActivated: {
-                                            Julia.set_settings(
-                                                ["Application","Options","downsize"],currentIndex)
+                                            Julia.set_options(
+                                                ["ApplicationOptions","downsize"],currentIndex)
                                         }
                                     }
                                     ComboBox {
@@ -279,11 +279,11 @@ ApplicationWindow {
                                         }
                                         Component.onCompleted: {
                                             currentIndex =
-                                                Julia.get_settings(["Application","Options","skip_frames"])
+                                                Julia.get_options(["ApplicationOptions","skip_frames"])
                                         }
                                         onActivated: {
-                                            Julia.set_settings(
-                                                ["Application","Options","skip_frames"],currentIndex)
+                                            Julia.set_options(
+                                                ["ApplicationOptions","skip_frames"],currentIndex)
                                         }
                                     }*/
                                 }
@@ -302,11 +302,11 @@ ApplicationWindow {
                                 validator: DoubleValidator { bottom: 0.0001; top: 999999;
                                     decimals: 4; notation: DoubleValidator.StandardNotation}
                                 Component.onCompleted: {
-                                    text = Julia.get_settings(["Application","Options","scaling"])
+                                    text = Julia.get_options(["ApplicationOptions","scaling"])
                                 }
                                 onEditingFinished: {
                                     var value = parseFloat(text)
-                                    Julia.set_settings(["Application","Options","scaling"],value)
+                                    Julia.set_options(["ApplicationOptions","scaling"],value)
                                 }
                             }
                             Label {

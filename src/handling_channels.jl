@@ -61,15 +61,15 @@ function get_results_main(channels::Channels,all_data::AllData,
         if isready(channels.training_data_results)
             data = take!(EasyML.channels.training_data_results)
             typeof(data)
-            if settings.problem_type==:Classification
+            if problem_type()==:Classification
                 classification_data = all_data.TrainingData.ClassificationData
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
-            elseif settings.problem_type==:Regression
+            elseif problem_type()==:Regression
                 regression_data = all_data.TrainingData.RegressionData
                 regression_data.data_input = data[1]
                 regression_data.data_labels = data[2]
-            elseif settings.problem_type==:Segmentation
+            elseif problem_type()==:Segmentation
                 segmentation_data = all_data.TrainingData.SegmentationData
                 segmentation_data.data_input = data[1]
                 segmentation_data.data_labels = data[2]
@@ -81,15 +81,15 @@ function get_results_main(channels::Channels,all_data::AllData,
     elseif field=="Testing data preparation"
         if isready(channels.testing_data_results)
             data = take!(EasyML.channels.testing_data_results)
-            if settings.problem_type==:Classification
+            if problem_type()==:Classification
                 classification_data = all_data.TestingData.ClassificationData
                 classification_data.data_input = data[1]
                 classification_data.data_labels = data[2]
-            elseif settings.problem_type==:Regression
+            elseif problem_type()==:Regression
                 regression_data = all_data.TestingData.RegressionData
                 regression_data.data_input = data[1]
                 regression_data.data_labels = data[2]
-            elseif settings.problem_type==:Segmentation
+            elseif problem_type()==:Segmentation
                 segmentation_data = all_data.TestingData.SegmentationData
                 segmentation_data.data_input = data[1]
                 segmentation_data.data_labels = data[2]
@@ -109,7 +109,7 @@ function get_results_main(channels::Channels,all_data::AllData,
                 training_results_data.test_accuracy = data[4]
                 training_results_data.test_loss = data[5]
                 training_results_data.test_iteration = data[6]
-                save_model(settings.model_url)
+                save_model(all_data.model_url)
             end
             return true
         else
@@ -118,29 +118,32 @@ function get_results_main(channels::Channels,all_data::AllData,
     elseif field=="Validation"
         if isready(channels.validation_results)
             data = take!(channels.validation_results)
-            if settings.input_type==:Image
+            if all_data.input_type==:Image
                 image_data = data[1]
                 other_data = data[2]
                 original = data[3]
-                if settings.problem_type==:Classification
+                if problem_type()==:Classification
                     validation_results = all_data.ValidationData.ImageClassificationResults
                     push!(validation_results.original,original)
                     push!(validation_results.predicted_labels,image_data[1])
                     push!(validation_results.target_labels,image_data[2])
-                    push!(validation_results.other_data,other_data)
-                elseif settings.problem_type==:Regression
+                    push!(validation_results.accuracy,other_data[1])
+                    push!(validation_results.loss,other_data[2])
+                elseif problem_type()==:Regression
                     validation_results = all_data.ValidationData.ImageRegressionResults
                     push!(validation_results.original,original)
                     push!(validation_results.predicted_labels,image_data[1])
                     push!(validation_results.target_labels,image_data[2])
-                    push!(validation_results.other_data,other_data)
-                elseif settings.problem_type==:Segmentation
+                    push!(validation_results.accuracy,other_data[1])
+                    push!(validation_results.loss,other_data[2])
+                elseif problem_type()==:Segmentation
                     validation_results = all_data.ValidationData.ImageSegmentationResults
                     push!(validation_results.original,original)
                     push!(validation_results.predicted_data,image_data[1])
                     push!(validation_results.target_data,image_data[2])
                     push!(validation_results.error_data,image_data[3])
-                    push!(validation_results.other_data,other_data)
+                    push!(validation_results.accuracy,other_data[1])
+                    push!(validation_results.loss,other_data[2])
                 end
             end
             return [other_data...]

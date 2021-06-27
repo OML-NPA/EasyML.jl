@@ -20,7 +20,7 @@ ApplicationWindow {
     maximumHeight: gridLayout.height
     
     //---Universal property block-----------------------------------------------
-    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_settings(["Options","Graphics","scaling_factor"])
+    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_options(["GlobalOptions","Graphics","scaling_factor"])
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
     property double buttonWidth: 384*pix
@@ -458,7 +458,7 @@ ApplicationWindow {
                                 Label {
                                     id: hardwareresource
                                     Layout.topMargin: 0.2*margin
-                                    text: Julia.get_settings(["Options",
+                                    text: Julia.get_options(["GlobalOptions",
                                         "HardwareResources","allow_GPU"]) ? "GPU" : "CPU"
                                 }
                             }
@@ -477,8 +477,8 @@ ApplicationWindow {
                                 SpinBox {
                                     anchors.verticalCenter: numepochsLabel.verticalCenter
                                     from: trainingTimer.epoch
-                                    value: Julia.get_settings(
-                                               ["Training","Options","Hyperparameters","epochs"])
+                                    value: Julia.get_options(
+                                               ["TrainingOptions","Hyperparameters","epochs"])
                                     to: 10000
                                     stepSize: 1
                                     editable: false
@@ -495,18 +495,18 @@ ApplicationWindow {
                                 spacing: 0.3*margin
                                 Label {
                                     id: learningrateLabel
-                                    visible: Julia.get_settings(
-                                                 ["Training","Options","Hyperparameters","allow_lr_change"])
+                                    visible: Julia.get_options(
+                                                 ["TrainingOptions","Hyperparameters","allow_lr_change"])
                                     text: "Learning rate:"
                                     width: iterationsperepochtextLabel.width
                                 }
                                 SpinBox {
                                     anchors.verticalCenter: learningrateLabel.verticalCenter
-                                    visible: Julia.get_settings(
-                                                 ["Training","Options","Hyperparameters","allow_lr_change"])
+                                    visible: Julia.get_options(
+                                                 ["TrainingOptions","Hyperparameters","allow_lr_change"])
                                     from: 1
-                                    value: 100000*Julia.get_settings(
-                                               ["Training","Options","Hyperparameters","learning_rate"])
+                                    value: 100000*Julia.get_options(
+                                               ["TrainingOptions","Hyperparameters","learning_rate"])
                                     to: 1000
                                     stepSize: value>100 ? 100 :
                                               value>10 ? 10 : 1
@@ -521,8 +521,8 @@ ApplicationWindow {
                                 }
                             }
                             Row {
-                                visible: Julia.get_settings(
-                                    ["Training","Options","Testing","test_data_fraction"])!==0
+                                visible: Julia.get_options(
+                                    ["TrainingOptions","Testing","test_data_fraction"])!==0
                                 spacing: 0.3*margin
                                 Label {
                                     id: numtestsLabell
@@ -532,8 +532,8 @@ ApplicationWindow {
                                 SpinBox {
                                     anchors.verticalCenter: numtestsLabell.verticalCenter
                                     from: 0
-                                    value: Julia.get_settings(
-                                               ["Training","Options","Testing","num_tests"])
+                                    value: Julia.get_options(
+                                               ["TrainingOptions","Testing","num_tests"])
                                     to: 10000
                                     stepSize: 1
                                     editable: true

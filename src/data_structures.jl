@@ -321,8 +321,8 @@ end
 training_plot_data = TrainingPlotData()
 
 @with_kw mutable struct TrainingResultsData
-    loss::Vector{Float32} = Vector{Float32}(undef,0)
     accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_accuracy::Vector{Float32} = Vector{Float32}(undef,0)
     test_loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_iteration::Vector{Int64} = Vector{Int64}(undef,0)
@@ -378,7 +378,8 @@ testing_data = TestingData()
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{String} = Vector{String}(undef,0)
     target_labels::Vector{String} = Vector{String}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
 end
 validation_image_classification_results = ValidationImageClassificationResults()
 
@@ -386,7 +387,8 @@ validation_image_classification_results = ValidationImageClassificationResults()
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{Vector{Float32}}= Vector{Vector{Float32}}(undef,0)
     target_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
 end
 validation_image_regression_results = ValidationImageRegressionResults()
 
@@ -398,8 +400,9 @@ validation_image_regression_results = ValidationImageRegressionResults()
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
     error_data::Vector{Vector{Tuple{BitArray{3},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{3},Vector{N0f8}}}}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = 
-        Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
+    
 end
 validation_image_segmentation_results = ValidationImageSegmentationResults()
 
@@ -415,6 +418,7 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
     url_inputs::String = ""
     url_labels::String = ""
+    use_labels::Bool = false
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
@@ -423,7 +427,6 @@ validation_data = ValidationData()
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
     url_inputs::String = ""
-    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
@@ -435,15 +438,20 @@ application_data = ApplicationData()
     ValidationData::ValidationData = validation_data
     ApplicationData::ApplicationData = application_data
     image::Array{RGB{Float32},2} = Array{RGB{Float32},2}(undef,0,0)
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
+    model_url::String = ""
+    model_name::String = ""
 end
 all_data = AllData()
 
-#---Settings
+#---Options
 
 # Options
 @with_kw mutable struct HardwareResources
     allow_GPU::Bool = true
     num_cores::Int64 = Threads.nthreads()
+    num_slices::Int64 = 1
 end
 hardware_resources = HardwareResources()
 
@@ -452,20 +460,20 @@ hardware_resources = HardwareResources()
 end
 graphics = Graphics()
 
-@with_kw mutable struct Options
+@with_kw mutable struct GlobalOptions
     Graphics::Graphics = graphics
     HardwareResources::HardwareResources = hardware_resources
 end
-options = Options()
+global_options = GlobalOptions()
 
 # Design
-@with_kw mutable struct Design
+@with_kw mutable struct DesignOptions
     width::Float64 = 340
     height::Float64 = 100
     min_dist_x::Float64 = 40
-    min_dist_y::Float64 = 40
+    min_dist_y::Float64 = 5
 end
-design = Design()
+design_options = DesignOptions()
 
 # Training
 @with_kw mutable struct ProcessingTraining
@@ -521,16 +529,8 @@ training_options = TrainingOptions()
 
 @with_kw mutable struct Training
     Options::TrainingOptions = training_options
-    url_inputs::String = ""
-    url_labels::String = ""
 end
 training = Training()
-
-# Validation
-@with_kw mutable struct Validation
-    use_labels::Bool = false
-end
-validation = Validation()
 
 # Application
 @with_kw mutable struct ApplicationOptions
@@ -538,40 +538,19 @@ validation = Validation()
     apply_by::Tuple{String,Int64} = ("file",0)
     data_type::Int64 = 0
     image_type::Int64 = 0
-    downsize::Int64 = 0
-    skip_frames::Int64 = 0
     scaling::Float64 = 1
     minibatch_size::Int64 = 1
 end
 application_options = ApplicationOptions()
 
-@with_kw mutable struct Application
-    Options::ApplicationOptions = application_options
-    url_inputs::String = ""
+# Options
+@with_kw mutable struct Options
+    GlobalOptions::GlobalOptions = global_options
+    DesignOptions::DesignOptions = design_options
+    TrainingOptions::TrainingOptions = training_options
+    ApplicationOptions::ApplicationOptions = application_options
 end
-application = Application()
-
-# Visualisation
-@with_kw mutable struct Visualisation
-    a::Bool = false
-end
-visualisation = Visualisation()
-
-# Settings
-@with_kw mutable struct Settings
-    Options::Options = options
-    Design::Design = design
-    Training::Training = training
-    Validation::Validation = validation
-    Application::Application = application
-    Visualisation::Visualisation = visualisation
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
-    model_url::String = ""
-    model_name::String = ""
-    
-end
-settings = Settings()
+options = Options()
 
 #---Other
 
@@ -581,4 +560,6 @@ mutable struct Counter
 end
 (c::Counter)() = (c.iteration += 1)
 
-num_cores() = settings.Options.HardwareResources.num_cores
+num_cores() = hardware_resources.num_cores
+problem_type() = all_data.problem_type
+input_type() = all_data.input_type

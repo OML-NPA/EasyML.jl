@@ -1,7 +1,7 @@
 
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application_data::ApplicationData)
-    if settings.input_type==:Image
+    if all_data.input_type==:Image
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application_data.url_inputs,allowed_ext)
@@ -12,8 +12,8 @@ end
 #get_urls_application() =
 #    get_urls_application_main(application,application_data,model_data)
 
-function prepare_application_data(model_data::ModelData,classes::Vector{ImageClassificationClass},
-        urls::Vector{String},processing::ProcessingTraining)
+function prepare_application_data(classes::Vector{ImageClassificationClass},urls::Vector{String},
+    model_data::ModelData,processing::ProcessingTraining)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -29,8 +29,8 @@ function prepare_application_data(model_data::ModelData,classes::Vector{ImageCla
     return data_out
 end
 
-function prepare_application_data(model_data::ModelData,classes::Vector{ImageRegressionClass},
-        urls::Vector{String},processing::ProcessingTraining)
+function prepare_application_data(classes::Vector{ImageRegressionClass},
+        urls::Vector{String},model_data::ModelData,processing::ProcessingTraining)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -47,8 +47,8 @@ function prepare_application_data(model_data::ModelData,classes::Vector{ImageReg
     return data_out
 end
 
-function prepare_application_data(model_data::ModelData,classes::Vector{ImageSegmentationClass},
-        urls::Vector{String},processing::ProcessingTraining)
+function prepare_application_data(classes::Vector{ImageSegmentationClass},
+    urls::Vector{String},model_data::ModelData,processing::ProcessingTraining)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -115,8 +115,9 @@ function batch_urls_filenames(urls::Vector{Vector{String}},batch_size::Int64)
     return url_batches,filename_batches
 end
 
-function get_output(model_data::ModelData,classes::Vector{ImageClassificationClass},processing::ProcessingTraining,
-    num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+function get_output(classes::Vector{ImageClassificationClass},num::Int64,
+    urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
+    num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
     data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -127,9 +128,9 @@ function get_output(model_data::ModelData,classes::Vector{ImageClassificationCla
                 return nothing
             end
             # Get input
-            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
+            input_data = prepare_application_data(classes,urls_batch[l],model_data,processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
             _, predicted_labels4 = findmax(predicted,dims=1)
             predicted_labels = map(x-> x.I[1],predicted_labels4[:])
             # Return result
@@ -139,8 +140,9 @@ function get_output(model_data::ModelData,classes::Vector{ImageClassificationCla
     return nothing
 end
 
-function get_output(model_data::ModelData,classes::Vector{ImageRegressionClass},processing::ProcessingTraining,
-        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+function get_output(classes::Vector{ImageRegressionClass},num::Int64,
+        urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
+        num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
         data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -151,9 +153,9 @@ function get_output(model_data::ModelData,classes::Vector{ImageRegressionClass},
                 return nothing
             end
             # Get input
-            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
+            input_data = prepare_application_data(classes,urls_batch[l],model_data,processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
             predicted_labels = reshape(predicted,:)
             # Return result
             put!(data_channel,(l,predicted_labels))
@@ -176,8 +178,9 @@ function adjust_size(input_data::Array{Float32,4},input_size::NTuple{2,Int64})
     return input_data,change_size,s
 end
 
-function get_output(model_data::ModelData,classes::Vector{ImageSegmentationClass},processing::ProcessingTraining,
-        num::Int64,urls_batched::Vector{Vector{Vector{String}}},num_slices_current::Int64,use_GPU::Bool,
+function get_output(classes::Vector{ImageSegmentationClass},num::Int64,
+        urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
+        num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -188,11 +191,11 @@ function get_output(model_data::ModelData,classes::Vector{ImageSegmentationClass
                 return
             end
             # Get input
-            input_data = prepare_application_data(model_data,classes,urls_batch[l],processing)
+            input_data = prepare_application_data(classes,urls_batch[l],model_data,processing)
             # Adjust input size if required to avoid incorrect size of output 
             input_data,change_size,s = adjust_size(input_data,model_data.input_size[1:2])
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_current,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
             if change_size
                 predicted = predicted[1:s[1],1:s[2],:,:]
             end
@@ -965,16 +968,15 @@ function remove_application_data()
 end
 
 # Main function that performs application
-function apply_main(settings::Settings,training::Training,application_data::ApplicationData,
-        model_data::ModelData,T::DataType,channels::Channels)
+function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
     # Initialize constants
-    application = settings.Application
-    application_options = application.Options
+    application_data = all_data.ApplicationData
+    application_options = options.ApplicationOptions
     processing = training.Options.Processing
     classes = model_data.classes
     output_options = model_data.OutputOptions
     use_GPU = false
-    if training.Options.General.allow_GPU
+    if options.GlobalOptions.HardwareResources.allow_GPU
         if has_cuda()
             use_GPU = true
         else
@@ -1005,28 +1007,23 @@ function apply_main(settings::Settings,training::Training,application_data::Appl
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    if settings.problem_type==:Classification || settings.problem_type==:Regression
-        num_slices_current = 1
-    else
-        num_slices_current = 30
-    end
-    t = Threads.@spawn get_output(model_data,classes,processing,num,
-        urls_batched,num_slices_current,use_GPU,data_channel,channels)
+    num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+    t = Threads.@spawn get_output(classes,num,urls_batched,model_data,
+        num_slices_val,use_GPU,processing,data_channel,channels)
     push!(application_data.tasks,t)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext,img_sym_ext,data_ext,data_sym_ext,scaling,apply_by_file,data_channel,channels)
     return nothing
 end
-function apply_main2(settings::Settings,training::Training,application_data::ApplicationData,
-        model_data::ModelData,channels::Channels)
-    if settings.problem_type==:Classification
+function apply_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
+    if problem_type()==:Classification
         T = Vector{Int64}
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         T = Vector{Float32}
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         T = BitArray{4}
     end
-    t = Threads.@spawn apply_main(settings,training,application_data,model_data,T,channels)
+    t = Threads.@spawn apply_main(T,model_data,all_data,options,channels)
     push!(application_data.tasks,t)
 end
