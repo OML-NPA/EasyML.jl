@@ -312,13 +312,6 @@ end
 Used for segmentation. Uses borders of objects that a neural network detected in order 
 to separate objects from each other. Output from a neural network should be fed after 
 converting to BitArray.
-
-# Examples
-```julia-repl
-output = forward(model_data.model,input_data);
-output_bitarray = output[:,:,:,1].>0.5
-output_with_borders = apply_border_data(output_bitarray,model_data.classes)
-```
 """
 function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
