@@ -46,6 +46,14 @@ end
 
 abstract type AbstractOutputOptions end
 
+@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
+    temp::Bool = false
+end
+
+@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
+    temp::Bool = false
+end
+
 @with_kw mutable struct OutputMask
     mask::Bool = false
     mask_border::Bool = false
@@ -68,14 +76,6 @@ end
     binning::Int64 = 0
     value::Float64 = 10
     normalisation::Int64 = 0
-end
-
-@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
 end
 
 @with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
@@ -295,8 +295,8 @@ end
     model::Chain = Chain()
     layers_info::Vector{AbstractLayerInfo} = []
     loss::Function = Flux.Losses.mse
-    input_size::Tuple{Int64,Int64,Int64} = (1,1,1)
-    output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
+    input_size::NTuple{3,Int64} = (1,1,1)
+    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     OutputOptions::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
 end
