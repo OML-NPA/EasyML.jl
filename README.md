@@ -1,1 +1,1 @@
-# MLGUI.jl
+# EasyML.jl
