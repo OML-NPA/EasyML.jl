@@ -55,7 +55,7 @@ end
 end
 
 mutable struct OutputMask
-    mask::Bool                  #  exports a mask after applying all processing except for border data.
+    mask::Bool                  # exports a mask after applying all processing except for border data.
     mask_border::Bool           # exports a mask with class borders if a class has border detection enabled.
     mask_applied_border::Bool   # exports a mask processed using border data.
 end
