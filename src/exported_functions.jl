@@ -445,7 +445,7 @@ function prepare_data(some_data::Union{TrainingData,TestingData})
         end
     end
 
-    prepare_data_main(model_data,some_data,channels)
+    t = prepare_data_main(model_data,some_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
@@ -463,6 +463,10 @@ function prepare_data(some_data::Union{TrainingData,TestingData})
                     break
                 end
             else
+                state,error = check_task(t)
+                if state==:error
+                    @warn string("Data preparation aborted due to the following error: ",error)
+                end
                 sleep(0.1)
             end
         else
@@ -476,6 +480,10 @@ function prepare_data(some_data::Union{TrainingData,TestingData})
                     @error "No data to process."
                 end
             else
+                state,error = check_task(t)
+                if state==:error
+                    @warn string("Validation aborted due to the following error: ",error)
+                end
                 sleep(0.1)
             end
         end
@@ -519,7 +527,7 @@ function train()
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
-    train_main2(model_data,all_data,options,channels)
+    t = train_main2(model_data,all_data,options,channels)
     # Launches GUI
     @qmlfunction(
         # Data handling
@@ -543,6 +551,10 @@ function train()
         data = get_results("Training")
         if data==true
             return training_results_data
+        end
+        state,error = check_task(t)
+        if state==:error
+            @warn string("Training aborted due to the following error: ",error)
         end
         sleep(1)
     end
@@ -683,7 +695,7 @@ function validate()
     empty_progress_channel("Validation")
     empty_results_channel("Validation")
     empty_progress_channel("Validation modifiers")
-    validate_main2(model_data,validation_data,options,channels)
+    t = validate_main2(model_data,validation_data,options,channels)
     # Launches GUI
     @qmlfunction(
         # Handle classes
@@ -708,6 +720,10 @@ function validate()
         display_result_image = f2
     )
     exec()
+    state,error = check_task(t)
+    if state==:error
+        @warn string("Validation aborted due to the following error: ",error)
+    end
     # Clean up
     validation_data.original_image = Array{RGB{N0f8},2}(undef,0,0)
     validation_data.result_image = Array{RGB{N0f8},2}(undef,0,0)
@@ -800,7 +816,7 @@ function apply()
     end
     empty_progress_channel("Application")
     empty_progress_channel("Application modifiers")
-    apply_main2(model_data,all_data,options,channels)
+    t = apply_main2(model_data,all_data,options,channels)
     max_value = 0
     value = 0
     p = Progress(0)
@@ -815,6 +831,10 @@ function apply()
                 # reset progress here
                 break
             else
+                state,error = check_task(t)
+                if state==:error
+                    @warn string("Validation aborted due to the following error: ",error)
+                end
                 sleep(0.1)
             end
         else
@@ -828,6 +848,10 @@ function apply()
                     @error "No data to process."
                 end
             else
+                state,error = check_task(t)
+                if state==:error
+                    @warn string("Validation aborted due to the following error: ",error)
+                end
                 sleep(0.1)
             end
         end

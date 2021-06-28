@@ -316,5 +316,5 @@ end
 function validate_main2(model_data::ModelData,validation_data::ValidationData,options::Options,channels::Channels)
     t = Threads.@spawn validate_main(model_data,validation_data,options,channels)
     push!(validation_data.tasks,t)
-    return nothing
+    return t
 end

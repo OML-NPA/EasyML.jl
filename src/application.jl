@@ -1026,4 +1026,5 @@ function apply_main2(model_data::ModelData,all_data::AllData,options::Options,ch
     end
     t = Threads.@spawn apply_main(T,model_data,all_data,options,channels)
     push!(application_data.tasks,t)
+    return t
 end

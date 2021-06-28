@@ -402,7 +402,7 @@ function prepare_data_main(model_data::ModelData,
     end
     t = Threads.@spawn prepare_data(model_data,data,size12,training_options,progress,results)
     push!(training_data.tasks,t)
-    return nothing
+    return t
 end
 
 # Creates data sets for training and testing
@@ -979,4 +979,5 @@ end
 function train_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
     t = Threads.@spawn train_main(model_data,all_data,options,channels)
     push!(training_data.tasks,t)
+    return t
 end
