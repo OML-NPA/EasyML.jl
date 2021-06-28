@@ -79,7 +79,7 @@ ApplicationWindow {
                         model: [{"name": "General", "stackview": generalView},
                             {"name": "Testing", "stackview": testingView},
                             {"name": "Processing", "stackview": processingView},
-                            {"name": "Hyperparameters", "stackview": hyperparametersView},]
+                            {"name": "Hyperparameters", "stackview": hyperparametersView}]
                         delegate : MenuButton {
                             id: general
                             width: 1.3*buttonWidth
