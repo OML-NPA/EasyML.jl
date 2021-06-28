@@ -429,7 +429,7 @@ function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) wh
 end
 
 function get_weights(classes::Vector{<:AbstractClass},options::Options)
-    if options.TrainingOptions.General.weight_accuracy
+    if options.TrainingOptions.Accuracy.weight_accuracy
         if problem_type()==:Classification
             return map(class -> class.weight,classes)
         elseif problem_type()==:Regression
@@ -458,7 +458,7 @@ end
 
 function get_weights(classes::Vector{<:AbstractClass},training_data::TrainingData,options::Options)
     local counts::Vector{Int64}
-    if options.TrainingOptions.General.weight_accuracy
+    if options.TrainingOptions.Accuracy.weight_accuracy
         if problem_type()==:Classification
             classification_labels = training_data.ClassificationData.data_labels
             counts = map(x -> count(x.==classification_labels),1:length(classes))
@@ -494,7 +494,7 @@ end
 
 # Returns an accuracy function
 function get_accuracy_func(weights::Vector{Float32},options::Options)
-    weight = options.TrainingOptions.General.weight_accuracy
+    weight = options.TrainingOptions.Accuracy.weight_accuracy
     if problem_type()==:Classification
         if weight
             return (x,y) -> accuracy_classification_weighted(x,y,weights)

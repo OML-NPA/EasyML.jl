@@ -353,12 +353,23 @@ end
     foldernames::Vector{String} = Vector{String}(undef,0)
 end
 
+@with_kw mutable struct TrainingOptionsData
+    optimiser_params::Vector{Vector{Float64}} = [[],[0.9],[0.9],[0.9],[0.9,0.999],
+        [0.9,0.999],[0.9,0.999],[],[0.9],[0.9,0.999],[0.9,0.999],[0.9,0.999,0]]
+    optimiser_params_names::Vector{Vector{String}} = [[],["ρ"],["ρ"],["ρ"],["β1","β2"],
+        ["β1","β2"],["β1","β2"],[],["ρ"],["β1","β2"],["β1","β2"],["β1","β2","Weight decay"]]
+    allow_lr_change::Bool = true
+    run_test::Bool = false
+end
+training_options_data = TrainingOptionsData()
+
 @with_kw mutable struct TrainingData
     PlotData::TrainingPlotData = training_plot_data
     Results::TrainingResultsData = training_results_data
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    OptionsData::TrainingOptionsData = training_options_data
     url_inputs::String = ""
     url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
@@ -477,61 +488,44 @@ end
 design_options = DesignOptions()
 
 # Training
-@with_kw mutable struct ProcessingTraining
+
+@with_kw mutable struct AccuracyOptions
+    weight_accuracy::Bool = true
+    accuracy_mode::Symbol = :Auto
+end
+accuracy_options = AccuracyOptions()
+
+@with_kw mutable struct TestingOptions
+    data_preparation_mode::Symbol = :Auto
+    test_data_fraction::Float64 = 0.1
+    num_tests::Float64 = 5
+end
+testing_options = TestingOptions()
+
+@with_kw mutable struct ProcessingOptions
     grayscale::Bool = false
     mirroring::Bool = true
     num_angles::Int64 = 1
     min_fr_pix::Float64 = 0.0
 end
-processing_training = ProcessingTraining()
+processing_options = ProcessingOptions()
 
-@with_kw mutable struct HyperparametersTraining
-    optimiser::Tuple{String,Int64} = ("ADAM",5)
-    optimiser_params::Vector{Vector{Float64}} = [[],[0.9],[0.9],[0.9],
-      [0.9,0.999],[0.9,0.999],[0.9,0.999],[],[0.9],[0.9,0.999],
-      [0.9,0.999],[0.9,0.999,0]]
-    optimiser_params_names::Vector{Vector{String}} = [[],["ρ"],
-      ["ρ"],["ρ"],
-      ["β1","β2"],
-      ["β1","β2"],
-      ["β1","β2"],[],
-      ["ρ"],["β1","β2"],
-      ["β1","β2"],
-      ["β1","β2","Weight decay"]]
-    allow_lr_change::Bool = true
+@with_kw mutable struct HyperparametersOptions
+    optimiser::Symbol = :ADAM
+    optimiser_params::Vector{Float64} = [0.9,0.999]
     learning_rate::Float64 = 1e-3
     epochs::Int64 = 1
     batch_size::Int64 = 10
-    savepath::String = "./"
 end
-hyperparameters_training = HyperparametersTraining()
-
-@with_kw mutable struct GeneralTraining
-    allow_GPU::Bool = true
-    weight_accuracy::Bool = true
-    manual_weight_accuracy::Bool = false
-end
-general_training = GeneralTraining()
-
-@with_kw mutable struct TestingTraining
-    test_data_fraction::Float64 = 0.1
-    num_tests::Float64 = 5
-    manual_testing_data::Bool = false
-end
-testing_training = TestingTraining()
+hyperparameters_options = HyperparametersOptions()
 
 @with_kw mutable struct TrainingOptions
-    General::GeneralTraining = general_training
-    Testing::TestingTraining = testing_training
-    Processing::ProcessingTraining = processing_training
-    Hyperparameters::HyperparametersTraining = hyperparameters_training
+    Accuracy::AccuracyOptions = accuracy_options
+    Testing::TestingOptions = testing_options
+    Processing::ProcessingOptions = processing_options
+    Hyperparameters::HyperparametersOptions = hyperparameters_options
 end
 training_options = TrainingOptions()
-
-@with_kw mutable struct Training
-    Options::TrainingOptions = training_options
-end
-training = Training()
 
 # Application
 @with_kw mutable struct ApplicationOptions

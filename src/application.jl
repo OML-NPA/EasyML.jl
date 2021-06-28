@@ -13,7 +13,7 @@ end
 #    get_urls_application_main(application,application_data,model_data)
 
 function prepare_application_data(classes::Vector{ImageClassificationClass},urls::Vector{String},
-    model_data::ModelData,processing::ProcessingTraining)
+    model_data::ModelData,processing::ProcessingOptions)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -30,7 +30,7 @@ function prepare_application_data(classes::Vector{ImageClassificationClass},urls
 end
 
 function prepare_application_data(classes::Vector{ImageRegressionClass},
-        urls::Vector{String},model_data::ModelData,processing::ProcessingTraining)
+        urls::Vector{String},model_data::ModelData,processing::ProcessingOptions)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -48,7 +48,7 @@ function prepare_application_data(classes::Vector{ImageRegressionClass},
 end
 
 function prepare_application_data(classes::Vector{ImageSegmentationClass},
-    urls::Vector{String},model_data::ModelData,processing::ProcessingTraining)
+    urls::Vector{String},model_data::ModelData,processing::ProcessingOptions)
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
@@ -117,7 +117,7 @@ end
 
 function get_output(classes::Vector{ImageClassificationClass},num::Int64,
     urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-    num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+    num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingOptions,
     data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -143,7 +143,7 @@ end
 
 function get_output(classes::Vector{ImageRegressionClass},num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingOptions,
         data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -182,7 +182,7 @@ end
 
 function get_output(classes::Vector{ImageSegmentationClass},num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingOptions,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -975,7 +975,7 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     # Initialize constants
     application_data = all_data.ApplicationData
     application_options = options.ApplicationOptions
-    processing = training.Options.Processing
+    processing = training_options.Processing
     classes = model_data.classes
     output_options = model_data.OutputOptions
     use_GPU = false

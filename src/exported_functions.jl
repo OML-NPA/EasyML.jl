@@ -192,6 +192,7 @@ Allows to modify `training_options` in a GUI.
 """
 function modify(data::EasyML.TrainingOptions)
     @qmlfunction(
+        get_data,
         get_options,
         set_options,
         save_options
@@ -318,7 +319,7 @@ function get_train_test_inds(num::Int64,fraction::Float64)
 end
 
 function get_urls_testing_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
-    if training_options.Testing.manual_testing_data
+    if training_options.Testing.data_preparation_mode==:Manual
         get_urls(testing_data)
     else
         if problem_type()==:Classification
@@ -353,7 +354,7 @@ function get_urls_testing_main(training_data::TrainingData,testing_data::Testing
         empty!(testing_inputs)
         empty!(training_labels)
         empty!(testing_labels)
-        fraction = training.Options.Testing.test_data_fraction
+        fraction = training_options.Testing.test_data_fraction
         if problem_type()==:Classification
             nums = length.(training_inputs_copy) # Get the number of elements
             for i = 1:length(nums)
@@ -466,6 +467,7 @@ function prepare_data(some_data::Union{TrainingData,TestingData})
                 state,error = check_task(t)
                 if state==:error
                     @warn string("Data preparation aborted due to the following error: ",error)
+                    return nothing
                 end
                 sleep(0.1)
             end
@@ -483,6 +485,7 @@ function prepare_data(some_data::Union{TrainingData,TestingData})
                 state,error = check_task(t)
                 if state==:error
                     @warn string("Validation aborted due to the following error: ",error)
+                    return nothing
                 end
                 sleep(0.1)
             end
@@ -513,17 +516,21 @@ such as a number of epochs, learning rate and a number of tests per epoch
 can be changed during training.
 """
 function train()
-    if problem_type()==:Classification && input_type()==:Image
-        if isempty(training_data.ClassificationData.data_input)
-            @error "No training data. Run 'prepare_training_data()'."
-            return nothing
-        end
-    elseif problem_type()==:Segmentation && input_type()==:Image
-        if isempty(training_data.SegmentationData.data_input)
-            @error "No training data. Run 'prepare_training_data()'."
-            return nothing
-        end
+    if problem_type()==:Classification
+        data_train = training_data.ClassificationData.data_input
+        data_test = testing_data.ClassificationData.data_input
+    elseif problem_type()==:Regression
+        data_train = training_data.RegressionData.data_input
+        data_test = testing_data.RegressionData.data_input
+    else # :Segmentation
+        data_train = training_data.SegmentationData.data_input
+        data_test = testing_data.SegmentationData.data_input
     end
+    if isempty(data_train)
+        @error "No training data. Run 'prepare_training_data()'."
+        return nothing
+    end
+    training_data.OptionsData.run_test = !isempty(data_test) && testing_options.test_data_fraction>0
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
@@ -531,6 +538,7 @@ function train()
     # Launches GUI
     @qmlfunction(
         # Data handling
+        get_data,
         get_options,
         get_results,
         get_progress,
@@ -555,6 +563,7 @@ function train()
         state,error = check_task(t)
         if state==:error
             @warn string("Training aborted due to the following error: ",error)
+            return nothing
         end
         sleep(1)
     end
@@ -834,6 +843,7 @@ function apply()
                 state,error = check_task(t)
                 if state==:error
                     @warn string("Validation aborted due to the following error: ",error)
+                    return nothing
                 end
                 sleep(0.1)
             end
@@ -850,7 +860,8 @@ function apply()
             else
                 state,error = check_task(t)
                 if state==:error
-                    @warn string("Validation aborted due to the following error: ",error)
+                    @warn string("Application aborted due to the following error: ",error)
+                    return nothing
                 end
                 sleep(0.1)
             end

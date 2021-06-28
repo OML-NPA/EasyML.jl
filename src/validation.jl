@@ -48,7 +48,7 @@ function get_urls_validation_main(model_data::ModelData,validation_data::Validat
 end
 
 function prepare_validation_data(classes::Vector{ImageClassificationClass},ind::Int64,
-        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingTraining)
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     original = load_image(validation_data.input_urls[ind])
     if processing_options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
@@ -69,7 +69,7 @@ function prepare_validation_data(classes::Vector{ImageClassificationClass},ind::
 end
 
 function prepare_validation_data(classes::Vector{ImageRegressionClass},ind::Int64,
-        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingTraining)
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     original = load_image(validation_data.input_urls[ind])
     original = imresize(original,model_data.input_size[1:2])
     if processing_options.grayscale
@@ -87,7 +87,7 @@ function prepare_validation_data(classes::Vector{ImageRegressionClass},ind::Int6
 end
 
 function prepare_validation_data(classes::Vector{ImageSegmentationClass},ind::Int64,
-        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingTraining)
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
     if processing_options.grayscale

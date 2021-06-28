@@ -154,13 +154,12 @@ ApplicationWindow {
                             padding: 0
                             width: height
                             checkState : Julia.get_options(
-                                        ["TrainingOptions","General","weight_accuracy"]) ?
+                                        ["TrainingOptions","Accuracy","weight_accuracy"]) ?
                                         Qt.Checked : Qt.Unchecked
                             onClicked: {
                                 var value = checkState==Qt.Checked ? true : false
                                 Julia.set_options(
-                                    ["TrainingOptions","General","weight_accuracy"],
-                                    value)
+                                    ["TrainingOptions","Accuracy","weight_accuracy"],value)
                             }
                         }
                     }
@@ -182,29 +181,18 @@ ApplicationWindow {
                             }
                             property var modes: ["Auto","Manual"]
                             onActivated: {
-                                if (currentIndex==0) {
-                                    Julia.set_options(
-                                        ["TrainingOptions","General","manual_weight_accuracy"],false)
-                                }
-                                else {
-                                    Julia.set_options(
-                                        ["TrainingOptions","General","manual_weight_accuracy"],true)
-                                }
+                                Julia.set_options(["TrainingOptions","Accuracy","accuracy_mode"],currentText)
                             }
                             Component.onCompleted: {
+                                var current_mode = Julia.get_options(
+                                    ["TrainingOptions","Accuracy","accuracy_mode"])
                                 for (var i=0;i<modes.length;i++) {
-                                    modeModel.append({"name": modes[i]})
-                                }
-                                var mode = Julia.get_options(
-                                    ["TrainingOptions","General","manual_weight_accuracy"])
-                                
-                                if (mode) {
-                                    currentIndex = 1
-                                }
-                                else {
-                                    currentIndex = 0
-                                }
-                                
+                                    var mode = modes[i]
+                                    modeModel.append({"name": mode})
+                                    if (current_mode==mode) {
+                                        currentIndex = i
+                                    }
+                                }                                
                             }
                         }
                     }
@@ -233,29 +221,19 @@ ApplicationWindow {
                             }
                             property var modes: ["Auto","Manual"]
                             onActivated: {
-                                if (currentIndex==0) {
-                                    Julia.set_options(
-                                        ["TrainingOptions","Testing","manual_testing_data"],false)
-                                }
-                                else {
-                                    Julia.set_options(
-                                        ["TrainingOptions","Testing","manual_testing_data"],true)
-                                }
+                                Julia.set_options(
+                                    ["TrainingOptions","Testing","data_preparation_mode"],currentText)
                             }
                             Component.onCompleted: {
+                                var current_mode = Julia.get_options(
+                                    ["TrainingOptions","Testing","data_preparation_mode"])  
                                 for (var i=0;i<modes.length;i++) {
-                                    datapreparationmodeModel.append({"name": modes[i]})
+                                    var mode = modes[i]
+                                    datapreparationmodeModel.append({"name": mode})
+                                    if (current_mode==mode) {
+                                        currentIndex = i
+                                    }
                                 }
-                                var mode = Julia.get_options(
-                                    ["TrainingOptions","Testing","manual_testing_data"])
-                                
-                                if (mode) {
-                                    currentIndex = 1
-                                }
-                                else {
-                                    currentIndex = 0
-                                }
-                                
                             }
                         }
                     }
@@ -283,8 +261,7 @@ ApplicationWindow {
                             }
                             onValueModified: {
                                 Julia.set_options(
-                                    ["TrainingOptions","Testing","test_data_fraction"],
-                                    realValue)
+                                    ["TrainingOptions","Testing","test_data_fraction"],realValue)
                             }
                         }
                     }
@@ -335,8 +312,7 @@ ApplicationWindow {
                             onClicked: {
                                 var value = checkState==Qt.Checked ? true : false
                                 Julia.set_options(
-                                    ["TrainingOptions","Processing","grayscale"],
-                                    value)
+                                    ["TrainingOptions","Processing","grayscale"],value)
                             }
                         }
                     }
@@ -362,8 +338,7 @@ ApplicationWindow {
                             onClicked: {
                                 var value = checkState==Qt.Checked ? true : false
                                 Julia.set_options(
-                                    ["TrainingOptions","Processing","mirroring"],
-                                    value)
+                                    ["TrainingOptions","Processing","mirroring"],value)
                             }
                         }
                     }
@@ -410,8 +385,7 @@ ApplicationWindow {
                             }
                             onValueModified: {
                                 Julia.set_options(
-                                    ["TrainingOptions","Processing","min_fr_pix"],
-                                    realValue)
+                                    ["TrainingOptions","Processing","min_fr_pix"],realValue)
                             }
                         }
                     }
@@ -441,35 +415,38 @@ ApplicationWindow {
                             model: ListModel {
                                 id: optimisersModel
                             }
-                            property var optimisers: ["Stochastic","Momentum",
+                            property var optimisers: ["Descent","Momentum",
                                 "Nesterov","RMSProp","ADAM","RADAM","AdaMax",
                                 "ADAGrad","ADADelta","AMSGrad","NADAM","ADAMW"]
                             property var allow_lr: [true,true,true,true,true,true,true,
                                 true,false,true,true,true]
                             onActivated: {
                                 Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser"],
-                                    [currentText,currentIndex+1],"make_tuple")
+                                    ["TrainingOptions","Hyperparameters","optimiser"],currentText)
+                                var params = Julia.get_data(
+                                    ["TrainingData","OptionsData","optimiser_params"])
+                                var current_params = params[currentIndex]
                                 Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","allow_lr_change"],
-                                    allow_lr[currentIndex])
+                                    ["TrainingOptions","Hyperparameters","optimiser_params"],current_params)
                                 change_params()
                             }
                             Component.onCompleted: {
+                                var name = Julia.get_options(
+                                    ["TrainingOptions","Hyperparameters","optimiser"])
                                 for (var i=0;i<optimisers.length;i++) {
+                                    var optimiser_name = optimisers[i]
                                     optimisersModel.append({"name": optimisers[i]})
+                                    if (name==optimiser_name) {
+                                        currentIndex = i
+                                    }
                                 }
-                                var index = Julia.get_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser"],2)
-                                currentIndex = index-1
                                 change_params()
                             }
                             function change_params() {
                                 var values = Julia.get_options(
                                     ["TrainingOptions","Hyperparameters","optimiser_params"])
-                                values = values[currentIndex]
-                                var names = Julia.get_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser_params_names"])
+                                var names = Julia.get_data(
+                                    ["TrainingData","OptionsData","optimiser_params_names"])
                                 names = names[currentIndex]
                                 param1TextField.visible = false
                                 param2TextField.visible = false
@@ -516,9 +493,8 @@ ApplicationWindow {
                             visible: false
                             validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
                             onEditingFinished: {
-                                Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser_params"],
-                                    optimisersComboBox.currentIndex+1,1,parseFloat(text))
+                                Julia.set_options(["TrainingOptions","Hyperparameters","optimiser_params"],
+                                    1,parseFloat(text))
                             }
                         }
                     }
@@ -537,9 +513,8 @@ ApplicationWindow {
                             visible: false
                             validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
                             onEditingFinished: {
-                                Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser_params"],
-                                    optimisersComboBox.currentIndex+1,2,parseFloat(text))
+                                Julia.set_options(["TrainingOptions","Hyperparameters","optimiser_params"],
+                                    2,parseFloat(text))
                             }
                         }
                     }
@@ -558,9 +533,37 @@ ApplicationWindow {
                             visible: false
                             validator: RegExpValidator { regExp: /(0.\d{1,3}|0)/ }
                             onEditingFinished: {
+                                Julia.set_options(["TrainingOptions","Hyperparameters","optimiser_params"],
+                                    3,parseFloat(text))
+                            }
+                        }
+                    }
+                    Row {
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: learningrateLabel
+                            text: "Learning rate:"
+                            width: numberofepochsLabel.width
+                        }
+                        SpinBox {
+                            id: learningrateSpinBox
+                            anchors.verticalCenter: learningrateLabel.verticalCenter
+                            from: 1
+                            value: 100000*Julia.get_options(
+                                        ["TrainingOptions","Hyperparameters","learning_rate"])
+                            to: 1000
+                            stepSize: value>100 ? 100 :
+                                        value>10 ? 10 : 1
+                            editable: false
+                            property real realValue
+                            textFromValue: function(value, locale) {
+                                realValue = value/100000
+                                return realValue.toLocaleString(locale,'e',0)
+                            }
+                            onValueModified: {
                                 Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","optimiser_params"],
-                                    optimisersComboBox.currentIndex+1,3,parseFloat(text))
+                                    ["TrainingOptions","Hyperparameters","learning_rate"],realValue)
                             }
                         }
                     }
@@ -606,38 +609,6 @@ ApplicationWindow {
                                 Julia.set_options(
                                     ["TrainingOptions","Hyperparameters","epochs"],
                                     value)
-                            }
-                        }
-                    }
-                    Row {
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            id: learningrateLabel
-                            text: "Learning rate:"
-                            width: numberofepochsLabel.width
-                        }
-                        SpinBox {
-                            id: learningrateSpinBox
-                            anchors.verticalCenter: learningrateLabel.verticalCenter
-                            visible: Julia.get_options(
-                                        ["TrainingOptions","Hyperparameters","allow_lr_change"])
-                            from: 1
-                            value: 100000*Julia.get_options(
-                                        ["TrainingOptions","Hyperparameters","learning_rate"])
-                            to: 1000
-                            stepSize: value>100 ? 100 :
-                                        value>10 ? 10 : 1
-                            editable: false
-                            property real realValue
-                            textFromValue: function(value, locale) {
-                                realValue = value/100000
-                                return realValue.toLocaleString(locale,'e',0)
-                            }
-                            onValueModified: {
-                                Julia.set_options(
-                                    ["TrainingOptions","Hyperparameters","learning_rate"],
-                                    value/100000)
                             }
                         }
                     }

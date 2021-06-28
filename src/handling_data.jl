@@ -160,6 +160,9 @@ function set_options_main(options::Options,fields::QML.QListAllocated,args...)
             value[args[1]][args[2]][args[3]] = args[4]
         end
     end
+    if typeof(getproperty(data, Symbol(fields[end])))==Symbol
+        value = Symbol(value)
+    end
     setproperty!(data, Symbol(fields[end]), value)
     return nothing
 end

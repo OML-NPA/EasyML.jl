@@ -552,10 +552,12 @@ function get_optimiser(training_options::TrainingOptions)
     # List of possible optimisers
     optimisers = (Descent,Momentum,Nesterov,RMSProp,ADAM,
         RADAM,AdaMax,ADAGrad,ADADelta,AMSGrad,NADAM,ADAMW)
+    optimiser_names = (:Descent,:Momentum,:Nesterov,:RMSProp,:ADAM,
+        :RADAM,:AdaMax,:ADAGrad,:ADADelta,:AMSGrad,:NADAM,:ADAMW)
     # Get optimiser index
-    optimiser_ind = training_options.Hyperparameters.optimiser[2]
+    optimiser_ind = findfirst(training_options.Hyperparameters.optimiser.==optimiser_names)
     # Get optimiser parameters
-    parameters_in = training_options.Hyperparameters.optimiser_params[optimiser_ind]
+    parameters_in = training_options.Hyperparameters.optimiser_params
     # Get learning rate
     learning_rate = training_options.Hyperparameters.learning_rate
     # Collect optimiser parameters and learning rate
@@ -802,7 +804,7 @@ end
 
 function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},
         opt,accuracy::Function,loss::Function,all_data::AllData,use_GPU::Bool,
-        num_tests::Float64,args::HyperparametersTraining,channels::Channels,
+        num_tests::Float64,args::HyperparametersOptions,channels::Channels,
         tasks::Vector{Task}) where {T1<:Vector{Array{Float32,3}},
         T2<:Union{Vector{BitArray{3}},Vector{Int32},Vector{Vector{Float32}}}}
     # Initialize constants
@@ -959,7 +961,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     # Setting functions and parameters
     opt = get_optimiser(training_options)
     local ws::Vector{Float32}
-    if training_options.General.manual_weight_accuracy
+    if training_options.Accuracy.accuracy_mode==:Manual
         ws = get_weights(model_data.classes,options)
     else
         ws = get_weights(model_data.classes,training_data,options)
