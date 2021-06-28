@@ -14,7 +14,9 @@ It is possible to:
   
 Classification, regression and segmentation on images are currently supported.
 
-Flux.jl neural network library is used.
+[Flux.jl](https://github.com/FluxML/Flux.jl) machine learning library is used under the hood.
+
+<img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/design_model.png" height="230"> <img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/train.png" height="230"> <img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/validate2.png" height="230">
 
 ### Installation
 
