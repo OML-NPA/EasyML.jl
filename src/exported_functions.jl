@@ -1,5 +1,23 @@
 
 """
+    modify(global_options::GlobalOptions) 
+
+Allows to modify `global_options` in a GUI.
+"""
+function modify(data::GlobalOptions)
+    @qmlfunction(
+        max_num_threads,
+        get_options,
+        set_options,
+        save_options
+    )
+    path_qml = string(@__DIR__,"/GUI/GlobalOptions.qml")
+    loadqml(path_qml)
+    exec()
+    return nothing
+end
+
+"""
     modify_classes()
 
 Opens a GUI for addition or modification of classes.

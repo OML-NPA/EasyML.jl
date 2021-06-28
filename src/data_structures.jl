@@ -456,7 +456,7 @@ end
 hardware_resources = HardwareResources()
 
 @with_kw mutable struct Graphics
-    scaling_factor::Float32 = 1
+    scaling_factor::Float64 = 1
 end
 graphics = Graphics()
 
