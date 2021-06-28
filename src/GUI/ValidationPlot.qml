@@ -14,7 +14,7 @@ ApplicationWindow {
     title: qsTr("  EasyML")
     
     //---Universal property block-----------------------------------------------
-    property double pix: Screen.width/3840*Julia.get_settings(["Options","Graphics","scaling_factor"])
+    property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_options(["GlobalOptions","Graphics","scaling_factor"])
     //property double defaultPixelSize: defaultPixelSize
     property double margin: 78*pix
     property double tabmargin: 0.5*margin
@@ -336,7 +336,7 @@ ApplicationWindow {
                             predicted_labels.push(predicted_label)
                             if (use_labels) {
                                 var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
-                                    target_labels.push(target_label)
+                                target_labels.push(target_label)
                             }
                         }
                         else if (problem_type==1) {
@@ -344,7 +344,7 @@ ApplicationWindow {
                             predicted_labels.push(predicted_label)
                             if (use_labels) {
                                 var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
-                                    target_labels.push(target_label)
+                                target_labels.push(target_label)
                             }
                         }
                         sampleSpinBox.to = iteration
@@ -356,12 +356,12 @@ ApplicationWindow {
             }
         }
         Component.onCompleted: {
-            use_labels = Julia.get_settings(["Validation","use_labels"])
-            var temp = Julia.get_settings(["input_type"])
+            use_labels = Julia.get_data(["ValidationData","use_labels"])
+            var temp = Julia.get_data(["input_type"])
             if (temp=="Image") {
                 input_type = 0
             }
-            var temp = Julia.get_settings(["problem_type"])
+            var temp = Julia.get_data(["problem_type"])
             if (temp=="Classification") {
                 problem_type = 0
                 fieldname = "ImageClassificationResults"

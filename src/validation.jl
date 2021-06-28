@@ -3,40 +3,40 @@
 
 # Get urls of files in selected folders
 
-function get_urls_validation_main(validation::Validation,validation_data::ValidationData,model_data::ModelData)
+function get_urls_validation_main(model_data::ModelData,validation_data::ValidationData)
     url_inputs = validation_data.url_inputs
     url_labels = validation_data.url_labels
-    if settings.input_type == :Image
+    if input_type() == :Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    if settings.problem_type == :Classification
+    if problem_type() == :Classification
         input_urls,dirs = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         if issubset(dirs,labels)
-            validation.use_labels = true
+            validation_data.use_labels = true
             labels_int = map((label,l) -> repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
             validation_data.labels_classification = reduce(vcat,labels_int)
         end
-    elseif settings.problem_type == :Regression
+    elseif problem_type() == :Regression
         input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
-        if validation.use_labels==true
+        if validation_data.use_labels==true
             input_urls_copy = copy(input_urls)
             filenames_inputs_copy = copy(filenames_inputs)
             filenames_labels,loaded_labels = load_regression_data(validation_data.url_labels)
             intersect_regression_data!(input_urls_copy,filenames_inputs_copy,
                 loaded_labels,filenames_labels)
             if isempty(loaded_labels)
-                validation.use_labels = false
+                validation_data.use_labels = false
                 @warn string("No file names in ",url_labels ," correspond to file names in ",url_inputs," . Files were loaded without labels.")
             else
                 validation_data.labels_regression = loaded_labels
                 input_urls = input_urls_copy
             end
         end
-    elseif settings.problem_type == :Segmentation
-        if validation.use_labels==true
+    elseif problem_type() == :Segmentation
+        if validation_data.use_labels==true
             input_urls,label_urls,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
             validation_data.label_urls = reduce(vcat,label_urls)
         else
@@ -46,31 +46,16 @@ function get_urls_validation_main(validation::Validation,validation_data::Valida
     validation_data.input_urls = reduce(vcat,input_urls)
     return nothing
 end
-#get_urls_validation() = get_urls_validation_main(validation,model_data)
 
-function reset_validation_results(validation_data::ValidationData)
-    results_classification = validation_data.ImageClassificationResults
-    fields = fieldnames(ValidationImageClassificationResults)
-    for field in fields
-        empty_field!(results_classification,field)
-    end
-    results_segmentation = validation_data.ImageSegmentationResults
-    fields = fieldnames(ValidationImageSegmentationResults)
-    for field in fields
-        empty_field!(results_segmentation,field)
-    end
-    return nothing
-end
-
-function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
-        options::ProcessingTraining, classes::Vector{ImageClassificationClass},ind::Int64)
+function prepare_validation_data(classes::Vector{ImageClassificationClass},ind::Int64,
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     original = load_image(validation_data.input_urls[ind])
-    if options.grayscale
+    if processing_options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
     else
         data_input = image_to_color_float(original)[:,:,:,:]
     end
-    if validation.use_labels
+    if validation_data.use_labels
         num = length(classes)
         labels_temp = Vector{Float32}(undef,num)
         fill!(labels_temp,0)
@@ -83,17 +68,17 @@ function prepare_validation_data(model_data::ModelData,validation::Validation,va
     return data_input,labels,original
 end
 
-function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
-        options::ProcessingTraining, classes::Vector{ImageRegressionClass},ind::Int64)
+function prepare_validation_data(classes::Vector{ImageRegressionClass},ind::Int64,
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     original = load_image(validation_data.input_urls[ind])
     original = imresize(original,model_data.input_size[1:2])
-    if options.grayscale
+    if processing_options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
     else
         data_input = image_to_color_float(original)[:,:,:,:]
     end
     
-    if validation.use_labels
+    if validation_data.use_labels
         labels = reshape(validation_data.labels_regression[ind],:,1)
     else
         labels = Array{Float32,2}(undef,0,0)
@@ -101,16 +86,16 @@ function prepare_validation_data(model_data::ModelData,validation::Validation,va
     return data_input,labels,original
 end
 
-function prepare_validation_data(model_data::ModelData,validation::Validation,validation_data::ValidationData,
-        options::ProcessingTraining, classes::Vector{ImageSegmentationClass},ind::Int64)
+function prepare_validation_data(classes::Vector{ImageSegmentationClass},ind::Int64,
+        model_data::ModelData,validation_data::ValidationData,processing_options::ProcessingOptions)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original = load_image(validation_data.input_urls[ind])
-    if options.grayscale
+    if processing_options.grayscale
         data_input = image_to_gray_float(original)[:,:,:,:]
     else
         data_input = image_to_color_float(original)[:,:,:,:]
     end
-    if validation.use_labels
+    if validation_data.use_labels
         label = load_image(validation_data.label_urls[ind])
         label_bool = label_to_bool(label,inds,labels_color,
             labels_incl,border,border_thickness)
@@ -137,7 +122,7 @@ function get_error_image(predicted_bool_feat::BitArray{2},truth::BitArray{2})
     return error_bool
 end
 
-function compute(validation::Validation,predicted_bool::BitArray{3},
+function compute(validation_data::ValidationData,predicted_bool::BitArray{3},
         label_bool::BitArray{3},labels_color::Vector{Vector{N0f8}},
         num_feat::Int64)
     num = size(predicted_bool,3)
@@ -149,7 +134,7 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
         color = labels_color[i]
         predicted_bool_feat = predicted_bool[:,:,i]
         predicted_data[i] = (predicted_bool_feat,color)
-        if validation.use_labels
+        if validation_data.use_labels
             if i>num_feat
                 target_bool = label_bool[:,:,i-num_feat]
             else
@@ -164,7 +149,7 @@ function compute(validation::Validation,predicted_bool::BitArray{3},
 end
 
 function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
-        classes::Vector{<:AbstractClass},validation::Validation)
+        classes::Vector{<:AbstractClass},validation_data::ValidationData)
     class_inds,labels_color, _ ,border = get_class_data(classes)
     labels_color = labels_color[class_inds]
     labels_color_uint = convert(Vector{Vector{N0f8}},labels_color/255)
@@ -187,19 +172,19 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
             predicted_bool[:,:,ind] .= temp_array
         end
     end
-    predicted_data,target_data,error_data = compute(validation,
+    predicted_data,target_data,error_data = compute(validation_data,
         predicted_bool,label_bool,labels_color_uint,num_feat)
     return predicted_data,target_data,error_data
 end
 
 function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray{Float32,2},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
-        validation::Validation,classes::Vector{ImageClassificationClass},channels::Channels)
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{ImageClassificationClass},
+        validation_data::ValidationData,channels::Channels)
     class_names = map(x-> x.name,classes)
     predicted_vec = Iterators.flatten(predicted)
     predicted_int = findfirst(predicted_vec .== maximum(predicted_vec))
     predicted_string = class_names[predicted_int]
-    if validation.use_labels
+    if validation_data.use_labels
         label_vec = Iterators.flatten(label)
         label_int = findfirst(label_vec .== maximum(label_vec))
         label_string = class_names[label_int]
@@ -215,8 +200,8 @@ function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray
 end
 
 function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray{Float32,2},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},
-        validation::Validation,classes::Vector{ImageRegressionClass},channels::Channels)
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{ImageRegressionClass},
+        validation_data::ValidationData,channels::Channels)
     image_data = (predicted[:],label[:])
     data = (image_data,other_data,original)
     # Return data
@@ -226,13 +211,13 @@ function process_output(predicted::AbstractArray{Float32,2},label::AbstractArray
 end
 
 function process_output(predicted::AbstractArray{Float32,4},data_label::AbstractArray{Float32,4},
-        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},validation::Validation,
-        classes::Vector{ImageSegmentationClass},channels::Channels)
+        original::Array{RGB{N0f8},2},other_data::NTuple{2, Float32},classes::Vector{ImageSegmentationClass},
+        validation_data::ValidationData,channels::Channels)
     predicted_bool = predicted[:,:,:,1].>0.5
     label_bool = data_label[:,:,:,1].>0.5
     # Get output data
     predicted_data,target_data,error_data = 
-        output_images(predicted_bool,label_bool,classes,validation)
+        output_images(predicted_bool,label_bool,classes,validation_data)
     image_data = (predicted_data,target_data,error_data)
     data = (image_data,other_data,original)
     # Return data
@@ -247,14 +232,14 @@ end
 Removes all validation data except for result.
 """
 function remove_validation_data()
-    if settings.input_type==:Image
-        if settings.problem_type==:Classification
+    if input_type()==:Image
+        if problem_type()==:Classification
             data = validation_data.ImageClassificationResults
             fields = fieldnames(ValidationImageRegressionResults)
-        elseif settings.problem_type==:Regression
+        elseif problem_type()==:Regression
             data = validation_data.ImageRegressionResults
             fields = fieldnames(ValidationImageRegressionResults)
-        elseif settings.problem_type==:Segmentation
+        elseif problem_type()==:Segmentation
             data = validation_data.ImageSegmentationResults
             fields = fieldnames(ValidationImageSegmentationResults)
         end
@@ -288,40 +273,41 @@ function remove_validation_results()
 end
 
 # Main validation function
-function validate_main(settings::Settings,validation_data::ValidationData,
-        model_data::ModelData,channels::Channels)
+function validate_main(model_data::ModelData,validation_data::ValidationData,
+        options::Options,channels::Channels)
     # Initialisation
-    validation = settings.Validation
-    processing = settings.Training.Options.Processing
-    reset_validation_results(validation_data)
+    remove_validation_results()
+    processing = options.TrainingOptions.Processing
     num = length(validation_data.input_urls)
     put!(channels.validation_progress,num)
-    use_labels = validation.use_labels
+    use_labels = validation_data.use_labels
     classes = model_data.classes
     model = model_data.model
     loss = model_data.loss
-    ws = get_weights(classes,settings)
-    accuracy::Function = get_accuracy_func(settings,ws)
+    ws = get_weights(classes,options)
+    accuracy = get_accuracy_func(ws,options)
     use_GPU = false
-    if training.Options.General.allow_GPU
+    if options.GlobalOptions.HardwareResources.allow_GPU
         if has_cuda()
             use_GPU = true
         else
             @warn "No CUDA capable device was detected. Using CPU instead."
         end
     end
-    if settings.problem_type==:Classification || settings.problem_type==:Regression
-        num_slices_current = 1
+    if problem_type()==:Segmentation
+        num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+        offset_val = options.GlobalOptions.HardwareResources.offset
     else
-        num_slices_current = 30
+        num_slices_val = 1
+        offset_val = 0
     end
     for i = 1:num
         if check_abort_signal(channels.validation_modifiers)
             return nothing
         end
-        data_input,label,other = prepare_validation_data(model_data,validation,validation_data,
-            processing,classes,i)
-        predicted = forward(model,data_input,num_slices=num_slices_current,use_GPU=use_GPU)
+        data_input,label,other = prepare_validation_data(classes,i,model_data,
+            validation_data,processing)
+        predicted = forward(model,data_input,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
         if use_labels
             accuracy_val = accuracy(predicted,label)
             loss_val = loss(predicted,label)
@@ -329,13 +315,12 @@ function validate_main(settings::Settings,validation_data::ValidationData,
         else
             other_data = (0.f0,0.f0)
         end
-        process_output(predicted,label,other,other_data,validation,classes,channels)
+        process_output(predicted,label,other,other_data,classes,validation_data,channels)
     end
     return nothing
 end
-function validate_main2(settings::Settings,validation_data::ValidationData,
-        model_data::ModelData,channels::Channels)
-    t = Threads.@spawn validate_main(settings,validation_data,model_data,channels)
+function validate_main2(model_data::ModelData,validation_data::ValidationData,options::Options,channels::Channels)
+    t = Threads.@spawn validate_main(model_data,validation_data,options,channels)
     push!(validation_data.tasks,t)
-    return nothing
+    return t
 end

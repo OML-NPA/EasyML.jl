@@ -244,10 +244,6 @@ function intersect_inds(ar1,ar2)
     return (inds1, inds2)
 end
 
-function num_cores()
-    return Threads.nthreads()
-end
-
 function time()
       date = string(now())
       date = date[1:19]
@@ -314,5 +310,21 @@ macro clear()
         GC.gc()
         str = string("Cleared ",count," variables")
         @info str
+    end
+end
+
+function max_num_threads()
+    return length(Sys.cpu_info())
+end
+
+function check_task(t::Task)
+    if istaskdone(t)
+        if t.:_isexception
+            return :error, t.:result
+        else
+            return :done, nothing
+        end
+    else
+        return :running, nothing
     end
 end

@@ -492,14 +492,14 @@ function make_model_main(design_data::DesignData)
 end
 make_model() = make_model_main(design_data)
 
-function check_model_main(design_data::DesignData,settings::Settings)
+function check_model_main(design_data::DesignData)
     model_data = design_data.ModelData
     input = zeros(Float32,model_data.input_size...,1)
     try
         output = model_data.model(input)
         output_size = size(output)[1:end-1]
         model_data.output_size = output_size
-        if settings.problem_type==:Classification && length(output_size)!=1
+        if problem_type()==:Classification && length(output_size)!=1
             @warn "Use flatten before an output. Otherwise, the model will not function correctly."
             push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
             return false
@@ -511,7 +511,7 @@ function check_model_main(design_data::DesignData,settings::Settings)
         return false
     end
 end
-check_model() = check_model_main(design_data,settings)
+check_model() = check_model_main(design_data)
 
 function move_model_main(model_data::ModelData,design_data::DesignData)
     model_data2 = design_data.ModelData
@@ -526,17 +526,17 @@ move_model() = move_model_main(model_data,design_data)
 
 #---Model visual representation constructors
 function arrange_layer(coordinates::Array,coordinate::Array{Float64},
-    design::Design)
-    coordinate[2] = coordinate[2] + design.min_dist_y + design.height
+    design_options::DesignOptions)
+    coordinate[2] = coordinate[2] + design_options.min_dist_y + design_options.height
     push!(coordinates,copy(coordinate))
     return coordinate
 end
 
 function arrange_branches(coordinates,coordinate::Vector{Float64},
-        design::Design,layers)
+        design_options::DesignOptions,layers)
     num = layers isa AbstractLayerInfo ? 1 : length(layers)
     if num==1
-        coordinate = arrange_layer(coordinates,coordinate,design)
+        coordinate = arrange_layer(coordinates,coordinate,design_options)
     else
         max_num = ones(Int64,num)
         for i = 1:length(layers)
@@ -554,8 +554,8 @@ function arrange_branches(coordinates,coordinate::Vector{Float64},
         x_coordinates = []
         push!(x_coordinates,coordinate[1])
         for i=2:num
-            prev_layer_right = x_coordinates[end] .+ max_num[i-1]*design.width .+ (max_num[i-1]-1)*design.min_dist_x
-            current_layer_left = prev_layer_right .+ (max_num[i]-1)*design.width .+ max_num[i]*design.min_dist_x
+            prev_layer_right = x_coordinates[end] .+ max_num[i-1]*design_options.width .+ (max_num[i-1]-1)*design_options.min_dist_x
+            current_layer_left = prev_layer_right .+ (max_num[i]-1)*design_options.width .+ max_num[i]*design_options.min_dist_x
             push!(x_coordinates,current_layer_left)
         end
         x_coordinates = x_coordinates .-
@@ -568,7 +568,7 @@ function arrange_branches(coordinates,coordinate::Vector{Float64},
             else
                 for j = 1:length(layers[i])
                     temp_coordinate = arrange_branches(temp_coordinates,temp_coordinate,
-                        design,layers[i][j])
+                        design_options,layers[i][j])
                 end
             end
             push!(par_coordinates,temp_coordinates)
@@ -592,15 +592,15 @@ function get_values!(values::Array,array::Array,cond_fun)
     return nothing
 end
 
-function arrange_main(design_data::DesignData,design::Design)
+function arrange_main(design_data::DesignData,design_options::DesignOptions)
     layers_arranged,inds_arranged = get_topology(design_data.ModelData)
     coordinates = []
-    coordinate = [layers_arranged[1].x,layers_arranged[1].y-
-        (design.height+design.min_dist_y)]
-    for i = 1:length(inds_arranged)
+    coordinate = [layers_arranged[1].x,layers_arranged[1].y]
+    push!(coordinates,coordinate)
+    for i = 2:length(inds_arranged)
         layers = layers_arranged[i]
         coordinate = arrange_branches(coordinates,
-            coordinate,design,layers)
+            coordinate,design_options,layers)
     end
     coordinates_flattened = []
     get_values!(coordinates_flattened,coordinates,
@@ -612,7 +612,7 @@ function arrange_main(design_data::DesignData,design::Design)
     inds_flattened = inds_flattened[true_elements]
     return [coordinates_flattened,inds_flattened.-1]
 end
-arrange() = arrange_main(design_data,design)
+arrange() = arrange_main(design_data,design_options)
 
 #---Losses
 function get_loss(loss_name::String)

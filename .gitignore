@@ -1,7 +1,6 @@
 
-docs/
-*.jpg
-*.png
+Examples/
+docs/build
 *.bson
 *.bson
 .vscode/settings.json
@@ -10,3 +9,4 @@ src/test.jl
 *.docx
 *.csv
 *.model
+src/GUI/DataPlot.qml

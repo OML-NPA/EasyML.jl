@@ -33,7 +33,8 @@ function get_labels_colors_main(training_data::TrainingData,channels::Channels)
     for i=1:num
         push!(labelimgs,RGB.(load(url_labels[i])))
     end
-    @floop ThreadedEx() for i=1:num
+    chunk_size = convert(Int64,round(num/num_threads()))
+    @floop ThreadedEx(basesize = chunk_size) for i=1:num
             labelimg = labelimgs[i]
             unique_colors = unique(labelimg)
             ind = findfirst(unique_colors.==RGB.(0,0,0))
@@ -55,7 +56,7 @@ function get_labels_colors_main2(training_data::TrainingData,channels::Channels)
 end
 get_labels_colors() = get_labels_colors_main2(training_data,channels)
 
-#---Data/settings related functions
+#---Data/options related functions
 # Allows to read data from GUI
 function get_data_main(data::AllData,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
@@ -103,8 +104,8 @@ function set_data_main(all_data::AllData,fields,args...)
 end
 set_data(fields,value,args...) = set_data_main(all_data,fields,value,args...)
 
-# Allows to read settings from GUI
-function get_settings_main(data::Settings,fields,inds...)
+# Allows to read options from GUI
+function get_options_main(data::Options,fields,inds...)
     fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
@@ -121,11 +122,11 @@ function get_settings_main(data::Settings,fields,inds...)
     end
     return data
 end
-get_settings(fields,inds...) = get_settings_main(settings,fields,inds...)
+get_options(fields,inds...) = get_options_main(options,fields,inds...)
 
-# Allows to write to settings from GUI
-function set_settings_main(settings::Settings,fields::QML.QListAllocated,args...)
-    data = settings
+# Allows to write to options from GUI
+function set_options_main(options::Options,fields::QML.QListAllocated,args...)
+    data = options
     fields = fix_QML_types(fields)
     args = fix_QML_types(args)
     for i = 1:length(fields)-1
@@ -159,43 +160,46 @@ function set_settings_main(settings::Settings,fields::QML.QListAllocated,args...
             value[args[1]][args[2]][args[3]] = args[4]
         end
     end
+    if typeof(getproperty(data, Symbol(fields[end])))==Symbol
+        value = Symbol(value)
+    end
     setproperty!(data, Symbol(fields[end]), value)
     return nothing
 end
-set_settings(fields,value,args...) = set_settings_main(settings,fields,value,args...)
+set_options(fields,value,args...) = set_options_main(options,fields,value,args...)
 
-function save_settings_main(settings::Settings)
+function save_options_main(options::Options)
     dict = Dict{Symbol,Any}()
-    struct_to_dict!(dict,settings)
-    BSON.@save("config.bson",dict)
+    struct_to_dict!(dict,options)
+    BSON.@save("options.bson",dict)
     return nothing
 end
-save_settings() = save_settings_main(settings)
+save_options() = save_options_main(options)
 
-function load_settings!(settings::Settings)
+function load_options!(options::Options)
     # Import the configutation file
-    if isfile("config.bson")
+    if isfile("options.bson")
         try
-            data = BSON.load("config.bson")
-            dict_to_struct!(settings,data[:dict])
+            data = BSON.load("options.bson")
+            dict_to_struct!(options,data[:dict])
         catch e
-            @error string("Settings were not loaded. Error: ",e)
-            save_settings()
+            @error string("Options were not loaded. Error: ",e)
+            save_options()
         end 
     else
-        save_settings()
+        save_options()
     end
     
     return nothing
 end
 
 """
-    load_settings()
+    load_options()
 
-Loads settings from your previous run which are located in 'config.bson'. 
+Loads options from your previous run which are located in 'options.bson'. 
 Uses present working directory. It is run automatically after 'using EasyML'.
 """
-load_settings() = load_settings!(settings)
+load_options() = load_options!(options)
 
 function source_dir()
     return fix_slashes(pwd())
@@ -379,11 +383,11 @@ get_model_type() = get_model_type_main(model_data)
 
 # Resets model classes
 function reset_classes_main(model_data)
-    if settings.problem_type==:Classification
+    if problem_type()==:Classification
         model_data.classes = Vector{ImageClassificationClass}(undef,0)
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         model_data.classes = Vector{ImageRegressionClass}(undef,0)
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         model_data.classes = Vector{ImageSegmentationClass}(undef,0)
     end
     return nothing
@@ -392,11 +396,11 @@ reset_classes() = reset_classes_main(model_data::ModelData)
 
 # Resets model output options
 function reset_output_options_main(model_data)
-    if settings.problem_type==:Classification
+    if problem_type()==:Classification
         model_data.OutputOptions = Vector{ImageClassificationOutputOptions}(undef,0)
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         model_data.OutputOptions = Vector{ImageRegressionOutputOptions}(undef,0)
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         model_data.OutputOptions = Vector{ImageSegmentationOutputOptions}(undef,0)
     end
     return nothing
@@ -409,13 +413,13 @@ function append_classes_main(model_data::ModelData,design_data::DesignData,id,da
     id = convert(Int64,id)
     type = eltype(model_data.classes)
     backup = design_data.output_options_backup
-    if settings.problem_type==:Classification
+    if problem_type()==:Classification
         class = ImageClassificationClass()
         class.name = data[1]
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         class = ImageRegressionClass()
         class.name = data[1]
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
@@ -467,21 +471,21 @@ backup_options() = backup_options_main(model_data)
 function set_problem_type(ind)
     ind = fix_QML_types(ind)
     if ind==0 
-        settings.problem_type = :Classification
+        all_data.problem_type = :Classification
     elseif ind==1
-        settings.problem_type = :Regression
+        all_data.problem_type = :Regression
     elseif ind==2
-        settings.problem_type = :Segmentation
+        all_data.problem_type = :Segmentation
     end
     return nothing
 end
 
 function get_problem_type()
-    if settings.problem_type==:Classification
+    if problem_type()==:Classification
         return 0
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         return 1
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         return 2
     end
 end
@@ -511,7 +515,7 @@ Use '.model' extension.
 save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
-function load_model_main(settings,model_data,url)
+function load_model_main(options,model_data,url)
     url = fix_QML_types(url)
     data = BSON.load(url)
     ks = keys(data)
@@ -536,18 +540,18 @@ function load_model_main(settings,model_data,url)
             @warn string("Loading of ",k," failed. Exception: ",e)
         end
     end
-    settings.model_url = url
+    all_data.model_url = url
     url_split = split(url,('/','.'))
-    settings.model_name = url_split[end-1]
+    all_data.model_name = url_split[end-1]
     if model_data.classes isa Vector{ImageClassificationClass}
-        settings.input_type = :Image
-        settings.problem_type = :Classification
+        all_data.input_type = :Image
+        all_data.problem_type = :Classification
     elseif model_data.classes isa Vector{ImageRegressionClass}
-        settings.input_type = :Image
-        settings.problem_type = :Regression
+        all_data.input_type = :Image
+        all_data.problem_type = :Regression
     elseif model_data.classes isa Vector{ImageSegmentationClass}
-        settings.input_type = :Image
-        settings.problem_type = :Segmentation
+        all_data.input_type = :Image
+        all_data.problem_type = :Segmentation
     end
     return nothing
 end
@@ -556,7 +560,7 @@ end
 
 Loads a model from a specified URL. The URL can be absolute or relative.
 """
-load_model(url) = load_model_main(settings,model_data,url)
+load_model(url) = load_model_main(options,model_data,url)
 
 function empty_field!(str,field::Symbol)
     val = getfield(str,field)

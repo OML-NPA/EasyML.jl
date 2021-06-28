@@ -108,9 +108,9 @@ version = "0.2.2"
 
 [[ChainRules]]
 deps = ["ChainRulesCore", "Compat", "LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "1fd011887c6a54d77537079e6cf76301809b23ba"
+git-tree-sha1 = "e7e3200bd24b77bcc849e6616f7c2f0d45d70f5b"
 uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
-version = "0.8.14"
+version = "0.8.17"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -123,12 +123,6 @@ deps = ["Distances", "LinearAlgebra", "NearestNeighbors", "Printf", "SparseArray
 git-tree-sha1 = "75479b7df4167267d75294d14b58244695beb2ac"
 uuid = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
 version = "0.14.2"
-
-[[CodeTracking]]
-deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "8ad457cfeb0bca98732c97958ef81000a543e73e"
-uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "1.0.5"
 
 [[CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -226,9 +220,9 @@ uuid = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 version = "0.7.2"
 
 [[DataAPI]]
-git-tree-sha1 = "dfb3b7e89e395be1e25c2ad6d7690dc29cc53b1d"
+git-tree-sha1 = "ee400abb2298bd13bfc3df1c412ed228061a2385"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.6.0"
+version = "1.7.0"
 
 [[DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
@@ -362,9 +356,6 @@ deps = ["Pkg", "Requires", "UUIDs"]
 git-tree-sha1 = "256d8e6188f3f1ebfa1a5d17e072a0efafa8c5bf"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 version = "1.10.1"
-
-[[FileWatching]]
-uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -652,9 +643,9 @@ version = "1.0.0"
 
 [[JLD2]]
 deps = ["DataStructures", "FileIO", "MacroTools", "Mmap", "Pkg", "Printf", "Reexport", "TranscodingStreams", "UUIDs"]
-git-tree-sha1 = "a605ca7aac73ccbba3208c49ca4d5eb78c8f4c74"
+git-tree-sha1 = "4813826871754cf52607e76ad37acb36ccf52719"
 uuid = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
-version = "0.4.10"
+version = "0.4.11"
 
 [[JLLWrappers]]
 deps = ["Preferences"]
@@ -673,12 +664,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "d735490ac75c5cb9f1b00d8b5509c11984dc6943"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "2.1.0+0"
-
-[[JuliaInterpreter]]
-deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
-git-tree-sha1 = "31c2eee64c1eee6e8e3f30d5a03d4b5b7086ab29"
-uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.8.18"
 
 [[JuliaVariables]]
 deps = ["MLStyle", "NameResolution"]
@@ -787,12 +772,6 @@ version = "0.2.4"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
-
-[[LoweredCodeUtils]]
-deps = ["JuliaInterpreter"]
-git-tree-sha1 = "4bfb8b57df913f3b28a6bd3bdbebe9a50538e689"
-uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
-version = "2.1.0"
 
 [[MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
@@ -973,12 +952,6 @@ git-tree-sha1 = "0fa5e78929aebc3f6b56e1a88cf505bb00a354c4"
 uuid = "5432bcbf-9aad-5242-b902-cca2824c8663"
 version = "0.5.8"
 
-[[ParallelDataTransfer]]
-deps = ["Distributed", "Random", "Test"]
-git-tree-sha1 = "75e75900c8b0d8dfb69cbe082832b1dc9f8aacfe"
-uuid = "2dcacdae-9679-587a-88bb-8b444fb7085b"
-version = "0.5.0"
-
 [[Parameters]]
 deps = ["OrderedCollections", "UnPack"]
 git-tree-sha1 = "2276ac65f1e236e0a6ea70baff3f62ad4c625345"
@@ -1040,9 +1013,7 @@ version = "1.7.1"
 
 [[QML]]
 deps = ["ColorTypes", "CxxWrap", "Libdl", "MacroTools", "Mesa_jll", "Observables", "Requires", "jlqml_jll"]
-git-tree-sha1 = "65c14579c1d509cd73d0d7299d0d6bc351ee1fd5"
-repo-rev = "master"
-repo-url = "https://github.com/barche/QML.jl.git"
+git-tree-sha1 = "fb1858a2f058d4a3d8c765edae0e909722d19dbf"
 uuid = "2db162a6-7e43-52c3-8d84-290c1c42d82a"
 version = "0.7.0"
 
@@ -1133,12 +1104,6 @@ deps = ["UUIDs"]
 git-tree-sha1 = "4036a3bd08ac7e968e27c203d45f5fff15020621"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.1.3"
-
-[[Revise]]
-deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "Requires", "UUIDs", "Unicode"]
-git-tree-sha1 = "410bbe13d9a7816e862ed72ac119bda7fb988c08"
-uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
-version = "3.1.17"
 
 [[Rotations]]
 deps = ["LinearAlgebra", "StaticArrays", "Statistics"]
@@ -1294,9 +1259,9 @@ version = "1.5.5"
 
 [[TimerOutputs]]
 deps = ["ExprTools", "Printf"]
-git-tree-sha1 = "bf8aacc899a1bd16522d0350e1e2310510d77236"
+git-tree-sha1 = "9f494bc54b4c31404a9eff449235836615929de1"
 uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
-version = "0.5.9"
+version = "0.5.10"
 
 [[TranscodingStreams]]
 deps = ["Random", "Test"]

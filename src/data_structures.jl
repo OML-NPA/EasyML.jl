@@ -46,6 +46,14 @@ end
 
 abstract type AbstractOutputOptions end
 
+@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
+    temp::Bool = false
+end
+
+@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
+    temp::Bool = false
+end
+
 @with_kw mutable struct OutputMask
     mask::Bool = false
     mask_border::Bool = false
@@ -68,14 +76,6 @@ end
     binning::Int64 = 0
     value::Float64 = 10
     normalisation::Int64 = 0
-end
-
-@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
 end
 
 @with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
@@ -295,8 +295,8 @@ end
     model::Chain = Chain()
     layers_info::Vector{AbstractLayerInfo} = []
     loss::Function = Flux.Losses.mse
-    input_size::Tuple{Int64,Int64,Int64} = (1,1,1)
-    output_size::Union{Tuple{Int64},Tuple{Int64,Int64,Int64}} = (1,1,1)
+    input_size::NTuple{3,Int64} = (1,1,1)
+    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     OutputOptions::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
 end
@@ -321,8 +321,8 @@ end
 training_plot_data = TrainingPlotData()
 
 @with_kw mutable struct TrainingResultsData
-    loss::Vector{Float32} = Vector{Float32}(undef,0)
     accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_accuracy::Vector{Float32} = Vector{Float32}(undef,0)
     test_loss::Vector{Float32} = Vector{Float32}(undef,0)
     test_iteration::Vector{Int64} = Vector{Int64}(undef,0)
@@ -353,12 +353,23 @@ end
     foldernames::Vector{String} = Vector{String}(undef,0)
 end
 
+@with_kw mutable struct TrainingOptionsData
+    optimiser_params::Vector{Vector{Float64}} = [[],[0.9],[0.9],[0.9],[0.9,0.999],
+        [0.9,0.999],[0.9,0.999],[],[0.9],[0.9,0.999],[0.9,0.999],[0.9,0.999,0]]
+    optimiser_params_names::Vector{Vector{String}} = [[],["ρ"],["ρ"],["ρ"],["β1","β2"],
+        ["β1","β2"],["β1","β2"],[],["ρ"],["β1","β2"],["β1","β2"],["β1","β2","Weight decay"]]
+    allow_lr_change::Bool = true
+    run_test::Bool = false
+end
+training_options_data = TrainingOptionsData()
+
 @with_kw mutable struct TrainingData
     PlotData::TrainingPlotData = training_plot_data
     Results::TrainingResultsData = training_results_data
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    OptionsData::TrainingOptionsData = training_options_data
     url_inputs::String = ""
     url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
@@ -378,7 +389,8 @@ testing_data = TestingData()
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{String} = Vector{String}(undef,0)
     target_labels::Vector{String} = Vector{String}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
 end
 validation_image_classification_results = ValidationImageClassificationResults()
 
@@ -386,7 +398,8 @@ validation_image_classification_results = ValidationImageClassificationResults()
     original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{Vector{Float32}}= Vector{Vector{Float32}}(undef,0)
     target_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
 end
 validation_image_regression_results = ValidationImageRegressionResults()
 
@@ -398,8 +411,9 @@ validation_image_regression_results = ValidationImageRegressionResults()
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
     error_data::Vector{Vector{Tuple{BitArray{3},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{3},Vector{N0f8}}}}(undef,0)
-    other_data::Vector{Tuple{Float32,Float32}} = 
-        Vector{Tuple{Float32,Float32}}(undef,0)
+    accuracy::Vector{Float32} = Vector{Float32}(undef,0)
+    loss::Vector{Float32} = Vector{Float32}(undef,0)
+    
 end
 validation_image_segmentation_results = ValidationImageSegmentationResults()
 
@@ -415,6 +429,7 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     labels_regression::Vector{Vector{Float32}} = Vector{Float32}(undef,0)
     url_inputs::String = ""
     url_labels::String = ""
+    use_labels::Bool = false
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 validation_data = ValidationData()
@@ -423,7 +438,6 @@ validation_data = ValidationData()
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
     folders::Vector{String} = Vector{String}(undef,0)
     url_inputs::String = ""
-    url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
 application_data = ApplicationData()
@@ -435,143 +449,102 @@ application_data = ApplicationData()
     ValidationData::ValidationData = validation_data
     ApplicationData::ApplicationData = application_data
     image::Array{RGB{Float32},2} = Array{RGB{Float32},2}(undef,0,0)
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
+    model_url::String = ""
+    model_name::String = ""
 end
 all_data = AllData()
 
-#---Settings
+#---Options
 
 # Options
 @with_kw mutable struct HardwareResources
     allow_GPU::Bool = true
-    num_cores::Int64 = Threads.nthreads()
+    num_threads::Int64 = Threads.nthreads()
+    num_slices::Int64 = 1
+    offset::Int64 = 20
 end
 hardware_resources = HardwareResources()
 
 @with_kw mutable struct Graphics
-    scaling_factor::Float32 = 1
+    scaling_factor::Float64 = 1
 end
 graphics = Graphics()
 
-@with_kw mutable struct Options
+@with_kw mutable struct GlobalOptions
     Graphics::Graphics = graphics
     HardwareResources::HardwareResources = hardware_resources
 end
-options = Options()
+global_options = GlobalOptions()
 
 # Design
-@with_kw mutable struct Design
+@with_kw mutable struct DesignOptions
     width::Float64 = 340
     height::Float64 = 100
-    min_dist_x::Float64 = 40
+    min_dist_x::Float64 = 80
     min_dist_y::Float64 = 40
 end
-design = Design()
+design_options = DesignOptions()
 
 # Training
-@with_kw mutable struct ProcessingTraining
+
+@with_kw mutable struct AccuracyOptions
+    weight_accuracy::Bool = true
+    accuracy_mode::Symbol = :Auto
+end
+accuracy_options = AccuracyOptions()
+
+@with_kw mutable struct TestingOptions
+    data_preparation_mode::Symbol = :Auto
+    test_data_fraction::Float64 = 0.1
+    num_tests::Float64 = 5
+end
+testing_options = TestingOptions()
+
+@with_kw mutable struct ProcessingOptions
     grayscale::Bool = false
     mirroring::Bool = true
     num_angles::Int64 = 1
     min_fr_pix::Float64 = 0.0
 end
-processing_training = ProcessingTraining()
+processing_options = ProcessingOptions()
 
-@with_kw mutable struct HyperparametersTraining
-    optimiser::Tuple{String,Int64} = ("ADAM",5)
-    optimiser_params::Vector{Vector{Float64}} = [[],[0.9],[0.9],[0.9],
-      [0.9,0.999],[0.9,0.999],[0.9,0.999],[],[0.9],[0.9,0.999],
-      [0.9,0.999],[0.9,0.999,0]]
-    optimiser_params_names::Vector{Vector{String}} = [[],["ρ"],
-      ["ρ"],["ρ"],
-      ["β1","β2"],
-      ["β1","β2"],
-      ["β1","β2"],[],
-      ["ρ"],["β1","β2"],
-      ["β1","β2"],
-      ["β1","β2","Weight decay"]]
-    allow_lr_change::Bool = true
+@with_kw mutable struct HyperparametersOptions
+    optimiser::Symbol = :ADAM
+    optimiser_params::Vector{Float64} = [0.9,0.999]
     learning_rate::Float64 = 1e-3
     epochs::Int64 = 1
     batch_size::Int64 = 10
-    savepath::String = "./"
 end
-hyperparameters_training = HyperparametersTraining()
-
-@with_kw mutable struct GeneralTraining
-    allow_GPU::Bool = true
-    weight_accuracy::Bool = true
-    manual_weight_accuracy::Bool = false
-end
-general_training = GeneralTraining()
-
-@with_kw mutable struct TestingTraining
-    test_data_fraction::Float64 = 0.1
-    num_tests::Float64 = 5
-    manual_testing_data::Bool = false
-end
-testing_training = TestingTraining()
+hyperparameters_options = HyperparametersOptions()
 
 @with_kw mutable struct TrainingOptions
-    General::GeneralTraining = general_training
-    Testing::TestingTraining = testing_training
-    Processing::ProcessingTraining = processing_training
-    Hyperparameters::HyperparametersTraining = hyperparameters_training
+    Accuracy::AccuracyOptions = accuracy_options
+    Testing::TestingOptions = testing_options
+    Processing::ProcessingOptions = processing_options
+    Hyperparameters::HyperparametersOptions = hyperparameters_options
 end
 training_options = TrainingOptions()
-
-@with_kw mutable struct Training
-    Options::TrainingOptions = training_options
-    url_inputs::String = ""
-    url_labels::String = ""
-end
-training = Training()
-
-# Validation
-@with_kw mutable struct Validation
-    use_labels::Bool = false
-end
-validation = Validation()
 
 # Application
 @with_kw mutable struct ApplicationOptions
     savepath::String = ""
-    apply_by::Tuple{String,Int64} = ("file",0)
-    data_type::Int64 = 0
-    image_type::Int64 = 0
-    downsize::Int64 = 0
-    skip_frames::Int64 = 0
+    apply_by::Symbol = :file
+    data_type::Symbol = :CSV
+    image_type::Symbol = :PNG
     scaling::Float64 = 1
-    minibatch_size::Int64 = 1
 end
 application_options = ApplicationOptions()
 
-@with_kw mutable struct Application
-    Options::ApplicationOptions = application_options
-    url_inputs::String = ""
+# Options
+@with_kw mutable struct Options
+    GlobalOptions::GlobalOptions = global_options
+    DesignOptions::DesignOptions = design_options
+    TrainingOptions::TrainingOptions = training_options
+    ApplicationOptions::ApplicationOptions = application_options
 end
-application = Application()
-
-# Visualisation
-@with_kw mutable struct Visualisation
-    a::Bool = false
-end
-visualisation = Visualisation()
-
-# Settings
-@with_kw mutable struct Settings
-    Options::Options = options
-    Design::Design = design
-    Training::Training = training
-    Validation::Validation = validation
-    Application::Application = application
-    Visualisation::Visualisation = visualisation
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
-    model_url::String = ""
-    model_name::String = ""
-    
-end
-settings = Settings()
+options = Options()
 
 #---Other
 
@@ -580,3 +553,7 @@ mutable struct Counter
     Counter() = new(0)
 end
 (c::Counter)() = (c.iteration += 1)
+
+num_threads() = hardware_resources.num_threads
+problem_type() = all_data.problem_type
+input_type() = all_data.input_type

@@ -312,13 +312,6 @@ end
 Used for segmentation. Uses borders of objects that a neural network detected in order 
 to separate objects from each other. Output from a neural network should be fed after 
 converting to BitArray.
-
-# Examples
-```julia-repl
-output = forward(model_data.model,input_data);
-output_bitarray = output[:,:,:,1].>0.5
-output_with_borders = apply_border_data(output_bitarray,model_data.classes)
-```
 """
 function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
@@ -435,12 +428,11 @@ function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) wh
     return acc
 end
 
-function get_weights(classes::Vector{<:AbstractClass},settings::Settings)
-    problem_type = settings.problem_type
-    if settings.Training.Options.General.weight_accuracy
-        if problem_type==:Classification
+function get_weights(classes::Vector{<:AbstractClass},options::Options)
+    if options.TrainingOptions.Accuracy.weight_accuracy
+        if problem_type()==:Classification
             return map(class -> class.weight,classes)
-        elseif problem_type==:Regression
+        elseif problem_type()==:Regression
             return Vector{Float32}(undef,0)
         else # Segmentation
             true_classes_bool = (!).(map(class -> class.not_class, classes))
@@ -464,19 +456,17 @@ function calculate_weights(counts::Vector{Int64})
     return weights
 end
 
-function get_weights(classes::Vector{<:AbstractClass},settings::Settings,training_data::TrainingData)
-    training = settings.Training
-    problem_type = settings.problem_type
+function get_weights(classes::Vector{<:AbstractClass},training_data::TrainingData,options::Options)
     local counts::Vector{Int64}
-    if training.Options.General.weight_accuracy
-        if problem_type==:Classification
+    if options.TrainingOptions.Accuracy.weight_accuracy
+        if problem_type()==:Classification
             classification_labels = training_data.ClassificationData.data_labels
             counts = map(x -> count(x.==classification_labels),1:length(classes))
             weights = calculate_weights(counts)
             for i = 1:length(classes)
                 classes[i].weight = weights[1]
             end
-        elseif problem_type==:Regression
+        elseif problem_type()==:Regression
             weights = Vector{Float32}(undef,0)
         else # Segmentation
             classes = model_data.classes
@@ -503,17 +493,17 @@ function get_weights(classes::Vector{<:AbstractClass},settings::Settings,trainin
 end
 
 # Returns an accuracy function
-function get_accuracy_func(settings::Settings,weights::Vector{Float32})
-    weight = settings.Training.Options.General.weight_accuracy
-    if settings.problem_type==:Classification
+function get_accuracy_func(weights::Vector{Float32},options::Options)
+    weight = options.TrainingOptions.Accuracy.weight_accuracy
+    if problem_type()==:Classification
         if weight
             return (x,y) -> accuracy_classification_weighted(x,y,weights)
         else
             return accuracy_classification
         end
-    elseif settings.problem_type==:Regression
+    elseif problem_type()==:Regression
         return accuracy_regression
-    elseif settings.problem_type==:Segmentation
+    elseif problem_type()==:Segmentation
         if weight
             return  (x,y) -> accuracy_segmentation_weighted(x,y,weights)
         else
