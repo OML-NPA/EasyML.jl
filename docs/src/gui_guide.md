@@ -77,7 +77,7 @@ Minimum object area - removes objects that have area smaller than specified.
 ## Output options
 
 ```@raw html
-<img   src="./assets/images/modify_output1.png" width = 640em>
+<img   src="./assets/images/modify_output1.png" width = 600em>
 ```
 
 Output mask - exports a mask after applying all processing except for border data.
@@ -98,7 +98,7 @@ Sum of areas of objects - exports sum of all areas for each class.
 
 Binning method - specifies a binning method: automatic, number of bins or bin width.
 
-Value - number of bins or bin width depending on a previous settings.
+Value - number of bins or bin width depending on previous settings.
 
 Normalisation - normalisation type for a histogram: pdf, density, probability or none.
 
@@ -108,20 +108,38 @@ Normalisation - normalisation type for a histogram: pdf, density, probability or
 
 All is the same as for area.
 
+## Global options
+
+```@raw html
+<img   src="./assets/images/global_options1.png" width = 520em>
+```
+
+GUI scaling - scales GUI by a given factor.
+
+```@raw html
+<img   src="./assets/images/global_options2.png" width = 520em>
+```
+
+Allow GPU - allows to use a GPU if a compatible one is installed.
+
+Number of threads - a number of CPU threads that will be used.
+
+Number of slices - allows to process images during validation and application that otherwise cause an out of memory error by slicing them into multiple parts. Used only for segmentation.
+
+Offset - offsets each slice by a given number of pixels to allow for an absence of a seam. 
+
 ## Training options
 
 ```@raw html
-<img   src="./assets/images/training_options1.png" width = 570em>
+<img   src="./assets/images/training_options1.png" width = 520em>
 ```
-
-Allow GPU - allows to use a GPU if a suitable one is installed.
 
 Weight accuracy - uses weight accuracy where applicable.
 
 Mode - either Auto or Manual. Manual allows to specify weights manually for each class.
 
 ```@raw html
-<img   src="./assets/images/training_options2.png" width = 570em>
+<img   src="./assets/images/training_options2.png" width = 520em>
 ```
 
 Data preparation mode - Either Auto or Manual. Auto takes a specified fraction of training data to be used for testing. Manual allows to use other data as testing data.
@@ -131,7 +149,7 @@ Test data fraction - a fraction of data from training data to be used for testin
 Number of test - a number of tests to be done each epoch at equal intervals.
 
 ```@raw html
-<img   src="./assets/images/training_options3.png" width = 570em>
+<img   src="./assets/images/training_options3.png" width = 520em>
 ```
 
 Convert to grayscale - converts images to grayscale for training, validation and application.
@@ -143,31 +161,31 @@ Rotation -  augments data by rotating images using a specified number of angles.
 Minimum fraction of labeled pixels -  if supplied images are bigger than a model's input size, then an image is broken into chunks with a correct size. This option specifies the minimum number of labeled pixels for these chunks to be kept.
 
 ```@raw html
-<img   src="./assets/images/training_options4.png" width = 570em>
+<img   src="./assets/images/training_options4.png" width = 520em>
 ```
 
 Optimiser - an optimiser that should be used during training. ADAM usually works well for all cases.
 
 Next are parameters specific for each optimiser.
 
+Learning rate - specifies how fast a model should train. Lower values - more stable, but slower. Higher values - less stable, but faster. Should be decreased as training progresses.
+
 Batch size - a number of images that should be batched together during training.
 
 Number of epochs - a number of rounds for which a model should be trained.
 
-Learning rate - specifies how fast a model should train. Lower values - more stable, but slower. Higher values - less stable, but faster. Should be decreased as training progresses.
-
-## Aplication options
+## Application options
 
 ```@raw html
-<img   src="./assets/images/application_options.png" width = 570em>
+<img   src="./assets/images/application_options.png" width = 520em>
 ```
 
 Save path - a folder where output data should be saved.
 
-Analyse by - either file or folder. Used for segmentaion. Analysis by file treats every image independently. Analysis by folder combines data for images in the same folder.
+Analyse by - either file or folder. Used for segmentation. Analysis by file treats every image independently. Analysis by folder combines data for images in the same folder.
 
 Output data type - a format in which data should be saved.
 
 Output image type - a format in which images should be saved.
 
-Scaling - used for segmentation. Converts pixels to a unit of measurment of your choice.
+Scaling - used for segmentation. Converts pixels to a unit of measurement of your choice.

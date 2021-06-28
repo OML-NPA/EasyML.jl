@@ -6,7 +6,8 @@ makedocs(modules=[EasyML],
             "Quick guide" => "quick_guide.md",
             "GUI guide" => "gui_guide.md",
             "Functions" => "functions.md",
-            "Advanced" => "advanced.md"],
+            "Advanced" => "advanced.md",
+            "Handling issues" => "handling_issues.md"],
     authors = "Aleksandr Illarionov",
     format = Documenter.HTML(prettyurls = false)
 )

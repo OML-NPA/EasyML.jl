@@ -1,4 +1,23 @@
 
+
+
+## Setting up
+
+```@docs
+modify(global_options::EasyML.GlobalOptions)
+```
+
+```@docs
+load_options
+```
+
+```@docs
+save_model
+```
+
+```@docs
+load_model
+```
 ## Design
 
 ```@docs
@@ -13,23 +32,10 @@ modify_output()
 design_model()
 ```
 
-```@docs
-save_model
-```
-
-```@docs
-load_model
-```
-
 ## Training
 
-
 ```@docs
-modify(training_options::TrainingOptions)
-```
-
-```@docs
-load_settings
+modify(training_options::EasyML.TrainingOptions)
 ```
 
 ```@docs
@@ -86,7 +92,7 @@ remove_validation_results
 ## Application
 
 ```@docs
-modify(application_options::ApplicationOptions)
+modify(application_options::EasyML.ApplicationOptions)
 ```
 
 ```@docs
