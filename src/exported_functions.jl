@@ -605,6 +605,8 @@ and labels. Folder/file dialog for labels can be skipped if there are no labels 
 URLs are automatically saved to `EasyML.validation_data`.
 """
 function get_urls_validation()
+    validation_data.url_inputs = ""
+    validation_data.url_labels = ""
     url_channel = Channel{String}(1)
     observe(url) = put!(url_channel,fix_QML_types(url))
     dir = pwd()
