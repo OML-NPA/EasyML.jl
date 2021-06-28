@@ -315,7 +315,8 @@ ApplicationWindow {
                 }
             }
         }
-        MouseArea {
+    }
+    MouseArea {
             width: window.width
             height: window.height
             onPressed: {
@@ -328,5 +329,4 @@ ApplicationWindow {
             onPressAndHold: mouse.accepted = false;
             onClicked: mouse.accepted = false;
         }
-    }
 }
