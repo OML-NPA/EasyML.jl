@@ -41,7 +41,7 @@ export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
 export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, training, options, training_data, 
     training_plot_data, training_results_data, training_options, validation_data, validation_results_data,
     application_data, application_options, global_options
-export load_options, design_network, modify_classes, modify_output, modify, save_model, load_model, 
+export load_options, design_model, modify_classes, modify_output, modify, save_model, load_model, 
     get_urls_training, get_urls_testing, prepare_training_data, prepare_testing_data, remove_training_data, remove_testing_data, 
     remove_training_results, train, get_urls_validation, validate, remove_validation_data, remove_validation_results, 
     get_urls_application, apply, remove_application_data, forward, apply_border_data
