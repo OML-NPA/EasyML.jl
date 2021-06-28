@@ -74,7 +74,7 @@ ApplicationWindow {
                         {"name": "Hardware resources", "stackview": hardwareresourcesView}]
                     delegate : MenuButton {
                         id: general
-                        width: 1.3*buttonWidth
+                        width: 1.3*buttonWidth + 1
                         height: 1.25*buttonHeight
                         onClicked: {
                             stack.push(modelData.stackview);
