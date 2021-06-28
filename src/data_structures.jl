@@ -450,7 +450,7 @@ all_data = AllData()
 # Options
 @with_kw mutable struct HardwareResources
     allow_GPU::Bool = true
-    num_cores::Int64 = Threads.nthreads()
+    num_threads::Int64 = Threads.nthreads()
     num_slices::Int64 = 1
 end
 hardware_resources = HardwareResources()
@@ -560,6 +560,6 @@ mutable struct Counter
 end
 (c::Counter)() = (c.iteration += 1)
 
-num_cores() = hardware_resources.num_cores
+num_threads() = hardware_resources.num_threads
 problem_type() = all_data.problem_type
 input_type() = all_data.input_type

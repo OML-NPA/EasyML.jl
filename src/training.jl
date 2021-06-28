@@ -205,7 +205,7 @@ function prepare_data(model_data::ModelData,classification_data::ClassificationD
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Int32}}(undef,num)
-    chunk_size = convert(Int64,round(num/num_cores()))
+    chunk_size = convert(Int64,round(num/num_threads()))
     @floop ThreadedEx(basesize = chunk_size) for k = 1:num
         current_imgs = imgs[k]
         num2 = length(current_imgs)
@@ -274,7 +274,7 @@ function prepare_data(model_data::ModelData,regression_data::RegressionData,
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Vector{Float32}}}(undef,num)
-    chunk_size = convert(Int64,round(num/num_cores()))
+    chunk_size = convert(Int64,round(num/num_threads()))
     @floop ThreadedEx(basesize = chunk_size) for k = 1:num
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)
@@ -340,7 +340,7 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
     # Make input images
-    chunk_size = convert(Int64,round(num/num_cores()))
+    chunk_size = convert(Int64,round(num/num_threads()))
     @floop ThreadedEx(basesize = chunk_size) for k = 1:num
         # Abort if requested
         if check_abort_signal(channels.training_data_modifiers)

@@ -312,3 +312,7 @@ macro clear()
         @info str
     end
 end
+
+function max_num_threads()
+    return length(Sys.cpu_info())
+end
