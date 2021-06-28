@@ -1,6 +1,6 @@
 
 """
-    modify(global_options::GlobalOptions) 
+    modify(global_options::EasyML.GlobalOptions) 
 
 Allows to modify `global_options` in a GUI.
 """
@@ -190,7 +190,7 @@ end
 
 Allows to modify `training_options` in a GUI.
 """
-function modify(data::TrainingOptions)
+function modify(data::EasyML.TrainingOptions)
     @qmlfunction(
         get_options,
         set_options,
@@ -741,7 +741,7 @@ end
 # Application
 
 """
-    modify(application_options::ApplicationOptions) 
+    modify(application_options::EasyML.ApplicationOptions) 
 
 Allows to modify `application_options` in a GUI.
 """
