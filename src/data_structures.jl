@@ -482,8 +482,8 @@ global_options = GlobalOptions()
 @with_kw mutable struct DesignOptions
     width::Float64 = 340
     height::Float64 = 100
-    min_dist_x::Float64 = 40
-    min_dist_y::Float64 = 5
+    min_dist_x::Float64 = 80
+    min_dist_y::Float64 = 40
 end
 design_options = DesignOptions()
 

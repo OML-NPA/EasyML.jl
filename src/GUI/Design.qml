@@ -1124,8 +1124,8 @@ ApplicationWindow {
                     var inds = data[1]
                     for (var i=0;i<inds.length;i++) {
                         var layer = layers.children[inds[i]]
-                        layer.x = coordinates[i][0]
-                        layer.y = coordinates[i][1]
+                        layer.x = coordinates[i][0]*pix
+                        layer.y = coordinates[i][1]*pix
                         layer.oldpos = [layer.x,layer.y]
                     }
                     updateMainPane(layers.children[0])

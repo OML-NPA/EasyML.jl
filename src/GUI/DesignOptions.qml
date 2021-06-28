@@ -55,7 +55,7 @@ ApplicationWindow {
 
     onClosing: {
         Julia.save_options()
-        //designoptionsLoader.sourceComponent = null
+        designoptionsLoader.sourceComponent = null
     }
 
     Item {
@@ -223,8 +223,8 @@ ApplicationWindow {
                     var inds = data[1]
                     for (i=0;i<inds.length;i++) {
                         var layer = layers.children[inds[i]]
-                        layer.x = coordinates[i][0]
-                        layer.y = coordinates[i][1]
+                        layer.x = coordinates[i][0]*pix
+                        layer.y = coordinates[i][1]*pix
                     }
                     updateMainPane(layers.children[0])
                     updateConnections()

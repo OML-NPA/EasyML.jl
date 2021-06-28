@@ -595,9 +595,9 @@ end
 function arrange_main(design_data::DesignData,design_options::DesignOptions)
     layers_arranged,inds_arranged = get_topology(design_data.ModelData)
     coordinates = []
-    coordinate = [layers_arranged[1].x,layers_arranged[1].y-
-        (design_options.height+design_options.min_dist_y)]
-    for i = 1:length(inds_arranged)
+    coordinate = [layers_arranged[1].x,layers_arranged[1].y]
+    push!(coordinates,coordinate)
+    for i = 2:length(inds_arranged)
         layers = layers_arranged[i]
         coordinate = arrange_branches(coordinates,
             coordinate,design_options,layers)
