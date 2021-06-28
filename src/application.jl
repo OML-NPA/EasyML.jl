@@ -914,16 +914,20 @@ function mask_to_img(mask::BitArray{3},classes::Vector{ImageSegmentationClass},
 end
 
 #---Saving
-function get_data_ext(ind)
+function get_data_ext(data_type)
+    ext_symbol_caps = [:CSV,:XLSX,:JSON,:BSON]
+    ind = findfirst(data_type.==ext_symbol_caps)
     ext = [".csv",".xlsx",".json",".bson"]
     ext_symbol = [:csv,:xlsx,:json,:bson]
-    return ext[ind+1],ext_symbol[ind+1]
+    return ext[ind],ext_symbol[ind]
 end
 
-function get_image_ext(ind)
+function get_image_ext(data_type)
+    ext_symbol_caps = [:PNG,:TIFF,:BSON]
+    ind = findfirst(data_type.==ext_symbol_caps)
     ext = [".png",".tiff",".bson"]
     ext_symbol = [:png,:tiff,:bson]
-    return ext[ind+1],ext_symbol[ind+1]
+    return ext[ind],ext_symbol[ind]
 end
 
 function save(data,path::String,name::String,ext::Symbol)
@@ -987,8 +991,8 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
         end
     end
     scaling = application_options.scaling
-    batch_size = application_options.minibatch_size
-    apply_by_file = application_options.apply_by[1]=="file"
+    batch_size = 1
+    apply_by_file = application_options.apply_by==:file
     data_channel = Channel{Tuple{Int64,T}}(Inf)
     # Get file extensions
     img_ext,img_sym_ext = get_image_ext(application_options.image_type)

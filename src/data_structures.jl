@@ -530,11 +530,10 @@ training_options = TrainingOptions()
 # Application
 @with_kw mutable struct ApplicationOptions
     savepath::String = ""
-    apply_by::Tuple{String,Int64} = ("file",0)
-    data_type::Int64 = 0
-    image_type::Int64 = 0
+    apply_by::Symbol = :file
+    data_type::Symbol = :CSV
+    image_type::Symbol = :PNG
     scaling::Float64 = 1
-    minibatch_size::Int64 = 1
 end
 application_options = ApplicationOptions()
 

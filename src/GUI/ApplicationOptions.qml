@@ -143,7 +143,7 @@ ApplicationWindow {
                                 }
                                 Label {
                                     Layout.alignment : Qt.AlignLeft
-                                    text: "Analyse by:"
+                                    text: "Apply by:"
                                 }
                                 Label {
                                     Layout.alignment : Qt.AlignLeft
@@ -206,45 +206,59 @@ ApplicationWindow {
                                         ListElement { text: "folder" }
                                     }
                                     Component.onCompleted: {
-                                        currentIndex =
-                                            Julia.get_options(["ApplicationOptions","apply_by"],2)
+                                        var type = Julia.get_options(["ApplicationOptions","apply_by"])
+                                        if (type=="file") {
+                                            currentIndex = 0
+                                        }
+                                        else {
+                                            currentIndex = 1
+                                        }
                                     }
                                     onActivated: {
-                                        Julia.set_options(["ApplicationOptions","apply_by"],
-                                            [currentText,currentIndex],"make_tuple")
+                                        Julia.set_options(["ApplicationOptions","apply_by"],currentText)
                                     }
                                 }
                                 ComboBox {
                                     width: 0.5*buttonWidth
                                     model: ListModel {
-                                        id: modelData
-                                        ListElement { text: "CSV" }
-                                        ListElement { text: "XLSX" }
-                                        ListElement { text: "JSON" }
-                                        ListElement { text: "BSON" }
+                                        id: dataModel
                                     }
+                                    property var types: ["CSV","XLSX","JSON","BSON"]
                                     Component.onCompleted: {
-                                        currentIndex =
-                                            Julia.get_options(["ApplicationOptions","data_type"])
+                                        var current_type = Julia.get_options(["ApplicationOptions","data_type"])
+                                        for (var i=0;i<types.length;i++) {
+                                            var type = types[i]
+                                            dataModel.append({"name": type})
+                                            if (current_type==type) {
+                                                currentIndex = i
+                                            }
+                                        }
                                     }
                                     onActivated: {
-                                        Julia.set_options(["ApplicationOptions","data_type"],currentIndex)
+                                        Julia.set_options(["ApplicationOptions","data_type"],currentText)
                                     }
                                 }
                                 ComboBox {
                                     width: 0.5*buttonWidth
                                     model: ListModel {
-                                        id: modelImages
+                                        id: imagesModel
                                         ListElement { text: "PNG" }
                                         ListElement { text: "TIFF" }
                                         ListElement { text: "BSON" }
                                     }
+                                    property var types: ["PNG","TIFF","BSON"]
                                     Component.onCompleted: {
-                                        currentIndex =
-                                            Julia.get_options(["ApplicationOptions","image_type"])
+                                        var current_type = Julia.get_options(["ApplicationOptions","image_type"])
+                                        for (var i=0;i<types.length;i++) {
+                                            var type = types[i]
+                                            imagesModel.append({"name": type})
+                                            if (current_type==type) {
+                                                currentIndex = i
+                                            }
+                                        }
                                     }
                                     onActivated: {
-                                        Julia.set_options(["ApplicationOptions","image_type"],currentIndex)
+                                        Julia.set_options(["ApplicationOptions","image_type"],currentText)
                                     }
                                 }
                                 /*ComboBox {
