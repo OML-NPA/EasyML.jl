@@ -452,6 +452,7 @@ all_data = AllData()
     allow_GPU::Bool = true
     num_threads::Int64 = Threads.nthreads()
     num_slices::Int64 = 1
+    offset::Int64 = 20
 end
 hardware_resources = HardwareResources()
 

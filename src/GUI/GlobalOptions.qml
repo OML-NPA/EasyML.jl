@@ -232,6 +232,28 @@ ApplicationWindow {
                             }
                         }
                     }
+                    Row {
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: offsetLabel
+                            text: "Offset:"
+                            width: numthreadsLabel.width
+                        }
+                        SpinBox {
+                            anchors.verticalCenter: offsetLabel.verticalCenter
+                            from: 0
+                            value: Julia.get_options(
+                                        ["GlobalOptions","HardwareResources","offset"])
+                            to: 100
+                            stepSize: 1
+                            editable: true
+                            onValueModified: {
+                                Julia.set_options(
+                                    ["GlobalOptions","HardwareResources","offset"],value)
+                            }
+                        }
+                    }
                 }
             }
         }

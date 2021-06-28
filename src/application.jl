@@ -117,7 +117,7 @@ end
 
 function get_output(classes::Vector{ImageClassificationClass},num::Int64,
     urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-    num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+    num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
     data_channel::Channel{Tuple{Int64,Vector{Int64}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -130,7 +130,8 @@ function get_output(classes::Vector{ImageClassificationClass},num::Int64,
             # Get input
             input_data = prepare_application_data(classes,urls_batch[l],model_data,processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,
+                num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
             _, predicted_labels4 = findmax(predicted,dims=1)
             predicted_labels = map(x-> x.I[1],predicted_labels4[:])
             # Return result
@@ -142,7 +143,7 @@ end
 
 function get_output(classes::Vector{ImageRegressionClass},num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-        num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
         data_channel::Channel{Tuple{Int64,Vector{Float32}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -155,7 +156,8 @@ function get_output(classes::Vector{ImageRegressionClass},num::Int64,
             # Get input
             input_data = prepare_application_data(classes,urls_batch[l],model_data,processing)
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,
+                num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
             predicted_labels = reshape(predicted,:)
             # Return result
             put!(data_channel,(l,predicted_labels))
@@ -180,7 +182,7 @@ end
 
 function get_output(classes::Vector{ImageSegmentationClass},num::Int64,
         urls_batched::Vector{Vector{Vector{String}}},model_data::ModelData,
-        num_slices_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
+        num_slices_val::Int64,offset_val::Int64,use_GPU::Bool,processing::ProcessingTraining,
         data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     for k = 1:num
         urls_batch = urls_batched[k]
@@ -195,7 +197,8 @@ function get_output(classes::Vector{ImageSegmentationClass},num::Int64,
             # Adjust input size if required to avoid incorrect size of output 
             input_data,change_size,s = adjust_size(input_data,model_data.input_size[1:2])
             # Get output
-            predicted = forward(model_data.model,input_data,num_slices=num_slices_val,use_GPU=use_GPU)
+            predicted = forward(model_data.model,input_data,
+                num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
             if change_size
                 predicted = predicted[1:s[1],1:s[2],:,:]
             end
@@ -1007,9 +1010,15 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     # Output information
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
-    num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+    if problem_type()==:Segmentation
+        num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+        offset_val = options.GlobalOptions.HardwareResources.offset
+    else
+        num_slices_val = 1
+        offset_val = 0
+    end
     t = Threads.@spawn get_output(classes,num,urls_batched,model_data,
-        num_slices_val,use_GPU,processing,data_channel,channels)
+        num_slices_val,offset_val,use_GPU,processing,data_channel,channels)
     push!(application_data.tasks,t)
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,

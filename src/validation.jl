@@ -294,14 +294,20 @@ function validate_main(model_data::ModelData,validation_data::ValidationData,
             @warn "No CUDA capable device was detected. Using CPU instead."
         end
     end
-    num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+    if problem_type()==:Segmentation
+        num_slices_val = options.GlobalOptions.HardwareResources.num_slices
+        offset_val = options.GlobalOptions.HardwareResources.offset
+    else
+        num_slices_val = 1
+        offset_val = 0
+    end
     for i = 1:num
         if check_abort_signal(channels.validation_modifiers)
             return nothing
         end
         data_input,label,other = prepare_validation_data(classes,i,model_data,
             validation_data,processing)
-        predicted = forward(model,data_input,num_slices=num_slices_val,use_GPU=use_GPU)
+        predicted = forward(model,data_input,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
         if use_labels
             accuracy_val = accuracy(predicted,label)
             loss_val = loss(predicted,label)
