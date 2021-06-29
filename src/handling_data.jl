@@ -196,8 +196,8 @@ end
 """
     load_options()
 
-Loads options from your previous run which are located in 'options.bson'. 
-Uses present working directory. It is run automatically after 'using EasyML'.
+Loads options from your previous run which are located in `options.bson`. 
+Uses present working directory. It is run automatically after `using EasyML`.
 """
 load_options() = load_options!(options)
 

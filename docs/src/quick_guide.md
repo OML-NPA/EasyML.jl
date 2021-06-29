@@ -4,9 +4,7 @@ These are all the functions you will probably ever need.
 
 ## Settings up
 ```julia
-hardware_resources.allow_GPU = true
-hardware_resources.num_cores = 4
-graphics.scaling_factor = 1
+modify(global_options)
 ```
 
 ## Design
@@ -48,5 +46,5 @@ remove_application_data()
 ## On reopening
 ```julia
 load_model()
-load_settings()
+load_options()
 ```
