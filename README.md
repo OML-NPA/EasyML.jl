@@ -27,5 +27,3 @@ Add the package from this repository to Julia using
 and then write
 
 `using EasyML`
-
-

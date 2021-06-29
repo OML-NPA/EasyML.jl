@@ -48,7 +48,7 @@ end
 `ImageClassificationOutputOptions` and `ImageRegressionOutputOptions` are currently empty. New functionality can be added on request.
 
 ```julia
-@with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
+mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
     Mask::OutputMask            # holds output mask options.
     Area::OutputArea            # holds area of objects options.
     Volume::OutputVolume        # holds volume of objects options.
@@ -60,7 +60,7 @@ mutable struct OutputMask
     mask_applied_border::Bool   # exports a mask processed using border data.
 end
 
-@with_kw mutable struct OutputArea
+mutable struct OutputArea
     area_distribution::Bool     # exports area distribution of detected objects as a histogram.
     obj_area::Bool              # exports area of each detected object.
     obj_area_sum::Bool          # exports sum of all areas for each class.
@@ -69,7 +69,7 @@ end
     normalisation::Int64        # normalisation type for a histogram, 0 - pdf, 1 - Density, 2 - Probability, 3 - None.
 end
 
-@with_kw mutable struct OutputVolume
+mutable struct OutputVolume
     volume_distribution::Bool   # exports volume distribution of detected objects as a histogram.
     obj_volume::Bool            # exports volume of each detected object.
     obj_volume_sum::Bool        # exports sum of all volumes for each class.
@@ -136,7 +136,7 @@ end
 Can be accessed as `EasyML.graphics`.
 
 ```julia
-@with_kw mutable struct DesignOptions
+mutable struct DesignOptions
     width::Float64        # width of layers
     height::Float64       # height of layers
     min_dist_x::Float64   # minimum horizontal distance between layers
@@ -146,7 +146,7 @@ end
 Can be accessed as `EasyML.design_options`.
 
 ```julia
-@with_kw mutable struct TrainingOptions
+mutable struct TrainingOptions
     Accuracy::AccuracyOptions
     Testing::TestingOptions
     Processing::ProcessingOptions
