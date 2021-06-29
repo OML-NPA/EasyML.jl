@@ -825,9 +825,11 @@ ApplicationWindow {
                         id: minareaTextField
                         anchors.verticalCenter: minareaLabel.verticalCenter
                         width: 140*pix
-                        validator: RegExpValidator { regExp: /([1-9]\d{0,5})/ }
+                        validator: RegExpValidator { regExp: /([0-9]\d{0,5})/ }
                         onEditingFinished: {
+                            var val = parseInt(text)
                             classModel.get(indTree).min_area = parseInt(text)
+                            text = parseInt(text)
                         }
                     }
                 }
