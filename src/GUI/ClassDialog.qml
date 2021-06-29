@@ -104,6 +104,9 @@ ApplicationWindow {
             }
             classModel.append(class_var)
         }
+        if (classModel.count>0) {
+            indTree = 0
+        }
     }
 
     function reset_visibility() {
