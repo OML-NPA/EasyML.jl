@@ -11,7 +11,7 @@ It is possible to:
   
 Classification, regression and segmentation on images are currently supported.
 
-Flux.jl neural network library is used. 
+[Flux.jl](https://github.com/FluxML/Flux.jl) machine learning library is used under the hood.
 
 ```@raw html
 <style>
