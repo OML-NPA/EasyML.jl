@@ -293,8 +293,9 @@ ApplicationWindow {
                                 ListElement {text: "Regression"}
                                 ListElement {text: "Segmentation"}
                             }
-                            onActivated: {
+                            onCurrentIndexChanged: {
                                 classModel.clear()
+                                classView.forceLayout()
                                 indTree = -1
                                 update_fields()
                             }
@@ -362,7 +363,9 @@ ApplicationWindow {
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
                                                 color: problemComboBox.currentIndex==2 ? 
-                                                    rgbtohtml([colorR,colorG,colorB]) :
+                                                    rgbtohtml([classView.model.get(index).colorR,
+                                                                classView.model.get(index).colorG,
+                                                                classView.model.get(index).colorB]) :
                                                     "transparent"
                                             }
                                             Label {
