@@ -503,8 +503,11 @@ function save_model_main(model_data,url)
         BSON.@save(BSON_stream, field)
         dict[name] = BSON_stream
     end
-    bson(String(url),dict)
-  return nothing
+    dirs = string.(split(url,('/','\\')))[1:end-1]
+    url_dir = string(dirs...,"\\")
+    make_dir(url_dir)
+    bson(url,dict)
+    return nothing
 end
 """
     save_model(url::String)
