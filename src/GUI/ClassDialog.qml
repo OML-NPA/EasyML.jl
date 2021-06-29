@@ -784,7 +784,7 @@ ApplicationWindow {
                             return realValue.toLocaleString(locale,'f',0)
                         }
                         onValueModified: {
-                            classModel.get(indTree).border_thickness = value
+                            classModel.get(indTree).border_thickness = realValue
                         }
                     }
                 }
