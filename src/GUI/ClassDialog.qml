@@ -365,11 +365,7 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                color: problemComboBox.currentIndex==2 ? 
-                                                    rgbtohtml([classView.model.get(index).colorR,
-                                                                classView.model.get(index).colorG,
-                                                                classView.model.get(index).colorB]) :
-                                                    "transparent"
+                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([colorR,colorG,colorB]) : "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
