@@ -493,6 +493,7 @@ end
 #---Model saving/loading
 # Saves ML model
 function save_model_main(model_data,url)
+    url = fix_QML_types(url)
     names = fieldnames(ModelData)
     num = length(names)
     dict = Dict{Symbol,IOBuffer}()
