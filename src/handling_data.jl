@@ -505,7 +505,7 @@ function save_model_main(model_data,url)
         dict[name] = BSON_stream
     end
     dirs = string.(split(url,('/','\\')))[1:end-1]
-    url_dir = string(dirs...,"\\")
+    url_dir = join(dirs,'\\')
     make_dir(url_dir)
     bson(url,dict)
     return nothing
