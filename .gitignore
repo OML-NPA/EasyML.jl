@@ -9,4 +9,3 @@ src/test.jl
 *.docx
 *.csv
 *.model
-src/GUI/DataPlot.qml
