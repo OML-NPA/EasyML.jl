@@ -104,6 +104,9 @@ ApplicationWindow {
             }
             classModel.append(class_var)
         }
+        if (classModel.count>0) {
+            indTree = 0
+        }
     }
 
     function reset_visibility() {
@@ -293,8 +296,9 @@ ApplicationWindow {
                                 ListElement {text: "Regression"}
                                 ListElement {text: "Segmentation"}
                             }
-                            onActivated: {
+                            onCurrentIndexChanged: {
                                 classModel.clear()
+                                classView.forceLayout()
                                 indTree = -1
                                 update_fields()
                             }
@@ -361,9 +365,7 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                color: problemComboBox.currentIndex==2 ? 
-                                                    rgbtohtml([colorR,colorG,colorB]) :
-                                                    "transparent"
+                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([colorR,colorG,colorB]) : "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
@@ -859,6 +861,7 @@ ApplicationWindow {
             width: buttonWidth/2
             height: 1.2*buttonHeight
             onClicked: {
+                Julia.set_problem_type(problemComboBox.currentIndex)
                 Julia.backup_options()
                 Julia.reset_classes()
                 Julia.reset_output_options()
@@ -879,7 +882,7 @@ ApplicationWindow {
                         [class_var.parent,class_var.parent2],
                         class_var.notClass])
                 }
-                Julia.set_problem_type(problemComboBox.currentIndex)
+                
                 // classdialogLoader.sourceComponent = null
                 classdialogWindow.close()
             }
