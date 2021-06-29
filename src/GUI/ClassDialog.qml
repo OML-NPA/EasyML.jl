@@ -862,6 +862,7 @@ ApplicationWindow {
             width: buttonWidth/2
             height: 1.2*buttonHeight
             onClicked: {
+                Julia.set_problem_type(problemComboBox.currentIndex)
                 Julia.backup_options()
                 Julia.reset_classes()
                 Julia.reset_output_options()
@@ -882,7 +883,7 @@ ApplicationWindow {
                         [class_var.parent,class_var.parent2],
                         class_var.notClass])
                 }
-                Julia.set_problem_type(problemComboBox.currentIndex)
+                
                 // classdialogLoader.sourceComponent = null
                 classdialogWindow.close()
             }
