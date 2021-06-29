@@ -26,7 +26,7 @@ mutable struct ImageSegmentationClass&lt;:AbstractClass
     min_area::Int64            # minimum area of an object.
     parents::Vector{String}    # up to two parents can be specified by their name. Objects from a child are added to its parent.
     not_class::Bool            # specifies that a class is an overlap of two classes and should be just added to specified parents.
-end</code></pre><p><code>OutputOptions</code> should also be chosen accordingly to a type of a problem one has.</p><p><code>ImageClassificationOutputOptions</code> and <code>ImageRegressionOutputOptions</code> are currently empty. New functionality can be added on request.</p><pre><code class="language-julia">@with_kw mutable struct ImageSegmentationOutputOptions&lt;:AbstractOutputOptions
+end</code></pre><p><code>OutputOptions</code> should also be chosen accordingly to a type of a problem one has.</p><p><code>ImageClassificationOutputOptions</code> and <code>ImageRegressionOutputOptions</code> are currently empty. New functionality can be added on request.</p><pre><code class="language-julia">mutable struct ImageSegmentationOutputOptions&lt;:AbstractOutputOptions
     Mask::OutputMask            # holds output mask options.
     Area::OutputArea            # holds area of objects options.
     Volume::OutputVolume        # holds volume of objects options.
@@ -38,7 +38,7 @@ mutable struct OutputMask
     mask_applied_border::Bool   # exports a mask processed using border data.
 end
 
-@with_kw mutable struct OutputArea
+mutable struct OutputArea
     area_distribution::Bool     # exports area distribution of detected objects as a histogram.
     obj_area::Bool              # exports area of each detected object.
     obj_area_sum::Bool          # exports sum of all areas for each class.
@@ -47,7 +47,7 @@ end
     normalisation::Int64        # normalisation type for a histogram, 0 - pdf, 1 - Density, 2 - Probability, 3 - None.
 end
 
-@with_kw mutable struct OutputVolume
+mutable struct OutputVolume
     volume_distribution::Bool   # exports volume distribution of detected objects as a histogram.
     obj_volume::Bool            # exports volume of each detected object.
     obj_volume_sum::Bool        # exports sum of all volumes for each class.
@@ -81,12 +81,12 @@ end</code></pre><p>Can be accessed as <code>EasyML.global_options</code>.</p><pr
     offset::Int64        # offsets each slice by a given number of pixels to allow for an absence of a seam. 
 end</code></pre><p>Can be accessed as <code>EasyML.hardware_resources</code>.</p><pre><code class="language-julia">mutable struct Graphics
     scaling_factor::Float64   # scales GUI by a given factor.
-end</code></pre><p>Can be accessed as <code>EasyML.graphics</code>.</p><pre><code class="language-julia">@with_kw mutable struct DesignOptions
+end</code></pre><p>Can be accessed as <code>EasyML.graphics</code>.</p><pre><code class="language-julia">mutable struct DesignOptions
     width::Float64        # width of layers
     height::Float64       # height of layers
     min_dist_x::Float64   # minimum horizontal distance between layers
     min_dist_y::Float64   # minimum vertical distance between layers
-end</code></pre><p>Can be accessed as <code>EasyML.design_options</code>.</p><pre><code class="language-julia">@with_kw mutable struct TrainingOptions
+end</code></pre><p>Can be accessed as <code>EasyML.design_options</code>.</p><pre><code class="language-julia">mutable struct TrainingOptions
     Accuracy::AccuracyOptions
     Testing::TestingOptions
     Processing::ProcessingOptions
@@ -117,4 +117,4 @@ for i = 1:length(data)
     output_bool = output_raw[:,:,:].&gt;0.5
     output = apply_border_data(output_bool,model_data.classes)   # can be removed if your model does not detect borders
     push!(results,output)
-end</code></pre><article class="docstring"><header><a class="docstring-binding" id="EasyML.forward" href="#EasyML.forward"><code>EasyML.forward</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">forward(model::Chain, input_data::Array{Float32}; num_slices::Int64=1, offset::Int64=20, use_GPU::Bool=false)</code></pre><p>The function takes in a model and input data and returns output from that model. <code>num_slices</code> specifies in how many  slices should an array be run thorugh a neural network. Allows to process images that otherwise cause an out of memory error. <code>offset</code> specifies the size of an overlap that should be taken from the left and right side of each slice to allow for  an absense of a seam. <code>use_GPU</code> enables or disables GPU usage.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="EasyML.apply_border_data" href="#EasyML.apply_border_data"><code>EasyML.apply_border_data</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})</code></pre><p>Used for segmentation. Uses borders of objects that a neural network detected in order  to separate objects from each other. Output from a neural network should be fed after  converting to BitArray.</p></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="functions.html">« Functions</a><a class="docs-footer-nextpage" href="handling_issues.html">Handling issues »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 29 June 2021 15:44">Tuesday 29 June 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><article class="docstring"><header><a class="docstring-binding" id="EasyML.forward" href="#EasyML.forward"><code>EasyML.forward</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">forward(model::Chain, input_data::Array{Float32}; num_slices::Int64=1, offset::Int64=20, use_GPU::Bool=false)</code></pre><p>The function takes in a model and input data and returns output from that model. <code>num_slices</code> specifies in how many  slices should an array be run thorugh a neural network. Allows to process images that otherwise cause an out of memory error. <code>offset</code> specifies the size of an overlap that should be taken from the left and right side of each slice to allow for  an absense of a seam. <code>use_GPU</code> enables or disables GPU usage.</p></div></section></article><article class="docstring"><header><a class="docstring-binding" id="EasyML.apply_border_data" href="#EasyML.apply_border_data"><code>EasyML.apply_border_data</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})</code></pre><p>Used for segmentation. Uses borders of objects that a neural network detected in order  to separate objects from each other. Output from a neural network should be fed after  converting to BitArray.</p></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="functions.html">« Functions</a><a class="docs-footer-nextpage" href="handling_issues.html">Handling issues »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 29 June 2021 16:38">Tuesday 29 June 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
