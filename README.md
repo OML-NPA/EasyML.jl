@@ -1,6 +1,11 @@
 # EasyML.jl
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://oml-npa.github.io/EasyML.jl/stable/)
 
+<p align="center">
+  <img width=250px src=https://raw.githubusercontent.com/OML-NPA/EasyML.jl/main/docs/src/assets/logo.png></img>
+</p>
+
+
 This package allows to use machine learning in Julia through a graphical user interface.
 
 NB! This is a beta version. Bugs and bracking changes should be expected.
