@@ -104,6 +104,9 @@ ApplicationWindow {
             }
             classModel.append(class_var)
         }
+        if (classModel.count>0) {
+            indTree = 0
+        }
     }
 
     function reset_visibility() {
@@ -293,8 +296,9 @@ ApplicationWindow {
                                 ListElement {text: "Regression"}
                                 ListElement {text: "Segmentation"}
                             }
-                            onActivated: {
+                            onCurrentIndexChanged: {
                                 classModel.clear()
+                                classView.forceLayout()
                                 indTree = -1
                                 update_fields()
                             }
@@ -361,9 +365,7 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                color: problemComboBox.currentIndex==2 ? 
-                                                    rgbtohtml([colorR,colorG,colorB]) :
-                                                    "transparent"
+                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([colorR,colorG,colorB]) : "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
@@ -652,7 +654,7 @@ ApplicationWindow {
                         id: redTextField
                         anchors.verticalCenter: redLabel.verticalCenter
                         text: "0"
-                        width: 0.19*buttonWidth
+                        width: 0.20*buttonWidth
                         height: buttonHeight
                         validator: IntValidator { bottom: 0; top: 999;}
                         onEditingFinished: {
@@ -684,17 +686,7 @@ ApplicationWindow {
                                 val = 255
                                 greenTextField.text = "255"
                             }
-                            classModel.setProperty(indTree, "colorR", val)
-                            classModel.get(indTree).colorR = val
-                        }
-                        onAccepted: {
-                            var val = parseFloat(greenTextField.text)
-                            if (val>255) {
-                                val = 255
-                                greenTextField.text = "255"
-                            }
-                            classModel.setProperty(indTree, "colorR", val)
-                            backgroundMouseArea.focus = true
+                            classModel.setProperty(indTree, "colorG", val)
                         }
                     }
                     Label {
@@ -715,17 +707,7 @@ ApplicationWindow {
                                 val = 255
                                 blueTextField.text = "255"
                             }
-                            classModel.setProperty(indTree, "colorR", val)
-                            classModel.get(indTree).colorR = val
-                        }
-                        onAccepted: {
-                            var val = parseFloat(blueTextField.text)
-                            if (val>255) {
-                                val = 255
-                                blueTextField.text = "255"
-                            }
-                            classModel.setProperty(indTree, "colorR", val)
-                            backgroundMouseArea.focus = true
+                            classModel.setProperty(indTree, "colorB", val)
                         }
                     }
                 }
@@ -802,7 +784,7 @@ ApplicationWindow {
                             return realValue.toLocaleString(locale,'f',0)
                         }
                         onValueModified: {
-                            classModel.get(indTree).border_thickness = value
+                            classModel.get(indTree).border_thickness = realValue
                         }
                     }
                 }
@@ -843,9 +825,11 @@ ApplicationWindow {
                         id: minareaTextField
                         anchors.verticalCenter: minareaLabel.verticalCenter
                         width: 140*pix
-                        validator: RegExpValidator { regExp: /([1-9]\d{0,5})/ }
+                        validator: RegExpValidator { regExp: /([0-9]\d{0,5})/ }
                         onEditingFinished: {
+                            var val = parseInt(text)
                             classModel.get(indTree).min_area = parseInt(text)
+                            text = parseInt(text)
                         }
                     }
                 }
@@ -859,6 +843,7 @@ ApplicationWindow {
             width: buttonWidth/2
             height: 1.2*buttonHeight
             onClicked: {
+                Julia.set_problem_type(problemComboBox.currentIndex)
                 Julia.backup_options()
                 Julia.reset_classes()
                 Julia.reset_output_options()
@@ -879,7 +864,7 @@ ApplicationWindow {
                         [class_var.parent,class_var.parent2],
                         class_var.notClass])
                 }
-                Julia.set_problem_type(problemComboBox.currentIndex)
+                
                 // classdialogLoader.sourceComponent = null
                 classdialogWindow.close()
             }
