@@ -1,14 +1,24 @@
 
 #---Struct related functions
-
 function struct_to_dict!(dict,obj)
     ks = fieldnames(typeof(obj))
     for k in ks
         value = getproperty(obj,k)
-        if parentmodule(typeof(value))==EasyML
+        type = typeof(value)
+        if parentmodule(type)==EasyML
             dict_current = Dict{Symbol,Any}()
             dict[k] = dict_current
             struct_to_dict!(dict_current,value)
+        elseif value isa Vector && !isempty(value) && parentmodule(eltype(type))==EasyML
+            types = typeof.(value)
+            dict_vec = Vector{Dict{Symbol,Any}}(undef,0)
+            for obj_for_vec in value
+                dict_for_vec = Dict{Symbol,Any}()
+                EasyML.struct_to_dict!(dict_for_vec,obj_for_vec)
+                push!(dict_vec,dict_for_vec)
+            end
+            data_tuple = (vector_type = type, types = types, values = dict_vec)
+            dict[k] = data_tuple
         else
             dict[k] = value
         end
@@ -22,8 +32,22 @@ function dict_to_struct!(obj,dict::Dict)
         ks_cur = ks[i]
         sym = Symbol(ks_cur)
         value = dict[ks_cur]
+        obj_property = getproperty(obj,sym)
+        obj_type = typeof(obj_property)
         if value isa Dict
-            dict_to_struct!(getproperty(obj,sym),value)
+            dict_to_struct!(obj_property,value)
+        elseif obj_property isa Vector && parentmodule(eltype(obj_type))==EasyML
+            vector_type = getindex(value,:vector_type) 
+            types = getindex(value,:types) 
+            values = getindex(value,:values) 
+            struct_vec = vector_type(undef,0)
+            for j = 1:length(types)
+                obj_for_vec = types[j]()
+                dict_for_vec = values[j]
+                dict_to_struct!(obj_for_vec,dict_for_vec)
+                push!(struct_vec,obj_for_vec)
+            end
+            setproperty!(obj,sym,struct_vec)
         else
             if hasfield(typeof(obj),sym)
                 setproperty!(obj,sym,value)
