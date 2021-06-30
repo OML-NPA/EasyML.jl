@@ -29,6 +29,8 @@ Add the package from this repository to Julia using
 
 `] add https://github.com/OML-NPA/EasyML.jl`
 
+in REPL.
+
 ### Quick guide
 
 EasyML is easy enough to figure it out by yourself! Just run the following lines. 
