@@ -510,7 +510,12 @@ save_model(url) = save_model_main(model_data,url)
 # loads ML model
 function load_model_main(model_data,url)
     url = fix_QML_types(url)
-    data = BSON.load(url)
+    if isfile(url)
+        data = BSON.load(url)
+    else
+        @error string(url, " does not exist.")
+        return nothing
+    end
     ks = collect(keys(data))
     if data[ks[1]] isa IOBuffer
         # Will be removed before addition to the registry
