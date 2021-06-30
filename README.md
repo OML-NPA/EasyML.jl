@@ -29,16 +29,17 @@ Add the package from this repository to Julia using
 
 `] add https://github.com/OML-NPA/EasyML.jl`
 
-and then write
-
-`using EasyML`
-
 ### Quick guide
 
 EasyML is easy enough to figure it out by yourself! Just run the following lines. 
 These are all the functions you will probably ever need.
 
-#### Settings up
+#### Adding the package
+```julia
+using EasyML
+```
+
+#### Setting up
 ```julia
 modify(global_options)
 ```
