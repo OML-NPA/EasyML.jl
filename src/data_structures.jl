@@ -498,13 +498,13 @@ accuracy_options = AccuracyOptions()
 @with_kw mutable struct TestingOptions
     data_preparation_mode::Symbol = :Auto
     test_data_fraction::Float64 = 0.1
-    num_tests::Float64 = 5
+    num_tests::Float64 = 2
 end
 testing_options = TestingOptions()
 
 @with_kw mutable struct ProcessingOptions
     grayscale::Bool = false
-    mirroring::Bool = true
+    mirroring::Bool = false
     num_angles::Int64 = 1
     min_fr_pix::Float64 = 0.0
 end
