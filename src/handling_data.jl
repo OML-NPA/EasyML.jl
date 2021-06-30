@@ -494,20 +494,9 @@ end
 # Saves ML model
 function save_model_main(model_data,url)
     url = fix_QML_types(url)
-    names = fieldnames(ModelData)
-    num = length(names)
-    dict = Dict{Symbol,IOBuffer}()
-    sizehint!(dict,num)
-    for name in names
-        field = getfield(model_data,name)
-        BSON_stream = IOBuffer()
-        BSON.@save(BSON_stream, field)
-        dict[name] = BSON_stream
-    end
-    dirs = string.(split(url,('/','\\')))[1:end-1]
-    url_dir = join(dirs,'\\')
-    make_dir(url_dir)
-    bson(url,dict)
+    dict = Dict{Symbol,Any}()
+    struct_to_dict!(dict,model_data)
+    BSON.@save(url,dict)
     return nothing
 end
 """
@@ -519,30 +508,40 @@ Use '.model' extension.
 save_model(url) = save_model_main(model_data,url)
 
 # loads ML model
-function load_model_main(options,model_data,url)
+function load_model_main(model_data,url)
     url = fix_QML_types(url)
-    data = BSON.load(url)
-    ks = keys(data)
-    for k in ks
-        try
-            serialized = seekstart(data[k])
-            deserialized = BSON.load(serialized)[:field]
-            if all(k.!=(:output_size,:loss,:model,:classes,:OutputOptions))
-                type = typeof(getfield(model_data,k))
-                deserialized = convert(type,deserialized)
-            elseif k==:classes || k==:OutputOptions
-                deserialized = [deserialized...]
-                if !isempty(deserialized)
-                    type = eltype(deserialized)
-                    deserialized = convert(Vector{type},deserialized)
-                else
-                    continue
+    if isfile(url)
+        data = BSON.load(url)
+    else
+        @error string(url, " does not exist.")
+        return nothing
+    end
+    ks = collect(keys(data))
+    if data[ks[1]] isa IOBuffer
+        # Will be removed before addition to the registry
+        for k in ks
+            try
+                serialized = seekstart(data[k])
+                deserialized = BSON.load(serialized)[:field]
+                if all(k.!=(:output_size,:loss,:model,:classes,:OutputOptions))
+                    type = typeof(getfield(model_data,k))
+                    deserialized = convert(type,deserialized)
+                elseif k==:classes || k==:OutputOptions
+                    deserialized = [deserialized...]
+                    if !isempty(deserialized)
+                        type = eltype(deserialized)
+                        deserialized = convert(Vector{type},deserialized)
+                    else
+                        continue
+                    end
                 end
+                setfield!(model_data,k,deserialized)
+            catch e
+                @warn string("Loading of ",k," failed. Exception: ",e)
             end
-            setfield!(model_data,k,deserialized)
-        catch e
-            @warn string("Loading of ",k," failed. Exception: ",e)
         end
+    else
+        dict_to_struct!(model_data,data[:dict])
     end
     all_data.model_url = url
     url_split = split(url,('/','.'))
@@ -564,7 +563,7 @@ end
 
 Loads a model from a specified URL. The URL can be absolute or relative.
 """
-load_model(url) = load_model_main(options,model_data,url)
+load_model(url) = load_model_main(model_data,url)
 
 function empty_field!(str,field::Symbol)
     val = getfield(str,field)

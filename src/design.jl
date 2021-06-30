@@ -35,33 +35,33 @@ end
 reset_layers() = reset_layers_main(design_data::DesignData)
 
 function get_layer_info(layer_name::String)
-    if layer_name=="input"
+    if layer_name=="Input"
         return InputInfo()
-    elseif layer_name=="output"
+    elseif layer_name=="Output"
         return OutputInfo()
-    elseif layer_name=="conv"
+    elseif layer_name=="Convolution"
         return ConvInfo()
-    elseif layer_name=="tconv"
+    elseif layer_name=="Transposed convolution"
         return TConvInfo()
-    elseif layer_name=="dense"
+    elseif layer_name=="Dense"
         return DenseInfo()
-    elseif layer_name=="dropout"
+    elseif layer_name=="Drop-out"
         return DropoutInfo()  
-    elseif layer_name=="batchnorm"
+    elseif layer_name=="Batch normalisation"
         return BatchNormInfo()
-    elseif layer_name=="leakyrelu"
+    elseif layer_name=="Leaky ReLU"
         return LeakyReLUInfo()
-    elseif layer_name=="elu"
+    elseif layer_name=="ELU"
         return ELUInfo()  
-    elseif layer_name=="maxpool" || layer_name=="avgpool"
+    elseif layer_name=="Max pooling" || layer_name=="Average pooling"
         return PoolInfo()
-    elseif layer_name=="addition"
+    elseif layer_name=="Addition"
         return AdditionInfo()  
-    elseif layer_name=="join"
+    elseif layer_name=="Join"
         return JoinInfo()  
-    elseif layer_name=="split"
+    elseif layer_name=="Split"
         return SplitInfo()  
-    elseif layer_name=="upsample"
+    elseif layer_name=="Upsample"
         return UpsampleInfo()  
     else 
         return GenericInfo()
@@ -73,7 +73,7 @@ function update_layers_main(design_data::DesignData,fields,values)
     layers_info = design_data.ModelData.layers_info
     fields = fix_QML_types(fields)
     values = fix_QML_types(values)
-    layer_info = get_layer_info(values[7])
+    layer_info = get_layer_info(values[9])
     for i = 1:length(fields)
         value_raw = values[i]
         field = Symbol(fields[i])
