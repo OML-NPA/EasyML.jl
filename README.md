@@ -33,8 +33,7 @@ in REPL.
 
 ### Quick guide
 
-EasyML is easy enough to figure it out by yourself! Just run the following lines. 
-These are all the functions you will probably ever need.
+EasyML is easy enough to figure out by yourself! Just run the following lines.
 
 #### Adding the package
 ```julia
