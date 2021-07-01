@@ -51,13 +51,6 @@ ApplicationWindow {
     function load_model_classes(classModel) {
         problemComboBox.currentIndex = Julia.get_problem_type()
         var num_classes = Julia.num_classes()
-            if (num_classes<3) {
-            parent2Row.visible = false
-            if (Julia.num_classes()<2) {
-                parentComboBox.visible = false
-                parentLabel.visible = false
-            }
-        }
         if (classModel.count!==0) {
             classModel.clear()
         }
@@ -137,10 +130,15 @@ ApplicationWindow {
             else {
                 weightRow.visible = true
             }
+            if (classModel.count>1) {
+                parentRow.visible = true
+                if (classModel.count>2) {
+                    parent2Row.visible = true
+                }
+            }
             colorLabel.visible = true
             colorRow.visible = true
             minareaRow.visible = true
-            parentRow.visible = true
             notclassRow.visible = true
             borderRow.visible = true
             bordernumpixelsRow.visible = true
