@@ -12,7 +12,7 @@ ApplicationWindow {
     id: classdialogWindow
     visible: true
     title: qsTr("  EasyML")
-    minimumHeight: Math.max(mainItem.height,0*pix)
+    minimumHeight: Math.max(mainItem.height,800*pix)
     minimumWidth: Math.max(mainItem.width,865*pix)
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
@@ -242,8 +242,8 @@ ApplicationWindow {
         height: classesparametersItem.height + applyButton.height + 0.75*margin
         onHeightChanged: {
             if (classdialogWindow.height<mainItem.height) {
-                classdialogWindow.height = Math.max(mainItem.height,0*pix)
-                classdialogWindow.minimumHeight = Math.max(mainItem.height,0*pix)
+                classdialogWindow.height = Math.max(mainItem.height,800*pix)
+                classdialogWindow.minimumHeight = Math.max(mainItem.height,800*pix)
             }
         }
         Item {
