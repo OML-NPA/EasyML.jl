@@ -135,6 +135,12 @@ ApplicationWindow {
                 if (classModel.count>2) {
                     parent2Row.visible = true
                 }
+                else {
+                    parent2Row.visible = false
+                }
+            }
+            else {
+                parentRow.visible = false
             }
             colorLabel.visible = true
             colorRow.visible = true
