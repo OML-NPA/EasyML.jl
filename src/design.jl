@@ -528,7 +528,7 @@ move_model() = move_model_main(model_data,design_data)
 function arrange_layer(coordinates::Array,coordinate::Array{Float64},
     design_options::DesignOptions)
     coordinate[2] = coordinate[2] + design_options.min_dist_y + design_options.height
-    push!(coordinates,copy(coordinate))
+    push!(coordinates,coordinate)
     return coordinate
 end
 
@@ -536,7 +536,7 @@ function arrange_branches(coordinates,coordinate::Vector{Float64},
         design_options::DesignOptions,layers)
     num = layers isa AbstractLayerInfo ? 1 : length(layers)
     if num==1
-        coordinate = arrange_layer(coordinates,coordinate,design_options)
+        coordinate = arrange_layer(coordinates,copy(coordinate),design_options)
     else
         max_num = ones(Int64,num)
         for i = 1:length(layers)

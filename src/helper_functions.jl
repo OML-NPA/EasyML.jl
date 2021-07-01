@@ -37,17 +37,19 @@ function dict_to_struct!(obj,dict::Dict)
         if value isa Dict
             dict_to_struct!(obj_property,value)
         elseif obj_property isa Vector && parentmodule(eltype(obj_type))==EasyML
-            vector_type = getindex(value,:vector_type) 
-            types = getindex(value,:types) 
-            values = getindex(value,:values) 
-            struct_vec = vector_type(undef,0)
-            for j = 1:length(types)
-                obj_for_vec = types[j]()
-                dict_for_vec = values[j]
-                dict_to_struct!(obj_for_vec,dict_for_vec)
-                push!(struct_vec,obj_for_vec)
+            if !isempty(value)
+                vector_type = getindex(value,:vector_type) 
+                types = getindex(value,:types) 
+                values = getindex(value,:values) 
+                struct_vec = vector_type(undef,0)
+                for j = 1:length(types)
+                    obj_for_vec = types[j]()
+                    dict_for_vec = values[j]
+                    dict_to_struct!(obj_for_vec,dict_for_vec)
+                    push!(struct_vec,obj_for_vec)
+                end
+                setproperty!(obj,sym,struct_vec)
             end
-            setproperty!(obj,sym,struct_vec)
         else
             if hasfield(typeof(obj),sym)
                 setproperty!(obj,sym,value)
