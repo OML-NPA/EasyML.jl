@@ -38,7 +38,6 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [compat]
-julia = "1.6"
 BSON = "0.3"
 CSVFiles = "1.0"
 CUDA = "3"
@@ -67,3 +66,4 @@ Qt5Charts_jll = "5.15"
 Qt5QuickControls2_jll = "5.15"
 StatsBase = "0.33"
 XLSX = "0.7"
+julia = "1.6"
