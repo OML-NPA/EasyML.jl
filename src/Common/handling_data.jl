@@ -167,35 +167,6 @@ Uses present working directory. It is run automatically after `using EasyML`.
 """
 load_options() = load_options!(options)
 
-#---Class output related functions
-# Allows to read class output options from GUI
-function get_output_main(model_data::ModelData,fields,ind)
-    fields::Vector{String} = fix_QML_types(fields)
-    ind::Int64 = fix_QML_types(ind)
-    data = model_data.OutputOptions[ind]
-    for i = 1:length(fields)
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    return data
-end
-get_output(fields,ind) = get_output_main(model_data,fields,ind)
-
-# Allows to write to class output options from GUI
-function set_output_main(model_data::ModelData,fields,ind,value)
-    fields::Vector{String} = fix_QML_types(fields)
-    ind::Int64 = fix_QML_types(ind)
-    value = fix_QML_types(value)
-    data = model_data.OutputOptions[ind]
-    for i = 1:length(fields)-1
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    setproperty!(data, Symbol(fields[end]), value)
-    return nothing
-end
-set_output(fields,ind,value) = set_output_main(model_data,fields,ind,value)
-
 #---
 
 function reset_data_field_main(all_data::AllData,fields)
