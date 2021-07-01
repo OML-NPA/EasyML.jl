@@ -351,8 +351,7 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                property var model: classModel.get(index)
-                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([model.colorR,model.colorG,model.colorB]) : "transparent"
+                                                color: problemComboBox.currentIndex==2 ? (colorR!=undefined ? rgbtohtml([colorR,colorG,colorB]) : "transparent") : "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
