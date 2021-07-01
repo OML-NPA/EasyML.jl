@@ -12,8 +12,8 @@ ApplicationWindow {
     id: classdialogWindow
     visible: true
     title: qsTr("  EasyML")
-    //width: mainItem.width
-    //height: mainItem.height + 0.75*margin
+    minimumHeight: Math.max(mainItem.height,0*pix)
+    minimumWidth: Math.max(mainItem.width,865*pix)
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
 
@@ -236,35 +236,17 @@ ApplicationWindow {
     //-------------------------------------------------------------------------
 
     color: defaultpalette.window
-
+    
     // onClosing: {classdialogLoader.sourceComponent = null}
     Item {
         id: mainItem
         width: classesparametersItem.width
         height: classesparametersItem.height + applyButton.height + 0.75*margin
-        property double oldHeight: 0
-        property double oldWidth: 0
         onHeightChanged: {
-            if (oldHeight>height) {
-                classdialogWindow.minimumHeight = mainItem.height
-                classdialogWindow.height = mainItem.height
+            if (classdialogWindow.height<mainItem.height) {
+                classdialogWindow.height = Math.max(mainItem.height,0*pix)
+                classdialogWindow.minimumHeight = Math.max(mainItem.height,0*pix)
             }
-            else {
-                classdialogWindow.height = mainItem.height
-                classdialogWindow.minimumHeight = mainItem.height
-            }
-            oldHeight = classdialogWindow.height
-        }
-        onWidthChanged: {
-             if (oldWidth>width) {
-                classdialogWindow.minimumWidth = mainItem.width
-                classdialogWindow.width = mainItem.width
-            }
-            else {
-                classdialogWindow.width = mainItem.width
-                classdialogWindow.minimumWidth = mainItem.width
-            }
-            oldWidth = classdialogWindow.width
         }
         Item {
             id: classesparametersItem
@@ -322,7 +304,7 @@ ApplicationWindow {
                         id: classesFrame
                         anchors.top: classesLabel.bottom
                         anchors.topMargin: -2*pix
-                        height: Math.max(parametersColumn.height - problemRow.height - classesLabel.height,300*pix)
+                        height: classdialogWindow.height - problemRow.height - classesLabel.height - 3*0.75*margin - applyButton.height
                         width: buttonWidth + 0.5*margin - 5*pix
                         backgroundColor: "white"
                         ScrollView {
@@ -535,6 +517,7 @@ ApplicationWindow {
             Column {
                 id: parametersColumn
                 anchors.left: classesColumn.right
+                width: 645*pix
                 padding: 0.75*margin
                 leftPadding: 0
                 spacing: 0.4*margin
@@ -839,7 +822,7 @@ ApplicationWindow {
             id: applyButton
             text: "Apply"
             anchors.horizontalCenter: classesparametersItem.horizontalCenter
-            anchors.top: classesparametersItem.bottom
+            y: classdialogWindow.height - 0.75*margin - height
             width: buttonWidth/2
             height: 1.2*buttonHeight
             onClicked: {
