@@ -32,7 +32,7 @@ function get_urls1(url_inputs::String,allowed_ext::Vector{String})
         push!(input_urls,input_urls_temp)
     end
     if dirs==[""]
-        url_split = split(url_inputs,"/")
+        url_split = split(url_inputs,('/','\\'))
         dirs = [url_split[end]]
     end
     return input_urls,dirs,filenames
