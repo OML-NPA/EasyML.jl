@@ -143,6 +143,38 @@ ApplicationWindow {
     property string someData: some_data
     property string fieldName: field_name
 
+    Component.onCompleted: {
+        var dataLength = Julia.data_length([someData,fieldName,"data_input"])
+        sampleSpinBox.to = dataLength
+
+        var size = Julia.get_image_size([someData,fieldName,"data_input"],[1])
+        var s = 1024*pix
+        var r = Math.min(s/size[0],s/size[1])
+        displayItem.height = size[0]*r
+        displayItem.width = size[1]*r
+        displayItem.image_height = size[0]
+        displayItem.image_width = size[1]
+        displayItem.scale = r
+        Julia.get_image([someData,fieldName,"data_input"],[1])
+        originalDisplay.update()
+        if (problem_type==0) {
+            if (use_labels) {
+                showclassLabel.text = "Label: " + target_labels[1]
+            }
+        }
+        if (problem_type==1) {
+            if (use_labels) {
+                showclassLabel.text = "Label: " + target_labels[1]
+            }
+        }
+        else if (problem_type==2) {
+            var ind2 = classComboBox.currentIndex
+            Julia.get_image([someData,fieldName,"data_lables"],[1],1)
+            resultDisplay.visible = true
+            resultDisplay.update()
+        }
+    }
+
     onClosing: {
         //dataplotLoader.sourceComponent = undefined
     }

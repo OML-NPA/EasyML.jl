@@ -511,13 +511,14 @@ Prepares images and corresponding labels for testing using URLs loaded previousl
 prepare_testing_data() = prepare_data(testing_data)
 
 
-function show_data(data::Union{TrainingData,TestingData})
+function show_data_main(some_data::String,field_name::String)
     # Launches GUI
     @qmlfunction(
         # Handle classes
         num_classes,
         get_class_field,
         # Data handling
+        data_length,
         get_options,
         get_results,
         get_progress,
@@ -529,8 +530,30 @@ function show_data(data::Union{TrainingData,TestingData})
         yield
     )
     path_qml = string(@__DIR__,"/GUI/DataPlot.qml")
-    loadqml(path_qml)
+    loadqml(path_qml,some_data = some_data,field_name = field_name)
     exec()
+    return nothing
+end
+function show_data(data::TrainingData)
+    if all_data.problem_type==:Classification
+        field_name = "ClassificationData"
+    elseif all_data.problem_type==:Regression
+        field_name = "RegressionData"
+    else # Segmentation
+        field_name = "SegmentationData"
+    end
+    show_data_main("TrainingData",field_name)
+    return nothing
+end
+function show_data(data::TestingData)
+    if all_data.problem_type==:Classification
+        field_name = "ClassificationData"
+    elseif all_data.problem_type==:Regression
+        field_name = "RegressionData"
+    else # Segmentation
+        field_name = "SegmentationData"
+    end
+    show_data_main("TestingData",field_name)
     return nothing
 end
 

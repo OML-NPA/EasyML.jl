@@ -306,7 +306,7 @@ function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}
 end
 
 # Saves image to the main image storage
-function get_image_main(classes::Vector{AbstractClass},some_data,fields,inds,class_ind=0)
+function get_image_main(classes::Vector{AbstractClass},all_data,fields,inds,class_ind=0)
     fields = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     image_data = get_data(fields,inds)
@@ -333,6 +333,8 @@ function get_image_main(classes::Vector{AbstractClass},some_data,fields,inds,cla
             image = bitarray_to_image(temp_bool,color)
         end
     end
+    first_field = fields[1]
+    some_data = get_data(first_field)
     final_field = fields[end]
     if any(final_field.==("original","data_input"))
         some_data.original_image = image
@@ -341,12 +343,8 @@ function get_image_main(classes::Vector{AbstractClass},some_data,fields,inds,cla
     end
     return
 end
-get_image_validation(fields,inds,channel) =
-    get_image_main(model_data.classes,validation_data,fields,inds,channel)
-get_image_training(fields,inds,channel) =
-    get_image_main(model_data.classes,testingsss_data,fields,inds,channel)
-get_image_testing(fields,inds,channel) =
-    get_image_main(model_data.classes,testing_data,fields,inds,channel)
+get_image(fields,inds,channel) =
+    get_image_main(model_data.classes,all_data,fields,inds,channel)
 
 function get_image_size(fields,inds)
     fields = fix_QML_types(fields)
@@ -594,4 +592,8 @@ function import_image(url)
     img = load(url)
     all_data.image = img
     return [size(img)...]
+end
+
+function data_length(fields,inds=[])
+    return length(get_data(fields,inds))
 end

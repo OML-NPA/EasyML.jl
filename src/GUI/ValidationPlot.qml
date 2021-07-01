@@ -265,7 +265,7 @@ ApplicationWindow {
                         displayItem.image_width = size[1]
                         displayItem.scale = r
                         if (problem_type==0) {
-                            Julia.get_image_validation(["ValidationData","ImageClassificationResults","original_image"],[ind1])
+                            Julia.get_image(["ValidationData","ImageClassificationResults","original_image"],[ind1])
                             var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             showclassLabel.visible = true
@@ -279,7 +279,7 @@ ApplicationWindow {
                             }
                         }
                         else if (problem_type==1) {
-                            Julia.get_image_validation(["ValidationData","ImageRegressionResults","original_image"],[ind1])
+                            Julia.get_image(["ValidationData","ImageRegressionResults","original_image"],[ind1])
                             var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
                             predicted_labels.push(predicted_label)
                             showclassLabel.visible = true
@@ -295,8 +295,8 @@ ApplicationWindow {
                         }
                         else if (problem_type==2) {
                             var ind2 = 1
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults","original_image"],[ind1])
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults","predicted_data"],[ind1,ind2])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults","original_image"],[ind1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults","predicted_data"],[ind1,ind2])
                             resultDisplay.visible = true
                             resultDisplay.update()
                             classRow.visible = true
@@ -575,7 +575,7 @@ ApplicationWindow {
                             displayItem.image_height = size[0]
                             displayItem.image_width = size[1]
                             displayItem.scale = r
-                            Julia.get_image_validation(["ValidationData",fieldname,"original_image"],[ind1+1])
+                            Julia.get_image(["ValidationData",fieldname,"original_image"],[ind1+1])
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
@@ -595,7 +595,7 @@ ApplicationWindow {
                             }
                             else if (problem_type==2) {
                                 var ind2 = classComboBox.currentIndex
-                                Julia.get_image_validation(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1+1,ind2+1])
+                                Julia.get_image(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1+1,ind2+1])
                                 resultDisplay.visible = true
                                 resultDisplay.update()
                             }
@@ -622,7 +622,7 @@ ApplicationWindow {
                         onActivated: {
                             var ind1 = sampleSpinBox.value
                             var ind2 = classComboBox.currentIndex
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1,ind2+1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1,ind2+1])
                             resultDisplay.update()
                         }
                         Component.onCompleted: {
@@ -686,7 +686,7 @@ ApplicationWindow {
                             }
                             var ind1 = sampleSpinBox.value
                             var ind2 = classComboBox.currentIndex
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults",type],[ind1,ind2+1])
+                            Julia.get_image(["ValidationData","ImageSegmentationResults",type],[ind1,ind2+1])
                             resultDisplay.update()
                         }
                     }
