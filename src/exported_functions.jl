@@ -180,11 +180,12 @@ function load_model()
     observe(url) = url_out[1] = url
     # Launches GUI
     @qmlfunction(observe)
-    loadqml("/GUI/UniversalFileDialog.qml",
-        name_filters = name_filters)
+    path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
+    loadqml(path_qml, name_filters = name_filters)
     exec()
     # Load model
     load_model(url_out[1])
+    return nothing
 end
 
 """
