@@ -370,6 +370,8 @@ training_options_data = TrainingOptionsData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
     OptionsData::TrainingOptionsData = training_options_data
+    original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
+    label_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     url_inputs::String = ""
     url_labels::String = ""
     tasks::Vector{Task} = Vector{Task}(undef,0)
@@ -380,13 +382,15 @@ training_data = TrainingData()
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
+    original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
+    label_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     url_inputs::String = ""
     url_labels::String = ""
 end
 testing_data = TestingData()
 
 @with_kw mutable struct ValidationImageClassificationResults
-    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
+    original_image::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{String} = Vector{String}(undef,0)
     target_labels::Vector{String} = Vector{String}(undef,0)
     accuracy::Vector{Float32} = Vector{Float32}(undef,0)
@@ -395,7 +399,7 @@ end
 validation_image_classification_results = ValidationImageClassificationResults()
 
 @with_kw mutable struct ValidationImageRegressionResults
-    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
+    original_image::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_labels::Vector{Vector{Float32}}= Vector{Vector{Float32}}(undef,0)
     target_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
     accuracy::Vector{Float32} = Vector{Float32}(undef,0)
@@ -404,7 +408,7 @@ end
 validation_image_regression_results = ValidationImageRegressionResults()
 
 @with_kw mutable struct ValidationImageSegmentationResults
-    original::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
+    original_image::Vector{Array{RGB{N0f8},2}} = Vector{Array{RGB{N0f8},2}}(undef,0)
     predicted_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
         Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}}(undef,0)
     target_data::Vector{Vector{Tuple{BitArray{2},Vector{N0f8}}}} = 
@@ -422,7 +426,7 @@ validation_image_segmentation_results = ValidationImageSegmentationResults()
     ImageRegressionResults::ValidationImageRegressionResults = validation_image_regression_results
     ImageSegmentationResults::ValidationImageSegmentationResults = validation_image_segmentation_results
     original_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
-    result_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
+    label_image::Array{RGB{N0f8},2} = Array{RGB{N0f8},2}(undef,0,0)
     input_urls::Vector{String} = Vector{String}(undef,0)
     label_urls::Vector{String} = Vector{String}(undef,0)
     labels_classification::Vector{Int32} = Vector{Int32}(undef,0)

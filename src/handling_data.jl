@@ -305,49 +305,61 @@ function bitarray_to_image(array_bool::BitArray{3},color::Vector{Normed{UInt8,8}
     return collect(array)
 end
 
-# Saves image to the main image storage and returns its size
-function get_image_main(validation_data::ValidationData,fields,img_size,inds)
+# Saves image to the main image storage
+function get_image_main(classes::Vector{AbstractClass},some_data,fields,inds,class_ind=0)
     fields = fix_QML_types(fields)
-    img_size = fix_QML_types(img_size)
     inds = fix_QML_types(inds)
     image_data = get_data(fields,inds)
     if image_data isa Array{RGB{N0f8},2}
         image = image_data
-    else
+    elseif image_data isa BitArray
         image = bitarray_to_image(image_data...)
-    end
-    inds = findall(img_size.!=0)
-    if !isempty(inds)
-        r = minimum(map(x-> img_size[x]/size(image,x),inds))
-        image = EasyML.imresize(image, ratio=r);
+    else
+        if class_ind==0
+            temp = image_data
+        else
+            if class_ind<=length(classes)
+                color_float = classes[class_ind].color
+                color = convert(Vector{Vector{N0f8}},color_float/255)
+            else
+                border_bool = map(class -> class.border,classes)
+                colors = map(class -> class.color,classes)
+                colors = colors[border_bool]
+                color_float = colors[class_ind - length(classes)]
+                color = convert(Vector{N0f8},color_float/255)
+            end
+            temp = image_data[:,:,class_ind]
+            temp_bool = temp.>0
+            image = bitarray_to_image(temp_bool,color)
+        end
     end
     final_field = fields[end]
-    if final_field=="original"
-        validation_data.original_image = image
-    elseif any(final_field.==("predicted_data","target_data","error_data"))
-        validation_data.result_image = image
+    if any(final_field.==("original","data_input"))
+        some_data.original_image = image
+    elseif any(final_field.==("predicted_data","target_data","error_data","data_labels"))
+        some_data.target_image = image
     end
-    return [size(image)...]
+    return
 end
-get_image(fields,img_size,inds...) =
-    get_image_main(validation_data,fields,img_size,inds...)
+get_image_validation(fields,inds,channel) =
+    get_image_main(model_data.classes,validation_data,fields,inds,channel)
+get_image_training(fields,inds,channel) =
+    get_image_main(model_data.classes,testingsss_data,fields,inds,channel)
+get_image_testing(fields,inds,channel) =
+    get_image_main(model_data.classes,testing_data,fields,inds,channel)
 
 function get_image_size(fields,inds)
     fields = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     image_data = get_data(fields,inds)
-    if image_data isa Array{RGB{N0f8},2}
-        return [size(image_data)...]
-    else
-        return [size(image_data[1])...]
-    end
+    return [size(image_data)...]
 end
 
 # Displays image from the main image storage to Julia canvas
-function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+function display_original_image(some_data,buffer::Array{UInt32, 1},width::Int32,height::Int32)
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
-    image = validation_data.original_image
+    image = some_data.original_image
     s = size(image)
     
     if size(buffer)==reverse(size(image)) || (s[1]==s[2] && size(buffer)==size(image))
@@ -357,17 +369,22 @@ function display_original_image(buffer::Array{UInt32, 1},width::Int32,height::In
     end
     return
 end
+display_original_image_validation(buffer,width,height) = display_original_image(validation_data,buffer,width,height)
+display_original_image_training(buffer,width,height) = display_original_image(training_data,buffer,width,height)
+display_original_image_testing(buffer,width,height) = display_original_image(testing_data,buffer,width,height)
 
-function display_result_image(buffer::Array{UInt32, 1},width::Int32,height::Int32)
+function display_label_image(some_data,buffer::Array{UInt32, 1},width::Int32,height::Int32)
     buffer = reshape(buffer, convert(Int64,width), convert(Int64,height))
     buffer = reinterpret(ARGB32, buffer)
-    image = validation_data.result_image
+    image = validation_data.label_image
     if size(buffer)==reverse(size(image))
         buffer .= transpose(image)
     end
     return
 end
-
+display_label_image_validation(buffer,width,height) = display_label_image(validation_data,buffer,width,height)
+display_label_image_training(buffer,width,height) = display_label_image(training_data,buffer,width,height)
+display_label_image_testing(buffer,width,height) = display_label_image(testing_data,buffer,width,height)
 
 # Set model type
 function set_model_type_main(model_data::ModelData,type1,type2)

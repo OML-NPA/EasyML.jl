@@ -140,243 +140,13 @@ ApplicationWindow {
     property int input_type
     property int problem_type
     property bool use_labels
-
-    property var accuracy: []
-    property var loss: []
-    property double mean_accuracy
-    property double mean_loss
-    property double accuracy_std
-    property double loss_std
-    property int decimals: 4
-    property var predicted_labels: []
-    property var target_labels: []
-    property string fieldname
+    property string someData: some_data
+    property string fieldName: field_name
 
     onClosing: {
-        Julia.put_channel("Validation",[0.0,0.0])
-        //validateButton.text = "Validate"
-        //progressbar.value = 0
-        //validationplotLoader.sourceComponent = undefined
+        //dataplotLoader.sourceComponent = undefined
     }
 
-    Popup {
-        id: initialisationPopup
-        modal: true
-        visible: true
-        closePolicy: Popup.NoAutoClose
-        x: validationWindow.width/2 - width/2
-        y: validationWindow.height/2 - height/2
-        width: titleLabel.width + 0.8*margin
-        height: titleLabel.height + 0.4*margin + 15*pix + 0.2*margin
-        Label {
-            id: titleLabel
-            x: initialisationPopup.width/2 - width/2 - 12*pix
-            leftPadding: 0
-            topPadding: 0.10*margin
-            text: "INITIALISATION"
-        }
-        Repeater {
-            id: progressRepeater
-            model: 3
-            property var offsets: [-30*pix,0,30*pix]
-            Rectangle {
-                id: progress1Rectangle
-                anchors.top: titleLabel.bottom
-                anchors.topMargin: 0.1*margin
-                x: initialisationPopup.width/2 - width/2 - progressRepeater.offsets[index] - 12*pix
-                color: defaultcolors.dark
-                visible: false
-                width: 15*pix
-                height: width
-                radius: width
-            }
-        }
-        Timer {
-            id: initialisationTimer
-            running: initialisationPopup.visible
-            repeat: true
-            interval: 300
-            property double max_value: 0
-            property double value: 0
-            property double loading_state: 1
-            onTriggered: {
-                if (loading_state===0) {
-                    progressRepeater.itemAt(2).visible = false
-                    progressRepeater.itemAt(1).visible = false
-                    progressRepeater.itemAt(0).visible = false
-                    loading_state+=1
-                }
-                else if (loading_state===1) {
-                    progressRepeater.itemAt(2).visible = true
-                    loading_state+=1
-                }
-                else if (loading_state===2) {
-                    progressRepeater.itemAt(1).visible = true
-                    loading_state+=1
-                }
-                else {
-                    progressRepeater.itemAt(0).visible = true
-                    loading_state = 0
-                }
-            }
-        }
-    }
-
-    Timer {
-        id: validationTimer
-        interval: 100
-        running: true
-        repeat: true
-        property int iteration: 0
-        property int max_iterations: -1
-        
-        property bool grabDone: false
-        onTriggered: {
-            while (true) {
-                var state = Julia.get_progress("Validation")
-                if (state===false) {
-                    return
-                }
-                else {
-                    var data = Julia.get_results("Validation")
-                }
-                if (max_iterations===-1) {
-                    max_iterations = state
-                    titleLabel.text = "MODEL COMPILATION"
-                }
-                else if (iteration<max_iterations) {
-                    iteration += 1
-                    validationProgressBar.value = iteration/max_iterations
-                    var accuracy_temp = data[0]
-                    var loss_temp = data[1]
-                    accuracy.push(accuracy_temp)
-                    loss.push(loss_temp)
-                    if (iteration==1) {
-                        initialisationPopup.visible = false
-                        sampleSpinBox.value = 1
-                        classComboBox.currentIndex = 0
-                        var ind1 = 1
-                        var size = Julia.get_image_size(["ValidationData",fieldname,"original_image"],[ind1])
-                        var s = 1024*pix
-                        var r = Math.min(s/size[0],s/size[1])
-                        displayItem.height = size[0]*r
-                        displayItem.width = size[1]*r
-                        displayItem.image_height = size[0]
-                        displayItem.image_width = size[1]
-                        displayItem.scale = r
-                        if (problem_type==0) {
-                            Julia.get_image_validation(["ValidationData","ImageClassificationResults","original_image"],[ind1])
-                            var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
-                            predicted_labels.push(predicted_label)
-                            showclassLabel.visible = true
-                            if (use_labels) {
-                                var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
-                                target_labels.push(target_label)
-                                showclassLabel.text = "Predicted: " + predicted_label + "; Real: " + target_label
-                            }
-                            else {
-                                showclassLabel.text = "Predicted: " + predicted_label
-                            }
-                        }
-                        else if (problem_type==1) {
-                            Julia.get_image_validation(["ValidationData","ImageRegressionResults","original_image"],[ind1])
-                            var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
-                            predicted_labels.push(predicted_label)
-                            showclassLabel.visible = true
-                            if (use_labels) {
-                                var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
-                                decimals = countDecimals(target_label)
-                                target_labels.push(target_label)
-                                showclassLabel.text = "Predicted: " + anyToFixed(predicted_label,decimals) + "; Real: " + target_label
-                            }
-                            else {
-                                showclassLabel.text = "Predicted: " + anyToFixed(predicted_label,decimals)
-                            }
-                        }
-                        else if (problem_type==2) {
-                            var ind2 = 1
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults","original_image"],[ind1])
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults","predicted_data"],[ind1,ind2])
-                            resultDisplay.visible = true
-                            resultDisplay.update()
-                            classRow.visible = true
-                            typeRow.visible = true
-                            opacityRow.visible = true
-                            zoomRow.visible = true
-                        }
-                        originalDisplay.update()
-                        var cond = 1024*pix-margin
-                        if (displayItem.width>=cond) {
-                            displayPane.horizontalPadding = 0.5*margin
-                        }
-                        else {
-                            displayPane.horizontalPadding = (1024*pix+margin -
-                                            displayItem.width - informationPane.width)/2
-                        }
-                        if (displayItem.height>=cond) {
-                            displayPane.verticalPadding = 0.5*margin
-                        }
-                        else {
-                            displayPane.verticalPadding = (1024*pix+margin - displayItem.height)/2
-                        }
-                        displayPane.height = displayItem.height + 2*displayPane.verticalPadding
-                        displayPane.width = displayItem.width + 2*displayPane.horizontalPadding
-                        displayScrollableItem.width = displayPane.width - 2*displayPane.horizontalPadding
-                        displayScrollableItem.height = displayPane.height - 2*displayPane.verticalPadding
-                        sizechangeTimer.prevWidth = displayPane.height
-                        sizechangeTimer.running = true
-                        controlsLabel.visible = true
-                        sampleRow.visible = true
-                    }
-                    else {
-                        mean_accuracy = mean(accuracy)
-                        mean_loss = mean(loss)
-                        if (problem_type==0) {
-                            var predicted_label = Julia.get_data(["ValidationData","ImageClassificationResults","predicted_labels"],[iteration])
-                            predicted_labels.push(predicted_label)
-                            if (use_labels) {
-                                var target_label = Julia.get_data(["ValidationData","ImageClassificationResults","target_labels"],[iteration])
-                                target_labels.push(target_label)
-                            }
-                        }
-                        else if (problem_type==1) {
-                            var predicted_label = Julia.get_data(["ValidationData","ImageRegressionResults","predicted_labels"],[iteration])
-                            predicted_labels.push(predicted_label)
-                            if (use_labels) {
-                                var target_label = Julia.get_data(["ValidationData","ImageRegressionResults","target_labels"],[iteration])
-                                target_labels.push(target_label)
-                            }
-                        }
-                        sampleSpinBox.to = iteration
-                    }
-                }
-                else if (iteration===max_iterations) {
-                    running = false
-                }
-            }
-        }
-        Component.onCompleted: {
-            use_labels = Julia.get_data(["ValidationData","use_labels"])
-            var temp = Julia.get_data(["input_type"])
-            if (temp=="Image") {
-                input_type = 0
-            }
-            var temp = Julia.get_data(["problem_type"])
-            if (temp=="Classification") {
-                problem_type = 0
-                fieldname = "ImageClassificationResults"
-            }
-            else if (temp=="Regression") {
-                problem_type = 1
-                fieldname = "ImageRegressionResults"
-            }
-            else if (temp=="Segmentation") {
-                problem_type = 2
-                fieldname = "ImageSegmentationResults"
-            }
-            
-        }
-    }
     Timer {
         id: sizechangeTimer
         interval: 300
@@ -465,7 +235,7 @@ ApplicationWindow {
                             id: originalDisplay
                             width: displayItem.image_width
                             height: displayItem.image_height
-                            paintFunction: display_original_image_validation
+                            paintFunction: paint_function_original
                             smooth: false
                         }
                         JuliaCanvas {
@@ -474,7 +244,7 @@ ApplicationWindow {
                             width: displayItem.image_width
                             height: displayItem.image_height
                             opacity: 0.5
-                            paintFunction: display_label_image_validation
+                            paintFunction: paint_function_label
                             smooth: false
                         }
                     }
@@ -497,48 +267,6 @@ ApplicationWindow {
             Column {
                 id: informationColumn
                 spacing: 0.4*margin
-                Row {
-                    spacing: 0.3*margin
-                    ProgressBar {
-                        id: validationProgressBar
-                        width: buttonWidth
-                        height: buttonHeight
-                    }
-                    StopButton {
-                        id: stoptraining
-                        width: buttonHeight
-                        height: buttonHeight
-                        onClicked: Julia.put_channel("Validation",[0.0,0.0])
-                    }
-                }
-                Label {
-                    visible: use_labels
-                    topPadding: 0.2*margin
-                    text: "Validation information"
-                    font.bold: true
-                }
-                Row {
-                    visible: use_labels
-                    spacing: 0.3*margin
-                    Label {
-                        id: accuracytextLabel
-                        text: "Accuracy:"
-                    }
-                    Label {
-                        id: accuracyLabel
-                    }
-                }
-                Row {
-                    visible: use_labels
-                    spacing: 0.3*margin
-                    Label {
-                        text: "Loss:"
-                        width: accuracytextLabel.width
-                    }
-                    Label {
-                        id: lossLabel
-                    }
-                }
                 Label {
                     id: controlsLabel
                     visible: false
@@ -565,9 +293,7 @@ ApplicationWindow {
                         editable: false
                         onValueModified: {
                             var ind1 = value - 1
-                            accuracyLabel.text = accuracy[ind1].toFixed(2) + " (" + mean_accuracy.toFixed(2) + ")"
-                            lossLabel.text = loss[ind1].toFixed(2) + " (" + mean_loss.toFixed(2) + ")"
-                            var size = Julia.get_image_size(["ValidationData",fieldname,"original_image"],[ind1+1])
+                            var size = Julia.get_image_size([someData,fieldName,"data_input"],[ind1+1])
                             var s = 1024*pix
                             var r = Math.min(s/size[0],s/size[1])
                             displayItem.height = size[0]*r
@@ -575,27 +301,21 @@ ApplicationWindow {
                             displayItem.image_height = size[0]
                             displayItem.image_width = size[1]
                             displayItem.scale = r
-                            Julia.get_image_validation(["ValidationData",fieldname,"original_image"],[ind1+1])
+                            Julia.get_image([someData,fieldName,"data_input"],[ind1+1])
                             originalDisplay.update()
                             if (problem_type==0) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1] + "; Real: " + target_labels[ind1]
-                                }
-                                else {
-                                    showclassLabel.text = "Predicted: " + predicted_labels[ind1]
+                                    showclassLabel.text = "Label: " + target_labels[ind1]
                                 }
                             }
                             if (problem_type==1) {
                                 if (use_labels) {
-                                    showclassLabel.text = "Predicted: " + anyToFixed(predicted_labels[ind1],decimals) + "; Real: " + target_labels[ind1]
-                                }
-                                else {
-                                    showclassLabel.text = "Predicted: " + anyToFixed(predicted_labels[ind1],decimals)
+                                    showclassLabel.text = "Label: " + target_labels[ind1]
                                 }
                             }
                             else if (problem_type==2) {
                                 var ind2 = classComboBox.currentIndex
-                                Julia.get_image_validation(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1+1,ind2+1])
+                                Julia.get_image([someData,fieldName,"data_lables"],[ind1+1,ind2+1])
                                 resultDisplay.visible = true
                                 resultDisplay.update()
                             }
@@ -622,7 +342,7 @@ ApplicationWindow {
                         onActivated: {
                             var ind1 = sampleSpinBox.value
                             var ind2 = classComboBox.currentIndex
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults",typeComboBox.type],[ind1,ind2+1])
+                            Julia.get_image([someData,fieldName,"data_lables"],[ind1,ind2+1])
                             resultDisplay.update()
                         }
                         Component.onCompleted: {
@@ -647,47 +367,6 @@ ApplicationWindow {
                                 }
                             }
                             currentIndex = 0
-                        }
-                    }
-                }
-                Row {
-                    id: typeRow
-                    visible: false
-                    spacing: 0.3*margin
-                    Label {
-                        id: typeLabel
-                        visible: use_labels
-                        text: "Show:"
-                        width: accuracytextLabel.width
-                    }
-                    ComboBox {
-                        id: typeComboBox
-                        anchors.verticalCenter: typeLabel.verticalCenter
-                        visible: use_labels
-                        property string type: "predicted_data"
-                        editable: false
-                        currentIndex: 0
-                        width: 0.76*buttonWidth
-                        model: ListModel {
-                            id: typeModel
-                            ListElement {name: "Result"}
-                            ListElement {name: "Target"}
-                            ListElement {name: "Error"}
-                        }
-                        onActivated: {
-                            if (typeComboBox.currentIndex==0) {
-                                type = "predicted_data"
-                            }
-                            else if  (typeComboBox.currentIndex==1) {
-                                type = "target_data"
-                            }
-                            else {
-                                type = "error_data"
-                            }
-                            var ind1 = sampleSpinBox.value
-                            var ind2 = classComboBox.currentIndex
-                            Julia.get_image_validation(["ValidationData","ImageSegmentationResults",type],[ind1,ind2+1])
-                            resultDisplay.update()
                         }
                     }
                 }

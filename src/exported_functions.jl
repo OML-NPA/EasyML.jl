@@ -510,6 +510,30 @@ Prepares images and corresponding labels for testing using URLs loaded previousl
 """
 prepare_testing_data() = prepare_data(testing_data)
 
+
+function show_data(data::Union{TrainingData,TestingData})
+    # Launches GUI
+    @qmlfunction(
+        # Handle classes
+        num_classes,
+        get_class_field,
+        # Data handling
+        get_options,
+        get_results,
+        get_progress,
+        put_channel,
+        get_image_size,
+        get_image_validation,
+        get_data,
+        # Other
+        yield
+    )
+    path_qml = string(@__DIR__,"/GUI/DataPlot.qml")
+    loadqml(path_qml)
+    exec()
+    return nothing
+end
+
 """
     train()
 
@@ -718,17 +742,17 @@ function validate()
         get_progress,
         put_channel,
         get_image_size,
-        get_image,
+        get_image_validation,
         get_data,
         # Other
         yield
     )
-    f1 = CxxWrap.@safe_cfunction(display_original_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
-    f2 = CxxWrap.@safe_cfunction(display_result_image, Cvoid,(Array{UInt32,1}, Int32, Int32))
+    f1 = CxxWrap.@safe_cfunction(display_original_image_validation, Cvoid,(Array{UInt32,1}, Int32, Int32))
+    f2 = CxxWrap.@safe_cfunction(display_label_image_validation, Cvoid,(Array{UInt32,1}, Int32, Int32))
     path_qml = string(@__DIR__,"/GUI/ValidationPlot.qml")
     loadqml(path_qml,
-        display_original_image = f1,
-        display_result_image = f2
+        display_original_image_validation = f1,
+        display_label_image_validation = f2
     )
     exec()
     state,error = check_task(t)
