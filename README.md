@@ -27,7 +27,7 @@ Classification, regression and segmentation on images are currently supported.
 
 Add the package from this repository to Julia using 
 
-`] add https://github.com/OML-NPA/EasyML.jl`
+`] add EasyML`
 
 in REPL.
 
