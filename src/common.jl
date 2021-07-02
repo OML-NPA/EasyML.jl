@@ -464,7 +464,7 @@ function get_weights(classes::Vector{<:AbstractClass},training_data::TrainingDat
             counts = map(x -> count(x.==classification_labels),1:length(classes))
             weights = calculate_weights(counts)
             for i = 1:length(classes)
-                classes[i].weight = weights[1]
+                classes[i].weight = weights[i]
             end
         elseif problem_type()==:Regression
             weights = Vector{Float32}(undef,0)
