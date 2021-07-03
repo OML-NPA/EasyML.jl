@@ -148,7 +148,7 @@ function reset_training_data(training_data::TrainingData)
     training_data.warnings = String[]
     training_data.errors = String[]
     training_plot_data = training_data.PlotData
-    training_results_data = training_data.ResultsData
+    training_results_data = training_data.Results
     training_results_data.accuracy = Float32[]
     training_results_data.loss = Float32[]
     training_results_data.test_accuracy = Float32[]
