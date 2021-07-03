@@ -17,42 +17,28 @@ function modify(data::TrainingOptions)
     return nothing
 end
 
-function set_training_input_data(data_input)
+function set_training_data(data_input,data_labels)
     if problem_type()==:Classification
         training_data.ClassificationData.data_input = data_input
-    elseif problem_type()==:Regression
-        training_data.RegressionData.data_input = data_input
-    else # Segmentation
-        training_data.SegmentationData.data_input = data_input
-    end
-end
-
-function set_training_label_data(data_labels)
-    if problem_type()==:Classification
         training_data.ClassificationData.data_labels = data_labels
     elseif problem_type()==:Regression
+        training_data.RegressionData.data_input = data_input
         training_data.RegressionData.data_labels = data_labels
     else # Segmentation
+        training_data.SegmentationData.data_input = data_input
         training_data.SegmentationData.data_labels = data_labels
     end
 end
 
-function set_testing_input_data(data_input)
+function set_testing_data(data_input,data_labels)
     if problem_type()==:Classification
         testing_data.ClassificationData.data_input = data_input
-    elseif problem_type()==:Regression
-        testing_data.RegressionData.data_input = data_input
-    else # Segmentation
-        testing_data.SegmentationData.data_input = data_input
-    end
-end
-
-function set_testing_label_data(data_labels)
-    if problem_type()==:Classification
         testing_data.ClassificationData.data_labels = data_labels
     elseif problem_type()==:Regression
+        testing_data.RegressionData.data_input = data_input
         testing_data.RegressionData.data_labels = data_labels
     else # Segmentation
+        testing_data.SegmentationData.data_input = data_input
         testing_data.SegmentationData.data_labels = data_labels
     end
 end
