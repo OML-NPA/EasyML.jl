@@ -623,8 +623,8 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
         if training_options.Accuracy.accuracy_mode==:Manual
             ws = training_data.weights
             l_ws = length(ws)
-            l_data = size(train_set[1][1])[end]
-            if l_ws<l_data
+            l_data = size(train_set[2][1])[end]
+            if l_ws!=l_data
                 error = string("The number of weights is not equal to the number of channels. ",l_ws," vs ",l_data)
                 @error error
                 push!(training_data.errors,error)
