@@ -1,12 +1,12 @@
 
 EasyML is easy enough to figure out by yourself! Just run the following lines. 
 
-## Adding the package
+## Add the package
 ```julia
 using EasyML
 ```
 
-## Settings up
+## Set up
 ```julia
 modify(global_options)
 ```
