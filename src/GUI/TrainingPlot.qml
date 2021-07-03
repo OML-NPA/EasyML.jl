@@ -298,7 +298,7 @@ ApplicationWindow {
                     iterationsperepochLabel.text = iterations_per_epoch
                     currentiterationLabel.text = 1
                     maxiterationsLabel.text = max_iterations
-                    titleLabel.text = "MODEL COMPILATION"
+                    titleLabel.text = "COMPILATION"
                 }
                 else if (data[0]==="Training") {
                     var accuracy = data[1]
