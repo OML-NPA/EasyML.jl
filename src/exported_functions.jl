@@ -17,6 +17,17 @@ function modify(data::TrainingOptions)
     return nothing
 end
 
+function set_savepath(url)
+    url_split = split(url,('/','.'))
+    if url_split[end]!="model"
+        @error "The model name should end with a '.model' extension."
+        return nothing
+    end
+    all_data.model_url = url
+    all_data.model_name = url_split[end-1]
+    return nothing
+end
+
 function set_training_data(data_input,data_labels)
     if problem_type()==:Classification
         training_data.ClassificationData.data_input = data_input
