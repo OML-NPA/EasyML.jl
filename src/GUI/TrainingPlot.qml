@@ -67,6 +67,148 @@ ApplicationWindow {
         //trainingplotLoader.sourceComponent = undefined
     }
 
+    function show_warnings() {
+        var warnings = Julia.get_data(["TrainingData","warnings"])
+        if (warnings.length>0) {
+            for (var i=0;i<warnings.length;i++) {
+                warningPopup.warnings.push(warnings[i])
+            }
+            warningPopup.visible = true
+            Julia.set_data(["TrainingData","warnings"],[])
+        }
+    }
+
+    function show_errors() {
+        var errors = Julia.get_data(["TrainingData","errors"])
+        if (errors.length>0) {
+            for (var i=0;i<erros.length;i++) {
+                errorPopup.errors.push(errors[i])
+            }
+            errorPopup.visible = true
+            Julia.set_data(["TrainingData","errors"],[])
+            return true
+        }
+        return false
+    }
+
+        Popup {
+        id: warningPopup
+        modal: true
+        visible: false
+        closePolicy: Popup.NoAutoClose
+        x: customizationWindow.width/2 - width/2
+        y: customizationWindow.height/2 - height/2
+        width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
+        height: titleLabel.height + textLabel.height 
+            + okButton.height + 0.4*margin + okButton.height
+        property var warnings: []
+        onVisibleChanged: {
+            if (visible) {
+                if (warnings.length!==0) {
+                    textLabel.text = warnings[0]
+                    warnings.shift()
+                }
+            }
+        }
+        Label {
+            id: titleLabel
+            x: warningPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            topPadding: 0.25*margin
+            text: "WARNING"
+        }
+        Label {
+            id: textLabel
+            x:warningPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            anchors.top: titleLabel.bottom
+            topPadding: 0.4*margin
+        }
+        Button {
+            id: okButton
+            width: buttonWidth/2
+            x: warningPopup.width/2 - width/2 - 12*pix
+            anchors.top: textLabel.bottom
+            anchors.topMargin: 0.4*margin
+            text: "OK"
+            onClicked: {
+                if (warningPopup.warnings.length!==0) {
+                    textLabel.text = warningPopup.warnings[0]
+                    warningPopup.warnings.shift()
+                }
+                else {
+                    warningPopup.visible = false
+                }
+            }
+        }
+    }
+    
+    Popup {
+        id: errorPopup
+        modal: true
+        visible: false
+        closePolicy: Popup.NoAutoClose
+        x: customizationWindow.width/2 - width/2
+        y: customizationWindow.height/2 - height/2
+        width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
+        height: titleLabel.height + textLabel.height 
+            + okButton.height + 0.4*margin + okButton.height
+        property var errors: []
+        onVisibleChanged: {
+            if (visible) {
+                if (errors.length!==0) {
+                    textLabel.text = errors[0]
+                    errors.shift()
+                }
+            }
+        }
+        Label {
+            id: titleLabel
+            x: errorPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            topPadding: 0.25*margin
+            text: "ERROR"
+        }
+        Label {
+            id: textLabel
+            x:errorPopup.width/2 - width/2 - 12*pix
+            leftPadding: 0
+            anchors.top: titleLabel.bottom
+            topPadding: 0.4*margin
+        }
+        Button {
+            id: okButton
+            width: buttonWidth/2
+            x: errorPopup.width/2 - width/2 - 12*pix
+            anchors.top: textLabel.bottom
+            anchors.topMargin: 0.4*margin
+            text: "OK"
+            onClicked: {
+                if (errorPopup.errors.length!==0) {
+                    textLabel.text = errorPopup.errors[0]
+                    errorPopup.errors.shift()
+                }
+                else {
+                    errorPopup.visible = false
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: warningerrorTimer
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            show_warnings()
+            state = show_errors()
+            if (state==true) {
+                trainingTimer.running = false
+            }
+        }
+    }
+
     Popup {
         id: initialisationPopup
         modal: true

@@ -84,6 +84,8 @@ segmentaion_data = SegmentationData()
     OptionsData::TrainingOptionsData = training_options_data
     weights::Vector{Float32} = Vector{Float32}(undef,0)
     tasks::Vector{Task} = Vector{Task}(undef,0)
+    warnings::Vector{String} = Vector{String}(undef,0)
+    errors::Vector{String} = Vector{String}(undef,0)
 end
 training_data = TrainingData()
 

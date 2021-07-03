@@ -144,8 +144,11 @@ end
 #---
 
 # Reset training related data accumulators
-function reset_training_data(training_plot_data::TrainingPlotData,
-        training_results_data::TrainingResultsData)
+function reset_training_data(training_data::TrainingData)
+    training_data.warnings = String[]
+    training_data.errors = String[]
+    training_plot_data = training_data.PlotData
+    training_results_data = training_data.ResultsData
     training_results_data.accuracy = Float32[]
     training_results_data.loss = Float32[]
     training_results_data.test_accuracy = Float32[]
@@ -572,7 +575,7 @@ function test_model(model_data,train_set,use_GPU)
         size_output = size(output)[1:end-1]
         if size_label!=size_output
             msg = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
-            @warn string("Model test returned an exception: ",msg)
+            @error string("Model test returned an exception: ",msg)
             return true,nothing
         else
             model_data.input_size = size(input_data)[1:end-1]
@@ -580,7 +583,7 @@ function test_model(model_data,train_set,use_GPU)
             return false
         end
     catch e
-        @warn string("Model test returned an exception: ",e)
+        @error string("Model test returned an exception: ",e)
         return true,nothing
     end
 end
@@ -592,18 +595,18 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     training_data = all_data.TrainingData
     testing_data = all_data.TestingData
     training_options = options.TrainingOptions
-    training_plot_data = training_data.PlotData
-    training_results_data = training_data.Results
     args = training_options.Hyperparameters
     use_GPU = false
     if options.GlobalOptions.HardwareResources.allow_GPU
         if has_cuda()
             use_GPU = true
         else
-            @warn "No CUDA capable device was detected. Using CPU instead."
+            warning = "No CUDA capable device was detected. Using CPU instead."
+            @warn warning
+            push!(training_data.warnings,warning)
         end
     end
-    reset_training_data(training_plot_data,training_results_data)
+    reset_training_data(training_data)
     # Preparing train and test sets
     typed_training_data = get_data_struct(training_data)
     typed_testing_data = get_data_struct(testing_data)
@@ -622,7 +625,9 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
             l_ws = length(ws)
             l_data = size(train_set[1][1])[end]
             if l_ws<l_data
-                @error string("The number of weights is not equal to the number of channels. ",l_ws," vs ",l_data)
+                error = string("The number of weights is not equal to the number of channels. ",l_ws," vs ",l_data)
+                @error error
+                push!(training_data.errors,error)
                 return nothing
             end
         else
@@ -636,7 +641,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     data = train!(model_data,train_set,test_set,opt,accuracy,loss,
         all_data,use_GPU,num_tests,args,channels,training_data.tasks)
     # Clean up
-    clean_up_training(training_plot_data)
+    clean_up_training(training_data.PlotData)
     # Return training results
     put!(channels.training_results,(model_data.model,data...))
     return nothing
