@@ -268,7 +268,6 @@ ApplicationWindow {
                     Row {
                         height: rowHeight
                         spacing: 0.3*margin
-                        visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
                         Label {
                             id: testingfrLabel
                             text: "Number of tests (per epoch):"
