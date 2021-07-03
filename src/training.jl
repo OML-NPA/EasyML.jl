@@ -643,7 +643,14 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     # Clean up
     clean_up_training(training_data.PlotData)
     # Return training results
-    put!(channels.training_results,(model_data.model,data...))
+    training_results_data = training_data.Results
+    model_data.model = data[1]
+    training_results_data.accuracy = data[2]
+    training_results_data.loss = data[3]
+    training_results_data.test_accuracy = data[4]
+    training_results_data.test_loss = data[5]
+    training_results_data.test_iteration = data[6]
+    save_model(all_data.model_url)
     return nothing
 end
 function train_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)

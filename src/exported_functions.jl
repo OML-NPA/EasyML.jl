@@ -87,7 +87,6 @@ function train()
     end
     training_data.OptionsData.run_test = !isempty(data_test)
     empty_progress_channel("Training")
-    empty_results_channel("Training")
     empty_progress_channel("Training modifiers")
     t = train_main2(model_data,all_data,options,channels)
     # Launches GUI
@@ -111,17 +110,9 @@ function train()
     loadqml(path_qml)
     exec()
 
-    while true
-        data = get_results("Training")
-        if data==true
-            return training_results_data
-        end
-        state,error = check_task(t)
-        if state==:error
-            @warn string("Training aborted due to the following error: ",error)
-            return nothing
-        end
-        sleep(1)
+    state,error = check_task(t)
+    if state==:error
+        @warn string("Training aborted due to the following error: ",error)
     end
-    return nothing
+    return training_data.Results
 end

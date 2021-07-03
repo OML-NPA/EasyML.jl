@@ -9,7 +9,6 @@
     testing_data_results::Channel = Channel{Any}(Inf)
     testing_data_modifiers::Channel = Channel{Int64}(Inf) # 0 - abort
     training_progress::Channel = Channel{Any}(Inf)
-    training_results::Channel = Channel{Any}(Inf)
     training_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort; 1 - learning rate; 2 - epochs; 3 - number of tests
 end
 channels = Channels()

@@ -98,23 +98,6 @@ function get_results_main(channels::Channels,all_data::AllData,
         else
             return false
         end
-    elseif field=="Training"
-        if isready(channels.training_results)
-            data = take!(channels.training_results)
-            if !isnothing(data)
-                training_results_data = all_data.TrainingData.Results
-                model_data.model = data[1]
-                training_results_data.accuracy = data[2]
-                training_results_data.loss = data[3]
-                training_results_data.test_accuracy = data[4]
-                training_results_data.test_loss = data[5]
-                training_results_data.test_iteration = data[6]
-                save_model(all_data.model_url)
-            end
-            return true
-        else
-            return false
-        end
     elseif field=="Validation"
         if isready(channels.validation_results)
             data = take!(channels.validation_results)
