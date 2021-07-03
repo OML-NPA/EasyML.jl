@@ -21,6 +21,7 @@ function set_training_data(data_input,data_labels)
     if problem_type()==:Classification
         training_data.ClassificationData.data_input = data_input
         training_data.ClassificationData.data_labels = data_labels
+        training_data.ClassificationData.max_labels = maximum(data_labels)
     elseif problem_type()==:Regression
         training_data.RegressionData.data_input = data_input
         training_data.RegressionData.data_labels = data_labels

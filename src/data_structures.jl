@@ -59,6 +59,7 @@ training_options_data = TrainingOptionsData()
 @with_kw mutable struct ClassificationData
     data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
+    max_labels::Int32 = 0
 end
 classification_data = ClassificationData()
 
