@@ -644,12 +644,11 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     clean_up_training(training_data.PlotData)
     # Return training results
     training_results_data = training_data.Results
-    model_data.model = data[1]
-    training_results_data.accuracy = data[2]
-    training_results_data.loss = data[3]
-    training_results_data.test_accuracy = data[4]
-    training_results_data.test_loss = data[5]
-    training_results_data.test_iteration = data[6]
+    training_results_data.accuracy = data[1]
+    training_results_data.loss = data[2]
+    training_results_data.test_accuracy = data[3]
+    training_results_data.test_loss = data[4]
+    training_results_data.test_iteration = data[5]
     save_model(all_data.model_url)
     return nothing
 end
