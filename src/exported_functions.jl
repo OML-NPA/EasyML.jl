@@ -28,6 +28,7 @@ function set_training_data(data_input,data_labels)
         training_data.SegmentationData.data_input = data_input
         training_data.SegmentationData.data_labels = data_labels
     end
+    return nothing
 end
 
 function set_testing_data(data_input,data_labels)
@@ -41,6 +42,7 @@ function set_testing_data(data_input,data_labels)
         testing_data.SegmentationData.data_input = data_input
         testing_data.SegmentationData.data_labels = data_labels
     end
+    return nothing
 end
 
 function set_weights_main(ws_in::T,training_data::TrainingData) where T<:Vector
