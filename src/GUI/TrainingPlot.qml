@@ -81,7 +81,7 @@ ApplicationWindow {
     function show_errors() {
         var errors = Julia.get_data(["TrainingData","errors"])
         if (errors.length>0) {
-            for (var i=0;i<erros.length;i++) {
+            for (var i=0;i<errors.length;i++) {
                 errorPopup.errors.push(errors[i])
             }
             errorPopup.visible = true
@@ -190,6 +190,7 @@ ApplicationWindow {
                 }
                 else {
                     errorPopup.visible = false
+                    trainingWindow.close()
                 }
             }
         }

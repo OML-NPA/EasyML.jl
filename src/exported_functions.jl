@@ -93,6 +93,7 @@ function train()
     # Launches GUI
     @qmlfunction(
         # Data handling
+        set_data,
         get_data,
         get_options,
         get_results,
