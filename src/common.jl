@@ -473,9 +473,9 @@ function get_weights(classes::Vector{<:AbstractClass},training_data::TrainingDat
             num = length(classes)
             true_classes_bool = (!).(map(class -> class.not_class, classes))
             classes = classes[true_classes_bool]
-            regression_labels = training_data.SegmentationData.data_labels
+            data_labels = training_data.SegmentationData.data_labels
             counts = zeros(Int64,num)
-            for data in regression_labels
+            for data in data_labels
                 counts .+= collect(Iterators.flatten(sum(data[:,:,1:num],dims = [1,2])))
             end
             borders_bool = map(class -> class.border, classes)
