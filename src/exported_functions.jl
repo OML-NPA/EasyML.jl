@@ -43,14 +43,25 @@ function set_testing_data(data_input,data_labels)
     end
 end
 
-function set_weights(ws::Vector{Float32})
-    s = sum(ws)
-    if s==1
-        training_data.weights = ws
-    else
-        training_data.weights = ws/s
+function set_weights_main(ws_in::T,training_data::TrainingData) where T<:Vector
+    if isempty(ws_in)
+        training_data.weights = Vector{Float32}(undef,0)
+        return nothing
     end
+    if T<:Vector{<:Real}
+        ws = convert(Vector{Float32},ws_in)
+        s = sum(ws)
+        if s==1
+            training_data.weights =  ws
+        else
+            training_data.weights =  ws/s
+        end
+    else
+        @error "Input must be an empty vector or a vector of numbers."
+    end
+    return nothing
 end
+set_weights(ws) = set_weights_main(ws,training_data)
 
 """
     train()
