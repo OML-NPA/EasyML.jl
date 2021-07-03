@@ -576,7 +576,7 @@ function test_model(model_data,train_set,use_GPU)
         if size_label!=size_output
             msg = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
             @error string("Model test returned an exception: ",msg)
-            return true,nothing
+            return true
         else
             model_data.input_size = size(input_data)[1:end-1]
             model_data.output_size = size_label
@@ -584,7 +584,7 @@ function test_model(model_data,train_set,use_GPU)
         end
     catch e
         @error string("Model test returned an exception: ",e)
-        return true,nothing
+        return true
     end
 end
 
