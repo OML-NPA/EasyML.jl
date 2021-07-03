@@ -96,44 +96,44 @@ ApplicationWindow {
         modal: true
         visible: false
         closePolicy: Popup.NoAutoClose
-        x: customizationWindow.width/2 - width/2
-        y: customizationWindow.height/2 - height/2
-        width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
-        height: titleLabel.height + textLabel.height 
+        x: trainingWindow.width/2 - width/2
+        y: trainingWindow.height/2 - height/2
+        width: Math.max(warningtitleLabel.width,warningtextLabel.width) + 0.8*margin
+        height: warningtitleLabel.height + warningtextLabel.height 
             + okButton.height + 0.4*margin + okButton.height
         property var warnings: []
         onVisibleChanged: {
             if (visible) {
                 if (warnings.length!==0) {
-                    textLabel.text = warnings[0]
+                    warningtextLabel.text = warnings[0]
                     warnings.shift()
                 }
             }
         }
         Label {
-            id: titleLabel
+            id: warningtitleLabel
             x: warningPopup.width/2 - width/2 - 12*pix
             leftPadding: 0
             topPadding: 0.25*margin
             text: "WARNING"
         }
         Label {
-            id: textLabel
+            id: warningtextLabel
             x:warningPopup.width/2 - width/2 - 12*pix
             leftPadding: 0
-            anchors.top: titleLabel.bottom
+            anchors.top: warningtitleLabel.bottom
             topPadding: 0.4*margin
         }
         Button {
             id: okButton
             width: buttonWidth/2
             x: warningPopup.width/2 - width/2 - 12*pix
-            anchors.top: textLabel.bottom
+            anchors.top: warningtextLabel.bottom
             anchors.topMargin: 0.4*margin
             text: "OK"
             onClicked: {
                 if (warningPopup.warnings.length!==0) {
-                    textLabel.text = warningPopup.warnings[0]
+                    warningtextLabel.text = warningPopup.warnings[0]
                     warningPopup.warnings.shift()
                 }
                 else {
@@ -148,44 +148,44 @@ ApplicationWindow {
         modal: true
         visible: false
         closePolicy: Popup.NoAutoClose
-        x: customizationWindow.width/2 - width/2
-        y: customizationWindow.height/2 - height/2
-        width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
-        height: titleLabel.height + textLabel.height 
+        x: trainingWindow.width/2 - width/2
+        y: trainingWindow.height/2 - height/2
+        width: Math.max(errortitleLabel.width,errortextLabel.width) + 0.8*margin
+        height: errortitleLabel.height + errortextLabel.height 
             + okButton.height + 0.4*margin + okButton.height
         property var errors: []
         onVisibleChanged: {
             if (visible) {
                 if (errors.length!==0) {
-                    textLabel.text = errors[0]
+                    errortextLabel.text = errors[0]
                     errors.shift()
                 }
             }
         }
         Label {
-            id: titleLabel
+            id: errortitleLabel
             x: errorPopup.width/2 - width/2 - 12*pix
             leftPadding: 0
             topPadding: 0.25*margin
             text: "ERROR"
         }
         Label {
-            id: textLabel
+            id: errortextLabel
             x:errorPopup.width/2 - width/2 - 12*pix
             leftPadding: 0
-            anchors.top: titleLabel.bottom
+            anchors.top: errortitleLabel.bottom
             topPadding: 0.4*margin
         }
         Button {
-            id: okButton
+            id: errorokButton
             width: buttonWidth/2
             x: errorPopup.width/2 - width/2 - 12*pix
-            anchors.top: textLabel.bottom
+            anchors.top: errortextLabel.bottom
             anchors.topMargin: 0.4*margin
             text: "OK"
             onClicked: {
                 if (errorPopup.errors.length!==0) {
-                    textLabel.text = errorPopup.errors[0]
+                    errortextLabel.text = errorPopup.errors[0]
                     errorPopup.errors.shift()
                 }
                 else {
@@ -202,7 +202,7 @@ ApplicationWindow {
         repeat: true
         onTriggered: {
             show_warnings()
-            state = show_errors()
+            var state = show_errors()
             if (state==true) {
                 trainingTimer.running = false
             }
