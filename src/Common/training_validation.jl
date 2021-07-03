@@ -99,13 +99,12 @@ function calculate_weights(counts::Vector{Int64})
 end
 
 function get_weights(classification_data::ClassificationData)
-    classification_labels = classification_data.data_labels
-    num = length(data_labels[1])
+    data_labels = classification_data.data_labels
+    num = classification_data.max_labels
     counts = zeros(Int64,num)
     for data in data_labels
-        counts .+= collect(Iterators.flatten(sum(data,dims = [1,2])))
+        counts[data] += 1
     end
-    counts = map(x -> count(x.==classification_labels),1:length(classes))
     weights = calculate_weights(counts)
     return weights
 end

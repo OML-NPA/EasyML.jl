@@ -49,7 +49,7 @@ function make_minibatch_inds(num_data::Int64,batch_size::Int64)
 end
 
 function make_minibatch_classification_conv(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
-        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
     # First and last minibatch indices
@@ -76,7 +76,7 @@ function make_minibatch_classification_conv(data_input::Vector{Array{Float32,3}}
 end
 
 function make_minibatch_classification_dense(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
-        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
     # First and last minibatch indices
@@ -86,10 +86,9 @@ function make_minibatch_classification_dense(data_input::Vector{Array{Float32,3}
     current_inds = inds_all[ind1:ind2]
     current_input = data_input[current_inds]
     l = length(current_inds)
-    l_labels = max_labels[end]
     current_labels = Vector{Array{Float32,2}}(undef,l)
     for i = 1:l
-        temp = zeros(Float32,l_labels)
+        temp = zeros(Float32,max_labels)
         ind_temp = data_labels[current_inds[i]]
         temp[ind_temp] = 1
         current_labels[i] = reshape(temp,:,1)
@@ -103,7 +102,7 @@ function make_minibatch_classification_dense(data_input::Vector{Array{Float32,3}
 end
 
 function make_minibatch_generic(data_input::Vector{Array{Float32,3}},data_labels::Vector{Vector{Float32}},
-        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
     # First and last minibatch indices
@@ -122,7 +121,7 @@ function make_minibatch_generic(data_input::Vector{Array{Float32,3}},data_labels
 end
 
 function make_minibatch_generic(data_input::Vector{Array{Float32,3}},data_labels_bool::Vector{BitArray{3}},
-        max_labels::Vector{Int32},batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64)
     ind = inds_start[i]
     # First and last minibatch indices
@@ -463,10 +462,7 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
     put!(channels.training_progress,(epochs[],num,max_iterations[]))
-    max_labels = Vector{Int32}(undef,0)
-    if problem_type()==:Classification && input_type()==:Image
-        push!(max_labels,(1:length(model_data.classes))...)
-    end
+    max_labels = all_data.TrainingData.ClassificationData.max_labels
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
     minibatch_test_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
@@ -561,7 +557,14 @@ end
 
 function test_model(model_data,train_set,use_GPU)
     input_data_raw = train_set[1][1]
-    label_data = train_set[2][1]
+    if problem_type()==:Classification
+        max_labels = training_data.ClassificationData.max_labels
+        label_data = zeros(Float32,max_labels)
+        ind = train_set[2][1]
+        label_data[ind] = 1
+    else
+        label_data = train_set[2][1]
+    end
     if use_GPU
         model = gpu(model_data.model)
         input_data = CuArray(input_data_raw[:,:,:,:])
