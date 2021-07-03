@@ -12,6 +12,8 @@ ApplicationWindow {
     id: window
     visible: true
     title: qsTr("  EasyML")
+    minimumHeight: 600*pix
+    minimumWidth: mainRow.width
     width: mainRow.width
     height: mainRow.height
 
@@ -67,7 +69,7 @@ ApplicationWindow {
             id: menuPane
             spacing: 0
             width: 1.3*buttonWidth
-            height: 600*pix
+            height: window.height
             padding: -1
             topPadding: tabmargin/2
             bottomPadding: tabmargin/2
@@ -79,7 +81,6 @@ ApplicationWindow {
                     Component.onCompleted: {menubuttonRepeater.itemAt(0).buttonfocus = true}
                     model: [{"name": "Accuracy", "stackview": accuracyView},
                             {"name": "Testing", "stackview": testingView},
-                            {"name": "Processing", "stackview": processingView},
                             {"name": "Hyperparameters", "stackview": hyperparametersView}]
                     delegate : MenuButton {
                         id: general
@@ -268,7 +269,6 @@ ApplicationWindow {
                     Row {
                         height: rowHeight
                         spacing: 0.3*margin
-                        visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
                         Label {
                             id: testingfrLabel
                             text: "Number of tests (per epoch):"
@@ -289,108 +289,6 @@ ApplicationWindow {
                 }
             }
 
-            Component {
-                id: processingView
-                Column {
-                    property double rowHeight: 60*pix
-                    spacing: 0.4*margin
-                    Row {
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            id: grayscaleLabel
-                            text: "Convert to grayscale:"
-                            width: minfrpixLabel.width
-                        }
-                        CheckBox {
-                            anchors.verticalCenter: grayscaleLabel.verticalCenter
-                            padding: 0
-                            width: height
-                            checkState : Julia.get_options(
-                                        ["TrainingOptions","Processing","grayscale"]) ?
-                                        Qt.Checked : Qt.Unchecked
-                            onClicked: {
-                                var value = checkState==Qt.Checked ? true : false
-                                Julia.set_options(
-                                    ["TrainingOptions","Processing","grayscale"],value)
-                            }
-                        }
-                    }
-                    Label {
-                        text: "Augmentation"
-                        font.bold: true
-                    }
-                    Row {
-                        id: mirroringLabel
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            text: "Mirroring:"
-                            width: minfrpixLabel.width
-                        }
-                        CheckBox {
-                            anchors.verticalCenter: mirroringLabel.verticalCenter
-                            padding: 0
-                            width: height
-                            checkState : Julia.get_options(
-                                        ["TrainingOptions","Processing","mirroring"]) ?
-                                        Qt.Checked : Qt.Unchecked
-                            onClicked: {
-                                var value = checkState==Qt.Checked ? true : false
-                                Julia.set_options(
-                                    ["TrainingOptions","Processing","mirroring"],value)
-                            }
-                        }
-                    }
-                    Row {
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            id: rotationLabel
-                            text: "Rotation (number of angles):"
-                            width: minfrpixLabel.width
-                        }
-                        SpinBox {
-                            anchors.verticalCenter: rotationLabel.verticalCenter
-                            id: numanglesSpinBox
-                            from: 1
-                            value: Julia.get_options(
-                                        ["TrainingOptions","Processing","num_angles"])
-                            to: 10
-                            onValueModified: {
-                                Julia.set_options(
-                                    ["TrainingOptions","Processing","num_angles"],value)
-                            }
-                        }
-                    }
-                    Row {
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            id: minfrpixLabel
-                            text: "Minimum fraction of labeled pixels:"
-                        }
-                        SpinBox {
-                            anchors.verticalCenter: minfrpixLabel.verticalCenter
-                            id: minfrpixSpinBox
-                            from: 0
-                            value: 100*Julia.get_options(
-                                        ["TrainingOptions","Processing","min_fr_pix"])
-                            to: 100
-                            stepSize: 10
-                            property real realValue
-                            textFromValue: function(value, locale) {
-                                realValue = value/100
-                                return realValue.toLocaleString(locale,'f',1)
-                            }
-                            onValueModified: {
-                                Julia.set_options(
-                                    ["TrainingOptions","Processing","min_fr_pix"],realValue)
-                            }
-                        }
-                    }
-                }
-            }
             Component {
                 id: hyperparametersView
                 Column {

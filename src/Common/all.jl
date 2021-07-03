@@ -98,6 +98,8 @@ function load_model_main(model_data,url)
         to_struct!(model_data,loaded_data)
     end
     all_data.model_url = url
+    url_split = split(url,('/','.'))
+    all_data.model_name = url_split[end-1]
     return nothing
 end
 """

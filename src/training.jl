@@ -514,20 +514,19 @@ function get_data_struct(some_data::Union{TrainingData,TestingData})
     return data
 end
 
-function remove_data(some_data::Union{TrainingData,TestingData})
+function remove_data(some_data::T) where T<:Union{TrainingData,TestingData}
     fields = [:data_input,:data_labels]
-    for i in fields
-        empty!(getfield(some_data.ClassificationData,i))
-        empty!(getfield(some_data.RegressionData,i))
-        empty!(getfield(some_data.SegmentationData,i))
+    for field in fields
+        empty!(getfield(some_data.ClassificationData,field))
+        empty!(getfield(some_data.RegressionData,field))
+        empty!(getfield(some_data.SegmentationData,field))
     end
-    if input_type()==:Image
-        empty!(some_data.ClassificationData.input_urls)
-        empty!(some_data.ClassificationData.label_urls)
-        empty!(some_data.RegressionData.input_urls)
-        empty!(some_data.RegressionData.initial_data_labels)
-        empty!(some_data.SegmentationData.input_urls)
-        empty!(some_data.SegmentationData.label_urls)
+    fields = fieldnames(T)[4:end]
+    for field in fields
+        data = getfield(some_data,field)
+        if data isa Array
+            empty!(data)
+        end
     end
     return nothing
 end
@@ -557,14 +556,14 @@ function remove_training_results()
     end
 end
 
-function test_model(model_raw,train_set,use_GPU)
+function test_model(model_data,train_set,use_GPU)
     input_data_raw = train_set[1][1]
     label_data = train_set[2][1]
     if use_GPU
-        model = gpu(model_raw)
+        model = gpu(model_data.model)
         input_data = CuArray(input_data_raw[:,:,:,:])
     else
-        model = model
+        model = model_data.model
         input_data = input_data_raw[:,:,:,:]
     end
     try
@@ -574,13 +573,15 @@ function test_model(model_raw,train_set,use_GPU)
         if size_label!=size_output
             msg = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
             @warn string("Model test returned an exception: ",msg)
-            return true
+            return true,nothing
         else
+            model_data.input_size = size(input_data)[1:end-1]
+            model_data.output_size = size_label
             return false
         end
     catch e
         @warn string("Model test returned an exception: ",e)
-        return true
+        return true,nothing
     end
 end
 
@@ -608,7 +609,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     typed_testing_data = get_data_struct(testing_data)
     train_set, test_set = get_sets(typed_training_data,typed_testing_data)
     # Model testing
-    excp = test_model(model_data.model,train_set,use_GPU)
+    excp = test_model(model_data,train_set,use_GPU)
     if excp
         return nothing
     end
@@ -636,6 +637,6 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
 end
 function train_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
     t = Threads.@spawn train_main(model_data,all_data,options,channels)
-    push!(training_data.tasks,t)
+    push!(all_data.TrainingData.tasks,t)
     return t
 end

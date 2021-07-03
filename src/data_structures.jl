@@ -20,6 +20,8 @@ channels = Channels()
 
 @with_kw mutable struct ModelData
     model::Chain = Chain()
+    input_size::NTuple{3,Int64} = (1,1,1)
+    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
     loss::Function = Flux.Losses.mse
 end
 model_data = ModelData()
@@ -98,6 +100,7 @@ testing_data = TestingData()
     problem_type::Symbol = :Classification
     data_type::Symbol = :Image
     model_url::String = ""
+    model_name::String = ""
 end
 all_data = AllData()
 
@@ -128,6 +131,8 @@ end
 accuracy_options = AccuracyOptions()
 
 @with_kw mutable struct TestingOptions
+    data_preparation_mode::Symbol = :Auto
+    test_data_fraction::Float64 = 0.1
     num_tests::Float64 = 2
 end
 testing_options = TestingOptions()

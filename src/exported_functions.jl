@@ -88,7 +88,7 @@ function train()
         @error "No training data."
         return nothing
     end
-    training_data.OptionsData.run_test = !isempty(data_test) && testing_options.test_data_fraction>0
+    training_data.OptionsData.run_test = !isempty(data_test)
     empty_progress_channel("Training")
     empty_results_channel("Training")
     empty_progress_channel("Training modifiers")

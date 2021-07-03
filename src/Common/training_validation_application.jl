@@ -86,3 +86,12 @@ function conn(num::Int64)
     end
     return kernel
 end
+
+function cleanup!(x::Array)
+    return nothing
+end
+
+function cleanup!(x::CuArray)
+    CUDA.unsafe_free!(x)
+    return nothing
+end
