@@ -678,6 +678,7 @@ ApplicationWindow {
                                 }
                             }
                             Row {
+                                id: numtestsRow
                                 visible: Julia.get_data(["TrainingData","OptionsData","run_test"])
                                 spacing: 0.3*margin
                                 Label {
@@ -694,6 +695,11 @@ ApplicationWindow {
                                     editable: true
                                     onValueModified: {
                                         Julia.put_channel("Training",[3.0,value])
+                                    }
+                                    Component.onCompleted: {
+                                        if (value==0) {
+                                            numtestsRow.visible = false
+                                        }
                                     }
                                 }
                             }
