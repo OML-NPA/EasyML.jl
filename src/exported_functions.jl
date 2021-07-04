@@ -134,8 +134,8 @@ function train()
         return nothing
     end
     training_data.OptionsData.run_test = !isempty(data_test)
-    empty_progress_channel("Training")
-    empty_progress_channel("Training modifiers")
+    empty_progress_channel("training_progress")
+    empty_progress_channel("training_modifiers")
     t = train_main2(model_data,all_data,options,channels)
     # Launches GUI
     @qmlfunction(
@@ -143,7 +143,6 @@ function train()
         set_data,
         get_data,
         get_options,
-        get_results,
         get_progress,
         put_channel,
         # Training related

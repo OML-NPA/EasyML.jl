@@ -61,7 +61,7 @@ ApplicationWindow {
     color: defaultpalette.window
 
     onClosing: {
-        Julia.put_channel("Training",[0.0,0.0])
+        Julia.put_channel("training_modifiers",[0.0,0.0])
         //trainButton.text = "Train"
         //progressbar.value = 0
         //trainingplotLoader.sourceComponent = undefined
@@ -286,7 +286,7 @@ ApplicationWindow {
         repeat: true
         onTriggered: {
             while (true) {
-                var data = Julia.get_progress("Training")
+                var data = Julia.get_progress("training_progress")
                 if (data===false) {return}
                 if (epoch===0) {
                     Julia.set_training_starting_time()
@@ -520,7 +520,7 @@ ApplicationWindow {
                                 Layout.preferredHeight: buttonHeight
                                 Layout.leftMargin: 0.3*margin
                                 onClicked: {
-                                    Julia.put_channel("Training",[0.0,0.0])
+                                    Julia.put_channel("training_modifiers",[0.0,0.0])
                                     //var stop = false
                                     //while (!stop) {
                                     //    stop = Julia.get_results("Training")
@@ -626,7 +626,7 @@ ApplicationWindow {
                                     stepSize: 1
                                     editable: false
                                     onValueModified: {
-                                        Julia.put_channel("Training",[2.0,value])
+                                        Julia.put_channel("training_modifiers",[2.0,value])
                                         trainingTimer.epochs = value
                                         trainingTimer.max_iterations =
                                                 value*trainingTimer.iterations_per_epoch
@@ -657,7 +657,7 @@ ApplicationWindow {
                                         return Number(realValue).toLocaleString(locale,'e',0)
                                     }
                                     onValueModified: {
-                                        Julia.put_channel("Training",[1.0,realValue])
+                                        Julia.put_channel("training_modifiers",[1.0,realValue])
                                     }
                                     Component.onCompleted: {
                                         var optimisers = ["Descent","Momentum",
@@ -694,7 +694,7 @@ ApplicationWindow {
                                     stepSize: 1
                                     editable: true
                                     onValueModified: {
-                                        Julia.put_channel("Training",[3.0,value])
+                                        Julia.put_channel("training_modifiers",[3.0,value])
                                     }
                                     Component.onCompleted: {
                                         if (value==0) {

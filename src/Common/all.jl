@@ -44,7 +44,12 @@ function get_problem_type()
     end
 end
 
-#---Model saving/loading
+problem_type() = all_data.problem_type
+input_type() = all_data.input_type
+
+
+#---Model saving/loading--------------------------------------------
+
 function save_model_main(model_data,url)
     url = fix_QML_types(url)
     dict_raw = Dict{Symbol,Any}()
@@ -109,6 +114,88 @@ Loads a model from a specified URL. The URL can be absolute or relative.
 """
 load_model(url) = load_model_main(model_data,url)
 
+
+#---Channels---------------------------------------------------------------
+
+# Return values from progress channels without taking the values
+function check_progress_main(channels::Channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    if isready(channel)
+        return fetch(channel)
+    else
+        return false
+    end
+end
+check_progress(field) = check_progress_main(channels,field)
+
+# Return values from progress channels by taking the values
+function get_progress_main(channels::Channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    if isready(channel)
+        value_raw = take!(channel)
+        if value_raw isa Tuple
+            value = [value_raw...]
+        else
+            value = value_raw
+        end
+        return value
+    else
+        return false
+    end
+end
+get_progress(field) = get_progress_main(channels,field)
+
+#---
+# Empties progress channels
+function empty_progress_channel_main(channels::Channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    while true
+        if isready(channel)
+            take!(channel)
+        else
+            return
+        end
+    end
+end
+empty_progress_channel(field) = empty_progress_channel_main(channels,field)
+
+# Empties results channels
+function empty_results_channel_main(channels::Channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    while true
+        if isready(channel)
+            take!(channel)
+        else
+            return nothing
+        end
+    end
+end
+empty_results_channel(field) = empty_results_channel_main(channels,field)
+
+#---
+# Puts data into modifiers channels
+function put_channel_main(channels::Channels,field,value)
+    field = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    value_raw = [2.0,10.0]
+    value_raw::Vector{Float64} = fix_QML_types(value)
+    value1 = convert(Int64,value_raw[1])
+    value2 = convert(Float64,value_raw[2])
+    value = (value1,value2)
+    put!(channel,value)
+end
+put_channel(field,value) = put_channel_main(channels,field,value)
+
+
 #------------------------------------------------------------------------
 
 function empty_field!(str,field::Symbol)
@@ -122,6 +209,3 @@ end
 function data_length(fields,inds=[])
     return length(get_data(fields,inds))
 end
-
-problem_type() = all_data.problem_type
-input_type() = all_data.input_type

@@ -25,7 +25,6 @@ include("Common/all.jl")
 include("Common/training_validation_application.jl")
 include("Common/training_validation.jl")
 include("Common/exported_functions.jl")
-include("handling_channels.jl")
 include("training.jl")
 include("exported_functions.jl")
 
