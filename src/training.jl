@@ -350,7 +350,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             if run_test && num_tests!=0
                 training_started_cond = i==1 && epoch_idx==1
                 num_tests_cond = i>global_iteration_test*ceil(num/num_tests)
-                training_finished_cond = iteration==(max_iterations[]-1)
+                training_finished_cond = iteration==(max_iterations[])
                 # Test if testing frequency reached or training is done
                 if num_tests_cond ||  training_started_cond || training_finished_cond
                     global_iteration_test += 1
