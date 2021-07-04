@@ -91,7 +91,7 @@ ApplicationWindow {
         return false
     }
 
-        Popup {
+    Popup {
         id: warningPopup
         modal: true
         visible: false
@@ -327,10 +327,7 @@ ApplicationWindow {
                     }
                 }
                 if ((iteration===max_iterations && max_iterations!==0) || trainingTimer.done) {
-                    // var state = Julia.get_results("Training")
-                    //if (state===true) {
-                        running = false
-                    //}
+                    running = false
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
                     addEpochLine()
@@ -349,30 +346,29 @@ ApplicationWindow {
     GridLayout {
         id: gridLayout
         Row {
-            Layout.alignment : Qt.AlignTop
-            ColumnLayout {
-                id: plots
+            Column {
+                id: plotsColumn
                 Label {
-                    Layout.topMargin: 0.5*margin
+                    topPadding: 0.5*margin
                     text: "Training progress"
-                    Layout.alignment : Qt.AlignHCenter | Qt.AligTop
+                    anchors.horizontalCenter: plotsColumn.horizontalCenter
                     font.bold: true
                 }
-                RowLayout {
+                Row {
                     spacing: 0
                     Label {
                         text: "Accuracy (%)"
                         rotation : 270
-                        Layout.alignment : Qt.AlignHCenter
-                        topPadding: -1.25*margin
-                        leftPadding: margin
+                        anchors.verticalCenter: accuracyChartColumn.verticalCenter
+                        topPadding: -1.1*margin
                     }
-                    ColumnLayout {
+                    Column {
+                        id: accuracyChartColumn
+                        leftPadding: -1.21*margin
                         ChartView {
                             id: accuracyChartView
-                            Layout.preferredHeight: 10*margin
-                            Layout.preferredWidth: 15*margin
-                            Layout.leftMargin: -2.25*margin
+                            height: 10*margin
+                            width: 15*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
                             antialiasing: true
@@ -414,33 +410,33 @@ ApplicationWindow {
                         }
                         Label {
                             text: "Iteration"
-                            Layout.topMargin: -0.3*margin
-                            Layout.leftMargin: -2.75*margin
-                            Layout.alignment : Qt.AlignHCenter
+                            topPadding: -0.3*margin
+                            leftPadding: -2.75*margin
+                            anchors.horizontalCenter: accuracyChartView.horizontalCenter
                         }
                     }
                 }
-                RowLayout {
+                Row {
                     spacing: 0
                     Label {
                         text: "Loss"
-
                         rotation : 270
-                        Layout.alignment : Qt.AlignHCenter
-                        topPadding: -0.25*margin
-                        leftPadding: margin
+                        leftPadding: 0.9*margin
+                        anchors.verticalCenter: lossChartColumn.verticalCenter
+                        topPadding: -0.2*margin
                     }
-                    ColumnLayout {
+                    Column {
+                        id: lossChartColumn
+                        leftPadding: -0.69*margin
                         ChartView {
                             id: lossChartView
-                            Layout.preferredHeight: 6*margin
-                            Layout.preferredWidth: 15.3*margin
-                            Layout.leftMargin: -0.85*margin
+                            height: 6*margin
+                            width: 15.3*margin
                             backgroundColor : defaultpalette.window
                             plotAreaColor : defaultpalette.listview
                             antialiasing: true
                             legend.visible: false
-                            margins { right: 0.3*margin; bottom: 0; left: 0; top: 0 }
+                            margins { right: 0.3*margin; bottom: 0; left: 0*margin; top: 0 }
                             ValueAxis {
                                     id: lossAxisX
                                     min: 1
@@ -477,231 +473,223 @@ ApplicationWindow {
                         }
                         Label {
                             text: "Iteration"
-                            Layout.topMargin: -0.3*margin
-                            Layout.leftMargin: -1*margin
-                            Layout.bottomMargin: 0.5*margin
-                            Layout.alignment : Qt.AlignHCenter
+                            topPadding: -0.3*margin
+                            leftPadding: -1*margin
+                            bottomPadding: 0.5*margin
+                            anchors.horizontalCenter: lossChartView.horizontalCenter
                         }
                     }
                 }
             }
             Pane {
-                height: plots.height
+                height: plotsColumn.height
                 backgroundColor: defaultpalette.window2
-                ColumnLayout {
-                    ColumnLayout {
-                        Layout.margins: 0.5*margin
+                Column {
+                    padding: 0.5*margin
+                    Row {
+                        id: progressbarheader
+                        spacing: 0
+                        Label {
+                            text: "Training iteration  "
+                        }
+                        Label {
+                            id: currentiterationLabel
+                            text: ""
+                        }
+                        Label {
+                            text: "  of  "
+                        }
+                        Label {
+                            id: maxiterationsLabel
+                            text: ""
+                        }
+                    }
+                    Row {
+                        topPadding: 0.25*margin
+                        spacing: 0.3*margin
+                        ProgressBar {
+                            id: trainingProgressBar
+                            width: 1.2*buttonWidth
+                            height: buttonHeight
+                        }
+                        StopButton {
+                            id: stoptraining
+                            width: buttonHeight
+                            height: buttonHeight
+                            anchors.verticalCenter: trainingProgressBar.verticalCenter
+                            onClicked: {
+                                Julia.put_channel("training_modifiers",[0.0,0.0])
+                            }
+                        }
+                    }
+                    Column {
+                        spacing: 0.4*margin
+                        Label {
+                            topPadding: 0.5*margin
+                            text: "Training time"
+                            font.bold: true
+                        }
                         Row {
-                            id: progressbarheader
-                            spacing: 0
+                            spacing: 0.3*margin
                             Label {
-                                text: "Training iteration  "
+                                text: "Start time:"
+                                width: elapsedtimeLabel.width
                             }
                             Label {
-                                id: currentiterationLabel
-                                text: ""
+                                id: starttimeLabel
+                                text: Julia.time()
+                            }
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                id: elapsedtimeLabel
+                                text: "Elapsed time:"
                             }
                             Label {
-                                text: "  of  "
-                            }
-                            Label {
-                                id: maxiterationsLabel
+                                id: elapsedtimelabel
+                                Layout.topMargin: 0.2*margin
                                 text: ""
                             }
                         }
-                        RowLayout {
-                            ProgressBar {
-                                id: trainingProgressBar
-                                Layout.preferredWidth: 1.34*buttonWidth
-                                Layout.preferredHeight: buttonHeight
-                                Layout.alignment: Qt.AlignVCenter
+                        Label {
+                            topPadding: 0.5*margin
+                            text: "Training cycle"
+                            font.bold: true
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                text: "Epoch:"
+                                width: iterationsperepochtextLabel.width
                             }
-                            StopButton {
-                                id: stoptraining
-                                Layout.preferredWidth: buttonHeight
-                                Layout.preferredHeight: buttonHeight
-                                Layout.leftMargin: 0.3*margin
-                                onClicked: {
-                                    Julia.put_channel("training_modifiers",[0.0,0.0])
-                                    //var stop = false
-                                    //while (!stop) {
-                                    //    stop = Julia.get_results("Training")
-                                    //    Julia.sleep(0.1)
-                                    //}
+                            Label {
+                                id: epochLabel
+                                text: ""
+                            }
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                id: iterationsperepochtextLabel
+                                text: "Iterations per epoch:"
+                            }
+                            Label {
+                                id: iterationsperepochLabel
+                                Layout.topMargin: 0.2*margin
+                                text: ""
+                            }
+                        }
+                        Label {
+                            topPadding: 0.5*margin
+                            text: "Other information:"
+                            font.bold: true
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                text: "Hardware resource:"
+                            }
+                            Label {
+                                id: hardwareresource
+                                Layout.topMargin: 0.2*margin
+                                text: Julia.get_options(["GlobalOptions",
+                                    "HardwareResources","allow_GPU"]) ? "GPU" : "CPU"
+                            }
+                        }
+                        Label {
+                            topPadding: 0.5*margin
+                            text: "Controls:"
+                            font.bold: true
+                        }
+                        Row {
+                            spacing: 0.3*margin
+                            Label {
+                                id: numepochsLabel
+                                text: "Number of epochs:"
+                            }
+                            SpinBox {
+                                anchors.verticalCenter: numepochsLabel.verticalCenter
+                                from: trainingTimer.epoch
+                                value: Julia.get_options(
+                                            ["TrainingOptions","Hyperparameters","epochs"])
+                                to: 10000
+                                stepSize: 1
+                                editable: false
+                                onValueModified: {
+                                    Julia.put_channel("training_modifiers",[2.0,value])
+                                    trainingTimer.epochs = value
+                                    trainingTimer.max_iterations =
+                                            value*trainingTimer.iterations_per_epoch
+                                    maxiterationsLabel.text = trainingTimer.max_iterations
                                 }
                             }
                         }
-                        Column {
-                            spacing: 0.4*margin
+                        Row {
+                            spacing: 0.3*margin
                             Label {
-                                topPadding: 0.5*margin
-                                text: "Training time"
-                                font.bold: true
+                                id: learningrateLabel
+                                text: "Learning rate:"
+                                width: numepochsLabel.width
                             }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    text: "Start time:"
-                                    width: iterationsperepochtextLabel.width
+                            SpinBox {
+                                id: learningrateSpinBox
+                                anchors.verticalCenter: learningrateLabel.verticalCenter
+                                from: 1
+                                value: 100000*Julia.get_options(
+                                            ["TrainingOptions","Hyperparameters","learning_rate"])
+                                to: 1000
+                                stepSize: value>100 ? 100 :
+                                            value>10 ? 10 : 1
+                                editable: false
+                                property real realValue
+                                textFromValue: function(value, locale) {
+                                    realValue = value/100000
+                                    return Number(realValue).toLocaleString(locale,'e',0)
                                 }
-                                Label {
-                                    id: starttimeLabel
-                                    text: Julia.time()
+                                onValueModified: {
+                                    Julia.put_channel("training_modifiers",[1.0,realValue])
                                 }
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    text: "Elapsed time:"
-                                    width: iterationsperepochtextLabel.width
-                                }
-                                Label {
-                                    id: elapsedtimelabel
-                                    Layout.topMargin: 0.2*margin
-                                    text: ""
-                                }
-                            }
-                            Label {
-                                topPadding: 0.5*margin
-                                text: "Training cycle"
-                                font.bold: true
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    text: "Epoch:"
-                                    width: iterationsperepochtextLabel.width
-                                }
-                                Label {
-                                    id: epochLabel
-                                    text: ""
-                                }
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    id: iterationsperepochtextLabel
-                                    text: "Iterations per epoch:"
-                                }
-                                Label {
-                                    id: iterationsperepochLabel
-                                    Layout.topMargin: 0.2*margin
-                                    text: ""
-                                }
-                            }
-                            Label {
-                                topPadding: 0.5*margin
-                                text: "Other information:"
-                                font.bold: true
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    text: "Hardware resource:"
-                                    width: iterationsperepochtextLabel.width
-                                }
-                                Label {
-                                    id: hardwareresource
-                                    Layout.topMargin: 0.2*margin
-                                    text: Julia.get_options(["GlobalOptions",
-                                        "HardwareResources","allow_GPU"]) ? "GPU" : "CPU"
-                                }
-                            }
-                            Label {
-                                topPadding: 0.5*margin
-                                text: "Controls:"
-                                font.bold: true
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    id: numepochsLabel
-                                    text: "Number of epochs:"
-                                    width: iterationsperepochtextLabel.width
-                                }
-                                SpinBox {
-                                    anchors.verticalCenter: numepochsLabel.verticalCenter
-                                    from: trainingTimer.epoch
-                                    value: Julia.get_options(
-                                               ["TrainingOptions","Hyperparameters","epochs"])
-                                    to: 10000
-                                    stepSize: 1
-                                    editable: false
-                                    onValueModified: {
-                                        Julia.put_channel("training_modifiers",[2.0,value])
-                                        trainingTimer.epochs = value
-                                        trainingTimer.max_iterations =
-                                                value*trainingTimer.iterations_per_epoch
-                                        maxiterationsLabel.text = trainingTimer.max_iterations
-                                    }
-                                }
-                            }
-                            Row {
-                                spacing: 0.3*margin
-                                Label {
-                                    id: learningrateLabel
-                                    text: "Learning rate:"
-                                    width: iterationsperepochtextLabel.width
-                                }
-                                SpinBox {
-                                    id: learningrateSpinBox
-                                    anchors.verticalCenter: learningrateLabel.verticalCenter
-                                    from: 1
-                                    value: 100000*Julia.get_options(
-                                               ["TrainingOptions","Hyperparameters","learning_rate"])
-                                    to: 1000
-                                    stepSize: value>100 ? 100 :
-                                              value>10 ? 10 : 1
-                                    editable: false
-                                    property real realValue
-                                    textFromValue: function(value, locale) {
-                                        realValue = value/100000
-                                        return Number(realValue).toLocaleString(locale,'e',0)
-                                    }
-                                    onValueModified: {
-                                        Julia.put_channel("training_modifiers",[1.0,realValue])
-                                    }
-                                    Component.onCompleted: {
-                                        var optimisers = ["Descent","Momentum",
-                                            "Nesterov","RMSProp","ADAM","RADAM","AdaMax",
-                                            "ADAGrad","ADADelta","AMSGrad","NADAM","ADAMW"]
-                                        var allow_lr = [true,true,true,true,true,true,true,
-                                            true,false,true,true,true]
-                                        var name = Julia.get_options(
-                                            ["TrainingOptions","Hyperparameters","optimiser"])
-                                        for (var i=0;i<optimisers.length;i++) {
-                                            if (name==optimisers[i]) {
-                                                var visibility = allow_lr[i]
-                                                learningrateSpinBox.visible = visibility
-                                                learningrateLabel.visible = visibility
-                                            }
+                                Component.onCompleted: {
+                                    var optimisers = ["Descent","Momentum",
+                                        "Nesterov","RMSProp","ADAM","RADAM","AdaMax",
+                                        "ADAGrad","ADADelta","AMSGrad","NADAM","ADAMW"]
+                                    var allow_lr = [true,true,true,true,true,true,true,
+                                        true,false,true,true,true]
+                                    var name = Julia.get_options(
+                                        ["TrainingOptions","Hyperparameters","optimiser"])
+                                    for (var i=0;i<optimisers.length;i++) {
+                                        if (name==optimisers[i]) {
+                                            var visibility = allow_lr[i]
+                                            learningrateSpinBox.visible = visibility
+                                            learningrateLabel.visible = visibility
                                         }
                                     }
                                 }
                             }
-                            Row {
-                                id: numtestsRow
-                                visible: Julia.get_data(["TrainingData","OptionsData","run_test"])
-                                spacing: 0.3*margin
-                                Label {
-                                    id: numtestsLabel
-                                    text: "Number of tests:"
-                                    width: iterationsperepochtextLabel.width
+                        }
+                        Row {
+                            id: numtestsRow
+                            visible: Julia.get_data(["TrainingData","OptionsData","run_test"])
+                            spacing: 0.3*margin
+                            Label {
+                                id: numtestsLabel
+                                text: "Number of tests:"
+                                width: numepochsLabel.width
+                            }
+                            SpinBox {
+                                anchors.verticalCenter: numtestsLabel.verticalCenter
+                                from: 0
+                                value: Julia.get_options(["TrainingOptions","Testing","num_tests"])
+                                to: 10000
+                                stepSize: 1
+                                editable: true
+                                onValueModified: {
+                                    Julia.put_channel("training_modifiers",[3.0,value])
                                 }
-                                SpinBox {
-                                    anchors.verticalCenter: numtestsLabel.verticalCenter
-                                    from: 0
-                                    value: Julia.get_options(["TrainingOptions","Testing","num_tests"])
-                                    to: 10000
-                                    stepSize: 1
-                                    editable: true
-                                    onValueModified: {
-                                        Julia.put_channel("training_modifiers",[3.0,value])
-                                    }
-                                    Component.onCompleted: {
-                                        if (value==0) {
-                                            numtestsRow.visible = false
-                                        }
+                                Component.onCompleted: {
+                                    if (value==0) {
+                                        numtestsRow.visible = false
                                     }
                                 }
                             }
