@@ -244,6 +244,7 @@ function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
                     end
                 end
             end
+            sleep(0.01)
             if abort[]
                 return nothing
             end
