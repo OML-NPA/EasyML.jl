@@ -14,8 +14,8 @@ channels = Channels()
 
 @with_kw mutable struct ModelData
     model::Chain = Chain()
-    input_size::NTuple{3,Int64} = (1,1,1)
-    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
+    input_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
+    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
     loss::Function = Flux.Losses.mse
 end
 model_data = ModelData()
@@ -52,21 +52,24 @@ end
 training_options_data = TrainingOptionsData()
 
 @with_kw mutable struct ClassificationData
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
+    data_input::Union{Vector{T1},Vector{T2}} where {T1<:Vector{Float32},T2<:Array{Float32,3}} = 
+        Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
     max_labels::Int32 = 0
 end
 classification_data = ClassificationData()
 
-@with_kw mutable struct RegressionData
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+@with_kw mutable struct RegressionData{T1<:Vector{Float32},T2<:Array{Float32,3}}
+    data_input::Union{Vector{T1},Vector{T2}} = Vector{Array{Float32,3}}(undef,0)
+    data_labels::Union{Vector{T1},Vector{T2}} = Vector{Vector{Float32}}(undef,0)
 end
 regression_data = RegressionData()
 
 @with_kw mutable struct SegmentationData
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{BitArray{3}} = Vector{BitArray{3}}(undef,0)
+    data_input::Union{Vector{T1a},Vector{T2a}} where {T1a<:Vector{Float32},T2a<:Array{Float32,3}} = 
+        Vector{Array{Float32,3}}(undef,0)
+    data_labels::Union{Vector{T1b},Vector{T2b}} where {T1b<:BitArray{1},T2b<:BitArray{3}} = 
+        Vector{BitArray{3}}(undef,0)
 end
 segmentaion_data = SegmentationData()
 

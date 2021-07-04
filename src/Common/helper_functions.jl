@@ -267,3 +267,5 @@ function check_task(t::Task)
         return :running, nothing
     end
 end
+
+add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))

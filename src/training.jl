@@ -48,99 +48,90 @@ function make_minibatch_inds(num_data::Int64,batch_size::Int64)
     return inds_start,inds_all,num
 end
 
-function make_minibatch_classification_conv(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
-        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
-        inds_all::Vector{Int64},i::Int64)
-    ind = inds_start[i]
-    # First and last minibatch indices
-    ind1 = ind+1
-    ind2 = ind+batch_size
-    # Get inputs and labels
-    current_inds = inds_all[ind1:ind2]
-    current_input = data_input[current_inds]
-    l = length(current_inds)
-    l_labels = max_labels[end]
-    current_labels = Vector{Array{Float32,4}}(undef,l)
-    for i = 1:l
-        temp = zeros(Float32,l_labels)
-        ind_temp = data_labels[current_inds[i]]
-        temp[ind_temp] = 1
-        current_labels[i] = permutedims(reshape(temp,:,1,1,1),[2,3,1,4])
-    end
-    # Catenating inputs and labels
-    current_input_cat = reduce(cat4,current_input)[:,:,:,:]
-    current_labels_cat = reduce(cat4,current_labels)
-    # Form a minibatch
-    minibatch = (current_input_cat,current_labels_cat)
-    return minibatch
-end
+#----------------
 
-function make_minibatch_classification_dense(data_input::Vector{Array{Float32,3}},data_labels::Vector{Int32},
+function make_minibatch(data_input::Vector{Array{Float32,N}},data_labels::Vector{Int32},
         max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
-        inds_all::Vector{Int64},i::Int64)
+        inds_all::Vector{Int64},i::Int64) where N
     ind = inds_start[i]
     # First and last minibatch indices
     ind1 = ind+1
     ind2 = ind+batch_size
     # Get inputs and labels
     current_inds = inds_all[ind1:ind2]
-    current_input = data_input[current_inds]
     l = length(current_inds)
+    current_input = Vector{Array{Float32,N+1}}(undef,l)
     current_labels = Vector{Array{Float32,2}}(undef,l)
-    for i = 1:l
+    for j = 1:l
+        ind = current_inds[j]
         temp = zeros(Float32,max_labels)
-        ind_temp = data_labels[current_inds[i]]
+        ind_temp = data_labels[ind]
         temp[ind_temp] = 1
-        current_labels[i] = reshape(temp,:,1)
+        current_labels[j] = add_dim(temp)
+        current_input[j] = add_dim(data_input[ind])
     end
     # Catenating inputs and labels
-    current_input_cat = reduce(cat4,current_input)[:,:,:,:]
+    ncat = (x,y)->cat(x,y, dims=Val(N+1))
+    current_input_cat = reduce(ncat,current_input)
     current_labels_cat = reduce(hcat,current_labels)
     # Form a minibatch
-    minibatch = (current_input_cat,current_labels_cat)
-    return minibatch
+    return (current_input_cat,current_labels_cat)
 end
 
-function make_minibatch_generic(data_input::Vector{Array{Float32,3}},data_labels::Vector{Vector{Float32}},
+function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels::Vector{Array{Float32,N2}},
         max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
-        inds_all::Vector{Int64},i::Int64)
+    inds_all::Vector{Int64},i::Int64) where {N1,N2}
     ind = inds_start[i]
     # First and last minibatch indices
     ind1 = ind+1
     ind2 = ind+batch_size
     # Get inputs and labels
     current_inds = inds_all[ind1:ind2]
-    current_input = data_input[current_inds]
-    current_labels = data_labels[current_inds]
+    l = length(current_inds)
+    current_input = Vector{Array{Float32,N1+1}}(undef,l)
+    current_labels = Vector{Array{Float32,N2+1}}(undef,l)
+    for j = 1:l
+        ind = current_inds[j]
+        current_labels[j] = add_dim(data_labels[ind])
+        current_input[j] = add_dim(data_input[ind])
+    end
     # Catenating inputs and labels
-    input_cat = reduce(cat4,current_input)[:,:,:,:]
-    labels_cat = reduce(hcat,current_labels)
-    # Form a minibatch
-    minibatch = (input_cat,labels_cat)
-    return minibatch
+    ncat1 = (x,y)->cat(x,y, dims=Val(N1+1))
+    ncat2 = (x,y)->cat(x,y, dims=Val(N2+1))
+    input_cat = reduce(ncat1,current_input)
+    labels_cat = reduce(ncat2,current_labels)
+    return (input_cat,labels_cat)
 end
 
-function make_minibatch_generic(data_input::Vector{Array{Float32,3}},data_labels_bool::Vector{BitArray{3}},
+function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels_bool::Vector{BitArray{N2}},
         max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
-        inds_all::Vector{Int64},i::Int64)
+    inds_all::Vector{Int64},i::Int64) where {N1,N2}
     ind = inds_start[i]
     # First and last minibatch indices
     ind1 = ind+1
     ind2 = ind+batch_size
     # Get inputs and labels
     current_inds = inds_all[ind1:ind2]
-    current_input = data_input[current_inds]
-    current_labels_bool = data_labels_bool[current_inds]
-    current_labels = convert(Vector{Array{Float32,3}},current_labels_bool)
+    l = length(current_inds)
+    current_input = Vector{Array{Float32,N1+1}}(undef,l)
+    current_labels = Vector{Array{Float32,N2+1}}(undef,l)
+    for j = 1:l
+        ind = current_inds[j]
+        data_labels_temp = convert(Array{Float32,N2},data_labels_bool[ind])
+        current_labels[j] = add_dim(data_labels_temp)
+        current_input[j] = add_dim(data_input[ind])
+    end
     # Catenating inputs and labels
-    input_cat = reduce(cat4,current_input)[:,:,:,:]
-    labels_cat = reduce(cat4,current_labels)[:,:,:,:]
+    ncat1 = (x,y)->cat(x,y, dims=Val(N1+1))
+    ncat2 = (x,y)->cat(x,y, dims=Val(N2+1))
+    input_cat = reduce(ncat1,current_input)
+    labels_cat = reduce(ncat2,current_labels)
     # Form a minibatch
     minibatch = (input_cat,labels_cat)
     return minibatch
 end
 
-#---
+#----------------
 
 # Reset training related data accumulators
 function reset_training_data(training_data::TrainingData)
@@ -202,7 +193,7 @@ function get_optimiser(training_options::TrainingOptions)
 end
 
 #---
-function minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,inds_all,
+function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,inds_all,
         counter,run_test,data_input_test,data_labels_test,inds_start_test,inds_all_test,counter_test,
         num_test,batch_size,minibatch_channel,minibatch_test_channel,testing_mode,abort)
     epoch_idx = 1
@@ -428,8 +419,8 @@ end
 function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},
         opt,accuracy::Function,loss::Function,all_data::AllData,use_GPU::Bool,
         num_tests::Float64,args::HyperparametersOptions,channels::Channels,
-        tasks::Vector{Task}) where {T1<:Vector{Array{Float32,3}},
-        T2<:Union{Vector{BitArray{3}},Vector{Int32},Vector{Vector{Float32}}}}
+        tasks::Vector{Task}) where {N1,N2,T1<:Vector{Array{Float32,N1}},
+        T2<:Union{Array{Int32,N2},Vector{Array{Float32,N2}},Vector{BitArray{N2}}}}
     # Initialize constants
     epochs = Threads.Atomic{Int64}(args.epochs)
     batch_size = args.batch_size
@@ -447,7 +438,6 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     abort = Threads.Atomic{Bool}(false)
     testing_mode = Threads.Atomic{Bool}(true)
     model_name = string("models/",all_data.model_name,".model")
-    output_N = length(model_data.output_size) + 1
     # Initialize data
     data_input = train_set[1]
     data_labels = train_set[2]
@@ -464,20 +454,11 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     put!(channels.training_start_progress,(epochs[],num,max_iterations[]))
     max_labels = all_data.TrainingData.ClassificationData.max_labels
     # Make channels
-    minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
-    minibatch_test_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)
+    output_N = N2+1
+    minibatch_channel = Channel{Tuple{Array{Float32,N1+1},Array{Float32,output_N}}}(Inf)
+    minibatch_test_channel = Channel{Tuple{Array{Float32,N1+1},Array{Float32,output_N}}}(Inf)
     # Data preparation thread
-    if problem_type()==:Classification
-        if output_N==2
-            make_minibatch = make_minibatch_classification_dense
-        else
-            make_minibatch = make_minibatch_classification_conv
-        end
-    else
-        make_minibatch = make_minibatch_generic
-    end
-    # Data preparation thread
-    t = Threads.@spawn minibatch_part(make_minibatch,data_input,data_labels,max_labels,epochs,num,inds_start,
+    t = Threads.@spawn minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
         inds_all,counter,run_test,data_input_test,data_labels_test,inds_start_test,
         inds_all_test,counter_test,num_test,batch_size,minibatch_channel,minibatch_test_channel,testing_mode,abort)
     push!(tasks,t)
@@ -555,7 +536,7 @@ function remove_training_results()
     end
 end
 
-function test_model(model_data,train_set,use_GPU)
+function test_model(model_data,train_set,errors,use_GPU)
     input_data_raw = train_set[1][1]
     if problem_type()==:Classification
         max_labels = training_data.ClassificationData.max_labels
@@ -567,10 +548,10 @@ function test_model(model_data,train_set,use_GPU)
     end
     if use_GPU
         model = gpu(model_data.model)
-        input_data = CuArray(input_data_raw[:,:,:,:])
+        input_data = CuArray(add_dim(input_data_raw))
     else
         model = model_data.model
-        input_data = input_data_raw[:,:,:,:]
+        input_data = add_dim(input_data_raw)
     end
     try
         output = model(input_data)
@@ -578,7 +559,9 @@ function test_model(model_data,train_set,use_GPU)
         size_output = size(output)[1:end-1]
         if size_label!=size_output
             msg = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
-            @error string("Model test returned an exception: ",msg)
+            error = string("Model test returned an exception: ",msg)
+            @error error
+            push!(errors,error)
             return true
         else
             model_data.input_size = size(input_data)[1:end-1]
@@ -586,7 +569,9 @@ function test_model(model_data,train_set,use_GPU)
             return false
         end
     catch e
-        @error string("Model test returned an exception: ",e)
+        error = string("Model test returned an exception: ",e)
+        @error error
+        push!(errors,error)
         return true
     end
 end
@@ -615,7 +600,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     typed_testing_data = get_data_struct(testing_data)
     train_set, test_set = get_sets(typed_training_data,typed_testing_data)
     # Model testing
-    excp = test_model(model_data,train_set,use_GPU)
+    excp = test_model(model_data,train_set,training_data.errors,use_GPU)
     if excp
         return nothing
     end
