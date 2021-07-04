@@ -50,8 +50,20 @@ function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:Abst
     return acc
 end
 
+function calculate_sum(something_bool::AbstractArray{Bool,4})
+    sum_int_dim4 = collect(sum(something_bool, dims = [1,2,4]))
+    sum_int = sum_int_dim4[:]
+    return sum_int
+end
+
+function calculate_sum(something_bool::AbstractArray{Bool,2})
+    sum_int_dim2 = sum(something_bool, dims = 2)
+    sum_int = sum_int_dim2[:]
+    return sum_int
+end
+
 # Weight accuracy using inverse frequency
-function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T,4}}
+function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T}}
     # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
@@ -59,10 +71,8 @@ function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) wh
     correct_bool = predicted_bool .& actual_bool
     dif_bool = xor.(predicted_bool,actual_bool)
     # Calculate class accuracies
-    sum_correct_int_dim4 = collect(sum(correct_bool, dims = [1,2,4]))
-    sum_dif_int_dim4 = collect(sum(dif_bool, dims = [1,2,4]))
-    sum_correct_int = collect(Iterators.flatten(sum_correct_int_dim4))
-    sum_dif_int = collect(Iterators.flatten(sum_dif_int_dim4))
+    sum_correct_int = calculate_sum(correct_bool)
+    sum_dif_int = calculate_sum(dif_bool)
     sum_correct = convert(Vector{Float32},sum_correct_int)
     sum_dif = convert(Vector{Float32},sum_dif_int)
     classes_accuracy = sum_correct./(sum_correct.+sum_dif)
