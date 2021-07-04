@@ -383,6 +383,7 @@ function test(model::Chain,accuracy::Function,loss::Function,minibatch_test_chan
     test_loss = Vector{Float32}(undef,num_test)
     local minibatch_test_data::eltype(minibatch_test_channel.data)
     for j=1:num_test
+        local minibatch_test_data::eltype(minibatch_test_channel)
         while true
             # Abort if needed
             if abort[]==true
