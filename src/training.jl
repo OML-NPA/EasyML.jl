@@ -594,6 +594,12 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     typed_training_data = get_data_struct(training_data)
     typed_testing_data = get_data_struct(testing_data)
     train_set, test_set = get_sets(typed_training_data,typed_testing_data)
+    # Data testing
+    if args.batch_size>length(train_set[1])
+        err = string("Input data size (",length(train_set[1]),") is smaller than the batch size (",args.batch_size,").")
+        push!(training_data.errors,err)
+        error(err)
+    end
     # Model testing
     excp = test_model(model_data,train_set,training_data.errors,use_GPU)
     if excp
