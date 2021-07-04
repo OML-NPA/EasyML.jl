@@ -200,7 +200,7 @@ function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
     iteration_local = 0
     iteration_test_local = 0
     # Data preparation
-    while epoch_idx<=epochs[]
+    while true
         # Shuffle indices
         inds_start_sh = shuffle!(inds_start)
         inds_all_sh = shuffle!(inds_all)
@@ -210,7 +210,7 @@ function minibatch_part(data_input,data_labels,max_labels,epochs,num,inds_start,
         end
         cnt = 0
         while true
-            while true
+            while epoch_idx<=epochs[]
                 numel_channel = (iteration_local-counter.iteration)
                 if numel_channel<10
                     iteration_local += 1
@@ -373,6 +373,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         model_data.model = cpu(model)
         save_model_main(model_data,model_name)
     end
+    Threads.atomic_xchg!(abort, true)
     return nothing
 end
 
