@@ -57,6 +57,40 @@ function set_testing_data(data_input,data_labels)
     return nothing
 end
 
+function get_train_test_inds(num::Int64,fraction::Float64)
+    inds = randperm(num)  # Get shuffled indices
+    ind_last_test = convert(Int64,round(fraction*num))
+    inds_train = inds[ind_last_test+1:end]
+    inds_test = inds[1:ind_last_test]
+    if isempty(inds_test)
+        @warn string("Fraction of ",fraction," from ",num,
+        " files is 0. Increase the fraction of data used for testing to at least ",round(1/num,digits=2),".")
+    end
+    return inds_train,inds_test
+end
+
+function set_testing_data_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
+    if problem_type()==:Classification
+        specific_training_data = training_data.ClassificationData
+        specific_testing_data = testing_data.ClassificationData
+    elseif problem_type()==:Regression
+        specific_training_data = training_data.RegressionData
+        specific_testing_data = testing_data.RegressionData
+    else # Segmentation
+        specific_training_data = training_data.SegmentationData
+        specific_testing_data = testing_data.SegmentationData
+    end
+    num = length(specific_training_data.data_input)
+    fraction = training_options.Testing.test_data_fraction
+    inds_train,inds_test = get_train_test_inds(num,fraction)
+    specific_testing_data.data_input = specific_training_data.data_input[inds_test]
+    specific_testing_data.data_labels = specific_training_data.data_labels[inds_test]
+    specific_training_data.data_input = specific_training_data.data_input[inds_train]
+    specific_training_data.data_labels = specific_training_data.data_labels[inds_train]
+    return nothing
+end
+set_testing_data() = set_testing_data_main(training_data,testing_data,training_options)
+
 function set_weights_main(ws_in::T,training_data::TrainingData) where T<:Vector
     if isempty(ws_in)
         training_data.weights = Vector{Float32}(undef,0)
