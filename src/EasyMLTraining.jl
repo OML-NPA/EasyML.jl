@@ -2,7 +2,6 @@
 module EasyMLTraining
 
 # Import packages
-using CUDA: state
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,

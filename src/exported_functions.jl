@@ -157,7 +157,7 @@ function train()
     path_qml = string(@__DIR__,"/GUI/TrainingPlot.qml")
     loadqml(path_qml)
     exec()
-
+    
     state,error = check_task(t)
     if state==:error
         @warn string("Training aborted due to the following error: ",error)
