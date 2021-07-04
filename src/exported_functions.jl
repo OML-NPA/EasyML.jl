@@ -29,6 +29,12 @@ function set_savepath(url)
 end
 
 function set_training_data(data_input,data_labels)
+    l_input = length(data_input)
+    l_labels = length(data_labels)
+    if l_labels!=l_labels
+        err = string("Input data length does not equal label data length. ",l_input," vs ",l_labels,".")
+        error(err)
+    end
     if problem_type()==:Classification
         training_data.ClassificationData.data_input = data_input
         training_data.ClassificationData.data_labels = data_labels
@@ -44,6 +50,12 @@ function set_training_data(data_input,data_labels)
 end
 
 function set_testing_data(data_input,data_labels)
+    l_input = length(data_input)
+    l_labels = length(data_labels)
+    if l_labels!=l_labels
+        err = string("Input data length does not equal label data length. ",l_input," vs ",l_labels,".")
+        error(err)
+    end
     if problem_type()==:Classification
         testing_data.ClassificationData.data_input = data_input
         testing_data.ClassificationData.data_labels = data_labels
