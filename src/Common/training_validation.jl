@@ -32,7 +32,7 @@ function accuracy_classification_weighted(predicted::A,actual::A,ws::Vector{T}) 
     return mean(acc,StatsBase.weights(w))
 end
 
-function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
+function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
     err = abs.(actual .- predicted)
     err_relative = mean(err./actual)
     acc = 1/(1+err_relative)
