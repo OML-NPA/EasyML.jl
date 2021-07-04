@@ -158,9 +158,9 @@ function train()
     loadqml(path_qml)
     exec()
     
-    state,error = check_task(t)
+    state,err = check_task(t)
     if state==:error
-        @warn string("Training aborted due to the following error: ",error)
+        @warn string("Training aborted due to the following error: ",err)
     end
     return training_data.Results
 end
