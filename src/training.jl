@@ -553,26 +553,18 @@ function test_model(model_data,train_set,errors,use_GPU)
         model = model_data.model
         input_data = add_dim(input_data_raw)
     end
-    try
-        output = model(input_data)
-        size_label = size(label_data)
-        size_output = size(output)[1:end-1]
-        if size_label!=size_output
-            msg = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
-            error = string("Model test returned an exception: ",msg)
-            @error error
-            push!(errors,error)
-            return true
-        else
-            model_data.input_size = size(input_data)[1:end-1]
-            model_data.output_size = size_label
-            return false
-        end
-    catch e
-        error = string("Model test returned an exception: ",e)
-        @error error
-        push!(errors,error)
+    output = model(input_data)
+    size_label = size(label_data)
+    size_output = size(output)[1:end-1]
+    if size_label!=size_output
+        err = string("Label data has size ",size_label," while data returned by the model has size ",size_output,".")
+        push!(errors,err)
+        error(err)
         return true
+    else
+        model_data.input_size = size(input_data)[1:end-1]
+        model_data.output_size = size_label
+        return false
     end
 end
 
