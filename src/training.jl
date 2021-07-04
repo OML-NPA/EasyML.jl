@@ -461,7 +461,7 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     # Return epoch information
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
-    put!(channels.training_progress,(epochs[],num,max_iterations[]))
+    put!(channels.training_start_progress,(epochs[],num,max_iterations[]))
     max_labels = all_data.TrainingData.ClassificationData.max_labels
     # Make channels
     minibatch_channel = Channel{Tuple{Array{Float32,4},Array{Float32,output_N}}}(Inf)

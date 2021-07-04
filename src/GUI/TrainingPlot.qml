@@ -281,14 +281,16 @@ ApplicationWindow {
         property int iterations_per_epoch: 0
         property int max_iterations: 0
         property bool done: false
+        property string channel_name: "training_start_progress"
         interval: 100
         running: true
         repeat: true
         onTriggered: {
             while (true) {
-                var data = Julia.get_progress("training_progress")
+                var data = Julia.get_progress(channel_name)
                 if (data===false) {return}
                 if (epoch===0) {
+                    channel_name = "training_progress"
                     Julia.set_training_starting_time()
                     epoch = 1
                     epochs = data[0]

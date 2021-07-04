@@ -134,6 +134,7 @@ function train()
         return nothing
     end
     training_data.OptionsData.run_test = !isempty(data_test)
+    empty_progress_channel("training_start_progress")
     empty_progress_channel("training_progress")
     empty_progress_channel("training_modifiers")
     t = train_main2(model_data,all_data,options,channels)

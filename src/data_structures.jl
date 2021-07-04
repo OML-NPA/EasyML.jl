@@ -2,7 +2,8 @@
 #---Channels
 
 @with_kw struct Channels
-    training_progress::Channel = Channel{Any}(Inf)
+    training_start_progress::Channel = Channel{NTuple{3,Int64}}(1)
+    training_progress::Channel = Channel{Tuple{String,Float32,Float32,Int64}}(Inf)
     training_modifiers::Channel = Channel{Tuple{Int64,Float64}}(Inf) # 0 - abort; 1 - learning rate; 2 - epochs; 3 - number of tests
 end
 channels = Channels()
