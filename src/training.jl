@@ -1,5 +1,13 @@
 
 # Set training starting time
+
+function time()
+    date = string(now())
+    date = date[1:19]
+    date = replace(date,"T"=>" ")
+    return date
+end
+
 function set_training_starting_time_main(training_plot_data::TrainingPlotData)
     training_plot_data.starting_time = now()
     return nothing

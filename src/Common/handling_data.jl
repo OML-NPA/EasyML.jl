@@ -1,9 +1,3 @@
-# Make urls QML compatible
-function fix_slashes(url)
-    url::String = fix_QML_types(url)
-    url = replace(url, "\\" => "/")
-    url = string(uppercase(url[1]),url[2:end])
-end
 
 # Convert QML types to Julia types
 function fix_QML_types(var)
@@ -193,60 +187,4 @@ function resetproperty!(datatype,field)
     end
     setproperty!(datatype,field,var)
     return nothing
-end
-
-# Resets model classes
-function reset_classes_main(model_data)
-    if problem_type()==:Classification
-        model_data.classes = Vector{ImageClassificationClass}(undef,0)
-    elseif problem_type()==:Regression
-        model_data.classes = Vector{ImageRegressionClass}(undef,0)
-    elseif problem_type()==:Segmentation
-        model_data.classes = Vector{ImageSegmentationClass}(undef,0)
-    end
-    return nothing
-end
-reset_classes() = reset_classes_main(model_data::ModelData)
-
-# Appends model classes
-function append_classes_main(model_data::ModelData,id,data)
-    data = fix_QML_types(data)
-    id = convert(Int64,id)
-    if problem_type()==:Classification
-        class = ImageClassificationClass()
-        class.name = data[1]
-    elseif problem_type()==:Regression
-        class = ImageRegressionClass()
-        class.name = data[1]
-    elseif problem_type()==:Segmentation
-        class = ImageSegmentationClass()
-        class.name = String(data[1])
-        class.color = Int64.([data[2],data[3],data[4]])
-        class.border = Bool(data[5])
-        class.border_thickness = Int64(data[6])
-        class.border_remove_objs = Bool(data[7])
-        class.min_area = Int64(data[8])
-        class.parents = data[9]
-        class.not_class = Bool(data[10])
-    end
-    push!(model_data.classes,class)
-    return nothing
-end
-append_classes(id,data) = append_classes_main(model_data,id,data)
-
-# Returns the number of classes
-function num_classes_main(model_data::ModelData)
-    return length(model_data.classes)
-end
-num_classes() = num_classes_main(model_data::ModelData)
-
-# Returns class value
-function get_class_main(model_data::ModelData,index,fieldname)
-    return getfield(model_data.classes[Int64(index)], Symbol(String(fieldname)))
-end
-get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
-
-#------------------------------------------------------------------------
-function source_dir()
-    return fix_slashes(pwd())
 end

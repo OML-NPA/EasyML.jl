@@ -108,7 +108,6 @@ all_data = AllData()
 
 @with_kw mutable struct HardwareResources
     allow_GPU::Bool = true
-    num_threads::Int64 = Threads.nthreads()
 end
 hardware_resources = HardwareResources()
 

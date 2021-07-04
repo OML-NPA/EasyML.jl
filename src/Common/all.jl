@@ -209,3 +209,99 @@ end
 function data_length(fields,inds=[])
     return length(get_data(fields,inds))
 end
+
+#---Struct related functions
+function struct_to_dict!(dict,obj)
+    ks = fieldnames(typeof(obj))
+    for k in ks
+        value = getproperty(obj,k)
+        type = typeof(value)
+        if occursin("EasyML",string(parentmodule(type)))
+            dict_current = Dict{Symbol,Any}()
+            dict[k] = dict_current
+            struct_to_dict!(dict_current,value)
+        elseif value isa Vector && !isempty(value) && occursin("EasyML",string(parentmodule(eltype(type))))
+            types = typeof.(value)
+            dict_vec = Vector{Dict{Symbol,Any}}(undef,0)
+            for obj_for_vec in value
+                dict_for_vec = Dict{Symbol,Any}()
+                struct_to_dict!(dict_for_vec,obj_for_vec)
+                push!(dict_vec,dict_for_vec)
+            end
+            data_tuple = (vector_type = type, types = types, values = dict_vec)
+            dict[k] = data_tuple
+        else
+            dict[k] = value
+        end
+    end
+    return nothing
+end
+
+function dict_to_struct!(obj,dict::Dict)
+    ks = [keys(dict)...]
+    for i = 1:length(ks)
+        ks_cur = ks[i]
+        sym = Symbol(ks_cur)
+        value = dict[ks_cur]
+        if hasproperty(obj,sym)
+            obj_property = getproperty(obj,sym)
+            obj_type = typeof(obj_property)
+            if value isa Dict
+                dict_to_struct!(obj_property,value)
+            elseif obj_property isa Vector && occursin("EasyML",string(parentmodule(eltype(obj_type))))
+                if !isempty(value)
+                    vector_type = getindex(value,:vector_type) 
+                    types = getindex(value,:types) 
+                    values = getindex(value,:values) 
+                    struct_vec = vector_type(undef,0)
+                    for j = 1:length(types)
+                        obj_for_vec = types[j]()
+                        dict_for_vec = values[j]
+                        dict_to_struct!(obj_for_vec,dict_for_vec)
+                        push!(struct_vec,obj_for_vec)
+                    end
+                    setproperty!(obj,sym,struct_vec)
+                end
+            else
+                if hasfield(typeof(obj),sym)
+                    setproperty!(obj,sym,value)
+                end
+            end
+        end
+    end
+    return nothing
+end
+
+function make_tuple(array::AbstractArray)
+    return (array...,)
+end
+
+function make_dir(target_dir::String)
+    dirs = split(target_dir,('/','\\'))
+    for i=1:length(dirs)
+        temp_path = join(dirs[1:i],'\\')
+        if !isdir(temp_path)
+            mkdir(temp_path)
+        end
+    end
+    if !isdir(target_dir)
+        mkdir(target_dir)
+    end
+    return nothing
+end
+
+gc() = GC.gc()
+
+function check_task(t::Task)
+    if istaskdone(t)
+        if t.:_isexception
+            return :error, t.:result
+        else
+            return :done, nothing
+        end
+    else
+        return :running, nothing
+    end
+end
+
+add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
