@@ -105,7 +105,7 @@ end
 
 function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels_bool::Vector{BitArray{N2}},
         max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
-    inds_all::Vector{Int64},i::Int64) where {N1,N2}
+        inds_all::Vector{Int64},i::Int64) where {N1,N2}
     ind = inds_start[i]
     # First and last minibatch indices
     ind1 = ind+1
