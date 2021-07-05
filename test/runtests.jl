@@ -63,3 +63,8 @@ global_options.HardwareResources.allow_GPU = true
 include("classification.jl")
 include("regression.jl")
 include("segmentation.jl")
+
+#---Other
+
+load_options()
+load_model("models/classification.model")
