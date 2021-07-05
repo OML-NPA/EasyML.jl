@@ -66,13 +66,6 @@ function save_model_main(model_data,url)
     BSON.@save(url,dict)
     return nothing
 end
-"""
-    save_model(url::String)
-
-Saves a model to a specified URL. The URL can be absolute or relative. 
-Use '.model' extension.
-"""
-save_model(url) = save_model_main(model_data,url)
 
 function load_model_main(model_data,url)
     url = fix_QML_types(url)
@@ -107,13 +100,6 @@ function load_model_main(model_data,url)
     all_data.model_name = url_split[end-1]
     return nothing
 end
-"""
-    load_model(url::String)
-
-Loads a model from a specified URL. The URL can be absolute or relative.
-"""
-load_model(url) = load_model_main(model_data,url)
-
 
 #---Channels---------------------------------------------------------------
 

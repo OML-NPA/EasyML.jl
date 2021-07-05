@@ -17,7 +17,12 @@ function modify(data::TrainingOptions)
     return nothing
 end
 
-function set_savepath(url)
+"""
+    set_savepath(url::String)
+
+Sets a path where a trained model will be saved.
+"""
+function set_savepath(url::String)
     url_split = split(url,('/','.'))
     if url_split[end]!="model"
         @error "The model name should end with a '.model' extension."
@@ -28,7 +33,12 @@ function set_savepath(url)
     return nothing
 end
 
-function set_training_data(data_input,data_labels)
+"""
+    set_testing_data(data_input::Vector,data_labels::Vector)
+
+Sets data for training.
+"""
+function set_training_data(data_input::Vector,data_labels::Vector)
     l_input = length(data_input)
     l_labels = length(data_labels)
     if l_labels!=l_labels
@@ -48,8 +58,12 @@ function set_training_data(data_input,data_labels)
     end
     return nothing
 end
+"""
+    set_testing_data(data_input::Vector,data_labels::Vector)
 
-function set_testing_data(data_input,data_labels)
+Sets data for testing.
+"""
+function set_testing_data(data_input::Vector,data_labels::Vector)
     l_input = length(data_input)
     l_labels = length(data_labels)
     if l_labels!=l_labels
@@ -82,6 +96,10 @@ function get_train_test_inds(num::Int64,fraction::Float64)
 end
 
 function set_testing_data_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
+    if training_options.Testing.data_preparation_mode==:Auto
+        msg = "Data preparation mode was not set to 'Manual'. Setting it to 'Manual'."
+        @warn msg
+    end
     if problem_type()==:Classification
         specific_training_data = training_data.ClassificationData
         specific_testing_data = testing_data.ClassificationData
@@ -101,26 +119,32 @@ function set_testing_data_main(training_data::TrainingData,testing_data::Testing
     specific_training_data.data_labels = specific_training_data.data_labels[inds_train]
     return nothing
 end
+"""
+    set_testing_data()
+
+A fraction of training data also specified in training options is set aside for testing.
+"""
 set_testing_data() = set_testing_data_main(training_data,testing_data,training_options)
 
-function set_weights_main(ws_in::T,training_data::TrainingData) where T<:Vector
+function set_weights_main(ws_in::Vector{<:Real},training_data::TrainingData)
     if isempty(ws_in)
         training_data.weights = Vector{Float32}(undef,0)
         return nothing
     end
-    if T<:Vector{<:Real}
-        ws = convert(Vector{Float32},ws_in)
-        s = sum(ws)
-        if s==1
-            training_data.weights =  ws
-        else
-            training_data.weights =  ws/s
-        end
+    ws = convert(Vector{Float32},ws_in)
+    s = sum(ws)
+    if s==1
+        training_data.weights =  ws
     else
-        @error "Input must be an empty vector or a vector of numbers."
+        training_data.weights =  ws/s
     end
     return nothing
 end
+"""
+    set_weights(ws::Vector{<:Real})
+
+Set weights for weight accuracy to `ws`. If `sum(ws) ≠ 1` then it is adjusted to be so.
+"""
 set_weights(ws) = set_weights_main(ws,training_data)
 
 """
@@ -175,4 +199,46 @@ function train()
         @warn string("Training aborted due to the following error: ",err)
     end
     return training_data.Results
+end
+
+function remove_data(some_data::T) where T<:Union{TrainingData,TestingData}
+    fields = [:data_input,:data_labels]
+    for field in fields
+        empty!(getfield(some_data.ClassificationData,field))
+        empty!(getfield(some_data.RegressionData,field))
+        empty!(getfield(some_data.SegmentationData,field))
+    end
+    fields = fieldnames(T)[4:end]
+    for field in fields
+        data = getfield(some_data,field)
+        if data isa Array
+            empty!(data)
+        end
+    end
+    return nothing
+end
+"""
+    remove_training_data()
+
+Removes all training data except for result.
+"""
+remove_training_data() = remove_data(training_data)
+"""
+    remove_testing_data()
+
+Removes all testing data.
+"""
+remove_testing_data() = remove_data(testing_data)
+
+"""
+    remove_training_results()
+
+Removes training results.
+"""
+function remove_training_results()
+    data = training_data.Results
+    fields = fieldnames(TrainingResultsData)
+    for field in fields
+        empty!(getfield(data, field))
+    end
 end

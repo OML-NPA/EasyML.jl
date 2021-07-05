@@ -505,48 +505,6 @@ function get_data_struct(some_data::Union{TrainingData,TestingData})
     return data
 end
 
-function remove_data(some_data::T) where T<:Union{TrainingData,TestingData}
-    fields = [:data_input,:data_labels]
-    for field in fields
-        empty!(getfield(some_data.ClassificationData,field))
-        empty!(getfield(some_data.RegressionData,field))
-        empty!(getfield(some_data.SegmentationData,field))
-    end
-    fields = fieldnames(T)[4:end]
-    for field in fields
-        data = getfield(some_data,field)
-        if data isa Array
-            empty!(data)
-        end
-    end
-    return nothing
-end
-"""
-    remove_training_data()
-
-Removes all training data except for result.
-"""
-remove_training_data() = remove_data(training_data)
-"""
-    remove_testing_data()
-
-Removes all testing data.
-"""
-remove_testing_data() = remove_data(testing_data)
-
-"""
-    remove_training_results()
-
-Removes training results.
-"""
-function remove_training_results()
-    data = training_data.Results
-    fields = fieldnames(TrainingResultsData)
-    for field in fields
-        empty!(getfield(data, field))
-    end
-end
-
 function test_model(model_data,train_set,errors,use_GPU)
     input_data_raw = train_set[1][1]
     if problem_type()==:Classification
