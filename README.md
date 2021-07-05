@@ -1,6 +1,8 @@
 # EasyML.jl
-[![Docs dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://oml-npa.github.io/EasyML.jl/dev/)
+[![docs stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://oml-npa.github.io/EasyML.jl/stable/)
+[![docs dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://oml-npa.github.io/EasyML.jl/dev/)
 [![CI main](https://github.com/OML-NPA/EasyML.jl/actions/workflows/CI-main.yml/badge.svg)](https://github.com/OML-NPA/EasyM.jl/actions/workflows/CI-main.yml)
+[![CI dev](https://github.com/OML-NPA/EasyML.jl/actions/workflows/CI-dev.yml/badge.svg)](https://github.com/OML-NPA/EasyM.jl/actions/workflows/CI-dev.yml)
 <p align="center">
   <img width=250px src=https://raw.githubusercontent.com/OML-NPA/EasyML.jl/main/docs/src/assets/logo.png></img>
 </p>
