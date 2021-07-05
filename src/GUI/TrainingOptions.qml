@@ -12,6 +12,8 @@ ApplicationWindow {
     id: window
     visible: true
     title: qsTr("  EasyML")
+    minimumHeight: 600*pix
+    minimumWidth: mainRow.width
     width: mainRow.width
     height: mainRow.height
 
@@ -67,7 +69,7 @@ ApplicationWindow {
             id: menuPane
             spacing: 0
             width: 1.3*buttonWidth
-            height: 600*pix
+            height: window.height
             padding: -1
             topPadding: tabmargin/2
             bottomPadding: tabmargin/2
@@ -268,7 +270,6 @@ ApplicationWindow {
                     Row {
                         height: rowHeight
                         spacing: 0.3*margin
-                        visible: datapreparationmodeComboBox.currentIndex==0 ? true : false
                         Label {
                             id: testingfrLabel
                             text: "Number of tests (per epoch):"

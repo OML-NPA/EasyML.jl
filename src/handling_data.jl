@@ -511,7 +511,7 @@ save_model(url) = save_model_main(model_data,url)
 function load_model_main(model_data,url)
     url = fix_QML_types(url)
     if isfile(url)
-        data = BSON.load(url)
+        data = BSON.load(url)[:dict]
     else
         @error string(url, " does not exist.")
         return nothing
@@ -541,7 +541,7 @@ function load_model_main(model_data,url)
             end
         end
     else
-        dict_to_struct!(model_data,data[:dict])
+        dict_to_struct!(model_data,data)
     end
     all_data.model_url = url
     url_split = split(url,('/','.'))

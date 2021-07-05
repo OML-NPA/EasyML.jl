@@ -1065,7 +1065,6 @@ ApplicationWindow {
                     customizationItem.forceActiveFocus()
                     var name = Julia.get_data(["model_name"])
                     var url = Julia.source_dir()+"/models/"+name+".model"
-                    // neuralnetworkTextField.text = url
                     var state = Julia.make_model()
                     if (state) {
                         state = Julia.check_model()
@@ -2856,6 +2855,7 @@ ApplicationWindow {
                     text: "Name: "
                 }
                 TextField {
+                    id: nameTextField
                     anchors.verticalCenter: nameLabel.verticalCenter
                     anchors.left: nameLabel.right
                     height: buttonHeight
@@ -2866,7 +2866,8 @@ ApplicationWindow {
                     Component.onCompleted: {
                         var name = Julia.get_data(["model_name"])
                         if (name.length===0) {
-                            text = "model"
+                            text = "new_model"
+                            Julia.set_data(["model_name"],text)
                         }
                         else {
                             text = name
