@@ -4,6 +4,10 @@
 ## Set up
 
 ```@docs
+save_options
+```
+
+```@docs
 load_options
 ```
 

@@ -1,43 +1,4 @@
 
-function check_abort_signal(channel::Channel)
-    if isready(channel)
-        value = fetch(channel)[1]
-        if value==0
-            return true
-        else
-            return false
-        end
-    else
-        return false
-    end
-end
-
-function set_problem_type(ind)
-    ind = fix_QML_types(ind)
-    if ind==0 
-        all_data.problem_type = :Classification
-    elseif ind==1
-        all_data.problem_type = :Regression
-    elseif ind==2
-        all_data.problem_type = :Segmentation
-    end
-    return nothing
-end
-
-function get_problem_type()
-    if problem_type()==:Classification
-        return 0
-    elseif problem_type()==:Regression
-        return 1
-    elseif problem_type()==:Segmentation
-        return 2
-    end
-end
-
-problem_type() = all_data.problem_type
-input_type() = all_data.input_type
-
-
 #---Model saving/loading--------------------------------------------
 
 function save_model_main(model_data,url)
@@ -91,9 +52,10 @@ function load_model_main(model_data,url)
     return nothing
 end
 
+
 #---Channels---------------------------------------------------------------
 
-# Return values from progress channels without taking the values
+# Return a value from progress channels without taking the value
 function check_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
@@ -106,7 +68,7 @@ function check_progress_main(channels::Channels,field)
 end
 check_progress(field) = check_progress_main(channels,field)
 
-# Return values from progress channels by taking the values
+# Return a value from progress channels by taking the value
 function get_progress_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
@@ -125,8 +87,6 @@ function get_progress_main(channels::Channels,field)
 end
 get_progress(field) = get_progress_main(channels,field)
 
-#---
-# Empties progress channels
 function empty_progress_channel_main(channels::Channels,field)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
@@ -141,23 +101,6 @@ function empty_progress_channel_main(channels::Channels,field)
 end
 empty_progress_channel(field) = empty_progress_channel_main(channels,field)
 
-# Empties results channels
-function empty_results_channel_main(channels::Channels,field)
-    field::String = fix_QML_types(field)
-    field_sym = Symbol(field)
-    channel = getfield(channels,field_sym)
-    while true
-        if isready(channel)
-            take!(channel)
-        else
-            return nothing
-        end
-    end
-end
-empty_results_channel(field) = empty_results_channel_main(channels,field)
-
-#---
-# Puts data into modifiers channels
 function put_channel_main(channels::Channels,field,value)
     field = fix_QML_types(field)
     field_sym = Symbol(field)
@@ -172,21 +115,139 @@ end
 put_channel(field,value) = put_channel_main(channels,field,value)
 
 
-#------------------------------------------------------------------------
+#---GUI data handling-----------------------------------------------------
 
-function empty_field!(str,field::Symbol)
-    val = getfield(str,field)
-    type = typeof(val)
-    new_val = type(undef,zeros(Int64,length(size(val)))...)
-    setfield!(str, field, new_val)
+# Convert QML types to Julia types
+function fix_QML_types(var)
+    if var isa AbstractString
+        return String(var)
+    elseif var isa Integer
+        return Int64(var)
+    elseif var isa AbstractFloat
+        return Float64(var)
+    elseif var isa QML.QListAllocated
+        return fix_QML_types.(QML.value.(var))
+    elseif var isa Tuple
+        return fix_QML_types.(var)
+    else
+        return var
+    end
+end
+
+# Allows to read data from GUI
+function get_data_main(data::AllData,fields,inds)
+    fields::Vector{String} = fix_QML_types(fields)
+    inds = convert(Vector{Int64},fix_QML_types(inds))
+    for i = 1:length(fields)
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if !(isempty(inds))
+        for i = 1:length(inds)
+            data = data[inds[i]]
+        end
+    end
+    if data isa Symbol
+        data = string(data)
+    end
+    return data
+end
+get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
+
+# Allows to write to data from GUI
+function set_data_main(all_data::AllData,fields,args...)
+    data = all_data
+    fields::Vector{String} = fix_QML_types(fields)
+    args = fix_QML_types(args)
+    for i = 1:length(fields)-1
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if length(args)==1
+        value = args[1]
+    elseif length(args)==2
+        value = getproperty(data,Symbol(fields[end]))
+        value[args[1]] = args[2]
+    elseif length(args)==3
+        value = getproperty(data,Symbol(fields[end]))
+        value[args[1]][args[2]] = args[3]
+    end
+    field = Symbol(fields[end])
+    if getproperty(data,field) isa Symbol
+        data = Symbol(data)
+    end
+    setproperty!(data, field, value)
     return nothing
 end
+set_data(fields,value,args...) = set_data_main(all_data,fields,value,args...)
 
-function data_length(fields,inds=[])
-    return length(get_data(fields,inds))
+# Allows to read options from GUI
+function get_options_main(data::Options,fields,inds...)
+    fields::Vector{String} = fix_QML_types(fields)
+    inds = fix_QML_types(inds)
+    for i = 1:length(fields)
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if !(isempty(inds))
+        for i = 1:length(inds)
+            data = data[inds[i]]
+        end
+    end
+    if data isa Symbol
+        data = string(data)
+    end
+    return data
 end
+get_options(fields,inds...) = get_options_main(options,fields,inds...)
 
-#---Struct related functions
+# Allows to write to options from GUI
+function set_options_main(options::Options,fields::QML.QListAllocated,args...)
+    data = options
+    fields = fix_QML_types(fields)
+    args = fix_QML_types(args)
+    for i = 1:length(fields)-1
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if length(args)==1
+        value = args[1]
+    elseif length(args)==2
+        value = getproperty(data,Symbol(fields[end]))
+        if args[end]=="make_tuple"
+            fun = args[2]
+            value = make_tuple(args[1])
+        else
+            value[args[1]] = args[2]
+        end
+    elseif length(args)==3
+        value = getproperty(data,Symbol(fields[end]))
+        if args[end]=="make_tuple"
+            fun = args[3]
+            value[args[1]] = make_tuple(args[2])
+        else
+            value[args[1]][args[2]] = args[3]
+        end
+    elseif length(args)==4
+        value = getproperty(data,Symbol(fields[end]))
+        if args[end]=="make_tuple"
+            fun = args[4]
+            value[args[1]][args[2]] = make_tuple(args[3])
+        else
+            value[args[1]][args[2]][args[3]] = args[4]
+        end
+    end
+    if typeof(getproperty(data, Symbol(fields[end])))==Symbol
+        value = Symbol(value)
+    end
+    setproperty!(data, Symbol(fields[end]), value)
+    return nothing
+end
+set_options(fields,value,args...) = set_options_main(options,fields,value,args...)
+
+
+#---Struct related functions--------------------------------------------------
+
 function struct_to_dict!(dict,obj)
     ks = fieldnames(typeof(obj))
     for k in ks
@@ -248,6 +309,48 @@ function dict_to_struct!(obj,dict::Dict)
     return nothing
 end
 
+
+#---Clean up----------------------------------------------------
+
+function empty_field!(str,field::Symbol)
+    val = getfield(str,field)
+    type = typeof(val)
+    new_val = type(undef,zeros(Int64,length(size(val)))...)
+    setfield!(str, field, new_val)
+    return nothing
+end
+
+function reset_data_field_main(all_data::AllData,fields)
+    fields::Vector{String} = fix_QML_types(fields)
+    data = all_data
+    for i = 1:length(fields)
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    empty!(data)
+    return nothing
+end
+reset_data_field(fields) = reset_data_field_main(all_data,fields)
+
+function resetproperty!(datatype,field)
+    var = getproperty(datatype,field)
+    if var isa Array
+        var = similar(var,0)
+    elseif var isa Number
+        var = zero(typeof(var))
+    elseif var isa String
+        var = ""
+    end
+    setproperty!(datatype,field,var)
+    return nothing
+end
+
+#---Other-------------------------------------------------------------
+
+problem_type() = all_data.problem_type
+
+add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
+
 function make_tuple(array::AbstractArray)
     return (array...,)
 end
@@ -266,8 +369,6 @@ function make_dir(target_dir::String)
     return nothing
 end
 
-gc() = GC.gc()
-
 function check_task(t::Task)
     if istaskdone(t)
         if t.:_isexception
@@ -279,5 +380,3 @@ function check_task(t::Task)
         return :running, nothing
     end
 end
-
-add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))

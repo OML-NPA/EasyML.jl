@@ -60,7 +60,9 @@ vector_vector(:Manual)
 training_test()
 
 
-#-Input: Array | Output: Vector
+#-Input: Array | Output: Vector | Accuracy: Weight
+
+EasyMLTraining.training_options.Accuracy.weight_accuracy = true
 
 model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
 
@@ -71,7 +73,9 @@ array_vector(:Manual)
 training_test()
 
 
-#-Input: Array | Output: Array
+#-Input: Array | Output: Array | Accuracy: Regular
+
+EasyMLTraining.training_options.Accuracy.weight_accuracy = false
 
 model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 3))
 

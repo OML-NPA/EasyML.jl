@@ -382,7 +382,6 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         model_data.model = cpu(model)
         save_model_main(model_data,model_name)
     end
-    Threads.atomic_xchg!(abort, true)
     return nothing
 end
 
@@ -487,11 +486,22 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
         loss_vector,counter,accuracy_test_vector,loss_test_vector,iteration_test_vector,
         counter_test,num_test,epochs,num,max_iterations,num_tests,allow_lr_change,composite,
         run_test,minibatch_channel,minibatch_test_channel,channels,use_GPU,testing_mode,abort)
+    # Stop data preparation thread
+    Threads.atomic_xchg!(abort, true)
     # Return training information
     resize!(accuracy_vector,counter.iteration)
     resize!(loss_vector,counter.iteration)
     data = (accuracy_vector,loss_vector,accuracy_test_vector,loss_test_vector,iteration_test_vector)
     return data
+end
+
+function cleanup!(x::Array)
+    return nothing
+end
+
+function cleanup!(x::CuArray)
+    CUDA.unsafe_free!(x)
+    return nothing
 end
 
 function get_data_struct(some_data::Union{TrainingData,TestingData})
