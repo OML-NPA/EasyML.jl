@@ -2,7 +2,7 @@
 model_count() = length(model_data.layers_info)
 
 function get_max_id_main(model_data::ModelData)
-    if length(model_data.model)>0
+    if length(model_data.layers_info)>0
         ids = map(x-> x.id, model_data.layers_info)
         return maximum(ids)
     else
