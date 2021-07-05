@@ -1,36 +1,28 @@
 
 ## Package features
 
-This package allows to use machine learning in Julia through a graphical user interface.
+A training loop with 
+ - a GUI window
+ - GPU support
+ - support for changing in real time
+    - number of epochs
+    - learning rate
+    - number of tests
 
-It is possible to:
-  - Design a neural network
-  - Train a neural network
-  - Validate a neural network
-  - Apply a neural network to new data
-  
-Classification, regression and segmentation on images are currently supported.
-
-[Flux.jl](https://github.com/FluxML/Flux.jl) machine learning library is used under the hood.
+Classification, regression and segmentation on any data with [Flux.jl](https://github.com/FluxML/Flux.jl) models are supported.
 
 ```@raw html
 <style>
 
 .column1 {
   float: left;
-  width: 34%;
+  width: 40.6%;
   padding: 0.25%;
 }
 
 .column2 {
   float: left;
-  width: 32.5%;
-  padding: 0.25%;
-}
-
-.column3 {
-  float: left;
-  width: 32.75%;
+  width: 59.4%;
   padding: 0.25%;
 }
 
@@ -49,25 +41,17 @@ row::after{
 </style>
 <div class="row">
   <div class="column1">
-    <img   src="./assets/images/design_model.png">
-  </div>
-  <div class="column2">
     <img   src="./assets/images/train.png">
   </div>
-  <div class="column3">
-    <img   src="./assets/images/validate1.png">
+  <div class="column2">
+    <img   src="./assets/images/training_options3.png">
   </div>
 </div>
 <div class="filler">
 </div>
+
 ```
 
-## Installation
+### Installation
 
-Add the package from the repository to Julia using 
-
-`] add https://github.com/OML-NPA/EasyML.jl`
-
-then run
-
-`using EasyML` 
+Run `] add https://github.com/OML-NPA/EasyMLTraining.jl` in REPL.

@@ -1,11 +1,7 @@
 
 
 
-## Setting up
-
-```@docs
-modify(global_options::EasyML.GlobalOptions)
-```
+## Set up
 
 ```@docs
 load_options
@@ -18,41 +14,34 @@ save_model
 ```@docs
 load_model
 ```
-## Design
 
 ```@docs
-modify_classes()
+modify(training_options::EasyMLTraining.TrainingOptions)
 ```
 
 ```@docs
-modify_output()
+set_savepath
 ```
 
 ```@docs
-design_model()
+set_problem_type
+```
+
+```@docs
+set_weights
+```
+
+## Data preparation
+
+```@docs
+set_training_data
+```
+
+```@docs
+set_testing_data
 ```
 
 ## Training
-
-```@docs
-modify(training_options::EasyML.TrainingOptions)
-```
-
-```@docs
-get_urls_training
-```
-
-```@docs
-get_urls_testing
-```
-
-```@docs
-prepare_training_data
-```
-
-```@docs
-prepare_testing_data
-```
 
 ```@docs
 train
@@ -68,41 +57,4 @@ remove_testing_data
 
 ```@docs
 remove_training_results
-```
-
-## Validation
-
-
-```@docs
-get_urls_validation
-```
-
-```@docs
-validate
-```
-
-```@docs
-remove_validation_data
-```
-
-```@docs
-remove_validation_results
-```
-
-## Application
-
-```@docs
-modify(application_options::EasyML.ApplicationOptions)
-```
-
-```@docs
-get_urls_application
-```
-
-```@docs
-apply
-```
-
-```@docs
-remove_application_data
 ```

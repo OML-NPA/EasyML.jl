@@ -1,7 +1,7 @@
-using Documenter, EasyML
+using Documenter, EasyMLTraining
 
-makedocs(modules=[EasyML],
-    sitename = "EasyML.jl",
+makedocs(modules=[EasyMLTraining],
+    sitename = "EasyMLTraining.jl",
     pages = ["Home" => "index.md",
             "Quick guide" => "quick_guide.md",
             "GUI guide" => "gui_guide.md",
