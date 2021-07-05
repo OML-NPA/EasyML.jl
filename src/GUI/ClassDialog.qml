@@ -189,29 +189,31 @@ ApplicationWindow {
 
             // parentComboBox 1
             nameModel.clear()
-            var name = classModel.get(indTree).parent
             nameModel.append({"name": ""})
+            var parent2Name = parent2ComboBox.currentText
             for (var i=0;i<classModel.count;i++) {
-                if (i===indTree) continue
-                nameModel.append({"name": classModel.get(i).name})
+                var currentName = classModel.get(i).name
+                if (i===indTree || currentName===parent2Name) continue
+                nameModel.append({"name": currentName})
             }
-            if (name!=="") {
+            var parentName = classModel.get(indTree).parent
+            if (parentName!=="") {
                 for (i=0;i<parentComboBox.model.count;i++) {
-                    if (parentComboBox.model.get(i).name===name) {
+                    if (parentComboBox.model.get(i).name===parentName) {
                         parentComboBox.currentIndex = i
                     }
                 }
             }
             // parentComboBox 2
             name2Model.clear()
-            var name1 = parentComboBox.currentText
+            var parent1Name = parentComboBox.currentText
             name2Model.append({"name": ""})
             for (i=0;i<classModel.count;i++) {
-                name = classModel.get(i).name
-                if (i===indTree || name1===name) continue
-                name2Model.append({"name": name})
+                currentName = classModel.get(i).name
+                if (i===indTree || currentName===parent1Name) continue
+                name2Model.append({"name": currentName})
             }
-            var parentName = classModel.get(indTree).parent2
+            parentName = classModel.get(indTree).parent2
             if (parentName!=="") {
                 for (i=0;i<name2Model.count;i++) {
                     if (name2Model.get(i).name===parentName) {
@@ -615,6 +617,7 @@ ApplicationWindow {
                                 parent2Row.visible = false
                             }
                             classModel.setProperty(indTree, "parent", currentValue)
+                            update_fields()
                         }
                     }
                 }
@@ -637,6 +640,7 @@ ApplicationWindow {
                         }
                         onActivated: {
                             classModel.setProperty(indTree, "parent2", currentValue)
+                            update_fields()
                         }
                     }
                 }
