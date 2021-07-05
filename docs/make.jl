@@ -11,3 +11,8 @@ makedocs(modules=[EasyMLTraining],
     authors = "Aleksandr Illarionov",
     format = Documenter.HTML(prettyurls = false)
 )
+
+deploydocs(
+    repo = "github.com/OML-NPA/EasyMLTraining.jl.git",
+    target = "stable"
+)
