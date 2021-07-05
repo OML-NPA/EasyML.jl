@@ -506,7 +506,7 @@ Saves a model to a specified URL. The URL can be absolute or relative.
 Use '.model' extension.
 """
 save_model(url) = save_model_main(model_data,url)
-url = "models/segmentation.model"
+
 # loads ML model
 function load_model_main(model_data,url)
     url = fix_QML_types(url)
