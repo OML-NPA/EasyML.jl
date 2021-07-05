@@ -15,6 +15,5 @@ makedocs(modules=[EasyMLTraining],
 
 deploydocs(
     repo = "github.com/OML-NPA/EasyMLTraining.jl.git",
-    devbranch = "main",
-    target = "stable"
+    devbranch = "main"
 )
