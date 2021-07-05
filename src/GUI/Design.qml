@@ -137,8 +137,8 @@ ApplicationWindow {
                     unit = layers.children[ind]
                     var data = {"color": unit.color,
                                 "name": unit.name,
-                                "group": unit.group,
                                 "type": unit.type,
+                                "group": unit.group,
                                 "label_color": unit.label_color,
                                 "inputnum": unit.inputnum,
                                 "outputnum": unit.outputnum,
@@ -161,8 +161,8 @@ ApplicationWindow {
                        "color" : data.color,
                        "id": id,
                        "name": data.name,
-                       "group": data.group,
                        "type": data.type,
+                       "group": data.group,
                        "label_color": data.label_color,
                        "inputnum": copycache.connections[i].up.length,
                        "outputnum": copycache.connections[i].down.length,
@@ -282,18 +282,18 @@ ApplicationWindow {
                                     boundsBehavior: Flickable.StopAtBounds
                                     model: ListModel {id: inoutlayerModel
                                                         ListElement{
+                                                            name: "input"
                                                             type: "Input"
                                                             group: "inout"
-                                                            name: "input"
                                                             colorR: 0
                                                             colorG: 0
                                                             colorB: 250
                                                             inputnum: 0
                                                             outputnum: 1}
                                                         ListElement{
+                                                            name: "output"
                                                             type: "Output"
                                                             group: "inout"
-                                                            name: "output"
                                                             colorR: 0
                                                             colorG: 0
                                                             colorB: 250
@@ -328,27 +328,27 @@ ApplicationWindow {
                                     boundsBehavior: Flickable.StopAtBounds
                                     model: ListModel {id: linearlayerModel
                                                         ListElement{
+                                                            name: "conv"
                                                             type: "Convolution"
                                                             group: "linear"
-                                                            name: "conv"
                                                             colorR: 250
                                                             colorG: 250
                                                             colorB: 0
                                                             inputnum: 1
                                                             outputnum: 1}
                                                         ListElement{
+                                                            name: "tconv"
                                                             type: "Transposed convolution"
                                                             group: "linear"
-                                                            name: "tconv"
                                                             colorR: 250
                                                             colorG: 250
                                                             colorB: 0
                                                             inputnum: 1
                                                             outputnum: 1}
                                                         ListElement{
+                                                            name: "dense"
                                                             type: "Dense"
                                                             group: "linear"
-                                                            name: "dense"
                                                             colorR: 250
                                                             colorG: 250
                                                             colorB: 0
@@ -383,18 +383,18 @@ ApplicationWindow {
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: ListModel {id: normlayerModel
                                                     ListElement{
+                                                        name: "dropout"
                                                         type: "Drop-out"
                                                         group: "norm"
-                                                        name: "dropout"
                                                         colorR: 0
                                                         colorG: 250
                                                         colorB: 0
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "batchnorm"
                                                         type: "Batch normalisation"
                                                         group: "norm"
-                                                        name: "batchnorm"
                                                         colorR: 0
                                                         colorG: 250
                                                         colorB: 0
@@ -429,45 +429,45 @@ ApplicationWindow {
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: ListModel {id: activationlayerModel
                                                     ListElement{
+                                                        name: "relu"
                                                         type: "ReLU"
                                                         group: "activation"
-                                                        name: "relu"
                                                         colorR: 250
                                                         colorG: 0
                                                         colorB: 0
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "leakyrelu"
                                                         type: "Laeky ReLU"
                                                         group: "activation"
-                                                        name: "leakyrelu"
                                                         colorR: 250
                                                         colorG: 0
                                                         colorB: 0
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "elu"
                                                         type: "ELU"
                                                         group: "activation"
-                                                        name: "elu"
                                                         colorR: 250
                                                         colorG: 0
                                                         colorB: 0
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "tanh"
                                                         type: "Tanh"
                                                         group: "activation"
-                                                        name: "tanh"
                                                         colorR: 250
                                                         colorG: 0
                                                         colorB: 0
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "sigmoid"
                                                         type: "Sigmoid"
                                                         group: "activation"
-                                                        name: "sigmoid"
                                                         colorR: 250
                                                         colorG: 0
                                                         colorB: 0
@@ -502,18 +502,18 @@ ApplicationWindow {
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: ListModel {id: poolinglayerModel
                                                     ListElement{
+                                                        name: "maxpool"
                                                         type: "Max pooling"
                                                         group: "pooling"
-                                                        name: "maxpool"
                                                         colorR: 150
                                                         colorG: 0
                                                         colorB: 255
                                                         inputnum: 1
                                                         outputnum: 1}
                                                     ListElement{
+                                                        name: "avgpool"
                                                         type: "Average pooling"
                                                         group: "pooling"
-                                                        name: "avgpool"
                                                         colorR: 150
                                                         colorG: 0
                                                         colorB: 255
@@ -549,50 +549,50 @@ ApplicationWindow {
                                 boundsBehavior: Flickable.StopAtBounds
                                 model: ListModel {id: resizinglayerModel
                                                 ListElement{
+                                                    name: "addition"
                                                     type: "Addition"
                                                     group: "resizing"
-                                                    name: "addition"
                                                     colorR: 180
                                                     colorG: 180
                                                     colorB: 180
                                                     inputnum: 2
                                                     outputnum: 1}
-                                                    ListElement{
-                                                        type: "Join"
-                                                        group: "resizing"
-                                                        name: "join"
-                                                        colorR: 180
-                                                        colorG: 180
-                                                        colorB: 180
-                                                        inputnum: 2
-                                                        outputnum: 1}
-                                                    ListElement{
-                                                        type: "Split"
-                                                        group: "resizing"
-                                                        name: "split"
-                                                        colorR: 180
-                                                        colorG: 180
-                                                        colorB: 180
-                                                        inputnum: 1
-                                                        outputnum: 2}
-                                                    ListElement{
-                                                        type: "Upsample"
-                                                        group: "resizing"
-                                                        name: "upsample"
-                                                        colorR: 180
-                                                        colorG: 180
-                                                        colorB: 180
-                                                        inputnum: 1
-                                                        outputnum: 1}
-                                                    ListElement{
-                                                        type: "Flatten"
-                                                        group: "resizing"
-                                                        name: "flatten"
-                                                        colorR: 180
-                                                        colorG: 180
-                                                        colorB: 180
-                                                        inputnum: 1
-                                                        outputnum: 1}
+                                                ListElement{
+                                                    name: "join"
+                                                    type: "Join"
+                                                    group: "resizing"
+                                                    colorR: 180
+                                                    colorG: 180
+                                                    colorB: 180
+                                                    inputnum: 2
+                                                    outputnum: 1}
+                                                ListElement{
+                                                    name: "split"
+                                                    type: "Split"
+                                                    group: "resizing"
+                                                    colorR: 180
+                                                    colorG: 180
+                                                    colorB: 180
+                                                    inputnum: 1
+                                                    outputnum: 2}
+                                                ListElement{
+                                                    name: "upsample"
+                                                    type: "Upsample"
+                                                    group: "resizing"
+                                                    colorR: 180
+                                                    colorG: 180
+                                                    colorB: 180
+                                                    inputnum: 1
+                                                    outputnum: 1}
+                                                ListElement{
+                                                    name: "flatten"
+                                                    type: "Flatten"
+                                                    group: "resizing"
+                                                    colorR: 180
+                                                    colorG: 180
+                                                    colorB: 180
+                                                    inputnum: 1
+                                                    outputnum: 1}
                                                 }
                                 delegate: buttonComponent
                             }
@@ -738,8 +738,8 @@ ApplicationWindow {
                             layerComponent.createObject(layers,{"color" : adjustcolor(data.label_color),
                                 "id": data.id,
                                 "name": data.name,
-                                "group": data.group,
                                 "type": data.type,
+                                "group": data.group,
                                 "label_color": data.label_color,
                                 "inputnum": data.connections_up.length,
                                 "outputnum": data.connections_down.length,
@@ -1340,31 +1340,6 @@ ApplicationWindow {
                 }
             }
             model.push(unit)
-        }
-    }
-
-    function load_model_classes(classModel) {
-        var num_classes = Julia.num_classes()
-        if (classModel.count!==0) {
-            classModel.clear()
-        }
-        for (var i=0;i<num_classes;i++) {
-            var ind = i+1
-            var color = Julia.get_class_field(ind,"color")
-            var parents = Julia.get_class_field(ind,"parents")
-            var class_var = {
-                "name": Julia.get_class_field(ind,"name"),
-                "colorR": color[0],
-                "colorG": color[1],
-                "colorB": color[2],
-                "border": Julia.get_class_field(ind,"border"),
-                "border_thickness": Julia.get_class_field(ind,"border_thickness"),
-                "borderRemoveObjs": Julia.get_class_field(ind,"border_remove_objs"),
-                "min_area": Julia.get_class_field(ind,"min_area"),
-                "parent": parents[0],
-                "parent2": parents[1],
-                "notClass": Julia.get_class_field(ind,"not_class")}
-            classModel.append(class_var)
         }
     }
 
@@ -2738,8 +2713,8 @@ ApplicationWindow {
             onPressed: {
                 var object = layerComponent.createObject(layers,{"color" : adjustcolor([colorR,colorG,colorB]),
                                            "name": name,
-                                           "group": group,
                                            "type": type,
+                                           "group": group,
                                            "label_color": [colorR,colorG,colorB],
                                            "inputnum": inputnum,
                                            "outputnum": outputnum,
