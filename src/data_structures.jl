@@ -89,8 +89,8 @@ abstract type AbstractLayerInfo end
 @with_kw mutable struct GenericInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -101,8 +101,8 @@ end
 @with_kw mutable struct InputInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -115,8 +115,8 @@ end
 @with_kw mutable struct OutputInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -128,8 +128,8 @@ end
 @with_kw mutable struct ConvInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -144,8 +144,8 @@ end
 @with_kw mutable struct TConvInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -160,8 +160,8 @@ end
 @with_kw mutable struct DenseInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -173,8 +173,8 @@ end
 @with_kw mutable struct BatchNormInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -186,8 +186,8 @@ end
 @with_kw mutable struct DropoutInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -199,8 +199,8 @@ end
 @with_kw mutable struct LeakyReLUInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -212,8 +212,8 @@ end
 @with_kw mutable struct ELUInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -225,8 +225,8 @@ end
 @with_kw mutable struct PoolInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -239,8 +239,8 @@ end
 @with_kw mutable struct AdditionInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -252,8 +252,8 @@ end
 @with_kw mutable struct JoinInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -266,8 +266,8 @@ end
 @with_kw mutable struct SplitInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
@@ -280,8 +280,8 @@ end
 @with_kw mutable struct UpsampleInfo<:AbstractLayerInfo
     id::Int64 = 0
     name::String = ""
-    group::String = ""
     type::String = ""
+    group::String = ""
     connections_up::Vector{Int64} = Vector{Int64}(undef,0)
     connections_down::Vector{Vector{Int64}} = Vector{Vector{Int64}}(undef,0)
     x::Float64 = 0
