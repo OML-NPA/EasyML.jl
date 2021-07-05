@@ -1,6 +1,6 @@
 # EasyMLTraining.jl
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://oml-npa.github.io/EasyMLTraining.jl/stable/)
-[![CI](https://github.com/ONL-NPA/EasyMLTraining.jl/.github/workflows/CI/badge.svg)]((https://github.com/OML-NPA/EasyMLTraining.jl/actions))
+[![CI](https://github.com/OML-NPA/EasyMLTraining.jl/actions/workflows/CI.yml/badge.svg)]((https://github.com/OML-NPA/EasyMLTraining.jl/actions/CI))
 
 This package is a part of [EasyML.jl](https://github.com/OML-NPA/EasyML.jl).
 
