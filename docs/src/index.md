@@ -64,10 +64,4 @@ row::after{
 
 ## Installation
 
-Add the package from the repository to Julia using 
-
-`] add https://github.com/OML-NPA/EasyML.jl`
-
-then run
-
-`using EasyML` 
+Run `] add EasyML` in REPL.
