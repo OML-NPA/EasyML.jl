@@ -7,6 +7,9 @@ on:
     branches:
       - main
     tags: '*'
+    paths-ignore:
+      - '**/README.md'
+      - '**/.gitignore'
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
