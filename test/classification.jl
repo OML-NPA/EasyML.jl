@@ -21,7 +21,7 @@ training_test()
 
 #-Input: Array | Testing: Manual | Weights: Manual | Accuracy: Regular
 
-EasyMLTraining.training_options.Accuracy.weight_accuracy = true
+EasyMLTraining.training_options.Accuracy.weight_accuracy = false
 
 data_input = map(_ -> rand(Float32,5,5,1),1:200)
 data_labels = map(_ -> Int32(rand(1:10)),1:200)
