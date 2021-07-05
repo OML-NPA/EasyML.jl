@@ -18,8 +18,6 @@ import Flux.outdims
 
 # Include functions
 include("data_structures.jl")
-include("Common/handling_data.jl")
-include("Common/helper_functions.jl")
 include("Common/all.jl")
 include("Common/exported_functions.jl")
 include("design.jl")

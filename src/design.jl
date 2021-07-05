@@ -1,6 +1,10 @@
 # Number of model layers
 model_count() = length(model_data.layers_info)
 
+function source_dir()
+    return fix_slashes(pwd())
+end
+
 function get_max_id_main(model_data::ModelData)
     if length(model_data.model)>0
         ids = map(x-> x.id, model_data.layers_info)
@@ -73,7 +77,7 @@ function update_layers_main(design_data::DesignData,fields,values)
     layers_info = design_data.ModelData.layers_info
     fields = fix_QML_types(fields)
     values = fix_QML_types(values)
-    layer_info = get_layer_info(values[9])
+    layer_info = get_layer_info(values[8])
     for i = 1:length(fields)
         value_raw = values[i]
         field = Symbol(fields[i])
