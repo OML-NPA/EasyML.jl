@@ -63,37 +63,46 @@ ApplicationWindow {
                 max_id += 1
                 id = max_id
             }
-            if (problemComboBox.currentIndex==0) {
-                var class_var = {
+            var class_var = {
                     "id": id,
-                    "weight": Julia.get_class_field(ind,"weight"),
-                    "name": Julia.get_class_field(ind,"name")
-                }
+                    "name": "",
+                    "weight": 0,
+                    "colorR": 0,
+                    "colorG": 0,
+                    "colorB": 0,
+                    "border": false,
+                    "border_thickness": 0,
+                    "borderRemoveObjs": false,
+                    "min_area": 0,
+                    "parent": "",
+                    "parent2": "",
+                    "notClass": false
+            }
+            if (problemComboBox.currentIndex==0) {
+                class_var.id = id
+                class_var.name = Julia.get_class_field(ind,"name")
+                class_var.weight = Julia.get_class_field(ind,"weight")
             }
             else if (problemComboBox.currentIndex==1) {
-                var class_var = {
-                    "id": id,
-                    "name": Julia.get_class_field(ind,"name")
-                }
+                class_var.id = id
+                class_var.name = Julia.get_class_field(ind,"name")
             }
             else if (problemComboBox.currentIndex==2) {
                 var color = Julia.get_class_field(ind,"color")
                 var parents = Julia.get_class_field(ind,"parents")
-                class_var = {
-                    "id": id,
-                    "name": Julia.get_class_field(ind,"name"),
-                    "weight": Julia.get_class_field(ind,"weight"),
-                    "colorR": color[0],
-                    "colorG": color[1],
-                    "colorB": color[2],
-                    "border": Julia.get_class_field(ind,"border"),
-                    "border_thickness": Julia.get_class_field(ind,"border_thickness"),
-                    "borderRemoveObjs": Julia.get_class_field(ind,"border_remove_objs"),
-                    "min_area": Julia.get_class_field(ind,"min_area"),
-                    "parent": parents[0],
-                    "parent2": parents[1],
-                    "notClass": Julia.get_class_field(ind,"not_class")
-                }
+                class_var.id = id
+                class_var.name = Julia.get_class_field(ind,"name")
+                class_var.weight = Julia.get_class_field(ind,"weight")
+                class_var.colorR = color[0]
+                class_var.colorG = color[1]
+                class_var.colorB = color[2]
+                class_var.border = Julia.get_class_field(ind,"border")
+                class_var.border_thickness = Julia.get_class_field(ind,"border_thickness")
+                class_var.borderRemoveObjs = Julia.get_class_field(ind,"border_remove_objs")
+                class_var.min_area = Julia.get_class_field(ind,"min_area")
+                class_var.parent = parents[0]
+                class_var.parent2 = parents[1]
+                class_var.notClass = Julia.get_class_field(ind,"not_class")
             }
             classModel.append(class_var)
         }
@@ -135,6 +144,12 @@ ApplicationWindow {
                 if (classModel.count>2) {
                     parent2Row.visible = true
                 }
+                else {
+                    parent2Row.visible = false
+                }
+            }
+            else {
+                parentRow.visible = false
             }
             colorLabel.visible = true
             colorRow.visible = true
@@ -181,7 +196,7 @@ ApplicationWindow {
                 nameModel.append({"name": classModel.get(i).name})
             }
             if (name!=="") {
-                for (var i=0;i<parentComboBox.model.count;i++) {
+                for (i=0;i<parentComboBox.model.count;i++) {
                     if (parentComboBox.model.get(i).name===name) {
                         parentComboBox.currentIndex = i
                     }
@@ -234,8 +249,7 @@ ApplicationWindow {
     //-------------------------------------------------------------------------
 
     color: defaultpalette.window
-    
-    // onClosing: {classdialogLoader.sourceComponent = null}
+
     Item {
         id: mainItem
         width: classesparametersItem.width
@@ -345,8 +359,7 @@ ApplicationWindow {
                                                 width: 30*pix
                                                 border.width: 2*pix
                                                 radius: colorRectangle.width
-                                                property var model: classModel.get(index)
-                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([model.colorR,model.colorG,model.colorB]) : "transparent"
+                                                color: problemComboBox.currentIndex==2 ? rgbtohtml([colorR,colorG,colorB]) : "transparent"
                                             }
                                             Label {
                                                 anchors.left: colorRectangle.left
@@ -419,35 +432,44 @@ ApplicationWindow {
                                             }
                                             max_id += 1
                                             var id = max_id
+                                            var class_var = {
+                                                "id": id,
+                                                "name": "",
+                                                "weight": 0,
+                                                "colorR": 0,
+                                                "colorG": 0,
+                                                "colorB": 0,
+                                                "border": false,
+                                                "border_thickness": 0,
+                                                "borderRemoveObjs": false,
+                                                "min_area": 0,
+                                                "parent": "",
+                                                "parent2": "",
+                                                "notClass": false
+                                            }
                                             if (problemComboBox.currentIndex==0) {
-                                                var class_var = {
-                                                    "name": name,
-                                                    "id": id,
-                                                    "weight": 1
-                                                }
+                                                class_var.name = name
+                                                class_var.id = id
+                                                class_var.weight = 1
                                             }
                                             else if (problemComboBox.currentIndex==1) {
-                                                var class_var = {
-                                                    "name": name,
-                                                    "id": id
-                                                }
+                                                class_var.name = name
+                                                class_var.id = id
                                             }
                                             else if (problemComboBox.currentIndex==2) {
-                                                var class_var = {
-                                                    "name": name,
-                                                    "weight": 1,
-                                                    "id": id,
-                                                    "colorR": Math.floor(Math.random()*255)+1,
-                                                    "colorG": Math.floor(Math.random()*255)+1,
-                                                    "colorB": Math.floor(Math.random()*255)+1,
-                                                    "border": false,
-                                                    "border_thickness": 3,
-                                                    "borderRemoveObjs": false,
-                                                    "min_area": 0,
-                                                    "parent": "",
-                                                    "parent2": "",
-                                                    "notClass": false
-                                                }
+                                                    class_var.name = name
+                                                    class_var.weight = 1
+                                                    class_var.id = id
+                                                    class_var.colorR = Math.floor(Math.random()*255)+1
+                                                    class_var.colorG = Math.floor(Math.random()*255)+1
+                                                    class_var.colorB = Math.floor(Math.random()*255)+1
+                                                    class_var.border = false
+                                                    class_var.border_thickness = 3
+                                                    class_var.borderRemoveObjs = false
+                                                    class_var.min_area = 0
+                                                    class_var.parent = ""
+                                                    class_var.parent2 = ""
+                                                    class_var.notClass = false
                                             }
                                             
                                             classModel.append(class_var)
@@ -826,7 +848,6 @@ ApplicationWindow {
             height: 1.2*buttonHeight
             onClicked: {
                 Julia.set_problem_type(problemComboBox.currentIndex)
-                Julia.backup_options()
                 Julia.reset_classes()
                 for (var i=0;i<classModel.count;i++) {
                     var class_var = classModel.get(i)
@@ -845,8 +866,6 @@ ApplicationWindow {
                         [class_var.parent,class_var.parent2],
                         class_var.notClass])
                 }
-                
-                // classdialogLoader.sourceComponent = null
                 classdialogWindow.close()
             }
         }
@@ -866,13 +885,3 @@ ApplicationWindow {
         onClicked: mouse.accepted = false;
     }
 }
-
-
-
-
-
-
-
-
-
-
