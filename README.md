@@ -1,5 +1,5 @@
 # EasyMLTraining.jl
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://oml-npa.github.io/EasyML.jl/stable/)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://oml-npa.github.io/EasyMLTraining.jl/stable/)
 
 This package is a part of [EasyML.jl](https://github.com/OML-NPA/EasyML.jl).
 
