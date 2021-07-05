@@ -98,7 +98,6 @@ testing_data = TestingData()
     TrainingData::TrainingData = training_data
     TestingData::TestingData = testing_data
     problem_type::Symbol = :Classification
-    data_type::Symbol = :Image
     model_url::String = ""
     model_name::String = ""
 end

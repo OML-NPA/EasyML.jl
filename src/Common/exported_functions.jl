@@ -54,3 +54,41 @@ end
 Loads a model from a specified URL. The URL can be absolute or relative.
 """
 load_model(url) = load_model_main(model_data,url)
+
+function save_options_main(options::Options)
+    dict = Dict{Symbol,Any}()
+    struct_to_dict!(dict,options)
+    BSON.@save("options.bson",dict)
+    return nothing
+end
+"""
+    save_options()
+
+Saves options to `options.bson`. Uses present working directory. 
+It is run automatically after changing options in a GUI window.
+"""
+save_options() = save_options_main(options)
+
+function load_options!(options::Options)
+    # Import the configutation file
+    if isfile("options.bson")
+        try
+            data = BSON.load("options.bson")
+            dict_to_struct!(options,data[:dict])
+        catch e
+            @error string("Options were not loaded. Error: ",e)
+            save_options()
+        end 
+    else
+        save_options()
+    end
+    
+    return nothing
+end
+"""
+    load_options()
+
+Loads options from your previous run which are located in `options.bson`. 
+Uses present working directory. It is run automatically after `using EasyML`.
+"""
+load_options() = load_options!(options)

@@ -495,6 +495,15 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     return data
 end
 
+function cleanup!(x::Array)
+    return nothing
+end
+
+function cleanup!(x::CuArray)
+    CUDA.unsafe_free!(x)
+    return nothing
+end
+
 function get_data_struct(some_data::Union{TrainingData,TestingData})
     if problem_type()==:Classification
         data = some_data.ClassificationData

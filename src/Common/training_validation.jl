@@ -1,6 +1,6 @@
 
+#---Accuracy-------------------------------------------
 
-#---
 function accuracy_classification(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,2}}
     acc = Vector{Float32}(undef,0)
     for i in 1:size(predicted,2)
@@ -99,6 +99,8 @@ function get_accuracy_func(weights::Vector{Float32},options::Options)
         end
     end
 end
+
+#---Weights---------------------------------------------------------------------
 
 function calculate_weights(counts::Vector{Int64})
     frequencies = counts./sum(counts)
