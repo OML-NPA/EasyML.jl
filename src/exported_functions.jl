@@ -34,7 +34,17 @@ function set_savepath(url::String)
 end
 
 """
-    set_testing_data(data_input::Vector,data_labels::Vector)
+set_problem_type(type::Symbol)
+
+Sets the problem type. Either `:Classification`, `:Regression` or `:Segmentation`.
+"""
+function set_problem_type(type::Symbol)
+    all_data.problem_type = type
+    return nothing
+end
+
+"""
+    set_training_data(data_input::Vector,data_labels::Vector)
 
 Sets data for training.
 """
@@ -143,7 +153,8 @@ end
 """
     set_weights(ws::Vector{<:Real})
 
-Set weights for weight accuracy to `ws`. If `sum(ws) ≠ 1` then it is adjusted to be so.
+Set weights for weight accuracy to `ws`. If `sum(ws) ≠ 1` then it is adjusted to be so. 
+If weights are not specified then inverse frequency of labesl is used.
 """
 set_weights(ws) = set_weights_main(ws,training_data)
 

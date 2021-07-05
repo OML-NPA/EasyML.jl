@@ -12,16 +12,6 @@ function check_abort_signal(channel::Channel)
     end
 end
 
-function set_data_type(type::Symbol)
-    all_data.data_type = type
-    return nothing
-end
-
-function set_problem_type(type::Symbol)
-    all_data.problem_type = type
-    return nothing
-end
-
 function set_problem_type(ind)
     ind = fix_QML_types(ind)
     if ind==0 
