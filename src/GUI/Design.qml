@@ -2871,7 +2871,7 @@ ApplicationWindow {
                     Component.onCompleted: {
                         problemComboBox.currentIndex = Julia.get_problem_type()
                     }
-                    onCurrentIndexChanged: {
+                    onActivated: {
                         Julia.set_problem_type(currentIndex)
                     }
                 }
