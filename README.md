@@ -10,7 +10,7 @@
 
 This package allows to use machine learning in Julia through a graphical user interface.
 
-NB! This is a beta version. Bugs and breaking changes should be expected. Created models should not be affected and are designed to be recoverable.
+NB! This is a beta version. Bugs and breaking changes should be expected.
 
 ### Features
 It is possible to:
