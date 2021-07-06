@@ -277,7 +277,7 @@ end
     loss::Function = Flux.Losses.mse
     input_size::NTuple{3,Int64} = (1,1,1)
     output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
-    classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
+    problem_type::Symbol = :Classification
 end
 model_data = ModelData()
 
@@ -291,8 +291,6 @@ design_data = DesignData()
 
 @with_kw mutable struct AllData
     DesignData::DesignData = design_data
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
     model_url::String = ""
     model_name::String = ""
 end
@@ -326,8 +324,3 @@ design_options = DesignOptions()
     DesignOptions::DesignOptions = design_options
 end
 options = Options()
-
-#---Other
-
-problem_type() = all_data.problem_type
-input_type() = all_data.input_type

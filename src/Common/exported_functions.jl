@@ -1,5 +1,31 @@
 
 """
+set_savepath(url::String)
+
+Sets a path where a trained model will be saved.
+"""
+function set_savepath(url::String)
+    url_split = split(url,('/','.'))
+    if url_split[end]!="model"
+        @error "The model name should end with a '.model' extension."
+        return nothing
+    end
+    all_data.model_url = url
+    all_data.model_name = url_split[end-1]
+    return nothing
+end
+
+"""
+set_problem_type(type::Symbol)
+
+Sets the problem type. Either `:Classification`, `:Regression` or `:Segmentation`.
+"""
+function set_problem_type(type::Symbol)
+    model_data.problem_type = type
+    return nothing
+end
+
+"""
 save_model()
 
 Opens a file dialog where you can select where to save a model and how it should be called.

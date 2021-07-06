@@ -285,7 +285,7 @@ end
 
 #---Other-------------------------------------------------------------
 
-problem_type() = all_data.problem_type
+problem_type() = model_data.problem_type
 
 add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
 
