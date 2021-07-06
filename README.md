@@ -10,8 +10,7 @@ NB! This is a beta version. Bugs and breaking changes should be expected.
 
 ### Features
 
-A training loop with 
- - a GUI window
+A GUI based training loop with 
  - GPU support
  - support for changing in real time
     - number of epochs
