@@ -11,6 +11,8 @@ Parameters, Dates,
 FileIO, BSON,
 # Machine learning
 Flux, Flux.Losses, FluxExtra,
+# Math functions
+StatsBase,
 # Other
 FLoops
 

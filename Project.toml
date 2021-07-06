@@ -15,6 +15,7 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 QML = "2db162a6-7e43-52c3-8d84-290c1c42d82a"
 Qt5Charts_jll = "dd720b4e-75c8-5196-993d-eac563881c8e"
 Qt5QuickControls2_jll = "bf3ac11c-603e-589e-b4b7-e696ac65aa4a"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 BSON = "0.3"
