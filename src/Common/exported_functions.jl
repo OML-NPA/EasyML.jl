@@ -21,7 +21,12 @@ set_problem_type(type::Symbol)
 Sets the problem type. Either `:Classification`, `:Regression` or `:Segmentation`.
 """
 function set_problem_type(type::Symbol)
-    model_data.problem_type = type
+    if type in (:Classification, :Regression, :Segmentation)
+        model_data.problem_type = type
+    else
+        err = "Problem type should be either :Classification, :Regression or :Segmentation."
+        error(err)
+    end
     return nothing
 end
 
