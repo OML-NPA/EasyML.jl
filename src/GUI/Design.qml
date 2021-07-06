@@ -2821,18 +2821,16 @@ ApplicationWindow {
             leftPadding: 0.4*margin
             topPadding: 0.4*margin
             spacing: 0.3*margin
-            property double leftPad: 380*pix
-            Item {
-                height: buttonHeight
-                width: buttonWidth
+            Row {
+                spacing: 0.3*margin
                 Label {
                     id: nameLabel
+                    width: problemtypeLabel.width
                     text: "Name: "
                 }
                 TextField {
                     id: nameTextField
                     anchors.verticalCenter: nameLabel.verticalCenter
-                    anchors.left: nameLabel.right
                     height: buttonHeight
                     width: rightFrame.width - 220*pix
                     onEditingFinished: {
@@ -2850,39 +2848,61 @@ ApplicationWindow {
                     }
                 }
             }
-            Item {
-                height: buttonHeight
-                width: buttonWidth
+            Row {
+                id: problemRow
+                spacing: 0.3*margin
+                Label {
+                    id: problemtypeLabel
+                    text: "Problem:"
+                }
+                ComboBox {
+                    id: problemComboBox
+                    anchors.verticalCenter: problemtypeLabel.verticalCenter
+                    editable: false
+                    width: 0.69*buttonWidth-1*pix
+                    model: ListModel {
+                        id: problemtypeModel
+                        ListElement {text: "Classification"}
+                        ListElement {text: "Regression"}
+                        ListElement {text: "Segmentation"}
+                    }
+                    Component.onCompleted: {
+                        problemComboBox.currentIndex = Julia.get_problem_type()
+                    }
+                    onCurrentIndexChanged: {
+                        Julia.set_problem_type(currentIndex)
+                    }
+                }
+            }
+            Row {
+                spacing: 0.3*margin
                 Label {
                     id: numlayersLabel
-                    text: "Number of layers: "
+                    text: "Number of layers:"
+                    width: numnonlinearLabel.width
                 }
                 Label {
-                    leftPadding: leftPad
                     text: getlayersnum()
                 }
             }
-            Item {
-                height: buttonHeight
-                width: buttonWidth
+            Row {
+                spacing: 0.3*margin
                 Label {
                     id: numconnectionsLabel
-                    text: "Number of connections: "
+                    text: "Number of connections:"
+                    width: numnonlinearLabel.width
                 }
                 Label {
-                    leftPadding: leftPad
                     text: getconnectionsnum()
                 }
             }
-            Item {
-                height: buttonHeight
-                width: buttonWidth
+            Row {
+                spacing: 0.3*margin
                 Label {
                     id: numnonlinearLabel
-                    text: "Number of nonlinearities: "
+                    text: "Number of nonlinearities:"
                 }
                 Label {
-                    leftPadding: leftPad
                     text: getirregularitiesnum()
                 }
             }

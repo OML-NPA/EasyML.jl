@@ -1,12 +1,10 @@
-# Number of model layers
+
+#---Set up----------------------------------------------------------------------
+
 model_count() = length(model_data.layers_info)
 
-function source_dir()
-    return fix_slashes(pwd())
-end
-
 function get_max_id_main(model_data::ModelData)
-    if length(model_data.model)>0
+    if length(model_data.layers_info)>0
         ids = map(x-> x.id, model_data.layers_info)
         return maximum(ids)
     else
@@ -15,11 +13,8 @@ function get_max_id_main(model_data::ModelData)
 end
 get_max_id() = get_max_id_main(model_data)
 
-# Returns fields for layer properties
-model_properties(index) = 
-    string.(collect(fieldnames(typeof(model_data.layers_info[Int64(index)]))))
+model_properties(index) = string.(collect(fieldnames(typeof(model_data.layers_info[Int64(index)]))))
 
-# Returns model layer property value
 function model_get_layer_property_main(model_data::ModelData,index,property_name)
     layer_info = model_data.layers_info[Int64(index)]
     property = getfield(layer_info,Symbol(property_name))
@@ -31,12 +26,15 @@ end
 model_get_layer_property(index,property_name) =
     model_get_layer_property_main(model_data,index,property_name)
 
-# Empties model layers
+
 function reset_layers_main(design_data::DesignData)
     empty!(design_data.ModelData.layers_info)
     return nothing
 end
 reset_layers() = reset_layers_main(design_data::DesignData)
+
+
+#---Model import form QML----------------------------------------------------------------
 
 function get_layer_info(layer_name::String)
     if layer_name=="Input"
@@ -72,7 +70,6 @@ function get_layer_info(layer_name::String)
     end
 end
 
-# Saves new model layer data into a Julia dictionary
 function update_layers_main(design_data::DesignData,fields,values)
     layers_info = design_data.ModelData.layers_info
     fields = fix_QML_types(fields)
@@ -111,141 +108,9 @@ end
 update_layers(fields,values) = update_layers_main(design_data::DesignData,
     fields,values)
 
-#---Layer constructors
-function getlinear(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
-    if type == "Convolution"
-        layer = Conv(
-            layer_info.filter_size,
-            in_size[3] => layer_info.filters,
-            pad = SamePad(),
-            stride = layer_info.stride,
-            dilation = layer_info.dilation_factor
-        )
-        out = outdims(layer, (in_size...,1))[1:3]
-        return (layer, out)
-    elseif type == "Transposed convolution"
-        layer = ConvTranspose(
-            layer_info.filter_size,
-            in_size[3] => layer_info.filters,
-            pad = SamePad(),
-            stride = layer_info.stride,
-            dilation = layer_info.dilation_factor,
-        )
-        out = outdims(layer, (in_size...,1))[1:3]
-        return (layer, out)
-    elseif type == "Dense"
-        layer = Dense(in_size[1], layer_info.filters)
-        out = (layer_info.filters, in_size[2:3]...)
-        return (layer, out)
-    end
-end
 
-function getnorm(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
-    if type == "Drop-out"
-        return Dropout(layer_info.probability)
-    elseif type == "Batch normalisation"
-        return BatchNorm(in_size[end], ϵ = Float32(layer_info.epsilon))
-    end
-end
+#---Topology constructors----------------------------------------------------------------
 
-function getactivation(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
-    if type == "ReLU"
-        return Activation(relu)
-    elseif type == "Laeky ReLU"
-        return Activation(leakyrelu)
-    elseif type == "ELU"
-        return Activation(elu)
-    elseif type == "Tanh"
-        return Activation(tanh)
-    elseif type == "Sigmoid"
-        return Activation(sigmoid)
-    end
-end
-
-function getpooling(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
-    poolsize = layer_info.poolsize
-    stride = layer_info.stride
-    temp_layer = MaxPool(poolsize, stride=2)
-    out = outdims(Chain(temp_layer),(in_size...,1))[1:3]
-    dif = Int64.(in_size[1:2]./2 .- out[1:2])
-    if type == "Max pooling"
-        layer = MaxPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
-    elseif type == "Average pooling"
-        layer = MeanPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
-    end
-    return (layer,out)
-end
-
-function getresizing(type::String, layer_info, in_size)
-    if type == "Addition"
-        out = (in_size[1][1], in_size[1][2], in_size[1][3])
-        return (Addition(), out)
-    elseif type == "Join"
-        new_size = Array{Int64}(undef, length(in_size))
-        dim = layer_info.dimension
-        for i = 1:length(in_size)
-            new_size[i] = in_size[i][dim]
-        end
-        new_size = sum(new_size)
-        if dim == 1
-            out = (new_size, in_size[1][2], in_size[1][3])
-        elseif dim == 2
-            out = (in_size[1][1], new_size, in_size[1][3])
-        elseif dim == 3
-            out = (in_size[1][1], in_size[1][2], new_size)
-        end
-        return (Join(dim), out)
-    elseif type == "Split"
-        dim = layer_info.dimension
-        nout = layer_info.outputs
-        out = Array{Tuple{Int64,Int64,Int64}}(undef, nout)
-        if dim == 1
-            for i = 1:nout
-                out[i] = (in_size[1] / nout, in_size[2:3]...)
-            end
-        elseif dim == 2
-            for i = 1:nout
-                out[i] = (in_size[1], in_size[2] / nout, in_size[3])
-            end
-        elseif dim == 3
-            for i = 1:nout
-                out[i] = (in_size[1], in_size[2], in_size[3] / nout)
-            end
-        end
-        return (Split(nout, dim), out)
-    elseif type == "Upsample"
-        multiplier = layer_info.multiplier
-        dims = layer_info.dimensions
-        out = [in_size...]
-        for i in dims
-            out[i] = out[i] * multiplier
-        end
-        out = (out...,)
-        return (Upsample(scale = multiplier), out)
-    elseif type == "Flatten"
-        out = (prod(in_size), 1, 1)
-        return (x -> Flux.flatten(x), out)
-    end
-end
-
-function getlayer(layer, in_size)
-    if layer.group == "linear"
-        layer_f, out = getlinear(layer.type, layer, in_size)
-    elseif layer.group == "norm"
-        layer_f = getnorm(layer.type, layer, in_size)
-        out = in_size
-    elseif layer.group == "activation"
-        layer_f = getactivation(layer.type, layer, in_size)
-        out = in_size
-    elseif layer.group == "pooling"
-        layer_f, out = getpooling(layer.type, layer, in_size)
-    elseif layer.group == "resizing"
-        layer_f, out = getresizing(layer.type, layer, in_size)
-    end
-    return (layer_f, out)
-end
-
-#---Topology constructors
 function topology_linear(layers_arranged::Vector,inds_arranged::Vector,
         layers::Vector{AbstractLayerInfo},connections::Vector{Array{Vector{Int64}}},
         types::Vector{String},ind)
@@ -254,7 +119,7 @@ function topology_linear(layers_arranged::Vector,inds_arranged::Vector,
     ind = connections[ind]
     return ind
 end
-# ind = ind[1]
+
 function topology_split(layers_arranged::Vector,inds_arranged::Vector,
         layers::Vector{AbstractLayerInfo},connections::Vector{Array{Vector{Int64}}},
         connections_in::Vector{Vector{Int64}},types::Vector{String},ind)
@@ -425,7 +290,234 @@ function get_topology(model_data::ModelData)
     return layers_arranged, inds_arranged
 end
 
-#---Model constructors
+
+#---Model visual representation constructors-----------------------------------------------
+
+function arrange_layer(coordinates::Array,coordinate::Array{Float64},
+    design_options::DesignOptions)
+    coordinate[2] = coordinate[2] + design_options.min_dist_y + design_options.height
+    push!(coordinates,coordinate)
+    return coordinate
+end
+
+function arrange_branches(coordinates,coordinate::Vector{Float64},
+        design_options::DesignOptions,layers)
+    num = layers isa AbstractLayerInfo ? 1 : length(layers)
+    if num==1
+        coordinate = arrange_layer(coordinates,copy(coordinate),design_options)
+    else
+        max_num = ones(Int64,num)
+        for i = 1:length(layers)
+            temp1 = layers[i]
+            for temp2 in temp1
+                if temp2 isa Vector
+                    width = length(temp2)
+                    if width>max_num[i]
+                        max_num[i] = width
+                    end
+                end
+            end
+        end
+        par_coordinates = []
+        x_coordinates = []
+        push!(x_coordinates,coordinate[1])
+        for i=2:num
+            prev_layer_right = x_coordinates[end] .+ max_num[i-1]*design_options.width .+ (max_num[i-1]-1)*design_options.min_dist_x
+            current_layer_left = prev_layer_right .+ (max_num[i]-1)*design_options.width .+ max_num[i]*design_options.min_dist_x
+            push!(x_coordinates,current_layer_left)
+        end
+        x_coordinates = x_coordinates .-
+            (mean([x_coordinates[1],x_coordinates[end]])-coordinate[1])
+        for i = 1:num
+            temp_coordinates = []
+            temp_coordinate = [x_coordinates[i],coordinate[2]]
+            if isempty(layers[i])
+                push!(temp_coordinates,[x_coordinates[i],coordinate[2]])
+            else
+                for j = 1:length(layers[i])
+                    temp_coordinate = arrange_branches(temp_coordinates,temp_coordinate,
+                        design_options,layers[i][j])
+                end
+            end
+            push!(par_coordinates,temp_coordinates)
+        end
+        push!(coordinates,copy(par_coordinates))
+        coordinate = [coordinate[1],
+            maximum(map(x-> x[end],map(x -> x[end],par_coordinates)))]
+    end
+    return coordinate
+end
+
+function get_values!(values::Array,array::Array,cond_fun)
+    for i=1:length(array)
+        temp = array[i]
+        if cond_fun(temp)
+            get_values!(values,temp,cond_fun)
+        else
+            push!(values,temp)
+        end
+    end
+    return nothing
+end
+
+function arrange_main(design_data::DesignData,design_options::DesignOptions)
+    layers_arranged,inds_arranged = get_topology(design_data.ModelData)
+    coordinates = []
+    coordinate = [layers_arranged[1].x,layers_arranged[1].y]
+    push!(coordinates,coordinate)
+    for i = 2:length(inds_arranged)
+        layers = layers_arranged[i]
+        coordinate = arrange_branches(coordinates,
+            coordinate,design_options,layers)
+    end
+    coordinates_flattened = []
+    get_values!(coordinates_flattened,coordinates,
+        x-> x isa Array && x[1] isa Array)
+    inds_flattened = []
+    get_values!(inds_flattened,inds_arranged,x-> x isa Array)
+    true_elements = inds_flattened.>0
+    coordinates_flattened = coordinates_flattened[true_elements]
+    inds_flattened = inds_flattened[true_elements]
+    return [coordinates_flattened,inds_flattened.-1]
+end
+arrange() = arrange_main(design_data,design_options)
+
+
+#---Model constructors--------------------------------------------------------------------
+
+function getlinear(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
+    if type == "Convolution"
+        layer = Conv(
+            layer_info.filter_size,
+            in_size[3] => layer_info.filters,
+            pad = SamePad(),
+            stride = layer_info.stride,
+            dilation = layer_info.dilation_factor
+        )
+        out = outdims(layer, (in_size...,1))[1:3]
+        return (layer, out)
+    elseif type == "Transposed convolution"
+        layer = ConvTranspose(
+            layer_info.filter_size,
+            in_size[3] => layer_info.filters,
+            pad = SamePad(),
+            stride = layer_info.stride,
+            dilation = layer_info.dilation_factor,
+        )
+        out = outdims(layer, (in_size...,1))[1:3]
+        return (layer, out)
+    elseif type == "Dense"
+        layer = Dense(in_size[1], layer_info.filters)
+        out = (layer_info.filters, in_size[2:3]...)
+        return (layer, out)
+    end
+end
+
+function getnorm(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
+    if type == "Drop-out"
+        return Dropout(layer_info.probability)
+    elseif type == "Batch normalisation"
+        return BatchNorm(in_size[end], ϵ = Float32(layer_info.epsilon))
+    end
+end
+
+function getactivation(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
+    if type == "ReLU"
+        return Activation(relu)
+    elseif type == "Laeky ReLU"
+        return Activation(leakyrelu)
+    elseif type == "ELU"
+        return Activation(elu)
+    elseif type == "Tanh"
+        return Activation(tanh)
+    elseif type == "Sigmoid"
+        return Activation(sigmoid)
+    end
+end
+
+function getpooling(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
+    poolsize = layer_info.poolsize
+    stride = layer_info.stride
+    temp_layer = MaxPool(poolsize, stride=2)
+    out = outdims(Chain(temp_layer),(in_size...,1))[1:3]
+    dif = Int64.(in_size[1:2]./2 .- out[1:2])
+    if type == "Max pooling"
+        layer = MaxPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
+    elseif type == "Average pooling"
+        layer = MeanPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
+    end
+    return (layer,out)
+end
+
+function getresizing(type::String, layer_info, in_size)
+    if type == "Addition"
+        out = (in_size[1][1], in_size[1][2], in_size[1][3])
+        return (Addition(), out)
+    elseif type == "Join"
+        new_size = Array{Int64}(undef, length(in_size))
+        dim = layer_info.dimension
+        for i = 1:length(in_size)
+            new_size[i] = in_size[i][dim]
+        end
+        new_size = sum(new_size)
+        if dim == 1
+            out = (new_size, in_size[1][2], in_size[1][3])
+        elseif dim == 2
+            out = (in_size[1][1], new_size, in_size[1][3])
+        elseif dim == 3
+            out = (in_size[1][1], in_size[1][2], new_size)
+        end
+        return (Join(dim), out)
+    elseif type == "Split"
+        dim = layer_info.dimension
+        nout = layer_info.outputs
+        out = Array{Tuple{Int64,Int64,Int64}}(undef, nout)
+        if dim == 1
+            for i = 1:nout
+                out[i] = (in_size[1] / nout, in_size[2:3]...)
+            end
+        elseif dim == 2
+            for i = 1:nout
+                out[i] = (in_size[1], in_size[2] / nout, in_size[3])
+            end
+        elseif dim == 3
+            for i = 1:nout
+                out[i] = (in_size[1], in_size[2], in_size[3] / nout)
+            end
+        end
+        return (Split(nout, dim), out)
+    elseif type == "Upsample"
+        multiplier = layer_info.multiplier
+        dims = layer_info.dimensions
+        out = [in_size...]
+        for i in dims
+            out[i] = out[i] * multiplier
+        end
+        out = (out...,)
+        return (Upsample(scale = multiplier), out)
+    elseif type == "Flatten"
+        out = (prod(in_size), 1, 1)
+        return (x -> Flux.flatten(x), out)
+    end
+end
+
+function getlayer(layer, in_size)
+    if layer.group == "linear"
+        layer_f, out = getlinear(layer.type, layer, in_size)
+    elseif layer.group == "norm"
+        layer_f = getnorm(layer.type, layer, in_size)
+        out = in_size
+    elseif layer.group == "activation"
+        layer_f = getactivation(layer.type, layer, in_size)
+        out = in_size
+    elseif layer.group == "pooling"
+        layer_f, out = getpooling(layer.type, layer, in_size)
+    elseif layer.group == "resizing"
+        layer_f, out = getresizing(layer.type, layer, in_size)
+    end
+    return (layer_f, out)
+end
+
 function getbranch(layer_params,in_size)
     num = layer_params isa AbstractLayerInfo ? 1 : length(layer_params)
     if num==1
@@ -528,97 +620,9 @@ function move_model_main(model_data::ModelData,design_data::DesignData)
 end
 move_model() = move_model_main(model_data,design_data)
 
-#---Model visual representation constructors
-function arrange_layer(coordinates::Array,coordinate::Array{Float64},
-    design_options::DesignOptions)
-    coordinate[2] = coordinate[2] + design_options.min_dist_y + design_options.height
-    push!(coordinates,coordinate)
-    return coordinate
-end
 
-function arrange_branches(coordinates,coordinate::Vector{Float64},
-        design_options::DesignOptions,layers)
-    num = layers isa AbstractLayerInfo ? 1 : length(layers)
-    if num==1
-        coordinate = arrange_layer(coordinates,copy(coordinate),design_options)
-    else
-        max_num = ones(Int64,num)
-        for i = 1:length(layers)
-            temp1 = layers[i]
-            for temp2 in temp1
-                if temp2 isa Vector
-                    width = length(temp2)
-                    if width>max_num[i]
-                        max_num[i] = width
-                    end
-                end
-            end
-        end
-        par_coordinates = []
-        x_coordinates = []
-        push!(x_coordinates,coordinate[1])
-        for i=2:num
-            prev_layer_right = x_coordinates[end] .+ max_num[i-1]*design_options.width .+ (max_num[i-1]-1)*design_options.min_dist_x
-            current_layer_left = prev_layer_right .+ (max_num[i]-1)*design_options.width .+ max_num[i]*design_options.min_dist_x
-            push!(x_coordinates,current_layer_left)
-        end
-        x_coordinates = x_coordinates .-
-            (mean([x_coordinates[1],x_coordinates[end]])-coordinate[1])
-        for i = 1:num
-            temp_coordinates = []
-            temp_coordinate = [x_coordinates[i],coordinate[2]]
-            if isempty(layers[i])
-                push!(temp_coordinates,[x_coordinates[i],coordinate[2]])
-            else
-                for j = 1:length(layers[i])
-                    temp_coordinate = arrange_branches(temp_coordinates,temp_coordinate,
-                        design_options,layers[i][j])
-                end
-            end
-            push!(par_coordinates,temp_coordinates)
-        end
-        push!(coordinates,copy(par_coordinates))
-        coordinate = [coordinate[1],
-            maximum(map(x-> x[end],map(x -> x[end],par_coordinates)))]
-    end
-    return coordinate
-end
+#---Losses---------------------------------------------------------------------
 
-function get_values!(values::Array,array::Array,cond_fun)
-    for i=1:length(array)
-        temp = array[i]
-        if cond_fun(temp)
-            get_values!(values,temp,cond_fun)
-        else
-            push!(values,temp)
-        end
-    end
-    return nothing
-end
-
-function arrange_main(design_data::DesignData,design_options::DesignOptions)
-    layers_arranged,inds_arranged = get_topology(design_data.ModelData)
-    coordinates = []
-    coordinate = [layers_arranged[1].x,layers_arranged[1].y]
-    push!(coordinates,coordinate)
-    for i = 2:length(inds_arranged)
-        layers = layers_arranged[i]
-        coordinate = arrange_branches(coordinates,
-            coordinate,design_options,layers)
-    end
-    coordinates_flattened = []
-    get_values!(coordinates_flattened,coordinates,
-        x-> x isa Array && x[1] isa Array)
-    inds_flattened = []
-    get_values!(inds_flattened,inds_arranged,x-> x isa Array)
-    true_elements = inds_flattened.>0
-    coordinates_flattened = coordinates_flattened[true_elements]
-    inds_flattened = inds_flattened[true_elements]
-    return [coordinates_flattened,inds_flattened.-1]
-end
-arrange() = arrange_main(design_data,design_options)
-
-#---Losses
 function get_loss(loss_name::String)
     if loss_name == "MAE"
         return Losses.mae
@@ -650,3 +654,33 @@ function get_loss(loss_name::String)
         return Losses.tversky_loss
     end
 end
+
+
+#---Problem type handling-------------------------------------------------------------
+
+function set_problem_type(ind)
+    ind = fix_QML_types(ind)
+    if ind==0 
+        model_data.problem_type = :Classification
+    elseif ind==1
+        model_data.problem_type = :Regression
+    elseif ind==2
+        model_data.problem_type = :Segmentation
+    end
+    return nothing
+end
+
+function get_problem_type()
+    if problem_type()==:Classification
+        return 0
+    elseif problem_type()==:Regression
+        return 1
+    elseif problem_type()==:Segmentation
+        return 2
+    end
+end
+
+
+#---Other----------------------------------------------------------------------
+
+source_dir() = fix_slashes(pwd())

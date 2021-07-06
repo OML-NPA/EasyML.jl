@@ -13,6 +13,8 @@ function design_model()
         model_get_layer_property,
         model_properties,
         # Model functions
+        get_problem_type,
+        set_problem_type,
         get_max_id,
         reset_layers,
         update_layers,
