@@ -3,6 +3,11 @@
 
 function save_model_main(model_data,url)
     url = fix_QML_types(url)
+    # Make folders if needed
+    url_split = split(url,('/','\\'))[1:end-1]
+    url_dir = reduce((x,y) -> join([x,y],'\\'),url_split)
+    make_dir(url_dir)
+    # Serialize and save model
     dict_raw = Dict{Symbol,Any}()
     struct_to_dict!(dict_raw,model_data)
     dict = Dict{Symbol,IOBuffer}()
@@ -29,6 +34,7 @@ function load_model_main(model_data,url)
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
     ks = intersect(ks,fnames)
+    k = :layers_info
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try
@@ -44,13 +50,14 @@ function load_model_main(model_data,url)
             end
         end
     else
-        to_struct!(model_data,loaded_data)
+        dict_to_struct!(model_data,loaded_data)
     end
     all_data.model_url = url
     url_split = split(url,('/','.'))
     all_data.model_name = url_split[end-1]
     return nothing
 end
+
 
 #---GUI data handling-----------------------------------------------------
 
@@ -211,6 +218,23 @@ function struct_to_dict!(dict,obj)
     return nothing
 end
 
+function to_struct!(obj,sym::Symbol,value::NamedTuple)
+    if !isempty(value)
+        vector_type = getindex(value,:vector_type) 
+        types = getindex(value,:types) 
+        values = getindex(value,:values) 
+        struct_vec = vector_type(undef,0)
+        for j = 1:length(types)
+            obj_for_vec = types[j]()
+            dict_for_vec = values[j]
+            dict_to_struct!(obj_for_vec,dict_for_vec)
+            push!(struct_vec,obj_for_vec)
+        end
+        setproperty!(obj,sym,struct_vec)
+    end
+    return nothing
+end
+
 function dict_to_struct!(obj,dict::Dict)
     ks = [keys(dict)...]
     for i = 1:length(ks)
@@ -223,19 +247,7 @@ function dict_to_struct!(obj,dict::Dict)
             if value isa Dict
                 dict_to_struct!(obj_property,value)
             elseif obj_property isa Vector && occursin("EasyML",string(parentmodule(eltype(obj_type))))
-                if !isempty(value)
-                    vector_type = getindex(value,:vector_type) 
-                    types = getindex(value,:types) 
-                    values = getindex(value,:values) 
-                    struct_vec = vector_type(undef,0)
-                    for j = 1:length(types)
-                        obj_for_vec = types[j]()
-                        dict_for_vec = values[j]
-                        dict_to_struct!(obj_for_vec,dict_for_vec)
-                        push!(struct_vec,obj_for_vec)
-                    end
-                    setproperty!(obj,sym,struct_vec)
-                end
+                to_struct!(obj,sym,value)
             else
                 if hasfield(typeof(obj),sym)
                     setproperty!(obj,sym,value)
@@ -284,7 +296,7 @@ end
 
 #---Other-------------------------------------------------------------
 
-problem_type() = all_data.problem_type
+problem_type() = model_data.problem_type
 
 add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
 

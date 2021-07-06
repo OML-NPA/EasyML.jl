@@ -17,6 +17,7 @@ channels = Channels()
     input_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
     output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
     loss::Function = Flux.Losses.mse
+    problem_type::Symbol = :Classification
 end
 model_data = ModelData()
 
@@ -97,7 +98,6 @@ testing_data = TestingData()
 @with_kw mutable struct AllData
     TrainingData::TrainingData = training_data
     TestingData::TestingData = testing_data
-    problem_type::Symbol = :Classification
     model_url::String = ""
     model_name::String = ""
 end
