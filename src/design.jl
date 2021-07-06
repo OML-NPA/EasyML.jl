@@ -683,4 +683,11 @@ end
 
 #---Other----------------------------------------------------------------------
 
+# Make urls QML compatible
+function fix_slashes(url)
+    url::String = fix_QML_types(url)
+    url = replace(url, "\\" => "/")
+    url = string(uppercase(url[1]),url[2:end])
+end
+
 source_dir() = fix_slashes(pwd())
