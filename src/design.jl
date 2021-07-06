@@ -694,3 +694,12 @@ function fix_slashes(url)
 end
 
 source_dir() = fix_slashes(pwd())
+
+function allcmp(inds)
+    for i = 1:length(inds)
+        if inds[1][1] != inds[i][1]
+            return false
+        end
+    end
+    return true
+end
