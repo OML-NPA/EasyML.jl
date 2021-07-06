@@ -14,7 +14,7 @@ ApplicationWindow {
     id: customizationWindow
     visible: true
     title: qsTr("  EasyML")
-    minimumWidth: 2200*pix
+    minimumWidth: 2500*pix
     minimumHeight: 1500*pix
 
     color: defaultpalette.window
