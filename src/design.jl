@@ -258,7 +258,7 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
 end
 
 function get_topology(model_data::ModelData)
-    layers = design_data.ModelData.layers_info #model_data.layers_info
+    layers = model_data.layers_info
     types = [layers[i].type for i = 1:length(layers)]
     ind_vec = findall(types .== "Input")
     if isempty(ind_vec)
@@ -563,27 +563,30 @@ function getbranch(layer_params,in_size)
 end
 
 function make_model_main(design_data::DesignData)
-    model_data = design_data.ModelData
-    layers_arranged,_ = get_topology(model_data)
+    model_data_design = design_data.ModelData
+    layers_arranged,_ = get_topology(model_data_design)
     if isnothing(layers_arranged)
         return false
     end
     in_size = (layers_arranged[1].size...,)
-    model_data.input_size = in_size
+    model_data_design.input_size = in_size
     popfirst!(layers_arranged)
     loss_name = layers_arranged[end].loss[1]
-    model_data.loss = get_loss(loss_name)
+    model_data_design.loss = get_loss(loss_name)
     pop!(layers_arranged)
     model_layers = []
     for i = 1:length(layers_arranged)
         layer_params = layers_arranged[i]
         layer,in_size = getbranch(layer_params,in_size)
         if isnothing(layer)
+            msg = "Something went wrong during Flux model creation."
+            @warn msg
+            push!(design_data.warnings, msg)
             return false
         end
         push!(model_layers,layer)
     end
-    model_data.model = Chain(model_layers...)
+    model_data_design.model = Chain(model_layers...)
     return true
 end
 make_model() = make_model_main(design_data)

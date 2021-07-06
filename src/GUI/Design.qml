@@ -1069,10 +1069,12 @@ ApplicationWindow {
                     if (state) {
                         state = Julia.check_model()
                     }
-                    Julia.move_model()
-                    Julia.save_model(url)
                     if (state==false) {
                         show_warnings()
+                    }
+                    else {
+                        Julia.move_model()
+                        Julia.save_model(url)
                     }
                     opacity = 1
                 }
