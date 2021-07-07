@@ -75,7 +75,7 @@ ApplicationWindow {
                 timer.triggered.connect(cb);
                 timer.start();
             }
-            delay(5000, test_func)
+            delay(1000, test_func)
         }
     }
 
