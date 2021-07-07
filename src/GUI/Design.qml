@@ -457,7 +457,7 @@ ApplicationWindow {
                                                         outputnum: 1}
                                                     ListElement{
                                                         name: "leakyrelu"
-                                                        type: "Laeky ReLU"
+                                                        type: "Leaky ReLU"
                                                         group: "activation"
                                                         colorR: 250
                                                         colorG: 0
