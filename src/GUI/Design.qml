@@ -61,6 +61,8 @@ ApplicationWindow {
         if (Julia.UnitTest()) {
             function test_func() {
                 saveButton.clicked(null)
+                arrangeButton.clicked(null)
+                optionsButton.clicked(null)
                 designWindow.close()
             }
             function Timer() {
