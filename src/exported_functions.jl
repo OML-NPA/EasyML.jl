@@ -32,7 +32,9 @@ function design_model()
         set_options,
         save_options,
         # Other
-        source_dir
+        source_dir,
+        # Unit testing
+        UnitTest
     )
     path_qml = string(@__DIR__,"/GUI/Design.qml")
     loadqml(path_qml)

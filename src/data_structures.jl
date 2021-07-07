@@ -324,3 +324,10 @@ design_options = DesignOptions()
     DesignOptions::DesignOptions = design_options
 end
 options = Options()
+
+# Needed for testing
+@with_kw mutable struct UnitTest
+    state::Bool = false
+end
+unit_test = UnitTest()
+(m::UnitTest)() = m.state

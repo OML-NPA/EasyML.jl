@@ -11,7 +11,7 @@ import "Templates"
 import org.julialang 1.0
 
 ApplicationWindow {
-    id: customizationWindow
+    id: designWindow
     visible: true
     title: qsTr("  EasyML")
     minimumWidth: 2500*pix
@@ -45,8 +45,8 @@ ApplicationWindow {
                                   }
 //-------------------------------------------------------------------------
 
-    property double paneHeight: customizationWindow.height - 4*pix
-    property double paneWidth: customizationWindow.width-leftFrame.width-rightFrame.width-4*pix
+    property double paneHeight: designWindow.height - 4*pix
+    property double paneWidth: designWindow.width-leftFrame.width-rightFrame.width-4*pix
 
     property bool optionsOpen: false
     property bool localtrainingOpen: false
@@ -58,20 +58,35 @@ ApplicationWindow {
     property var model: []
     Component.onCompleted: {
         importmodel(model)
+        if (Julia.UnitTest()) {
+            function test_func() {
+                designWindow.close()
+            }
+            function Timer() {
+                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", designWindow);
+            }
+            function delay(delayTime, cb) {
+                var timer = new Timer();
+                timer.interval = delayTime;
+                timer.repeat = false;
+                timer.triggered.connect(cb);
+                timer.start();
+            }
+            delay(1000, test_func)
+        }
     }
+
 //------------------------------------------------------------------------
 
     property int idCounter: 0
 
     onWidthChanged: {
         if (layers.children.length>0) {
-            mainFrame.width = customizationWindow.width-leftFrame.width-rightFrame.width
-            mainFrame.height = customizationWindow.height
+            mainFrame.width = designWindow.width-leftFrame.width-rightFrame.width
+            mainFrame.height = designWindow.height
             updateMainPane(layers.children[0])
         }
     }
-
-    //onClosing: { customizationLoader.sourceComponent = undefined }
 
     Item {
         id: cache
@@ -218,7 +233,7 @@ ApplicationWindow {
         Frame {
             id: leftFrame
             z: 1
-            height: customizationWindow.height + 1*pix
+            height: designWindow.height + 1*pix
             width: 530*pix + 1*pix
             padding:0
             Item {
@@ -240,7 +255,7 @@ ApplicationWindow {
                 Frame {
                     id: layersFrame
                     y: layersLabel.height - 2*pix
-                    height: 1*(customizationWindow.height - 1*layersLabel.height) + 1*pix
+                    height: 1*(designWindow.height - 1*layersLabel.height) + 1*pix
                     width: leftFrame.width
                     padding: 0
                     backgroundColor: defaultpalette.listview
@@ -620,7 +635,7 @@ ApplicationWindow {
                 }
                 Frame {
                     y: layergroupsLabel.height - 2*pix
-                    height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)+4*pix
+                    height: 0.4*(designWindow.height - 2*layergroupsLabel.height)+4*pix
                     width: leftFrame.width
                     padding: 0
                     backgroundColor: defaultpalette.listview
@@ -628,7 +643,7 @@ ApplicationWindow {
                     ScrollableItem {
                         clip: true
                         y: 2*pix
-                        height: 0.4*(customizationWindow.height - 2*layergroupsLabel.height)
+                        height: 0.4*(designWindow.height - 2*layergroupsLabel.height)
                         width: leftFrame.width-2*pix
                         contentHeight: 1.25*buttonHeight*(defaultgroupsView.count)
                                         +0.75*buttonHeight
@@ -695,8 +710,8 @@ ApplicationWindow {
             anchors.left: leftFrame.right
             anchors.leftMargin: -1
             z: 0
-            width : customizationWindow.width-leftFrame.width-rightFrame.width + 3*pix
-            height : customizationWindow.height
+            width : designWindow.width-leftFrame.width-rightFrame.width + 3*pix
+            height : designWindow.height
             backgroundColor: defaultpalette.listview
             padding: 0
             antialiasing: true
@@ -1151,7 +1166,7 @@ ApplicationWindow {
             anchors.left: mainFrame.right
             anchors.leftMargin: -1
             z: 3
-            height: customizationWindow.height
+            height: designWindow.height
             width: 530*pix + 1*pix
             padding:0
             Item {
@@ -1173,16 +1188,16 @@ ApplicationWindow {
                 Frame {
                     id: propertiesFrame
                     y: propertiesLabel.height -4*pix
-                    height: 0.6*(customizationWindow.height - 2*layersLabel.height)
+                    height: 0.6*(designWindow.height - 2*layersLabel.height)
                     width: rightFrame.width
                     padding: 0
                     backgroundColor: defaultpalette.window
                     ScrollableItem {
                         id: propertiesFlickable
                         y: 2*pix
-                        height: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
+                        height: 0.6*(designWindow.height - 2*layersLabel.height) - 4*pix
                         width: rightFrame.width-2*pix
-                        contentHeight: 0.6*(customizationWindow.height - 2*layersLabel.height) - 4*pix
+                        contentHeight: 0.6*(designWindow.height - 2*layersLabel.height) - 4*pix
                         ScrollBar.horizontal.visible: false
                         Item {
                             MouseArea {
@@ -1250,7 +1265,7 @@ ApplicationWindow {
                 Frame {
                     id: overviewFrame
                     y: overviewLabel.height - 2*pix
-                    height: 0.4*(customizationWindow.height - 2*layersLabel.height) + 8*pix
+                    height: 0.4*(designWindow.height - 2*layersLabel.height) + 8*pix
                     width: rightFrame.width
                     padding: 0
                     backgroundColor: defaultpalette.listview
@@ -1267,8 +1282,8 @@ ApplicationWindow {
         }
 
         MouseArea {
-            width: customizationWindow.width
-            height: customizationWindow.height
+            width: designWindow.width
+            height: designWindow.height
             onPressed: {
                 focus = true
                 mouse.accepted = false
@@ -1677,10 +1692,9 @@ ApplicationWindow {
         }
     }
 
-
     function updateOverview() {
         function Timer() {
-            return Qt.createQmlObject("import QtQuick 2.0; Timer {}", customizationWindow);
+            return Qt.createQmlObject("import QtQuick 2.0; Timer {}", designWindow);
         }
         function delay(delayTime, cb) {
             var timer = new Timer();
@@ -2770,8 +2784,8 @@ ApplicationWindow {
         modal: true
         visible: false
         closePolicy: Popup.NoAutoClose
-        x: customizationWindow.width/2 - width/2
-        y: customizationWindow.height/2 - height/2
+        x: designWindow.width/2 - width/2
+        y: designWindow.height/2 - height/2
         width: Math.max(titleLabel.width,textLabel.width) + 0.8*margin
         height: titleLabel.height + textLabel.height 
             + okButton.height + 0.4*margin + okButton.height
