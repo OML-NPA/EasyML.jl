@@ -1039,12 +1039,11 @@ ApplicationWindow {
                     }
 
                     Item {
-                        property int cnt: 0
                         id: layers
+                        
                     }
                     Item {
                         id: connections
-                        property int num: 0
                     }
                     Rectangle {
                         id: selectionRect
@@ -1079,20 +1078,22 @@ ApplicationWindow {
                 }
                 onPressed: {opacity = 0.5}
                 onClicked: {
-                    getarchitecture()
-                    customizationItem.forceActiveFocus()
-                    var name = Julia.get_data(["model_name"])
-                    var url = Julia.get_data(["model_url"])
-                    var state = Julia.make_model()
-                    if (state) {
-                        state = Julia.check_model()
-                    }
-                    if (state==false) {
-                        show_warnings()
-                    }
-                    else {
-                        Julia.move_model()
-                        Julia.save_model(url)
+                    if (layers.children.length>3) {
+                        getarchitecture()
+                        customizationItem.forceActiveFocus()
+                        var name = Julia.get_data(["model_name"])
+                        var url = Julia.get_data(["model_url"])
+                        var state = Julia.make_model()
+                        if (state) {
+                            state = Julia.check_model()
+                        }
+                        if (state==false) {
+                            show_warnings()
+                        }
+                        else {
+                            Julia.move_model()
+                            Julia.save_model(url)
+                        }
                     }
                     opacity = 1
                 }
@@ -1137,23 +1138,25 @@ ApplicationWindow {
                 }
                 onPressed: {opacity = 0.5}
                 onClicked: {
-                    getarchitecture()
-                    var data = Julia.arrange()
-                    var coordinates = data[0]
-                    var inds = data[1]
-                    for (var i=0;i<inds.length;i++) {
-                        var layer = layers.children[inds[i]]
-                        layer.x = coordinates[i][0]*pix
-                        layer.y = coordinates[i][1]*pix
-                        layer.oldpos = [layer.x,layer.y]
+                    if (layers.children.length>3) {
+                        getarchitecture()
+                        var data = Julia.arrange()
+                        var coordinates = data[0]
+                        var inds = data[1]
+                        for (var i=0;i<inds.length;i++) {
+                            var layer = layers.children[inds[i]]
+                            layer.x = coordinates[i][0]*pix
+                            layer.y = coordinates[i][1]*pix
+                            layer.oldpos = [layer.x,layer.y]
+                        }
+                        updateMainPane(layers.children[0])
+                        for (i=0;i<layers.children.length;i++) {
+                            updatePosition(layers.children[i],layers.children[i])
+                        }
+                        updateConnections()
+                        updateConnections()
+                        customizationItem.forceActiveFocus()
                     }
-                    updateMainPane(layers.children[0])
-                    for (i=0;i<layers.children.length;i++) {
-                        updatePosition(layers.children[i],layers.children[i])
-                    }
-                    updateConnections()
-                    updateConnections()
-                    customizationItem.forceActiveFocus()
                     opacity = 1
                 }
             }
