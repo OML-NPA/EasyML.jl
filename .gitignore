@@ -1,11 +1,9 @@
 
 Examples/
+models/
 docs/build
-*.bson
-*.bson
 .vscode/settings.json
-config.bson
 src/test.jl
 *.docx
 *.csv
-*.model
+*.bson
