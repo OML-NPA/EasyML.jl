@@ -58,7 +58,7 @@ ApplicationWindow {
     property var model: []
     Component.onCompleted: {
         importmodel(model)
-        if (Julia.UnitTest()) {
+        if (Julia.unit_test()) {
             function test_func() {
                 saveButton.clicked(null)
                 arrangeButton.clicked(null)
@@ -1082,7 +1082,7 @@ ApplicationWindow {
                     getarchitecture()
                     customizationItem.forceActiveFocus()
                     var name = Julia.get_data(["model_name"])
-                    var url = Julia.source_dir()+"/models/"+name+".model"
+                    var url = Julia.get_data(["model_url"])
                     var state = Julia.make_model()
                     if (state) {
                         state = Julia.check_model()
@@ -2854,12 +2854,20 @@ ApplicationWindow {
                     width: rightFrame.width - 220*pix
                     onEditingFinished: {
                         Julia.set_data(["model_name"],displayText)
+                        var model_url = Julia.get_data(["model_url"])
+                        var model_url_split = model_url.split(/[\/\\]/g)
+                        model_url_split.pop()
+                        var model_url_new = model_url_split.join("/")
+                        model_url_new = model_url_new+"/"+displayText+".model"
+                        Julia.set_data(["model_url"],model_url_new)
                     }
                     Component.onCompleted: {
                         var name = Julia.get_data(["model_name"])
                         if (name.length===0) {
                             text = "new_model"
+                            var model_url = "models/new_model.model"
                             Julia.set_data(["model_name"],text)
+                            Julia.set_data(["model_url"],model_url)
                         }
                         else {
                             text = name
