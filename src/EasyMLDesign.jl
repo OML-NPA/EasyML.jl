@@ -20,8 +20,8 @@ import Flux.outputsize
 
 # Include functions
 include("data_structures.jl")
-include("Common/all.jl")
-include("Common/exported_functions.jl")
+include("common/all.jl")
+include("common/exported_functions.jl")
 include("design.jl")
 include("exported_functions.jl")
 
