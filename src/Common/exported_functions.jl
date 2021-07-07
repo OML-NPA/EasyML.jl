@@ -1,6 +1,6 @@
 
 """
-set_savepath(url::String)
+    set_savepath(url::String)
 
 Sets a path where a trained model will be saved.
 """
@@ -16,7 +16,7 @@ function set_savepath(url::String)
 end
 
 """
-set_problem_type(type::Symbol)
+    set_problem_type(type::Symbol)
 
 Sets the problem type. Either `:Classification`, `:Regression` or `:Segmentation`.
 """
@@ -31,7 +31,7 @@ function set_problem_type(type::Symbol)
 end
 
 """
-save_model()
+    save_model()
 
 Opens a file dialog where you can select where to save a model and how it should be called.
 """
@@ -62,7 +62,7 @@ Use '.model' extension.
 save_model(url) = save_model_main(model_data,url)
 
 """
-load_model()
+    load_model()
 
 Opens a file dialog where you can select a model to be loaded and loads it.
 """
