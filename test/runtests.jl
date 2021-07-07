@@ -11,5 +11,6 @@ load_model("models/test.model")
 design_model()
 
 save_model("models/test.model")
+load_options()
 save_options()
 

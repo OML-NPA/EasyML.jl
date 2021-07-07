@@ -60,6 +60,7 @@ ApplicationWindow {
         importmodel(model)
         if (Julia.UnitTest()) {
             function test_func() {
+                saveButton.clicked(null)
                 designWindow.close()
             }
             function Timer() {
@@ -72,7 +73,7 @@ ApplicationWindow {
                 timer.triggered.connect(cb);
                 timer.start();
             }
-            delay(1000, test_func)
+            delay(5000, test_func)
         }
     }
 
