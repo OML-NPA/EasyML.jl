@@ -696,15 +696,6 @@ end
 
 #---Other----------------------------------------------------------------------
 
-# Make urls QML compatible
-function fix_slashes(url)
-    url::String = fix_QML_types(url)
-    url = replace(url, "\\" => "/")
-    url = string(uppercase(url[1]),url[2:end])
-end
-
-source_dir() = fix_slashes(pwd())
-
 function allcmp(inds)
     for i = 1:length(inds)
         if inds[1][1] != inds[i][1]

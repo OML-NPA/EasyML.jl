@@ -31,8 +31,6 @@ function design_model()
         get_options,
         set_options,
         save_options,
-        # Other
-        source_dir,
         # Unit testing
         unit_test
     )
