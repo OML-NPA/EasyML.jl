@@ -7,7 +7,7 @@ Sets a path where a trained model will be saved.
 function set_savepath(url::String)
     url_split = split(url,('/','.'))
     if url_split[end]!="model"
-        @error "The model name should end with a '.model' extension."
+        error("The model name should end with a '.model' extension.")
         return nothing
     end
     all_data.model_url = url
@@ -107,7 +107,7 @@ function load_options!(options::Options)
             data = BSON.load("options.bson")
             dict_to_struct!(options,data[:dict])
         catch e
-            @error string("Options were not loaded. Error: ",e)
+            error(string("Options were not loaded. Error: ",e))
             save_options()
         end 
     else
