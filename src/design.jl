@@ -439,13 +439,13 @@ function getpooling(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
     poolsize = layer_info.poolsize
     stride = layer_info.stride
     temp_layer = MaxPool(poolsize, stride=2)
-    out = outdims(Chain(temp_layer),(in_size...,1))[1:3]
-    dif = Int64.(in_size[1:2]./2 .- out[1:2])
     if type == "Max pooling"
-        layer = MaxPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
+        layer = MaxPool(poolsize, stride=stride, pad=SamePad())
     elseif type == "Average pooling"
-        layer = MeanPool(poolsize, stride=stride, pad=(0,dif[1],dif[2],0))
+        layer = MeanPool(poolsize, stride=stride, pad=SamePad())
     end
+    out12 = in_size./stride
+    out = (Int64(out12[1]),Int64(out12[2]),in_size[3])
     return (layer,out)
 end
 
@@ -592,12 +592,12 @@ end
 make_model() = make_model_main(design_data)
 
 function check_model_main(design_data::DesignData)
-    model_data = design_data.ModelData
+    model_data_design = design_data.ModelData
     input = zeros(Float32,model_data.input_size...,1)
     try
-        output = model_data.model(input)
+        output = model_data_design.model(input)
         output_size = size(output)[1:end-1]
-        model_data.output_size = output_size
+        model_data_design.output_size = output_size
         if problem_type()==:Classification && length(output_size)!=1
             @warn "Use flatten before an output. Otherwise, the model will not function correctly."
             push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
