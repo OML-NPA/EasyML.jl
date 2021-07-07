@@ -426,7 +426,7 @@ end
 function getactivation(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
     if type == "ReLU"
         return Activation(relu)
-    elseif type == "Laeky ReLU"
+    elseif type == "Leaky ReLU"
         return Activation(leakyrelu)
     elseif type == "ELU"
         return Activation(elu)
