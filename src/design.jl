@@ -262,12 +262,14 @@ function get_topology(model_data::ModelData)
     types = [layers[i].type for i = 1:length(layers)]
     ind_vec = findall(types .== "Input")
     if isempty(ind_vec)
-        @warn "No input layer."
-        push!(design_data.warnings,"No input layer.")
+        msg = "No input layer."
+        @error msg
+        push!(design_data.warnings,msg)
         return nothing,nothing
     elseif length(ind_vec)>1
-        @warn "More than one input layer."
-        push!(design_data.warnings,"More than one input layer.")
+        msg = "More than one input layer."
+        @error msg
+        push!(design_data.warnings,msg)
         return nothing,nothing
     end
     connections = Vector{Array{Vector{Int64}}}(undef,0)
@@ -554,8 +556,9 @@ function getbranch(layer_params,in_size)
         if allcmp(par_size)
             in_size = par_size
         else
-            @warn "Inputs to a parallel layer have different sizes."
-            push!(design_data.warnings,"Inputs to a parallel layer have different sizes.")
+            msg = "Inputs to a parallel layer have different sizes."
+            @error msg
+            push!(design_data.warnings,msg)
             return nothing,nothing
         end
     end
@@ -566,6 +569,14 @@ function make_model_main(design_data::DesignData)
     model_data_design = design_data.ModelData
     layers_arranged,_ = get_topology(model_data_design)
     if isnothing(layers_arranged)
+        msg = "Something went wrong during model topology analysis."
+        @error msg
+        push!(design_data.warnings, msg)
+        return false
+    elseif layers_arranged[end].type!="Output"
+        msg = "No output layer."
+        @error msg
+        push!(design_data.warnings, msg)
         return false
     end
     in_size = (layers_arranged[1].size...,)
@@ -580,7 +591,7 @@ function make_model_main(design_data::DesignData)
         layer,in_size = getbranch(layer_params,in_size)
         if isnothing(layer)
             msg = "Something went wrong during Flux model creation."
-            @warn msg
+            @error msg
             push!(design_data.warnings, msg)
             return false
         end
@@ -599,13 +610,12 @@ function check_model_main(design_data::DesignData)
         output_size = size(output)[1:end-1]
         model_data_design.output_size = output_size
         if problem_type()==:Classification && length(output_size)!=1
-            @warn "Use flatten before an output. Otherwise, the model will not function correctly."
+            @error "Use flatten before an output. Otherwise, the model will not function correctly."
             push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
             return false
         end
     catch e
-        @warn "Something is wrong with your model."
-        @warn e
+        @error e
         push!(design_data.warnings,"Something is wrong with your model.")
         return false
     end
