@@ -394,7 +394,7 @@ function getlinear(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
             stride = layer_info.stride,
             dilation = layer_info.dilation_factor
         )
-        out = outdims(layer, (in_size...,1))[1:3]
+        out = outputsize(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Transposed convolution"
         layer = ConvTranspose(
@@ -404,7 +404,7 @@ function getlinear(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
             stride = layer_info.stride,
             dilation = layer_info.dilation_factor,
         )
-        out = outdims(layer, (in_size...,1))[1:3]
+        out = outputsize(layer, (in_size...,1))[1:3]
         return (layer, out)
     elseif type == "Dense"
         layer = Dense(in_size[1], layer_info.filters)

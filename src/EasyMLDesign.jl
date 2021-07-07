@@ -16,7 +16,7 @@ StatsBase,
 # Other
 FLoops
 
-import Flux.outdims
+import Flux.outputsize
 
 # Include functions
 include("data_structures.jl")
