@@ -31,7 +31,20 @@ for i = 1:length(losses)
     design_model()
 end
 
+# QML other
+set_problem_type(0)
+set_problem_type(1)
+set_problem_type(2)
+
+# Other
 save_model("models/test.model")
 load_options()
 save_options()
 
+try
+    load_model("my_model")
+catch e
+    if !(e isa ErrorException)
+        error("Wrong error returned.")
+    end
+end
