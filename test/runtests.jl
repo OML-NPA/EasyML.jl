@@ -36,6 +36,10 @@ set_problem_type(0)
 set_problem_type(1)
 set_problem_type(2)
 
+fields = ["DesignOptions","width"]
+value = 340
+set_options_main(options,fields,args...)
+
 # Other
 save_model("models/test.model")
 load_options()
