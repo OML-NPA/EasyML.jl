@@ -1,6 +1,6 @@
 
 Examples/
-models/
+models2/
 docs/build
 .vscode/settings.json
 src/test.jl
