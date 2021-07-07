@@ -38,7 +38,7 @@ set_problem_type(2)
 
 fields = ["DesignOptions","width"]
 value = 340
-set_options_main(options,fields,args...)
+EasyMLDesign.set_options(fields,value)
 
 # Other
 save_model("models/test.model")
