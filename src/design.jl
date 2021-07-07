@@ -497,7 +497,7 @@ function getresizing(type::String, layer_info, in_size)
         return (Upsample(scale = multiplier), out)
     elseif type == "Flatten"
         out = (prod(in_size), 1, 1)
-        return (x -> Flux.flatten(x), out)
+        return (Flatten(), out)
     end
 end
 
