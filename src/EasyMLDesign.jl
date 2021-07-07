@@ -28,7 +28,7 @@ include("exported_functions.jl")
 export QML, Flux, FluxExtra, NNlib, ColorTypes
 
 export ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, options, global_options
-export load_options, design_model, modify_classes, save_model, load_model
+export set_savepath, set_problem_type, save_options, load_options, design_model, save_model, load_model
 export Join, Split, Addition, Activation, Identity
 
 function __init__()
