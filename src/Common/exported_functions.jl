@@ -5,7 +5,7 @@ set_savepath(url::String)
 Sets a path where a trained model will be saved.
 """
 function set_savepath(url::String)
-    url_split = split(url,('/','.'))
+    url_split = split(url,('\\','/','.'))
     if url_split[end]!="model"
         @error "The model name should end with a '.model' extension."
         return nothing
