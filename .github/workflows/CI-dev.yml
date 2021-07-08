@@ -10,6 +10,7 @@ jobs:
         version:
           - '1.6'
         os:
+          - ubuntu-latest
           - macOS-latest
           - windows-latest
         arch:
@@ -20,6 +21,11 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - name: screen resolution
+      run: |
+        system_profiler SPDisplaysDataType | grep Resolution
+        "/Library/Application Support/VMware Tools/vmware-resolutionSet" 2560 1440
+        system_profiler SPDisplaysDataType | grep Resolution
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
