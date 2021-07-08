@@ -16,5 +16,8 @@ FileDialog {
     }
     Component.onCompleted: {
         fileDialog.open()
+        if (Julia.unit_test()) {
+            fileDialog.close()
+        }
     }
 }

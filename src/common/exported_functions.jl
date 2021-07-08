@@ -37,17 +37,20 @@ Opens a file dialog where you can select where to save a model and how it should
 """
 function save_model()
     name_filters = ["*.model"]
+    if isempty(all_data.model_name)
+        all_data.model_name = "new_model"
+    end
     filename = string(all_data.model_name,".model")
     url_out = String[""]
     observe(url) = url_out[1] = url
     # Launches GUI
-    @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalSaveFileDialog.qml")
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalSaveFileDialog.qml")
     loadqml(path_qml,
         name_filters = name_filters,
         filename = filename)
     exec()
-    if !isempty(url_out)
+    if !isempty(url_out[1])
         save_model(url_out[1])
     end
     return nothing
@@ -71,12 +74,15 @@ function load_model()
     url_out = String[""]
     observe(url) = url_out[1] = url
     # Launches GUI
-    @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
     loadqml(path_qml,name_filters = name_filters)
     exec()
     # Load model
-    load_model(url_out[1])
+    if !isempty(url_out[1])
+        load_model(url_out[1])
+    end
+    return nothing
 end
 
 """
