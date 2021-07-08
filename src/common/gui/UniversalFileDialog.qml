@@ -17,6 +17,7 @@ FileDialog {
         fileDialog.open()
         if (Julia.unit_test()) {
             fileDialog.close()
+            Qt.quit()
         }
     }
 }
