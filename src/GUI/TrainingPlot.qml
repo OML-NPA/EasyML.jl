@@ -62,9 +62,6 @@ ApplicationWindow {
 
     onClosing: {
         Julia.put_channel("training_modifiers",[0.0,0.0])
-        //trainButton.text = "Train"
-        //progressbar.value = 0
-        //trainingplotLoader.sourceComponent = undefined
     }
 
     function show_warnings() {
@@ -328,6 +325,10 @@ ApplicationWindow {
                 }
                 if ((iteration===max_iterations && max_iterations!==0) || trainingTimer.done) {
                     running = false
+                    if (Julia.unit_test()) {
+                        stopButton.clicked(null)
+                        trainingWindow.close()
+                    }
                 }
                 if ((iteration/iterations_per_epoch)>epoch && max_iterations!==0) {
                     addEpochLine()
@@ -513,7 +514,7 @@ ApplicationWindow {
                             height: buttonHeight
                         }
                         StopButton {
-                            id: stoptraining
+                            id: stopButton
                             width: buttonHeight
                             height: buttonHeight
                             anchors.verticalCenter: trainingProgressBar.verticalCenter

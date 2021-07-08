@@ -9,7 +9,8 @@ function modify(data::TrainingOptions)
         get_data,
         get_options,
         set_options,
-        save_options
+        save_options,
+        unit_test
     )
     path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
     loadqml(path_qml)
@@ -80,10 +81,6 @@ function get_train_test_inds(num::Int64,fraction::Float64)
 end
 
 function set_testing_data_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
-    if training_options.Testing.data_preparation_mode==:Auto
-        msg = "Data preparation mode was not set to 'Manual'. Setting it to 'Manual'."
-        @warn msg
-    end
     if problem_type()==:Classification
         specific_training_data = training_data.ClassificationData
         specific_testing_data = testing_data.ClassificationData
@@ -172,8 +169,8 @@ function train()
         training_elapsed_time,
         # Other
         yield,
-        info,
-        time
+        time,
+        unit_test
     )
     path_qml = string(@__DIR__,"/GUI/TrainingPlot.qml")
     loadqml(path_qml)

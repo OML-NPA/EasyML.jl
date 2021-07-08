@@ -8,6 +8,7 @@ set_savepath("models/regression.model")
 #---Training test-----------------------------------------------------------
 
 function vector_vector(mode::Symbol)
+    EasyMLTraining.training_options.Testing.data_preparation_mode = mode
     data_input = map(_ -> rand(Float32,25),1:200)
     data_labels = map(_ -> rand(Float32,5),1:200)
     set_training_data(data_input,data_labels)
@@ -54,10 +55,10 @@ end
 model_data.model = Flux.Chain(Flux.Dense(25, 5))
 
 vector_vector(:Auto)
-training_test()
+train()
 
 vector_vector(:Manual)
-training_test()
+train()
 
 
 #-Input: Array | Output: Vector
@@ -65,10 +66,10 @@ training_test()
 model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
 
 array_vector(:Auto)
-training_test()
+train()
 
 array_vector(:Manual)
-training_test()
+train()
 
 
 #-Input: Array | Output: Array | GPU: true
@@ -78,10 +79,10 @@ global_options.HardwareResources.allow_GPU = true
 model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 1))
 
 array_array(:Auto)
-training_test()
+train()
 
 array_array(:Manual)
-training_test()
+train()
 
 
 #---Clean up test-----------------------------------------------------------

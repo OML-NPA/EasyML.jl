@@ -164,3 +164,10 @@ mutable struct Counter
     Counter() = new(0)
 end
 (c::Counter)() = (c.iteration += 1)
+
+# Needed for testing
+@with_kw mutable struct UnitTest
+    state::Bool = false
+end
+unit_test = UnitTest()
+(m::UnitTest)() = m.state

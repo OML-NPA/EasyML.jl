@@ -57,8 +57,30 @@ ApplicationWindow {
     }
 
     onClosing: {
-        //trainingoptionsLoader.sourceComponent = null
         Julia.save_options()
+    }
+
+    Component.onCompleted: {
+        if (Julia.unit_test()) {
+            function Timer() {
+                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", window);
+            }
+            function delay(delayTime, cb) {
+                var timer = new Timer();
+                timer.interval = delayTime;
+                timer.repeat = false;
+                timer.triggered.connect(cb);
+                timer.start();
+            }
+            function click1() {menubuttonRepeater.itemAt(0).clicked(null)}
+            function click2() {menubuttonRepeater.itemAt(1).clicked(null)}
+            function click3() {menubuttonRepeater.itemAt(2).clicked(null)}
+            function exit() {window.close()}
+            delay(100, click1)
+            delay(100, click2)
+            delay(100, click3)
+            delay(500, exit)
+        }
     }
 
     Row {

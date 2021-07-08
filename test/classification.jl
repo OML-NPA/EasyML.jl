@@ -2,7 +2,6 @@
 #---Init test--------------------------------------------------------------
 
 set_problem_type(:Classification)
-set_savepath("models/classification.model")
 
 
 #---Training test-----------------------------------------------------------
@@ -17,10 +16,11 @@ set_testing_data()
 
 model_data.model = Flux.Chain(Flux.Dense(25, 10))
 
-training_test()
+train()
 
 #-Input: Array | Testing: Manual | Weights: Manual | Accuracy: Regular
 
+EasyMLTraining.training_options.Testing.data_preparation_mode = :Manual
 EasyMLTraining.training_options.Accuracy.weight_accuracy = false
 
 data_input = map(_ -> rand(Float32,5,5,1),1:200)
@@ -35,7 +35,7 @@ set_weights(ones(10))
 
 model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 10))
 
-training_test()
+train()
 
 
 #---Clean up test-----------------------------------------------------------
