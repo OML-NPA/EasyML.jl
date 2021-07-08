@@ -4,9 +4,11 @@
 function save_model_main(model_data,url)
     url = fix_QML_types(url)
     # Make folders if needed
-    url_split = split(url,('/','\\'))[1:end-1]
-    url_dir = reduce((x,y) -> join([x,y],'\\'),url_split)
-    make_dir(url_dir)
+    if '\\' in url || '/' in url
+        url_split = split(url,('/','\\'))[1:end-1]
+        url_dir = reduce((x,y) -> join([x,y],'\\'),url_split)
+        make_dir(url_dir)
+    end
     # Serialize and save model
     dict_raw = Dict{Symbol,Any}()
     struct_to_dict!(dict_raw,model_data)
@@ -269,6 +271,9 @@ function make_dir(target_dir::AbstractString)
         if !isdir(temp_path)
             mkdir(temp_path)
         end
+    end
+    if !isdir(target_dir)
+        mkdir(target_dir)
     end
     return nothing
 end

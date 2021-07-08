@@ -42,12 +42,12 @@ function save_model()
     observe(url) = url_out[1] = url
     # Launches GUI
     @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalSaveFileDialog.qml")
+    path_qml = string(@__DIR__,"/gui/UniversalSaveFileDialog.qml")
     loadqml(path_qml,
         name_filters = name_filters,
         filename = filename)
     exec()
-    if !isempty(url_out)
+    if !isempty(url_out[1])
         save_model(url_out[1])
     end
     return nothing
@@ -72,11 +72,13 @@ function load_model()
     observe(url) = url_out[1] = url
     # Launches GUI
     @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
+    path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
     loadqml(path_qml,name_filters = name_filters)
     exec()
     # Load model
-    load_model(url_out[1])
+    if !isempty(url_out[1])
+    	load_model(url_out[1])
+    end
 end
 
 """
