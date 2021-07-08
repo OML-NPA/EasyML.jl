@@ -28,7 +28,7 @@ function load_model_main(model_data,url)
     if isfile(url)
         loaded_data = BSON.load(url)[:dict]
     else
-        @error string(url, " does not exist.")
+        error(string(url, " does not exist."))
         return nothing
     end
     fnames = fieldnames(ModelData)
@@ -304,7 +304,7 @@ function make_tuple(array::AbstractArray)
     return (array...,)
 end
 
-function make_dir(target_dir::String)
+function make_dir(target_dir::AbstractString)
     dirs = split(target_dir,('/','\\'))
     for i=1:length(dirs)
         temp_path = join(dirs[1:i],'\\')
