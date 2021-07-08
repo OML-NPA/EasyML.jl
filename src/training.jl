@@ -566,6 +566,11 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
         end
     end
     reset_training_data(training_data)
+    # Check save directory
+    if isempty(all_data.model_url)
+        all_data.model_url = "models/new_model.model"
+        all_data.model_name = "new_model"
+    end
     # Preparing train and test sets
     typed_training_data = get_data_struct(training_data)
     typed_testing_data = get_data_struct(testing_data)
@@ -598,6 +603,8 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
         else
             ws = get_weights(typed_training_data)
         end
+    else
+        ws = Vector{Float32}(undef,0)
     end
     accuracy = get_accuracy_func(ws,options)
     loss = model_data.loss
