@@ -146,7 +146,7 @@ end
 get_options(fields,inds...) = get_options_main(options,fields,inds...)
 
 # Allows to write to options from GUI
-function set_options_main(options::Options,fields::QML.QListAllocated,args...)
+function set_options_main(options::Options,fields,args...)
     data = options
     fields = fix_QML_types(fields)
     args = fix_QML_types(args)
