@@ -258,42 +258,6 @@ function dict_to_struct!(obj,dict::Dict)
     return nothing
 end
 
-
-#---Clean up----------------------------------------------------
-
-function empty_field!(str,field::Symbol)
-    val = getfield(str,field)
-    type = typeof(val)
-    new_val = type(undef,zeros(Int64,length(size(val)))...)
-    setfield!(str, field, new_val)
-    return nothing
-end
-
-function reset_data_field_main(all_data::AllData,fields)
-    fields::Vector{String} = fix_QML_types(fields)
-    data = all_data
-    for i = 1:length(fields)
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    empty!(data)
-    return nothing
-end
-reset_data_field(fields) = reset_data_field_main(all_data,fields)
-
-function resetproperty!(datatype,field)
-    var = getproperty(datatype,field)
-    if var isa Array
-        var = similar(var,0)
-    elseif var isa Number
-        var = zero(typeof(var))
-    elseif var isa String
-        var = ""
-    end
-    setproperty!(datatype,field,var)
-    return nothing
-end
-
 #---Other-------------------------------------------------------------
 
 problem_type() = model_data.problem_type
