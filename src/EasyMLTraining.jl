@@ -18,9 +18,10 @@ import CUDA.CuArray, Flux.outdims, StatsBase.std
 
 # Include functions
 include("data_structures.jl")
-include("Common/all.jl")
-include("Common/training_validation.jl")
-include("Common/exported_functions.jl")
+include("common/all.jl")
+include("common/channels_functions.jl")
+include("common/exported_functions.jl")
+include("common/training_validation.jl")
 include("training.jl")
 include("exported_functions.jl")
 
