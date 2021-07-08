@@ -136,3 +136,24 @@ function get_weights(segmentation_data::SegmentationData)
     weights = calculate_weights(counts)
     return weights
 end
+
+
+#---Other
+
+add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
+
+function make_tuple(array::AbstractArray)
+    return (array...,)
+end
+
+function check_task(t::Task)
+    if istaskdone(t)
+        if t.:_isexception
+            return :error, t.:result
+        else
+            return :done, nothing
+        end
+    else
+        return :running, nothing
+    end
+end
