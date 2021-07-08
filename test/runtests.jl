@@ -39,3 +39,6 @@ load_model("models/classification.model")
 set_savepath("models/new_model.model")
 
 modify(training_options)
+
+load_model()
+save_model()
