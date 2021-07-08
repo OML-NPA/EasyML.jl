@@ -298,6 +298,11 @@ ApplicationWindow {
                     currentiterationLabel.text = 1
                     maxiterationsLabel.text = max_iterations
                     titleLabel.text = "COMPILATION"
+                    if (Julia.unit_test()) {
+                        Julia.put_channel("training_modifiers",[1.0,0.0001])
+                        Julia.put_channel("training_modifiers",[2.0,1])
+                        Julia.put_channel("training_modifiers",[3.0,2])
+                    }
                 }
                 else if (data[0]==="Training") {
                     var accuracy = data[1]

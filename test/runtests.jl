@@ -21,6 +21,15 @@ include("classification.jl")
 include("regression.jl")
 include("segmentation.jl")
 
+
+#---Other QML
+
+set_data(["TrainingData","errors"],[])
+
+set_options(["TrainingOptions","Hyperparameters","epochs"],value)
+
+set_options(["TrainingOptions","Hyperparameters","optimiser_params"],1,0.9)
+
 #---Other
 
 load_options()
