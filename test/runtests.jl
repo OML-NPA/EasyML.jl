@@ -24,11 +24,11 @@ include("segmentation.jl")
 
 #---Other QML
 
-set_data(["TrainingData","errors"],[])
+EasyMLTraining.set_data(["TrainingData","errors"],[])
 
-set_options(["TrainingOptions","Hyperparameters","epochs"],value)
+EasyMLTraining.set_options(["TrainingOptions","Hyperparameters","epochs"],1)
 
-set_options(["TrainingOptions","Hyperparameters","optimiser_params"],1,0.9)
+EasyMLTraining.set_options(["TrainingOptions","Hyperparameters","optimiser_params"],1,0.9)
 
 #---Other
 
