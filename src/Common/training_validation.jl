@@ -39,7 +39,7 @@ function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:Abstra
     return acc
 end
 
-function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T,4}}
+function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
     # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
