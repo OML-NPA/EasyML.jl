@@ -57,6 +57,8 @@ function modify(data::DataPreparationOptions)
 end
 
 function get_urls(url_inputs::String,url_labels::String,prepared_data::PreparedData)
+    url_inputs = replace(url_inputs, '\\'=>'/')
+    url_labels = replace(url_labels, '\\'=>'/')
     prepared_data.url_inputs = url_inputs
     prepared_data.url_labels = url_labels
     if !isdir(url_inputs)
@@ -92,6 +94,7 @@ function get_urls(url_inputs::String,prepared_data::PreparedData)
         @error "Label data directory URL was not given."
         return nothing
     end
+    url_inputs = replace(url_inputs, '\\'=>'/')
     prepared_data.url_inputs = url_inputs
     if !isdir(url_inputs)
         @error string(url_inputs," does not exist.")
