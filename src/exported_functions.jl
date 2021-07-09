@@ -224,7 +224,7 @@ function prepare_data(model_data::ModelData,prepared_data::PreparedData)
             else
                 state,error = check_task(t)
                 if state==:error
-                    #@error string("Data preparation aborted due to the following error: ",error)
+                    throw(error)
                     return nothing
                 end
                 sleep(0.1)
@@ -242,7 +242,7 @@ function prepare_data(model_data::ModelData,prepared_data::PreparedData)
             else
                 state,error = check_task(t)
                 if state==:error
-                    #@error string("Data preparation aborted due to the following error: ",error)
+                    throw(error)
                     return nothing
                 end
                 sleep(0.1)
