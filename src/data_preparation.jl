@@ -1,4 +1,6 @@
 
+#---make_classes functions---------------------------------------
+
 function set_problem_type(ind)
     ind = fix_QML_types(ind)
     if ind==0 
@@ -20,20 +22,6 @@ function get_problem_type()
         return 2
     end
 end
-
-
-# make_classes functions 
-
-function set_model_type_main(model_data::ModelData,type1,type2)
-    model_data.type = [fix_QML_types(type1),fix_QML_types(type2)]
-end
-set_model_type(type1,type2) = set_model_type_main(model_data,type1,type2)
-
-
-function get_model_type_main(model_data::ModelData)
-    return model_data.type
-end
-get_model_type() = get_model_type_main(model_data)
 
 function reset_classes_main(model_data)
     if problem_type()==:Classification
@@ -92,7 +80,65 @@ end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
 
 
-# get_urls functions
+#---get_urls functions------------------------------------------------------
+
+function load_regression_data(url::String)
+    ext_raw = split(url,".")[end]
+    ext = Unicode.normalize(ext_raw, casefold=true)
+    if ext=="csv"
+        labels_info = DataFrame(CSVFiles.load(url))
+    else ext=="xlsx"
+        labels_info = DataFrame(XLSX.readtable(url,1)...)
+    end
+    filenames_labels::Vector{String} = labels_info[:,1]
+    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
+    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
+    return filenames_labels,loaded_labels
+end
+
+function intersect_regression_data!(input_urls::Vector{String},filenames_inputs::Vector{String},
+        loaded_labels::Vector{Vector{Float32}},filenames_labels::Vector{String})
+    num = length(filenames_inputs)
+    inds_adj = zeros(Int64,num)
+    inds_remove = Vector{Int64}(undef,0)
+    cnt = 1
+    l = length(filenames_inputs)
+    while cnt<=l
+        filename = filenames_inputs[cnt]
+        ind = findfirst(x -> x==filename, filenames_labels)
+        if isnothing(ind)
+            deleteat!(input_urls,cnt)
+            deleteat!(filenames_inputs,cnt)
+            l-=1
+        else
+            inds_adj[cnt] = ind
+            cnt += 1
+        end
+    end
+    num = cnt - 1
+    inds_adj = inds_adj[1:num]
+    filenames_labels_temp = filenames_labels[inds_adj]
+    loaded_labels_temp = loaded_labels[inds_adj]
+    r = length(filenames_labels_temp)+1:length(filenames_labels)
+    deleteat!(filenames_labels,r)
+    deleteat!(loaded_labels,r)
+    filenames_labels .= filenames_labels_temp
+    loaded_labels .= loaded_labels_temp
+    return nothing
+end
+
+function intersect_inds(ar1,ar2)
+    inds1 = Array{Int64,1}(undef, 0)
+    inds2 = Array{Int64,1}(undef, 0)
+    for i=1:length(ar1)
+        inds_log = ar2.==ar1[i]
+        if any(inds_log)
+            push!(inds1,i)
+            push!(inds2,findfirst(inds_log))
+        end
+    end
+    return (inds1, inds2)
+end
 
 function get_urls_main(model_data::ModelData,prepared_data::PreparedData)
     url_inputs = prepared_data.url_inputs
@@ -152,6 +198,9 @@ function get_urls_main(model_data::ModelData,prepared_data::PreparedData)
     return nothing
 end
 
+
+#---prepare_data functions-------------------------------------------------------------------
+
 # Returns color for labels, whether should be combined with other
 # labels and whether border data should be obtained
 function get_class_data(classes::Vector{ImageSegmentationClass})
@@ -207,7 +256,7 @@ function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmenta
         background1 = erode(data_classes_bool .& border_bool,border_num_pixels)
         background2 = outer_perim(border_bool)
         background2[data_classes_bool] .= false
-        background2 = dilate(background2,border_num_pixels+1)
+        dilate!(background2,border_num_pixels+1)
         background = background1 .| background2
         skel = thinning(border_bool)
         background[skel] .= true
@@ -459,7 +508,7 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     classes = model_data.classes
     min_fr_pix = data_preparation_options.Images.min_fr_pix
     num_angles = data_preparation_options.Images.num_angles
-    backgorund_cropping = data_preparation_options.Images.BackgroundCropping
+    background_cropping = data_preparation_options.Images.BackgroundCropping
     mirroring_inds = Vector{Int64}(undef,0)
     if data_preparation_options.Images.mirroring
         append!(mirroring_inds,[1,2])
@@ -500,9 +549,9 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
         # Convert an image to BitArray
         label = label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_num)
         # Crop to remove black background
-        if backgorund_cropping.enabled
-            threshold = backgorund_cropping.threshold
-            closing_value = backgorund_cropping.closing_value
+        if background_cropping.enabled
+            threshold = background_cropping.threshold
+            closing_value = background_cropping.closing_value
             img,label = crop_background(img,label,threshold,closing_value)
         end
         # Augment images
@@ -577,12 +626,25 @@ function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vect
     # Make classes outlining object borders
     for j=1:length(inds_borders)
         ind = inds_borders[j]
-        dil = dilate(outer_perim(label[:,:,ind]),border_num[ind])
-        label[:,:,num+j] = dil
+        border = outer_perim(label[:,:,ind])
+        dilate!(border,border_num[ind])
+        label[:,:,num+j] = border
     end
     return label
 end
 
+
+#---Other-----------------------------------------------------------
+
+function remove_ext(files::Vector{String})
+    filenames = copy(files)
+    for i=1:length(files)
+        chars = collect(files[i])
+        ind = findfirst(chars.=='.')
+        filenames[i] = String(chars[1:ind-1])
+    end
+    return filenames
+end
 
 cat3(A::AbstractArray, B::AbstractArray) = cat(A, B; dims=Val(3))
 
@@ -595,71 +657,3 @@ function replace_nan!(x)
     end
 end
 
-function remove_ext(files::Vector{String})
-    filenames = copy(files)
-    for i=1:length(files)
-        chars = collect(files[i])
-        ind = findfirst(chars.=='.')
-        filenames[i] = String(chars[1:ind-1])
-    end
-    return filenames
-end
-
-function intersect_inds(ar1,ar2)
-    inds1 = Array{Int64,1}(undef, 0)
-    inds2 = Array{Int64,1}(undef, 0)
-    for i=1:length(ar1)
-        inds_log = ar2.==ar1[i]
-        if any(inds_log)
-            push!(inds1,i)
-            push!(inds2,findfirst(inds_log))
-        end
-    end
-    return (inds1, inds2)
-end
-
-
-function load_regression_data(url::String)
-    ext_raw = split(url,".")[end]
-    ext = Unicode.normalize(ext_raw, casefold=true)
-    if ext=="csv"
-        labels_info = DataFrame(CSVFiles.load(url))
-    else ext=="xlsx"
-        labels_info = DataFrame(XLSX.readtable(url,1)...)
-    end
-    filenames_labels::Vector{String} = labels_info[:,1]
-    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
-    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
-    return filenames_labels,loaded_labels
-end
-
-function intersect_regression_data!(input_urls::Vector{String},filenames_inputs::Vector{String},
-        loaded_labels::Vector{Vector{Float32}},filenames_labels::Vector{String})
-    num = length(filenames_inputs)
-    inds_adj = zeros(Int64,num)
-    inds_remove = Vector{Int64}(undef,0)
-    cnt = 1
-    l = length(filenames_inputs)
-    while cnt<=l
-        filename = filenames_inputs[cnt]
-        ind = findfirst(x -> x==filename, filenames_labels)
-        if isnothing(ind)
-            deleteat!(input_urls,cnt)
-            deleteat!(filenames_inputs,cnt)
-            l-=1
-        else
-            inds_adj[cnt] = ind
-            cnt += 1
-        end
-    end
-    num = cnt - 1
-    inds_adj = inds_adj[1:num]
-    filenames_labels_temp = filenames_labels[inds_adj]
-    loaded_labels_temp = loaded_labels[inds_adj]
-    r = length(filenames_labels_temp)+1:length(filenames_labels)
-    deleteat!(filenames_labels,r)
-    deleteat!(loaded_labels,r)
-    filenames_labels .= filenames_labels_temp
-    loaded_labels .= loaded_labels_temp
-    return nothing
-end

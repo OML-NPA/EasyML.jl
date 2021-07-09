@@ -35,3 +35,7 @@ save_model("models/segmentation.model")
 
 load_model()
 load_options()
+
+#---Other----------------------------------------
+
+map(i -> set_problem_type(i),0:2)

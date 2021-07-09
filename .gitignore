@@ -1,3 +1,4 @@
 
 docs/build
-*.bson
+options.bson
+!test/options.bson
