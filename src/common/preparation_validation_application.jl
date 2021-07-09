@@ -1,11 +1,6 @@
 
 num_threads() = hardware_resources.num_threads
 
-function max_num_threads()
-    return length(Sys.cpu_info())
-end
-
-
 # Get urls of files in selected folders. Requires data and labels
 function get_urls2(url_inputs::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
@@ -82,15 +77,6 @@ function filter_ext(urls::Vector{String},allowed_ext::Vector{String})
     log_inds = map(x->x in allowed_ext,ext)
     urls_out = urls[log_inds]
     return urls_out
-end
-
-function filter_ext(urls::Vector{String},allowed_ext::String)
-    urls_split = split.(urls,'.')
-    ext = map(x->string(x[end]),urls_split)
-    ext = lowercase.(ext)
-    log_inds = map(x->x == allowed_ext,ext)
-    urls = urls[log_inds]
-    return urls
 end
 
 

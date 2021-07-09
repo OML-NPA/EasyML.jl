@@ -50,7 +50,6 @@ ApplicationWindow {
 
     Component.onCompleted: {
         if (Julia.unit_test()) {
-            applyButton.clicked()
             function Timer() {
                 return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
             }
@@ -61,7 +60,8 @@ ApplicationWindow {
                 timer.triggered.connect(cb);
                 timer.start();
             }
-            delay(1000, classdialogWindow.close)
+            function click1() {applyButton.clicked(null)}
+            delay(1000, click1)
         }
     }
 
