@@ -52,10 +52,12 @@ EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
 get_urls()
 
 set_problem_type(:Regression)
+load_model("models/regression.model")
 EasyMLDataPreparation.unit_test.urls = ["examples/regression/test","examples/regression/test.csv"]
 get_urls()
 
 set_problem_type(:Segmentation)
+load_model("models/segmentation.model")
 EasyMLDataPreparation.unit_test.urls = ["examples/segmentation/images","examples/segmentation/labels"]
 get_urls()
 
