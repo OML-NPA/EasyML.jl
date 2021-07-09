@@ -247,8 +247,8 @@ function prepare_data(model_data::ModelData,prepared_data::PreparedData)
                     max_value = temp_value
                     p.n = max_value
                 else
-                    break
                     @error "No data to process."
+                    break
                 end
             else
                 state,error = check_task(t)

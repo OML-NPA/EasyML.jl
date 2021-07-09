@@ -69,3 +69,6 @@ load_options()
 #---Other----------------------------------------
 
 map(i -> set_problem_type(i),0:2)
+
+fields = ["DataPreparationOptions","Images","mirroring"]
+EasyMLDataPreparation.set_options_main(EasyMLDataPreparation.options,fields,true)

@@ -80,53 +80,6 @@ function fix_QML_types(var)
     end
 end
 
-# Allows to read data from GUI
-function get_data_main(data::AllData,fields,inds)
-    fields::Vector{String} = fix_QML_types(fields)
-    inds = convert(Vector{Int64},fix_QML_types(inds))
-    for i = 1:length(fields)
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    if !(isempty(inds))
-        for i = 1:length(inds)
-            data = data[inds[i]]
-        end
-    end
-    if data isa Symbol
-        data = string(data)
-    end
-    return data
-end
-get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
-
-# Allows to write to data from GUI
-function set_data_main(all_data::AllData,fields,args...)
-    data = all_data
-    fields::Vector{String} = fix_QML_types(fields)
-    args = fix_QML_types(args)
-    for i = 1:length(fields)-1
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    if length(args)==1
-        value = args[1]
-    elseif length(args)==2
-        value = getproperty(data,Symbol(fields[end]))
-        value[args[1]] = args[2]
-    elseif length(args)==3
-        value = getproperty(data,Symbol(fields[end]))
-        value[args[1]][args[2]] = args[3]
-    end
-    field = Symbol(fields[end])
-    if getproperty(data,field) isa Symbol
-        data = Symbol(data)
-    end
-    setproperty!(data, field, value)
-    return nothing
-end
-set_data(fields,value,args...) = set_data_main(all_data,fields,value,args...)
-
 # Allows to read options from GUI
 function get_options_main(data::Options,fields,inds...)
     fields::Vector{String} = fix_QML_types(fields)
