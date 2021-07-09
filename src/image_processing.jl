@@ -26,27 +26,6 @@ function outer_perim(array::BitArray{2})
     return xor.(array2,array)
 end
 
-function inner_perim(array::BitArray{2})
-    array2 = copy(array)
-    array2[1:end,1] .= 0
-    array2[1:end,end] .= 0
-    array2[1,1:end] .= 0
-    array2[end,1:end] .= 0
-    er = copy(array2)
-    erode!(er,1)
-    return xor.(array2,er)
-end
-
-
-function rotate_img(img::AbstractArray{Real,2},angle_val::Float64)
-    if angle!=0
-        img_out = imrotate(img,angle_val,axes(img))
-        replace_nan!(img_out)
-        return(img_out)
-    else
-        return(img)
-    end
-end
 
 function rotate_img(img::AbstractArray{T,3},angle_val::Float64) where T<:AbstractFloat
     if angle!=0

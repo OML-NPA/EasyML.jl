@@ -236,52 +236,6 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
 end
 
 
-function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
-    class_inds,_,_,border,border_thickness = get_class_data(classes)
-    inds_border = findall(border)
-    if isnothing(inds_border)
-        return input_data
-    end
-    num_border = length(inds_border)
-    num_classes = length(class_inds)
-    data = BitArray{3}(undef,size(input_data)[1:2]...,num_border)
-    for i = 1:num_border
-        border_num_pixels = (border_thickness[i] - 1)÷2
-        ind_classes = inds_border[i]
-        ind_border = num_classes + ind_classes
-        data_classes_bool = input_data[:,:,ind_classes]
-        data_classes = convert(Array{Float32},data_classes_bool)
-        data_border = input_data[:,:,ind_border]
-        border_bool = data_border
-        background1 = erode(data_classes_bool .& border_bool,border_num_pixels)
-        background2 = outer_perim(border_bool)
-        background2[data_classes_bool] .= false
-        dilate!(background2,border_num_pixels+1)
-        background = background1 .| background2
-        skel = thinning(border_bool)
-        background[skel] .= true
-        if classes[i].border_remove_objs
-            components = label_components((!).(border_bool),conn(4))
-            intensities = component_intensity(components,data_classes)
-            bad_components = findall(intensities.<0.7)
-            for i = 1:length(bad_components)
-                components[components.==bad_components[i]] .= 0
-            end
-            objects = data_classes.!=0
-            objects[skel] .= false
-            segmented = segment_objects(components,objects)
-            borders = mapwindow(x->!allequal(x), segmented, (3,3))
-            segmented[borders] .= 0
-            data[:,:,ind_classes] = segmented.>0
-        else
-            data_classes_bool[background] .= false
-            data[:,:,i] = data_classes_bool
-        end
-    end
-    return data
-end
-
-
 # Augments images and labels using rotation and mirroring
 function augment(float_img::Array{Float32,3},size12::Tuple{Int64,Int64},
         num_angles::Int64,mirroring_inds::Vector{Int64})
