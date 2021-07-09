@@ -28,7 +28,7 @@ end
 
 
 function rotate_img(img::AbstractArray{T,3},angle_val::Float64) where T<:AbstractFloat
-    if angle!=0
+    if angle_val!=0
         img_out = copy(img)
         for i = 1:size(img,3)
             slice = img[:,:,i]
@@ -43,7 +43,7 @@ function rotate_img(img::AbstractArray{T,3},angle_val::Float64) where T<:Abstrac
 end
 
 function rotate_img(img::BitArray{3},angle_val::Float64)
-    if angle!=0
+    if angle_val!=0
         img_out = copy(img)
         for i = 1:size(img,3)
             slice = img[:,:,i]
