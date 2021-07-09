@@ -40,8 +40,29 @@ for i = 1:2
 
 end
 
+function url_pusher()
+    url  = popfirst!(EasyMLDataPreparation.unit_test.urls)
+    return url
+end
+EasyMLDataPreparation.unit_test.url_pusher = url_pusher
+
+set_problem_type(:Classification)
+EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
+get_urls()
+
+set_problem_type(:Regression)
+EasyMLDataPreparation.unit_test.urls = ["examples/regression/test","examples/regression/test.csv"]
+get_urls()
+
+set_problem_type(:Segmentation)
+EasyMLDataPreparation.unit_test.urls = ["examples/segmentation/images","examples/segmentation/labels"]
+get_urls()
+
 save_model("models/segmentation.model")
 
+EasyMLDataPreparation.unit_test.urls = [""]
+load_model()
+EasyMLDataPreparation.unit_test.urls = ["models/segmentation.model"]
 load_model()
 load_options()
 

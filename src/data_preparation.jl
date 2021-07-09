@@ -610,4 +610,3 @@ function replace_nan!(x)
         end
     end
 end
-

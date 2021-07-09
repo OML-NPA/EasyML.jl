@@ -112,17 +112,19 @@ for training. Folders should have names identical to the name of classes. URLs a
 get_urls(url_inputs) = get_urls(url_inputs,prepared_data)
 
 function get_urls(prepared_data::PreparedData)
-    url_channel = Channel{String}(1)
-    observe(url) = put!(url_channel,fix_QML_types(url))
+    url_out = String[""]
+    observe() = url_out[1]
     dir = pwd()
-
     @info "Select a directory with input data."
-    @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalFolderDialog.qml")
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
     loadqml(path_qml,currentfolder = dir)
     exec()
-    if isready(url_channel)
-        prepared_data.url_inputs =take!(url_channel)
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    if !isempty(url_out[1])
+        prepared_data.url_inputs = url_out[1]
         @info string(prepared_data.url_inputs, " was selected.")
     else
         @error "Input data directory URL is empty."
@@ -133,13 +135,16 @@ function get_urls(prepared_data::PreparedData)
     elseif problem_type()==:Regression
         @info "Select a file with label data."
         name_filters = ["*.csv","*.xlsx"]
-        @qmlfunction(observe)
-        path_qml = string(@__DIR__,"/GUI/UniversalFileDialog.qml")
+        @qmlfunction(observe,unit_test)
+        path_qml = string(@__DIR__,"/common/gui/UniversalFileDialog.qml")
         loadqml(path_qml,
             name_filters = name_filters)
         exec()
-        if isready(url_channel)
-            prepared_data.url_labels =take!(url_channel)
+        if unit_test()
+            url_out[1] = unit_test.url_pusher()
+        end
+        if !isempty(url_out[1])
+            prepared_data.url_labels = url_out[1]
             @info string(prepared_data.url_labels, " was selected.")
         else
             @error "Label data file URL is empty."
@@ -147,12 +152,15 @@ function get_urls(prepared_data::PreparedData)
         end
     elseif problem_type()==:Segmentation
         @info "Select a directory with label data."
-        @qmlfunction(observe)
-        path_qml = string(@__DIR__,"/GUI/UniversalFolderDialog.qml")
+        @qmlfunction(observe,unit_test)
+        path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
         loadqml(path_qml,currentfolder = dir)
         exec()
-        if isready(url_channel)
-            prepared_data.url_labels =take!(url_channel)
+        if unit_test()
+            url_out[1] = unit_test.url_pusher()
+        end
+        if !isempty(url_out[1])
+            prepared_data.url_labels = url_out[1]
             @info string(prepared_data.url_labels, " was selected.")
         else
             @error "Label data directory URL is empty."
