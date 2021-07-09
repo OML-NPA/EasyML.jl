@@ -199,6 +199,7 @@ function component_intensity(components::Array{Int64},image::Array{Float32})
     return intensities
 end
 
+
 function alldim(array::BitArray{2},dim::Int64)
     vec = BitArray(undef, size(array,dim))
     if dim==1
