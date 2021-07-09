@@ -45,7 +45,9 @@ function load_model_main(model_data,url)
                 if deserialized isa NamedTuple
                     to_struct!(model_data,k,deserialized)
                 else
-                    setfield!(model_data,k,deserialized)
+                    type = typeof(getfield(model_data,k))
+                    deserialized_typed = convert(type,deserialized)
+                    setfield!(model_data,k,deserialized_typed)
                 end
             catch e
                 @warn string("Loading of ",k," failed. Exception: ",e)
