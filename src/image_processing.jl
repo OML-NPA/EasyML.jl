@@ -225,9 +225,9 @@ function crop_background(img::Array{Float32,3},label::BitArray{3},
     row1 = findfirst(row_bool)
     row2 = findlast(row_bool)
     col1 = isnothing(col1) ? 1 : col1
-    col2 = isnothing(col1) ? 1 : col2
-    row1 = isnothing(col1) ? 1 : row1
-    row1 = isnothing(col1) ? 1 : row2
+    col2 = isnothing(col2) ? size(img,1) : col2
+    row1 = isnothing(row1) ? 1 : row1
+    row2 = isnothing(row2) ? size(img,2) : row2
     img = img[row1:row2,col1:col2,:]
     label = label[row1:row2,col1:col2,:]
     return img,label

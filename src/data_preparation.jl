@@ -473,11 +473,11 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     # Return progress target value
     put!(progress, 3*num+1)
     # Get class data
-    class_inds,labels_color,labels_incl,border,border_thickness = EasyMLDataPreparation.get_class_data(classes)
+    class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     border_num = (border_thickness.-1).÷2
     # Load images
-    imgs = EasyMLDataPreparation.load_images(input_urls,progress)
-    labels = EasyMLDataPreparation.load_images(label_urls,progress)
+    imgs = load_images(input_urls,progress)
+    labels = load_images(label_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
@@ -493,12 +493,12 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
         labelimg = labels[k]
         # Convert to float
         if data_preparation_options.Images.grayscale
-            img = EasyMLDataPreparation.image_to_gray_float(img_raw)
+            img = image_to_gray_float(img_raw)
         else
             img = image_to_color_float(img_raw)
         end
         # Convert an image to BitArray
-        label = EasyMLDataPreparation.label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_num)
+        label = label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_num)
         # Crop to remove black background
         if backgorund_cropping.enabled
             threshold = backgorund_cropping.threshold
