@@ -2,7 +2,7 @@
 using EasyMLDataPreparation
 
 EasyMLDataPreparation.unit_test.state = true
-#=
+
 modify(data_preparation_options)
 
 for i = 1:2
@@ -39,7 +39,7 @@ for i = 1:2
     results = prepare_data()
 
 end
-=#
+
 function url_pusher()
     url  = popfirst!(EasyMLDataPreparation.unit_test.urls)
     return url
