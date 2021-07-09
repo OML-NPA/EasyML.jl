@@ -58,6 +58,9 @@ ApplicationWindow {
     }
 
     onClosing: {
+        if (Julia.get_options(["DataPreparationOptions","Images","grayscale"])) { 
+            Julia.set_model_data("input_properties",["Grayscale"])
+        }
         Julia.save_options()
     }
 
@@ -165,6 +168,7 @@ ApplicationWindow {
                             width: minfrpixLabel.width
                         }
                         CheckBox {
+                            id: grayscaleCheckBox
                             anchors.verticalCenter: grayscaleLabel.verticalCenter
                             padding: 0
                             width: height

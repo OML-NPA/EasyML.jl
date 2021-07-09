@@ -34,11 +34,12 @@ end
 end
 
 @with_kw mutable struct ModelData
+    problem_type::Symbol = :Classification
+    input_type::Symbol = :Image
+    input_properties::Vector{Symbol} = Vector{Symbol}(undef,0)
     input_size::NTuple{3,Int64} = (0,0,0)
     output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
 end
 model_data = ModelData()
 

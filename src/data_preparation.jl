@@ -1,4 +1,18 @@
 
+
+#----------------------------------------------------------------
+
+# Allows to write to data from GUI
+function set_model_data_main(model_data::ModelData,field,values)
+    field_string::String = fix_QML_types(field)
+    values_string::Vector{String} = fix_QML_types(values)
+    field = Symbol(field_string)
+    values_sym = Symbol.(values_string)
+    setproperty!(model_data, field, values_sym)
+    return nothing
+end
+set_model_data(field,values) = set_model_data_main(model_data,field,values)
+
 #---make_classes functions---------------------------------------
 
 function set_problem_type(ind)

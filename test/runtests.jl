@@ -2,7 +2,7 @@
 using EasyMLDataPreparation
 
 EasyMLDataPreparation.unit_test.state = true
-
+#=
 modify(data_preparation_options)
 
 for i = 1:2
@@ -39,7 +39,7 @@ for i = 1:2
     results = prepare_data()
 
 end
-
+=#
 function url_pusher()
     url  = popfirst!(EasyMLDataPreparation.unit_test.urls)
     return url
@@ -47,6 +47,7 @@ end
 EasyMLDataPreparation.unit_test.url_pusher = url_pusher
 
 set_problem_type(:Classification)
+load_model("models/classification.model")
 EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
 get_urls()
 
@@ -72,3 +73,6 @@ map(i -> set_problem_type(i),0:2)
 
 fields = ["DataPreparationOptions","Images","mirroring"]
 EasyMLDataPreparation.set_options_main(EasyMLDataPreparation.options,fields,true)
+
+EasyMLDataPreparation.set_model_data("input_properties",["Grayscale"])
+
