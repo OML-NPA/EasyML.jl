@@ -47,9 +47,8 @@ function reset_classes_main(model_data)
 end
 reset_classes() = reset_classes_main(model_data::ModelData)
 
-function append_classes_main(model_data::ModelData,id,data)
+function append_classes_main(model_data::ModelData,data)
     data = fix_QML_types(data)
-    id = convert(Int64,id)
     type = eltype(model_data.classes)
     if problem_type()==:Classification
         class = ImageClassificationClass()
@@ -61,22 +60,15 @@ function append_classes_main(model_data::ModelData,id,data)
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
-        class.border = Bool(data[5])
-        class.border_thickness = Int64(data[6])
-        class.parents = data[7]
-        class.not_class = Bool(data[8])
+        class.parents = data[5]
+        class.overlap = Bool(data[6])
+        class.BorderClass.enabled = Bool(data[7])
+        class.BorderClass.thickness = Int64(data[8])
     end
     push!(model_data.classes,class)
-    if type==ImageClassificationClass
-        type_output = ImageClassificationOutputOptions
-    elseif type==ImageRegressionClass
-        type_output = ImageRegressionOutputOptions
-    elseif type==ImageSegmentationClass
-        type_output = ImageSegmentationOutputOptions
-    end
     return nothing
 end
-append_classes(id,data) = append_classes_main(model_data,id,data)
+append_classes(data) = append_classes_main(model_data,data)
 
 function num_classes_main(model_data::ModelData)
     return length(model_data.classes)
@@ -84,7 +76,18 @@ end
 num_classes() = num_classes_main(model_data::ModelData)
 
 function get_class_main(model_data::ModelData,index,fieldname)
-    return getfield(model_data.classes[Int64(index)], Symbol(String(fieldname)))
+    fieldname = fix_QML_types(fieldname)
+    index = Int64(index)
+    if fieldname isa Vector
+        fieldnames = Symbol.(fieldname)
+        data = model_data.classes[index]
+        for field in fieldnames
+            data = getproperty(data,field)
+        end
+        return data
+    else
+        return getfield(model_data.classes[index],Symbol(fieldname))
+    end
 end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
 
@@ -168,7 +171,7 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
     end
     class_inds = Vector{Int64}(undef,0)
     for i = 1:num
-        if !classes[i].not_class
+        if !classes[i].overlap
             push!(class_inds,i)
         end
     end
@@ -177,77 +180,12 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
     border_thickness = Vector{Int64}(undef,num)
     for i in class_inds
         class = classes[i]
-        border[i] = class.border
-        border_thickness[i] = class.border_thickness
+        border[i] = class.BorderClass.enabled
+        border_thickness[i] = class.BorderClass.thickness
     end
     return class_inds,labels_color,labels_incl,border,border_thickness
 end
 
-
-# prepare_data functions
-
-# Removes rows and columns from image sides if they are uniformly black.
-function correct_view(img::Array{Float32,2},label::Array{RGB{Normed{UInt8,8}},2})
-    field = dilate(imfilter(img.<0.3, Kernel.gaussian(4)).>0.5,20)
-    areaopen!(field,30000)
-    field = .!(field)
-    field_area = sum(field)
-    field_outer_perim = sum(outer_perim(field))/1.25
-    circularity = (4*pi*field_area)/(field_outer_perim^2)
-    if circularity>0.9
-        row_bool = anydim(field,1)
-        col_bool = anydim(field,2)
-        col1 = findfirst(col_bool)[1]
-        col2 = findlast(col_bool)[1]
-        row1 = findfirst(row_bool)[1]
-        row2 = findlast(row_bool)[1]
-        img = img[row1:row2,col1:col2]
-        label = label[row1:row2,col1:col2]
-    end
-    img = rescale(img,(0,1))
-    return img,label
-end
-
-# Rotate Array
-function rotate_img(img::AbstractArray{Real,2},angle_val::Float64)
-    if angle!=0
-        img_out = imrotate(img,angle_val,axes(img))
-        replace_nan!(img_out)
-        return(img_out)
-    else
-        return(img)
-    end
-end
-
-function rotate_img(img::AbstractArray{T,3},angle_val::Float64) where T<:AbstractFloat
-    if angle!=0
-        img_out = copy(img)
-        for i = 1:size(img,3)
-            slice = img[:,:,i]
-            temp = imrotate(slice,angle_val,axes(slice))
-            replace_nan!(temp)
-            img_out[:,:,i] = convert.(T,temp)
-        end
-        return(img_out)
-    else
-        return(img)
-    end
-end
-
-function rotate_img(img::BitArray{3},angle_val::Float64)
-    if angle!=0
-        img_out = copy(img)
-        for i = 1:size(img,3)
-            slice = img[:,:,i]
-            temp = imrotate(slice,angle_val,axes(slice))
-            replace_nan!(temp)
-            img_out[:,:,i] = temp.>0
-        end
-        return(img_out)
-    else
-        return(img)
-    end
-end
 
 function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})
     class_inds,_,_,border,border_thickness = get_class_data(classes)
@@ -259,7 +197,7 @@ function apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmenta
     num_classes = length(class_inds)
     data = BitArray{3}(undef,size(input_data)[1:2]...,num_border)
     for i = 1:num_border
-        border_num_pixels = border_thickness[i]
+        border_num_pixels = (border_thickness[i] - 1)÷2
         ind_classes = inds_border[i]
         ind_border = num_classes + ind_classes
         data_classes_bool = input_data[:,:,ind_classes]
@@ -521,6 +459,7 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     classes = model_data.classes
     min_fr_pix = data_preparation_options.Images.min_fr_pix
     num_angles = data_preparation_options.Images.num_angles
+    backgorund_cropping = data_preparation_options.Images.BackgroundCropping
     mirroring_inds = Vector{Int64}(undef,0)
     if data_preparation_options.Images.mirroring
         append!(mirroring_inds,[1,2])
@@ -534,10 +473,11 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     # Return progress target value
     put!(progress, 3*num+1)
     # Get class data
-    class_inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
+    class_inds,labels_color,labels_incl,border,border_thickness = EasyMLDataPreparation.get_class_data(classes)
+    border_num = (border_thickness.-1).÷2
     # Load images
-    imgs = load_images(input_urls,progress)
-    labels = load_images(label_urls,progress)
+    imgs = EasyMLDataPreparation.load_images(input_urls,progress)
+    labels = EasyMLDataPreparation.load_images(label_urls,progress)
     # Initialize accumulators
     data_input = Vector{Vector{Array{Float32,3}}}(undef,num)
     data_label = Vector{Vector{Array{Float32,3}}}(undef,num)
@@ -553,14 +493,18 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
         labelimg = labels[k]
         # Convert to float
         if data_preparation_options.Images.grayscale
-            img = image_to_gray_float(img_raw)
+            img = EasyMLDataPreparation.image_to_gray_float(img_raw)
         else
             img = image_to_color_float(img_raw)
         end
-        # Crope to remove black background
-        # img,label = correct_view(img,label)
-        # Convert BitArray labels to Array{Float32}
-        label = label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_thickness)
+        # Convert an image to BitArray
+        label = EasyMLDataPreparation.label_to_bool(labelimg,class_inds,labels_color,labels_incl,border,border_num)
+        # Crop to remove black background
+        if backgorund_cropping.enabled
+            threshold = backgorund_cropping.threshold
+            closing_value = backgorund_cropping.closing_value
+            img,label = crop_background(img,label,threshold,closing_value)
+        end
         # Augment images
         data = augment(img,label,size12,num_angles,min_fr_pix,mirroring_inds)
         data_input[k] = getfield.(data, 1)
@@ -613,7 +557,7 @@ end
 # Convert images to BitArray{3}
 function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vector{Int64},
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},
-        border::Vector{Bool},border_thickness::Vector{Int64})
+        border::Vector{Bool},border_num::Vector{Int64})
     colors = map(x->RGB((n0f8.(./(x,255)))...),labels_color)
     num = length(class_inds)
     num_borders = sum(border)
@@ -627,13 +571,13 @@ function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vect
         if !isempty(class_inds)
             push!(colors_current,colors[inds]...)
         end
-        bitarrays = map(x -> .==(labelimg,x),colors_current)
+        bitarrays = map(x -> .==(labelimg,x)[:,:,:],colors_current)
         label[:,:,i] = any(reduce(cat3,bitarrays),dims=3)
     end
     # Make classes outlining object borders
     for j=1:length(inds_borders)
         ind = inds_borders[j]
-        dil = dilate(outer_perim(label[:,:,ind]),border_thickness[ind])
+        dil = dilate(outer_perim(label[:,:,ind]),border_num[ind])
         label[:,:,num+j] = dil
     end
     return label

@@ -13,7 +13,7 @@ ApplicationWindow {
     id: window
     visible: true
     title: qsTr("  EasyML")
-    minimumHeight: 600*pix
+    minimumHeight: 750*pix
     minimumWidth: mainRow.width
     width: mainRow.width
     height: mainRow.height
@@ -178,6 +178,106 @@ ApplicationWindow {
                             }
                         }
                     }
+                    Row {
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: cropbackgroundLabel
+                            text: "Crop background:"
+                            width: minfrpixLabel.width
+                        }
+                        CheckBox {
+                            id: cropbackgroundCheckBox
+                            anchors.verticalCenter: cropbackgroundLabel.verticalCenter
+                            padding: 0
+                            width: height
+                            checkState : Julia.get_options(
+                                        ["DataPreparationOptions","Images","BackgroundCropping","enabled"]) ?
+                                        Qt.Checked : Qt.Unchecked
+                            onClicked: {
+                                var value = checkState==Qt.Checked ? true : false
+                                Julia.set_options(
+                                    ["DataPreparationOptions","Images","BackgroundCropping","enabled"],value)
+                            }
+                        }
+                    }
+                    Row {
+                        visible: cropbackgroundCheckBox.checkState==Qt.Checked
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: thresholdLabel
+                            text: "    - Threshold:"
+                            width: minfrpixLabel.width
+                        }
+                        SpinBox {
+                            anchors.verticalCenter: thresholdLabel.verticalCenter
+                            id: thresholdSpinBox
+                            from: 0
+                            value: 100*Julia.get_options(
+                                        ["DataPreparationOptions","Images","BackgroundCropping","threshold"])
+                            to: 100
+                            stepSize: 10
+                            property real realValue
+                            textFromValue: function(value, locale) {
+                                realValue = value/100
+                                return realValue.toLocaleString(locale,'f',1)
+                            }
+                            onValueModified: {
+                                Julia.set_options(
+                                    ["DataPreparationOptions","Images","BackgroundCropping","threshold"],realValue)
+                            }
+                        }
+                    }
+                    Row {
+                        visible: cropbackgroundCheckBox.checkState==Qt.Checked
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: closingLabel
+                            text: "    - Morphological closing value:"
+                            width: minfrpixLabel.width
+                        }
+                        SpinBox {
+                            anchors.verticalCenter: closingLabel.verticalCenter
+                            id: closingSpinBox
+                            from: 0
+                            value: Julia.get_options(
+                                        ["DataPreparationOptions","Images","BackgroundCropping","closing_value"])
+                            to: 100
+                            stepSize: 1
+                            onValueModified: {
+                                Julia.set_options(
+                                    ["DataPreparationOptions","Images","BackgroundCropping","closing_value"],value)
+                            }
+                        }
+                    }
+                    Row {
+                        height: rowHeight
+                        spacing: 0.3*margin
+                        Label {
+                            id: minfrpixLabel
+                            text: "Minimum fraction of labeled pixels:"
+                        }
+                        SpinBox {
+                            anchors.verticalCenter: minfrpixLabel.verticalCenter
+                            id: minfrpixSpinBox
+                            from: 0
+                            value: 100*Julia.get_options(
+                                        ["DataPreparationOptions","Images","min_fr_pix"])
+                            to: 100
+                            stepSize: 10
+                            property real realValue
+                            textFromValue: function(value, locale) {
+                                realValue = value/100
+                                return realValue.toLocaleString(locale,'f',1)
+                            }
+                            onValueModified: {
+                                Julia.set_options(
+                                    ["DataPreparationOptions","Images","min_fr_pix"],realValue)
+                            }
+                        }
+                    }
                     Label {
                         text: "Augmentation"
                         font.bold: true
@@ -222,32 +322,6 @@ ApplicationWindow {
                             onValueModified: {
                                 Julia.set_options(
                                     ["DataPreparationOptions","Images","num_angles"],value)
-                            }
-                        }
-                    }
-                    Row {
-                        height: rowHeight
-                        spacing: 0.3*margin
-                        Label {
-                            id: minfrpixLabel
-                            text: "Minimum fraction of labeled pixels:"
-                        }
-                        SpinBox {
-                            anchors.verticalCenter: minfrpixLabel.verticalCenter
-                            id: minfrpixSpinBox
-                            from: 0
-                            value: 100*Julia.get_options(
-                                        ["DataPreparationOptions","Images","min_fr_pix"])
-                            to: 100
-                            stepSize: 10
-                            property real realValue
-                            textFromValue: function(value, locale) {
-                                realValue = value/100
-                                return realValue.toLocaleString(locale,'f',1)
-                            }
-                            onValueModified: {
-                                Julia.set_options(
-                                    ["DataPreparationOptions","Images","min_fr_pix"],realValue)
                             }
                         }
                     }

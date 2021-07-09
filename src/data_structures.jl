@@ -19,54 +19,18 @@ end
     name::String = ""
 end
 
+@with_kw mutable struct BorderClass
+    enabled::Bool = false
+    thickness::Int64 = 3
+end
+
 @with_kw mutable struct ImageSegmentationClass<:AbstractClass
     name::String = ""
     weight::Float32 = 1
     color::Vector{Float64} = Vector{Float64}(undef,3)
-    border::Bool = false
-    border_thickness::Int64 = 3
     parents::Vector{String} = ["",""]
-    not_class::Bool = false
-end
-
-abstract type AbstractOutputOptions end
-
-@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct OutputMask
-    mask::Bool = false
-    mask_border::Bool = false
-    mask_applied_border::Bool = false
-end
-
-@with_kw mutable struct OutputArea
-    area_distribution::Bool = false
-    obj_area::Bool = false
-    obj_area_sum::Bool = false
-    binning::Int64 = 0
-    value::Float64 = 10
-    normalisation::Int64 = 0
-end
-
-@with_kw mutable struct OutputVolume
-    volume_distribution::Bool = false
-    obj_volume::Bool = false
-    obj_volume_sum::Bool = false
-    binning::Int64 = 0
-    value::Float64 = 10
-    normalisation::Int64 = 0
-end
-
-@with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
-    Mask::OutputMask = OutputMask()
-    Area::OutputArea = OutputArea()
-    Volume::OutputVolume = OutputVolume()
+    overlap::Bool = false
+    BorderClass::BorderClass = BorderClass()
 end
 
 @with_kw mutable struct ModelData
@@ -167,11 +131,19 @@ graphics = Graphics()
 end
 global_options = GlobalOptions()
 
+@with_kw mutable struct BackgroundCroppingOptions
+    enabled::Bool = false
+    threshold::Float64 = 0.3
+    closing_value::Int64 = 1
+end
+background_cropping_options = BackgroundCroppingOptions()
+
 @with_kw mutable struct ImagePreparationOptions
     grayscale::Bool = false
     mirroring::Bool = false
     num_angles::Int64 = 1
     min_fr_pix::Float64 = 0.0
+    BackgroundCropping::BackgroundCroppingOptions = background_cropping_options
 end
 image_preparation_options = ImagePreparationOptions()
 

@@ -49,17 +49,19 @@ ApplicationWindow {
     //--------------------------------------------------------------------------
 
     Component.onCompleted: {
-        function Timer() {
-            return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
+        if (Julia.unit_test()) {
+            function Timer() {
+                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
+            }
+            function delay(delayTime, cb) {
+                var timer = new Timer();
+                timer.interval = delayTime;
+                timer.repeat = false;
+                timer.triggered.connect(cb);
+                timer.start();
+            }
+            delay(1000, classdialogWindow.close)
         }
-        function delay(delayTime, cb) {
-            var timer = new Timer();
-            timer.interval = delayTime;
-            timer.repeat = false;
-            timer.triggered.connect(cb);
-            timer.start();
-        }
-        delay(1000, classdialogWindow.close)
     }
 
     function load_model_classes(classModel) {
@@ -78,7 +80,6 @@ ApplicationWindow {
                 id = max_id
             }
             var class_var = {
-                    "id": id,
                     "name": "",
                     "weight": 0,
                     "colorR": 0,
@@ -88,31 +89,28 @@ ApplicationWindow {
                     "border_thickness": 0,
                     "parent": "",
                     "parent2": "",
-                    "notClass": false
+                    "overlap": false
             }
             if (problemComboBox.currentIndex==0) {
-                class_var.id = id
                 class_var.name = Julia.get_class_field(ind,"name")
                 class_var.weight = Julia.get_class_field(ind,"weight")
             }
             else if (problemComboBox.currentIndex==1) {
-                class_var.id = id
                 class_var.name = Julia.get_class_field(ind,"name")
             }
             else if (problemComboBox.currentIndex==2) {
                 var color = Julia.get_class_field(ind,"color")
                 var parents = Julia.get_class_field(ind,"parents")
-                class_var.id = id
                 class_var.name = Julia.get_class_field(ind,"name")
                 class_var.weight = Julia.get_class_field(ind,"weight")
                 class_var.colorR = color[0]
                 class_var.colorG = color[1]
                 class_var.colorB = color[2]
-                class_var.border = Julia.get_class_field(ind,"border")
-                class_var.border_thickness = Julia.get_class_field(ind,"border_thickness")
+                class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
+                class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
                 class_var.parent = parents[0]
                 class_var.parent2 = parents[1]
-                class_var.notClass = Julia.get_class_field(ind,"not_class")
+                class_var.overlap = Julia.get_class_field(ind,"overlap")
             }
             classModel.append(class_var)
         }
@@ -126,9 +124,8 @@ ApplicationWindow {
         colorLabel.visible = false
         colorRow.visible = false
         parentRow.visible = false
-        notclassRow.visible = false
+        overlapRow.visible = false
         borderRow.visible = false
-        bordernumpixelsRow.visible = false
     }
 
     function update_fields() {
@@ -141,7 +138,7 @@ ApplicationWindow {
 
         }
         else if (problemComboBox.currentIndex==2) {
-            if (indTree>0 && classModel.get(indTree).not_class) {
+            if (indTree>0 && classModel.get(indTree).overlap) {
                 weightRow.visible = false
             }
             else {
@@ -161,9 +158,8 @@ ApplicationWindow {
             }
             colorLabel.visible = true
             colorRow.visible = true
-            notclassRow.visible = true
+            overlapRow.visible = true
             borderRow.visible = true
-            bordernumpixelsRow.visible = true
         }
         
         if (indTree<0) {
@@ -226,16 +222,16 @@ ApplicationWindow {
                 }
             }
 
-            // notclassCheckBox
-            notclassCheckBox.checkState = classModel.get(indTree).notClass ?
+            // overlapCheckBox
+            overlapCheckBox.checkState = classModel.get(indTree).overlap ?
                             Qt.Checked : Qt.Unchecked
 
             // borderCheckBox
             borderCheckBox.checkState = classModel.get(indTree).border ?
                             Qt.Checked : Qt.Unchecked
 
-            // bordernumpixelsSpinBox
-            bordernumpixelsSpinBox.value = classModel.get(indTree).border_thickness
+            // borderthicknessSpinBox
+            borderthicknessSpinBox.value = (classModel.get(indTree).border_thickness - 1)/2
         }
     }
 
@@ -435,7 +431,6 @@ ApplicationWindow {
                                             max_id += 1
                                             var id = max_id
                                             var class_var = {
-                                                "id": id,
                                                 "name": "",
                                                 "weight": 0,
                                                 "colorR": 0,
@@ -445,21 +440,18 @@ ApplicationWindow {
                                                 "border_thickness": 0,
                                                 "parent": "",
                                                 "parent2": "",
-                                                "notClass": false
+                                                "overlap": false
                                             }
                                             if (problemComboBox.currentIndex==0) {
                                                 class_var.name = name
-                                                class_var.id = id
                                                 class_var.weight = 1
                                             }
                                             else if (problemComboBox.currentIndex==1) {
                                                 class_var.name = name
-                                                class_var.id = id
                                             }
                                             else if (problemComboBox.currentIndex==2) {
                                                     class_var.name = name
                                                     class_var.weight = 1
-                                                    class_var.id = id
                                                     class_var.colorR = Math.floor(Math.random()*255)+1
                                                     class_var.colorG = Math.floor(Math.random()*255)+1
                                                     class_var.colorB = Math.floor(Math.random()*255)+1
@@ -467,7 +459,7 @@ ApplicationWindow {
                                                     class_var.border_thickness = 3
                                                     class_var.parent = ""
                                                     class_var.parent2 = ""
-                                                    class_var.notClass = false
+                                                    class_var.overlap = false
                                             }
                                             
                                             classModel.append(class_var)
@@ -716,26 +708,26 @@ ApplicationWindow {
                     }
                 }
                 Row {
-                    id: notclassRow
+                    id: overlapRow
                     visible: false
                     Label {
-                        id: notclassLabel
-                        width: 350*pix
+                        id: overlapLabel
+                        width: borderthicknessLabel.width
                         text: "Overlap of classes:"
                     }
                     CheckBox {
-                        id: notclassCheckBox
-                        anchors.verticalCenter: notclassLabel.verticalCenter
+                        id: overlapCheckBox
+                        anchors.verticalCenter: overlapLabel.verticalCenter
                         onClicked: {
                             if (checkState==Qt.Checked) {
-                                classModel.get(indTree).notClass = true
+                                classModel.get(indTree).overlap = true
+                                classModel.get(indTree).border = false
+                                borderCheckBox.checkState = Qt.Unchecked
                                 borderRow.visible = false
-                                bordernumpixelsRow.visible = false
                             }
                             if (checkState==Qt.Unchecked) {
-                                classModel.get(indTree).notClass = false
+                                classModel.get(indTree).overlap = false
                                 borderRow.visible = true
-                                bordernumpixelsRow.visible = true
                             }
                         }
                     }
@@ -745,8 +737,8 @@ ApplicationWindow {
                     visible: false
                     Label {
                         id: borderLabel
-                        width: 350*pix
-                        text: "Border is important:"
+                        width: borderthicknessLabel.width
+                        text: "Generate border class:"
                     }
                     CheckBox {
                         id: borderCheckBox
@@ -762,19 +754,16 @@ ApplicationWindow {
                     }
                 }
                 Row {
-                    id: bordernumpixelsRow
-                    visible: false
+                    id: borderthicknessRow
+                    visible: borderCheckBox.checkState==Qt.Checked
                     spacing: 0.3*margin
                     Label {
-                        id: bordernumpixelsLabel
-                        visible: borderCheckBox.checkState==Qt.Checked
-                        text: "Border thickness (pix):"
-                        width: 350*pix
+                        id: borderthicknessLabel
+                        text: "    - Border thickness (pix):"
                     }
                     SpinBox {
-                        id: bordernumpixelsSpinBox
-                        anchors.verticalCenter: bordernumpixelsLabel.verticalCenter
-                        visible: borderCheckBox.checkState==Qt.Checked
+                        id: borderthicknessSpinBox
+                        anchors.verticalCenter: borderthicknessLabel.verticalCenter
                         from: 0
                         to: 9
                         stepSize: 1
@@ -802,18 +791,18 @@ ApplicationWindow {
                 Julia.reset_classes()
                 for (var i=0;i<classModel.count;i++) {
                     var class_var = classModel.get(i)
-                    if (class_var.notClass) {
+                    if (class_var.overlap) {
                         class_var.border = false
                     }
-                    Julia.append_classes(class_var.id,
+                    Julia.append_classes(
                         [class_var.name,
                         class_var.colorR,
                         class_var.colorG,
                         class_var.colorB,
-                        class_var.border,
-                        class_var.border_thickness,
                         [class_var.parent,class_var.parent2],
-                        class_var.notClass])
+                        class_var.overlap,
+                        class_var.border,
+                        class_var.border_thickness])
                 }
                 classdialogWindow.close()
             }
