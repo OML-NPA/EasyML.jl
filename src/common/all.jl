@@ -44,11 +44,11 @@ function load_model_main(model_data,url)
                 if deserialized isa NamedTuple
                     to_struct!(model_data,k,deserialized)
                 elseif deserialized isa Vector
-                    type = typeof(getfield(model_data,k))
+                    type = typeof(getproperty(model_data,k))
                     deserialized_typed = convert(type,deserialized)
-                    setfield!(model_data,k,deserialized_typed)
+                    setproperty!(model_data,k,deserialized_typed)
                 else
-                    setfield!(model_data,k,deserialized)
+                    setproperty!(model_data,k,deserialized)
                 end
             catch e
                 @warn string("Loading of ",k," failed.")  exception=(e, catch_backtrace())
@@ -186,6 +186,25 @@ function make_dir(target_dir::AbstractString)
     end
     if !isdir(target_dir)
         mkdir(target_dir)
+    end
+    return nothing
+end
+
+function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
+    value = getfield(obj, sym)
+    if value isa Ref
+        return value[]
+    else
+        return value
+    end
+end
+
+function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
+    value = getfield(obj,sym)
+    if value isa Ref
+        value[] = x
+    else
+        setfield!(obj,sym,x)
     end
     return nothing
 end

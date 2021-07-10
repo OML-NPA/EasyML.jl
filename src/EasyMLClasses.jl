@@ -2,7 +2,6 @@
 module EasyMLClasses
 
 # Import packages
-using Base: String
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll,
@@ -22,5 +21,6 @@ export QML
 
 export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export make_classes, save_model, load_model
+export getproperty, setproperty
 
 end
