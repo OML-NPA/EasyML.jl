@@ -111,7 +111,7 @@ ApplicationWindow {
                 class_var.colorB = color[2]
                 class_var.overlap = Julia.get_class_field(ind,"overlap")
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
-                class_var.border_thickness = parseInt(Julia.get_class_field(ind,["BorderClass","thickness"])) // Returns a string otherwise for some reason
+                class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
             }
             classModel.append(class_var)
         }
