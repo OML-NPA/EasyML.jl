@@ -28,7 +28,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get install xvfb libxkbcommon-x11-0
-          sudo apt-get install qt5-default
+          sudo apt-get install libicu-dev
           xvfb-run --auto-servernum julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.test(coverage=true)'
         env:
           XDG_RUNTIME_DIR: /tmp/runtime-runner
