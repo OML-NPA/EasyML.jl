@@ -34,7 +34,7 @@ EasyMLTraining.set_options(["TrainingOptions","Hyperparameters","optimiser_param
 
 load_options()
 
-load_model("models/classification.model")
+load_model("models/test.model")
 
 set_savepath("models/new_model.model")
 
