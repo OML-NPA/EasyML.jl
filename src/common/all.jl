@@ -36,7 +36,6 @@ function load_model_main(model_data,url)
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
     ks = intersect(ks,fnames)
-    k = :layers_info
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try
@@ -44,13 +43,15 @@ function load_model_main(model_data,url)
                 deserialized = BSON.load(serialized)[:field]
                 if deserialized isa NamedTuple
                     to_struct!(model_data,k,deserialized)
-                else
+                elseif deserialized isa Vector
                     type = typeof(getfield(model_data,k))
                     deserialized_typed = convert(type,deserialized)
                     setfield!(model_data,k,deserialized_typed)
+                else
+                    setfield!(model_data,k,deserialized)
                 end
             catch e
-                @warn string("Loading of ",k," failed. Exception: ",e)
+                @warn string("Loading of ",k," failed.")  exception=(e, catch_backtrace())
             end
         end
     else
@@ -166,7 +167,12 @@ function struct_to_dict!(dict,obj)
                 struct_to_dict!(dict_for_vec,obj_for_vec)
                 push!(dict_vec,dict_for_vec)
             end
-            data_tuple = (vector_type = type, types = types, values = dict_vec)
+            module_name = string(@__MODULE__,".")
+            vector_type_string = string(type)
+            vector_type_string = replace(vector_type_string, module_name=>"")
+            types_string = string.(typeof.(value))
+            types_string = replace.(types_string, module_name=>"")
+            data_tuple = (vector_type = vector_type_string, types = types_string, values = dict_vec)
             dict[k] = data_tuple
         else
             dict[k] = value
@@ -177,8 +183,8 @@ end
 
 function to_struct!(obj,sym::Symbol,value::NamedTuple)
     if !isempty(value)
-        vector_type = getindex(value,:vector_type) 
-        types = getindex(value,:types) 
+        vector_type = eval(Meta.parse(getindex(value,:vector_type)))
+        types = eval.(Meta.parse.(getindex(value,:types)))
         values = getindex(value,:values) 
         struct_vec = vector_type(undef,0)
         for j = 1:length(types)
