@@ -45,7 +45,6 @@ function append_classes_main(model_data::ModelData,data)
         class = ImageRegressionClass()
         class.name = data[1]
     elseif problem_type()==:Segmentation
-        @info data
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
@@ -75,9 +74,7 @@ function get_class_main(model_data::ModelData,index,fieldname)
         end
         return data
     else
-        value = getproperty(model_data.classes[index],Symbol(fieldname))
-        @info value
-        return value
+        return getproperty(model_data.classes[index],Symbol(fieldname))
     end
 end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)

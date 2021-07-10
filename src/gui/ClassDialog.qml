@@ -73,7 +73,7 @@ ApplicationWindow {
                     "colorB": 0,
                     "overlap": false,
                     "border": false,
-                    "border_thickness": 0
+                    "border_thickness": 0,
             }
             if (problemComboBox.currentIndex==0) {
                 class_var.name = Julia.get_class_field(ind,"name")
@@ -225,17 +225,17 @@ ApplicationWindow {
         id: classModel
         Component.onCompleted: {
             load_model_classes(classModel)
-            if (classModel.count>0) {
+            /*if (classModel.count>0) {
                 console.log(JSON.stringify(classModel.get(0).border_thickness))
-            }
+            }*/
             classView.forceLayout()
-            if (classModel.count>0) {
+            /*if (classModel.count>0) {
                 console.log(JSON.stringify(classModel.get(0).border_thickness))
-            }
+            }*/
             update_fields()
-            if (classModel.count>0) {
+            /*if (classModel.count>0) {
                 console.log(JSON.stringify(classModel.get(0).border_thickness))
-            }
+            }*/
             if (Julia.unit_test()) {
                 function Timer() {
                     return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
@@ -449,7 +449,7 @@ ApplicationWindow {
                                                 "colorB": 0,
                                                 "overlap": false,
                                                 "border": false,
-                                                "border_thickness": 0
+                                                "border_thickness": 0,
                                             }
                                             if (problemComboBox.currentIndex==0) {
                                                 class_var.name = name
@@ -803,7 +803,7 @@ ApplicationWindow {
                     if (class_var.overlap) {
                         class_var.border = false
                     }
-                    console.log(JSON.stringify(class_var.border_thickness))
+                    //console.log(JSON.stringify(class_var.border_thickness))
                     Julia.append_classes(
                         [class_var.name,
                         class_var.colorR,
