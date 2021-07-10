@@ -796,6 +796,7 @@ ApplicationWindow {
                     if (class_var.overlap) {
                         class_var.border = false
                     }
+                    console.log(class_var.border_thickness)
                     Julia.append_classes(
                         [class_var.name,
                         class_var.colorR,
