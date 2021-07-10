@@ -22,11 +22,12 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@v1
-      - if: ${{ ${{ matrix.os }} == "macOS-latest" || ${{ matrix.os }} == "windows-latest" }}
+      - if: ${{ matrix.os == "macOS-latest" ||  matrix.os  == "windows-latest" }}
         uses: julia-actions/julia-runtest@v1
-      - if: ${{ ${{ matrix.os }} == "ubuntu-latest" }}
-        run: sudo apt-get install xvfb libxkbcommon-x11-0
-        run: xvfb-run --auto-servernum julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.test(coverage=true)'
+      - if: ${{ matrix.os == "ubuntu-latest" }}
+        run: |
+          sudo apt-get install xvfb libxkbcommon-x11-0
+          xvfb-run --auto-servernum julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.test(coverage=true)'
         env:
           XDG_RUNTIME_DIR: /tmp/runtime-runner
       - uses: julia-actions/julia-processcoverage@v1
