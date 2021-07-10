@@ -1,4 +1,6 @@
 
+@info "Regression test"
+
 #---Init test--------------------------------------------------------------
 
 set_problem_type(:Regression)
@@ -50,43 +52,61 @@ function array_array(mode::Symbol)
     return nothing
 end
 
-#-Input: Vector | Output: Vector
 
-model_data.model = Flux.Chain(Flux.Dense(25, 5))
+EasyMLTraining.training_options.Accuracy.weight_accuracy = false
+EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
 
-vector_vector(:Auto)
-train()
-
-vector_vector(:Manual)
-train()
-
-
-#-Input: Array | Output: Vector
-
-model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
-
-array_vector(:Auto)
-train()
-
-array_vector(:Manual)
-train()
+@testset "Input: Vector | Output: Vector" begin
+    model_data.model = Flux.Chain(Flux.Dense(25, 5))
+    @test begin 
+        vector_vector(:Auto)
+        train()
+        true
+    end
+    @test begin 
+        vector_vector(:Manual)
+        train()
+        true
+    end
+end
 
 
-#-Input: Array | Output: Array | GPU: true
+@testset "Input: Array | Output: Vector" begin
+    model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
+    @test begin 
+        array_vector(:Auto)
+        train()
+        true
+    end
+    @test begin
+        array_vector(:Manual)
+        train()
+        true
+    end
+end
 
-global_options.HardwareResources.allow_GPU = true
 
-model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 1))
-
-array_array(:Auto)
-train()
-
-array_array(:Manual)
-train()
+@testset "Input: Array | Output: Array" begin
+    model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 1))
+    @test begin 
+        array_array(:Auto)
+        train()
+        true
+    end
+    @test begin
+        array_array(:Manual)
+        train()
+        true
+    end
+end
 
 
 #---Clean up test-----------------------------------------------------------
-
-remove_training_data()
-remove_testing_data()
-remove_training_results()
+@testset "Clean up" begin
+    @test begin
+        remove_training_data()
+        remove_testing_data()
+        remove_training_results()
+        true
+    end
+end

@@ -1,4 +1,6 @@
 
+@info "Segmentation test"
+
 #---Init test--------------------------------------------------------------
 
 set_problem_type(:Segmentation)
@@ -50,63 +52,82 @@ function array_array(mode::Symbol)
     return nothing
 end
 
-#-Input: Vector | Output: Vector
+@testset "Input: Vector | Output: Vector" begin
+    @test begin
+        model_data.model = Flux.Chain(Flux.Dense(25, 5))
 
-model_data.model = Flux.Chain(Flux.Dense(25, 5))
+        vector_vector(:Auto)
+        train()
+        true
+    end
+    @test begin
+        vector_vector(:Manual)
+        train()
+        true
+    end
+end
 
-vector_vector(:Auto)
-train()
+@testset "Input: Array | Output: Vector | Accuracy: Weight" begin
+    EasyMLTraining.training_options.Accuracy.weight_accuracy = true
+    model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
+    @test begin
+        array_vector(:Auto)
+        train()
+        true
+    end
+    @test begin
+        array_vector(:Manual)
+        train()
+        true
+    end
+end
 
-vector_vector(:Manual)
-train()
+@testset "Input: Array | Output: Vector | Accuracy: Weight | Accuracy mode: Manual" begin
+    EasyMLTraining.training_options.Accuracy.weight_accuracy = true
+    EasyMLTraining.training_options.Accuracy.accuracy_mode = :Manual
+    model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
+    @test begin
+        array_vector(:Auto) # Fail
+        train()
+        true
+    end
+    @test begin
+        set_weights([1,1,1,1,1])
+        array_vector(:Auto)
+        train()
+        true
+    end
+    @test begin
+        array_vector(:Manual)
+        train()
+        true
+    end
+end
 
-
-#-Input: Array | Output: Vector | Accuracy: Weight
-
-EasyMLTraining.training_options.Accuracy.weight_accuracy = true
-
-model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
-
-array_vector(:Auto)
-train()
-
-array_vector(:Manual)
-train()
-
-#-Input: Array | Output: Vector | Accuracy: Weight | Accuracy mode: Manual
-
-EasyMLTraining.training_options.Accuracy.weight_accuracy = true
-EasyMLTraining.training_options.Accuracy.accuracy_mode = :Manual
-
-model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
-
-array_vector(:Auto) # Fail
-train()
-
-set_weights([1,1,1,1,1])
-array_vector(:Auto)
-train()
-
-array_vector(:Manual)
-train()
-
-
-#-Input: Array | Output: Array | Accuracy: Regular
-
-EasyMLTraining.training_options.Accuracy.weight_accuracy = false
-EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
-
-model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 3))
-
-array_array(:Auto)
-train()
-
-array_array(:Manual)
-train()
+@testset "Input: Array | Output: Array | Accuracy: Regular" begin
+    EasyMLTraining.training_options.Accuracy.weight_accuracy = false
+    EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
+    model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 3))
+    @test begin
+        array_array(:Auto)
+        train()
+        true
+    end
+    @test begin
+        array_array(:Manual)
+        train()
+        true
+    end
+end
 
 
 #---Clean up test-----------------------------------------------------------
 
-remove_training_data()
-remove_testing_data()
-remove_training_results()
+@testset "Clean up" begin
+    @test begin
+        remove_training_data()
+        remove_testing_data()
+        remove_training_results()
+        true
+    end
+end
