@@ -1,49 +1,60 @@
 
-#---Channels
+#---Bindings------------------------------------------------------------------
+
+abstract type AbstractEasyML end
+
+function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
+    value = getfield(obj, sym)
+    if value isa Ref
+        return value[]
+    else
+        return value
+    end
+end
+
+function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
+    value = getfield(obj,sym)
+    if value isa Ref
+        value[] = x
+    else
+        setfield!(obj,sym,x)
+    end
+    return nothing
+end
+
+function bind!(obj1,obj2)
+    fields1 = fieldnames(typeof(obj1))
+    fields2 = fieldnames(typeof(obj2))
+    for field in fields1
+        if field in fields2 && getfield(obj1,field) isa Ref
+            setfield!(obj1,field,getfield(obj2,field))
+        end
+    end
+end
+
+
+#---Channels------------------------------------------------------------------
 
 @with_kw struct Channels
     data_preparation_progress::Channel = Channel{Int64}(Inf)
 end
 channels = Channels()
 
-#---Model data
 
-abstract type AbstractClass end
+#---Model data-----------------------------------------------------------------
 
-@with_kw mutable struct ImageClassificationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-end
-
-@with_kw mutable struct ImageRegressionClass<:AbstractClass
-    name::String = ""
-end
-
-@with_kw mutable struct BorderClass
-    enabled::Bool = false
-    thickness::Int64 = 3
-end
-
-@with_kw mutable struct ImageSegmentationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-    color::Vector{Float64} = Vector{Float64}(undef,3)
-    parents::Vector{String} = ["",""]
-    overlap::Bool = false
-    BorderClass::BorderClass = BorderClass()
-end
-
-@with_kw mutable struct ModelData
-    problem_type::Symbol = :Classification
-    input_type::Symbol = :Image
-    input_properties::Vector{Symbol} = Vector{Symbol}(undef,0)
-    input_size::NTuple{3,Int64} = (0,0,0)
-    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
-    classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
+@with_kw mutable struct ModelData<:AbstractEasyML
+    problem_type::Ref{Symbol} = Ref(:Classification)
+    input_type::Ref{Symbol} = Ref(:Image)
+    input_properties::Ref{Vector{Symbol}} = Ref(Vector{Symbol}(undef,0))
+    input_size::Ref{NTuple{3,Int64}} = Ref((0,0,0))
+    output_size::Ref{NTuple{3,Int64}} = Ref((0,0,0))
+    classes::Ref{Vector{<:EasyMLClasses.AbstractClass}} = Ref{Vector{<:EasyMLClasses.AbstractClass}}(Vector{EasyMLClasses.ImageClassificationClass}(undef,0))
 end
 model_data = ModelData()
 
-#---All data
+
+#---All data------------------------------------------------------------------
 
 @with_kw mutable struct ClassificationUrlsData
     input_urls::Vector{Vector{String}} = Vector{Vector{String}}(undef,0)
@@ -105,13 +116,13 @@ prepared_data = PreparedData()
 
 @with_kw mutable struct AllData
     PreparedData::PreparedData = prepared_data
-    model_url::String = ""
-    model_name::String = ""
+    model_url::Ref{String} = Ref("")
+    model_name::Ref{String} = Ref("")
 end
 all_data = AllData()
 
 
-#---Options
+#---Options------------------------------------------------------------
 
 @with_kw mutable struct HardwareResources
     allow_GPU::Bool = true
@@ -121,8 +132,8 @@ all_data = AllData()
 end
 hardware_resources = HardwareResources()
 
-@with_kw mutable struct Graphics
-    scaling_factor::Float64 = 1
+@with_kw mutable struct Graphics<:AbstractEasyML
+    scaling_factor::Ref{Float64} = Ref(1.0)
 end
 graphics = Graphics()
 
@@ -160,11 +171,12 @@ data_preparation_options = DataPreparationOptions()
 end
 options = Options()
 
-# Needed for testing
-@with_kw mutable struct UnitTest
-    state::Bool = false
-    url_pusher = []
-    urls::Vector{String} = String[]
+
+#---Testing----------------------------------------------------------------
+@with_kw mutable struct UnitTest<:AbstractEasyML
+    state::Ref{Bool} = Ref(false)
+    urls::Ref{Vector{String}} = Ref(String[])
+    url_pusher = () -> popfirst!(unit_test.urls)
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state

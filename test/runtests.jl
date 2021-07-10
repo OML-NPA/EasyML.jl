@@ -20,7 +20,6 @@ for i = 1:2
     get_urls(url_input)
     results = prepare_data()
 
-
     set_problem_type(:Regression)
     load_model("models/regression.model")
     make_classes()
@@ -28,7 +27,6 @@ for i = 1:2
     url_label = "examples/regression/test.csv"
     get_urls(url_input,url_label)
     results = prepare_data()
-
 
     set_problem_type(:Segmentation)
     load_model("models/segmentation.model")
@@ -39,12 +37,6 @@ for i = 1:2
     results = prepare_data()
 
 end
-
-function url_pusher()
-    url  = popfirst!(EasyMLDataPreparation.unit_test.urls)
-    return url
-end
-EasyMLDataPreparation.unit_test.url_pusher = url_pusher
 
 set_problem_type(:Classification)
 load_model("models/classification.model")
@@ -79,10 +71,7 @@ load_options()
 
 #---Other----------------------------------------
 
-map(i -> set_problem_type(i),0:2)
-
 fields = ["DataPreparationOptions","Images","mirroring"]
 EasyMLDataPreparation.set_options_main(EasyMLDataPreparation.options,fields,true)
 
 EasyMLDataPreparation.set_model_data("input_properties",["Grayscale"])
-

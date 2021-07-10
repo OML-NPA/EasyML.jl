@@ -1,6 +1,6 @@
 
 function empty_channel_main(channels::Channels,field::Symbol)
-    channel = getfield(channels,field)
+    channel = getproperty(channels,field)
     while true
         if isready(channel)
             take!(channel)
@@ -12,7 +12,7 @@ end
 empty_channel(field) = empty_channel_main(channels,field)
 
 function get_progress_main(channels::Channels,field::Symbol)
-    channel = getfield(channels,field)
+    channel = getproperty(channels,field)
     if isready(channel)
         value = take!(channel)
         return value

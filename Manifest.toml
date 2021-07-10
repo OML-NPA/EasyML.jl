@@ -257,6 +257,14 @@ version = "1.1.23"
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
+[[EasyMLClasses]]
+deps = ["BSON", "CxxWrap", "Parameters", "QML", "Qt5Charts_jll", "Qt5QuickControls2_jll"]
+git-tree-sha1 = "ed1e3ad4d900cf8bc1fb0fc73808796576aabca3"
+repo-rev = "dev"
+repo-url = "https://github.com/OML-NPA/EasyMLClasses.jl"
+uuid = "5a06b745-583a-4b87-a77e-c5c0cb1b0310"
+version = "0.1.0"
+
 [[EllipsisNotation]]
 deps = ["ArrayInterface"]
 git-tree-sha1 = "8041575f021cba5a099a456b4163c9a08b566a02"
