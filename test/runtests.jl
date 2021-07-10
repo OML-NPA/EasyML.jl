@@ -39,6 +39,8 @@ for i = 1:2
 end
 
 set_problem_type(:Classification)
+EasyMLDataPreparation.prepared_data.ClassificationData = EasyMLDataPreparation.ClassificationData()
+prepare_data()
 load_model("models/classification.model")
 url_input = "examples\\classification\\"
 get_urls(url_input)
@@ -46,6 +48,8 @@ EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
 get_urls()
 
 set_problem_type(:Regression)
+EasyMLDataPreparation.prepared_data.RegressionData = EasyMLDataPreparation.RegressionData()
+prepare_data()
 load_model("models/regression.model")
 url_input = "examples/regression/"
 url_label = "examples/regression/test.csv"
@@ -54,6 +58,8 @@ EasyMLDataPreparation.unit_test.urls = ["examples/regression/test","examples/reg
 get_urls()
 
 set_problem_type(:Segmentation)
+EasyMLDataPreparation.prepared_data.SegmentationData = EasyMLDataPreparation.SegmentationData()
+prepare_data()
 load_model("models/segmentation.model")
 url_input = "examples/segmentation/"
 url_label = "examples/segmentation/labels"
