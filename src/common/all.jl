@@ -189,22 +189,3 @@ function make_dir(target_dir::AbstractString)
     end
     return nothing
 end
-
-function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
-    value = getfield(obj, sym)
-    if value isa Ref
-        return value[]
-    else
-        return value
-    end
-end
-
-function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
-    value = getfield(obj,sym)
-    if value isa Ref
-        value[] = x
-    else
-        setfield!(obj,sym,x)
-    end
-    return nothing
-end

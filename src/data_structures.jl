@@ -1,8 +1,39 @@
 
-#---Model data----------------------------------------------------------------------
+#---Bindings------------------------------------------------------------------
 
 abstract type AbstractEasyML end
 
+function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
+    value = getfield(obj, sym)
+    if value isa Ref
+        return value[]
+    else
+        return value
+    end
+end
+
+function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
+    value = getfield(obj,sym)
+    if value isa Ref
+        value[] = x
+    else
+        setfield!(obj,sym,x)
+    end
+    return nothing
+end
+
+function bind!(obj1,obj2)
+    fields1 = fieldnames(typeof(obj1))
+    fields2 = fieldnames(typeof(obj2))
+    for field in fields1
+        if field in fields2 && getfield(obj1,field) isa Ref
+            setproperty!(obj1,field,getproperty(obj2,field))
+        end
+    end
+end
+
+
+#---Model data----------------------------------------------------------------------
 
 abstract type AbstractClass end
 
@@ -68,8 +99,8 @@ options = Options()
 
 @with_kw mutable struct UnitTest<:AbstractEasyML
     state::Ref{Bool} = Ref(false)
-    url_pusher::Ref{Any} = Ref([])
     urls::Ref{Vector{String}} = Ref(String[])
+    url_pusher = () -> popfirst!(unit_test.urls)
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state
