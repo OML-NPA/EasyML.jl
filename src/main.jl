@@ -75,7 +75,9 @@ function get_class_main(model_data::ModelData,index,fieldname)
         end
         return data
     else
-        return getproperty(model_data.classes[index],Symbol(fieldname))
+        value = getproperty(model_data.classes[index],Symbol(fieldname))
+        @info value
+        return value
     end
 end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)

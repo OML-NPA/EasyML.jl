@@ -104,14 +104,15 @@ ApplicationWindow {
                 var parents = Julia.get_class_field(ind,"parents")
                 class_var.name = Julia.get_class_field(ind,"name")
                 class_var.weight = Julia.get_class_field(ind,"weight")
+                class_var.parent = parents[0]
+                class_var.parent2 = parents[1]
                 class_var.colorR = color[0]
                 class_var.colorG = color[1]
                 class_var.colorB = color[2]
+                class_var.overlap = Julia.get_class_field(ind,"overlap")
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
                 class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
-                class_var.parent = parents[0]
-                class_var.parent2 = parents[1]
-                class_var.overlap = Julia.get_class_field(ind,"overlap")
+                console.log(class_var.border_thickness)
             }
             classModel.append(class_var)
         }
