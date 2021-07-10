@@ -97,6 +97,8 @@ ApplicationWindow {
                 class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
             }
             classModel.append(class_var)
+            console.log(JSON.stringify(class_var.border_thickness))
+            console.log(JSON.stringify(classModel.get(0).border_thickness))
         }
         if (classModel.count>0) {
             indTree = 0
