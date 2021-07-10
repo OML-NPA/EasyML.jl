@@ -24,7 +24,8 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
       - if: ${{ matrix.os == 'macOS-latest' ||  matrix.os  == 'windows-latest' }}
         uses: julia-actions/julia-runtest@v1
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: julia-actions/julia-runtest@v1 ubuntu
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get install xvfb libxkbcommon-x11-0
           xvfb-run --auto-servernum julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.test(coverage=true)'
