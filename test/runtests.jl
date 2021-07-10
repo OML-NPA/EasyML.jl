@@ -2,7 +2,7 @@
 using EasyMLDesign
 
 EasyMLDesign.unit_test.state = true
-
+#=
 set_savepath("models/test.model")
 set_problem_type(:Classification)
 
@@ -30,7 +30,7 @@ for i = 1:length(losses)
     model_data.layers_info[end].loss = (losses[i],i+1)
     design_model()
 end
-
+=#
 # QML other
 set_problem_type(0)
 set_problem_type(1)
@@ -40,10 +40,25 @@ fields = ["DesignOptions","width"]
 value = 340
 EasyMLDesign.set_options(fields,value)
 
+function url_pusher()
+    url  = popfirst!(EasyMLDesign.unit_test.urls)
+    return url
+end
+EasyMLDesign.unit_test.url_pusher = url_pusher
+
+EasyMLDesign.unit_test.urls = ["models/test.model"]
+save_model()
+
+EasyMLDesign.unit_test.urls = ["models/test.model"]
+load_model()
+
 # Other
 save_model("models/test.model")
 load_options()
 save_options()
+
+
+
 
 try
     load_model("my_model")
