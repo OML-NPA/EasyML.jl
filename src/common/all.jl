@@ -36,7 +36,6 @@ function load_model_main(model_data,url)
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
     ks = intersect(ks,fnames)
-    k = :layers_info
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try
@@ -44,13 +43,15 @@ function load_model_main(model_data,url)
                 deserialized = BSON.load(serialized)[:field]
                 if deserialized isa NamedTuple
                     to_struct!(model_data,k,deserialized)
-                else
+                elseif deserialized isa Vector
                     type = typeof(getfield(model_data,k))
                     deserialized_typed = convert(type,deserialized)
                     setfield!(model_data,k,deserialized_typed)
+                else
+                    setfield!(model_data,k,deserialized)
                 end
             catch e
-                @warn string("Loading of ",k," failed. Exception: ",e)
+                @warn string("Loading of ",k," failed.")  exception=(e, catch_backtrace())
             end
         end
     else
