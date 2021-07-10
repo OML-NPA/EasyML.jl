@@ -51,4 +51,5 @@ set_savepath("models/new_model.model")
 
 modify(training_options)
 
+set_problem_type(:Segmentatio)
 
