@@ -73,7 +73,7 @@ ApplicationWindow {
                     "colorB": 0,
                     "overlap": false,
                     "border": false,
-                    "border_thickness": 0,
+                    "border_thickness": 0
             }
             if (problemComboBox.currentIndex==0) {
                 class_var.name = Julia.get_class_field(ind,"name")
@@ -94,7 +94,7 @@ ApplicationWindow {
                 class_var.colorB = color[2]
                 class_var.overlap = Julia.get_class_field(ind,"overlap")
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
-                class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
+                class_var.border_thickness = parseInt(Julia.get_class_field(ind,["BorderClass","thickness"]))
             }
             classModel.append(class_var)
             console.log(JSON.stringify(class_var.border_thickness))
@@ -449,7 +449,7 @@ ApplicationWindow {
                                                 "colorB": 0,
                                                 "overlap": false,
                                                 "border": false,
-                                                "border_thickness": 0,
+                                                "border_thickness": 0
                                             }
                                             if (problemComboBox.currentIndex==0) {
                                                 class_var.name = name

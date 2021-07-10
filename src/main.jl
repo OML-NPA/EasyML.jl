@@ -72,6 +72,7 @@ function get_class_main(model_data::ModelData,index,fieldname)
         for field in fieldnames
             data = getproperty(data,field)
         end
+        @info data
         return data
     else
         return getproperty(model_data.classes[index],Symbol(fieldname))
