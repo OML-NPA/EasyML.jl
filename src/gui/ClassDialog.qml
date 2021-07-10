@@ -48,23 +48,6 @@ ApplicationWindow {
 
     //--------------------------------------------------------------------------
 
-    Component.onCompleted: {
-        if (Julia.unit_test()) {
-            function Timer() {
-                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
-            }
-            function delay(delayTime, cb) {
-                var timer = new Timer();
-                timer.interval = delayTime;
-                timer.repeat = false;
-                timer.triggered.connect(cb);
-                timer.start();
-            }
-            function click1() {applyButton.clicked(null)}
-            delay(1000, click1)
-        }
-    }
-
     function load_model_classes(classModel) {
         problemComboBox.currentIndex = Julia.get_problem_type()
         var num_classes = Julia.num_classes()
@@ -112,7 +95,6 @@ ApplicationWindow {
                 class_var.overlap = Julia.get_class_field(ind,"overlap")
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
                 class_var.border_thickness = Julia.get_class_field(ind,["BorderClass","thickness"])
-                console.log(class_var.border_thickness)
             }
             classModel.append(class_var)
         }
@@ -243,6 +225,20 @@ ApplicationWindow {
             load_model_classes(classModel)
             classView.forceLayout()
             update_fields()
+            if (Julia.unit_test()) {
+                function Timer() {
+                    return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
+                }
+                function delay(delayTime, cb) {
+                    var timer = new Timer();
+                    timer.interval = delayTime;
+                    timer.repeat = false;
+                    timer.triggered.connect(cb);
+                    timer.start();
+                }
+                function click1() {applyButton.clicked(null)}
+                delay(1000, click1)
+            }
         }
     }
 
@@ -796,7 +792,7 @@ ApplicationWindow {
                     if (class_var.overlap) {
                         class_var.border = false
                     }
-                    console.log(class_var.border_thickness)
+                    console.log(JSON.stringify(class_var.border_thickness))
                     Julia.append_classes(
                         [class_var.name,
                         class_var.colorR,
