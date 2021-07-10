@@ -168,6 +168,8 @@ end
 # Needed for testing
 @with_kw mutable struct UnitTest
     state::Bool = false
+    url_pusher = []
+    urls::Vector{String} = String[]
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state

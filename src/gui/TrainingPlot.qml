@@ -106,6 +106,9 @@ ApplicationWindow {
                     warnings.shift()
                 }
             }
+            if (Julia.unit_test()) {
+                trainingWindow.close()
+            }
         }
         Label {
             id: warningtitleLabel
@@ -157,6 +160,9 @@ ApplicationWindow {
                     errortextLabel.text = errors[0]
                     errors.shift()
                 }
+            }
+            if (Julia.unit_test()) {
+                trainingWindow.close()
             }
         }
         Label {

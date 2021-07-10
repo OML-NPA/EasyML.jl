@@ -73,10 +73,28 @@ train()
 array_vector(:Manual)
 train()
 
+#-Input: Array | Output: Vector | Accuracy: Weight | Accuracy mode: Manual
+
+EasyMLTraining.training_options.Accuracy.weight_accuracy = true
+EasyMLTraining.training_options.Accuracy.accuracy_mode = :Manual
+
+model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
+
+array_vector(:Auto) # Fail
+train()
+
+set_weights([1,1,1,1,1])
+array_vector(:Auto)
+train()
+
+array_vector(:Manual)
+train()
+
 
 #-Input: Array | Output: Array | Accuracy: Regular
 
 EasyMLTraining.training_options.Accuracy.weight_accuracy = false
+EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
 
 model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 3))
 
