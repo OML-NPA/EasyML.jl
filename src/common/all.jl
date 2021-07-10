@@ -120,7 +120,7 @@ function struct_to_dict!(dict,obj)
                 struct_to_dict!(dict_for_vec,obj_for_vec)
                 push!(dict_vec,dict_for_vec)
             end
-            data_tuple = (vector_type = type, types = types, values = dict_vec)
+            data_tuple = (vector_type = string(type), types = string(types), values = dict_vec)
             dict[k] = data_tuple
         else
             dict[k] = value
@@ -131,13 +131,13 @@ end
 
 function to_struct!(obj,sym::Symbol,value::NamedTuple)
     if !isempty(value)
-        vector_type = getindex(value,:vector_type) 
-        types = getindex(value,:types) 
-        values = getindex(value,:values) 
+        vector_type = eval(Meta.parse(getindex(value,:vector_type)))
+        types = eval(Meta.parse(getindex(value,:types)))
+        vals = getindex(value,:values) 
         struct_vec = vector_type(undef,0)
         for j = 1:length(types)
             obj_for_vec = types[j]()
-            dict_for_vec = values[j]
+            dict_for_vec = vals[j]
             dict_to_struct!(obj_for_vec,dict_for_vec)
             push!(struct_vec,obj_for_vec)
         end
