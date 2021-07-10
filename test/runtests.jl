@@ -2,7 +2,7 @@
 using EasyMLDesign
 
 EasyMLDesign.unit_test.state = true
-#=
+
 set_savepath("models/test.model")
 set_problem_type(:Classification)
 
@@ -30,7 +30,7 @@ for i = 1:length(losses)
     model_data.layers_info[end].loss = (losses[i],i+1)
     design_model()
 end
-=#
+
 # QML other
 set_problem_type(0)
 set_problem_type(1)
