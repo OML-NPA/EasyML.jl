@@ -14,7 +14,7 @@ function modify(data::DataPreparationOptions)
         set_model_data,
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/DataPreparationOptions.qml")
+    path_qml = string(@__DIR__,"/gui/DataPreparationOptions.qml")
     loadqml(path_qml)
     exec()
     return nothing
