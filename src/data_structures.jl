@@ -157,7 +157,6 @@ training_options = TrainingOptions()
 end
 options = Options()
 
-EasyMLClasses.options.GlobalOptions = options.global_options.graphics
 
 #---Other
 
@@ -175,7 +174,3 @@ end
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state
-
-EasyMLClasses.unit_test.state = unit_test.state
-EasyMLClasses.unit_test.url_pusher = unit_test.url_pusher
-EasyMLClasses.unit_test.urls = unit_test.urls
