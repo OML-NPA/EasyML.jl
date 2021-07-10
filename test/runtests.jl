@@ -48,16 +48,24 @@ EasyMLDataPreparation.unit_test.url_pusher = url_pusher
 
 set_problem_type(:Classification)
 load_model("models/classification.model")
+url_input = "examples\\classification\\"
+get_urls(url_input)
 EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
 get_urls()
 
 set_problem_type(:Regression)
 load_model("models/regression.model")
+url_input = "examples/regression/"
+url_label = "examples/regression/test.csv"
+get_urls(url_input,url_label)
 EasyMLDataPreparation.unit_test.urls = ["examples/regression/test","examples/regression/test.csv"]
 get_urls()
 
 set_problem_type(:Segmentation)
 load_model("models/segmentation.model")
+url_input = "examples/segmentation/"
+url_label = "examples/segmentation/labels"
+get_urls(url_input,url_label)
 EasyMLDataPreparation.unit_test.urls = ["examples/segmentation/images","examples/segmentation/labels"]
 get_urls()
 
