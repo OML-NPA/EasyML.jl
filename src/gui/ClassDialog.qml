@@ -66,14 +66,14 @@ ApplicationWindow {
             var class_var = {
                     "name": "",
                     "weight": 0,
+                    "parent": "",
+                    "parent2": "",
                     "colorR": 0,
                     "colorG": 0,
                     "colorB": 0,
+                    "overlap": false,
                     "border": false,
-                    "border_thickness": 0,
-                    "parent": "",
-                    "parent2": "",
-                    "overlap": false
+                    "border_thickness": 0
             }
             if (problemComboBox.currentIndex==0) {
                 class_var.name = Julia.get_class_field(ind,"name")
@@ -223,8 +223,17 @@ ApplicationWindow {
         id: classModel
         Component.onCompleted: {
             load_model_classes(classModel)
+            if (classModel.count>0) {
+                console.log(JSON.stringify(classModel.get(0).border_thickness))
+            }
             classView.forceLayout()
+            if (classModel.count>0) {
+                console.log(JSON.stringify(classModel.get(0).border_thickness))
+            }
             update_fields()
+            if (classModel.count>0) {
+                console.log(JSON.stringify(classModel.get(0).border_thickness))
+            }
             if (Julia.unit_test()) {
                 function Timer() {
                     return Qt.createQmlObject("import QtQuick 2.0; Timer {}", classdialogWindow);
@@ -431,14 +440,14 @@ ApplicationWindow {
                                             var class_var = {
                                                 "name": "",
                                                 "weight": 0,
+                                                "parent": "",
+                                                "parent2": "",
                                                 "colorR": 0,
                                                 "colorG": 0,
                                                 "colorB": 0,
+                                                "overlap": false,
                                                 "border": false,
-                                                "border_thickness": 0,
-                                                "parent": "",
-                                                "parent2": "",
-                                                "overlap": false
+                                                "border_thickness": 0
                                             }
                                             if (problemComboBox.currentIndex==0) {
                                                 class_var.name = name
