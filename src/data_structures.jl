@@ -22,16 +22,6 @@ function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
     return nothing
 end
 
-function bind!(obj1,obj2)
-    fields1 = fieldnames(typeof(obj1))
-    fields2 = fieldnames(typeof(obj2))
-    for field in fields1
-        if field in fields2 && getfield(obj1,field) isa Ref
-            setproperty!(obj1,field,getproperty(obj2,field))
-        end
-    end
-end
-
 
 #---Model data----------------------------------------------------------------------
 
