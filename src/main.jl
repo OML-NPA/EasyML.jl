@@ -1,39 +1,4 @@
 
-function set_problem_type(ind)
-    ind = fix_QML_types(ind)
-    if ind==0 
-        model_data.problem_type = :Classification
-    elseif ind==1
-        model_data.problem_type = :Regression
-    elseif ind==2
-        model_data.problem_type = :Segmentation
-    end
-    return nothing
-end
-
-function get_problem_type()
-    if problem_type()==:Classification
-        return 0
-    elseif problem_type()==:Regression
-        return 1
-    elseif problem_type()==:Segmentation
-        return 2
-    end
-end
-
-#----------------------------------------------------------------
-
-# Allows to write to data from GUI
-function set_model_data_main(model_data::ModelData,field,values)
-    field_string::String = fix_QML_types(field)
-    values_string::Vector{String} = fix_QML_types(values)
-    field = Symbol(field_string)
-    values_sym = Symbol.(values_string)
-    setproperty!(model_data, field, values_sym)
-    return nothing
-end
-set_model_data(field,values) = set_model_data_main(model_data,field,values)
-
 #---make_classes functions---------------------------------------
 
 function set_problem_type(ind)
@@ -42,7 +7,7 @@ function set_problem_type(ind)
         model_data.problem_type = :Classification
     elseif ind==1
         model_data.problem_type = :Regression
-    elseif ind==2
+    else # ind==2
         model_data.problem_type = :Segmentation
     end
     return nothing
@@ -53,7 +18,7 @@ function get_problem_type()
         return 0
     elseif problem_type()==:Regression
         return 1
-    elseif problem_type()==:Segmentation
+    else # problem_type()==:Segmentation
         return 2
     end
 end
