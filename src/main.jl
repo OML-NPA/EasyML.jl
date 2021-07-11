@@ -98,13 +98,7 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
     for i=1:num
         labels_incl[i] = findall(any.(map(x->x.==class_parents[i],class_names)))
     end
-    class_inds = Vector{Int64}(undef,0)
-    for i = 1:num
-        if !classes[i].overlap
-            push!(class_inds,i)
-        end
-    end
-    num = length(class_inds)
+    num = length(classes)
     border = Vector{Bool}(undef,num)
     border_thickness = Vector{Int64}(undef,num)
     for i in class_inds
@@ -112,5 +106,5 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
         border[i] = class.BorderClass.enabled
         border_thickness[i] = class.BorderClass.thickness
     end
-    return class_inds,labels_color,labels_incl,border,border_thickness
+    return labels_color,labels_incl,border,border_thickness
 end
