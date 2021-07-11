@@ -19,7 +19,7 @@ include("exported_functions.jl")
 
 export QML
 
-export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
+export model_data, AbstractClass, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export make_classes, save_model, load_model
 export getproperty, setproperty
 
