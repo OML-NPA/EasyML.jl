@@ -23,6 +23,10 @@ function get_problem_type()
     end
 end
 
+function get_input_type()
+    return 0
+end
+
 function reset_classes_main(model_data)
     if problem_type()==:Classification
         model_data.classes = Vector{ImageClassificationClass}(undef,0)
