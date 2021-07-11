@@ -54,6 +54,7 @@ EasyMLValidation.set_options(["GlobalOptions","Graphics","scaling_factor"],1)
 EasyMLValidation.unit_test.urls = ["models/test.model"]
 save_model()
 
+@info "Testing get_urls_validation()"
 set_problem_type(:Classification)
 EasyMLValidation.unit_test.urls = ["examples/with labels/classification/test"]
 get_urls_validation()
@@ -66,7 +67,7 @@ get_urls_validation()
 
 
 #---Other------------------------------------------------------------
-
+@info "Testing other"
 conn(8)
 
 remove_validation_data()
