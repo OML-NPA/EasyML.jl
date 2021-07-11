@@ -100,43 +100,6 @@ function get_accuracy_func(weights::Vector{Float32},options::Options)
     end
 end
 
-#---Weights---------------------------------------------------------------------
-
-function calculate_weights(counts::Vector{Int64})
-    frequencies = counts./sum(counts)
-    inv_frequencies = 1 ./frequencies
-    weights64 = inv_frequencies./sum(inv_frequencies)
-    weights = convert(Vector{Float32},weights64)
-    return weights
-end
-
-function get_weights(classification_data::ClassificationData)
-    data_labels = classification_data.data_labels
-    num = classification_data.max_labels
-    counts = zeros(Int64,num)
-    for data in data_labels
-        counts[data] += 1
-    end
-    weights = calculate_weights(counts)
-    return weights
-end
-
-function get_weights(regression_data::RegressionData)
-    weights = Vector{Float32}(undef,0)
-    return weights
-end
-
-function get_weights(segmentation_data::SegmentationData)
-    data_labels = segmentation_data.data_labels
-    num = size(data_labels[1],3)
-    counts = zeros(Int64,num)
-    for data in data_labels
-        counts .+= collect(Iterators.flatten(sum(data,dims = [1,2])))
-    end
-    weights = calculate_weights(counts)
-    return weights
-end
-
 
 #---Other
 
