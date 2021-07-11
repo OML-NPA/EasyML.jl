@@ -16,13 +16,13 @@ StatsBase,
 # Other
 FLoops
 
-import Flux.outputsize
+import Flux.outputsize, Base.RefValue
 
 # Include functions
 include("data_structures.jl")
 include("common/all.jl")
 include("common/exported_functions.jl")
-include("design.jl")
+include("main.jl")
 include("exported_functions.jl")
 
 export QML, Flux, FluxExtra, NNlib, ColorTypes

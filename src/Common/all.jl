@@ -46,9 +46,9 @@ function load_model_main(model_data,url)
                 elseif deserialized isa Vector
                     type = typeof(getfield(model_data,k))
                     deserialized_typed = convert(type,deserialized)
-                    setfield!(model_data,k,deserialized_typed)
+                    setproperty!(model_data,k,deserialized_typed)
                 else
-                    setfield!(model_data,k,deserialized)
+                    setproperty!(model_data,k,deserialized)
                 end
             catch e
                 @warn string("Loading of ",k," failed.")  exception=(e, catch_backtrace())

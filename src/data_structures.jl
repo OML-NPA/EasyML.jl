@@ -1,68 +1,28 @@
 
+#---Bindings------------------------------------------------------------------
+
+abstract type AbstractEasyMLStruct end
+
+function Base.getproperty(obj::AbstractEasyMLStruct, sym::Symbol)
+    value = getfield(obj, sym)
+    if value isa RefValue
+        return value[]
+    else
+        return value
+    end
+end
+
+function Base.setproperty!(obj::AbstractEasyMLStruct, sym::Symbol, x)
+    value = getfield(obj,sym)
+    if value isa RefValue
+        value[] = x
+    else
+        setfield!(obj,sym,x)
+    end
+    return nothing
+end
+
 #---Model data
-
-abstract type AbstractClass end
-
-@with_kw mutable struct ImageClassificationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-end
-
-@with_kw mutable struct ImageRegressionClass<:AbstractClass
-    name::String = ""
-end
-
-@with_kw mutable struct ImageSegmentationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-    color::Vector{Float64} = Vector{Float64}(undef,3)
-    border::Bool = false
-    border_thickness::Int64 = 3
-    border_remove_objs::Bool = false
-    min_area::Int64 = 1
-    parents::Vector{String} = ["",""]
-    not_class::Bool = false
-end
-
-abstract type AbstractOutputOptions end
-
-@with_kw mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct ImageRegressionOutputOptions<:AbstractOutputOptions
-    temp::Bool = false
-end
-
-@with_kw mutable struct OutputMask
-    mask::Bool = false
-    mask_border::Bool = false
-    mask_applied_border::Bool = false
-end
-
-@with_kw mutable struct OutputArea
-    area_distribution::Bool = false
-    obj_area::Bool = false
-    obj_area_sum::Bool = false
-    binning::Int64 = 0
-    value::Float64 = 10
-    normalisation::Int64 = 0
-end
-
-@with_kw mutable struct OutputVolume
-    volume_distribution::Bool = false
-    obj_volume::Bool = false
-    obj_volume_sum::Bool = false
-    binning::Int64 = 0
-    value::Float64 = 10
-    normalisation::Int64 = 0
-end
-
-@with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
-    Mask::OutputMask = OutputMask()
-    Area::OutputArea = OutputArea()
-    Volume::OutputVolume = OutputVolume()
-end
 
 abstract type AbstractLayerInfo end
 
@@ -271,20 +231,19 @@ end
     dimensions::Vector{Int64} = [0]
 end
 
-@with_kw mutable struct ModelData
-    model::Chain = Chain()
-    layers_info::Vector{AbstractLayerInfo} = []
-    loss::Function = Flux.Losses.mse
-    input_size::NTuple{3,Int64} = (1,1,1)
-    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (1,1,1)
-    problem_type::Symbol = :Classification
+@with_kw mutable struct ModelData<:AbstractEasyMLStruct
+    model::RefValue{<:Chain} = Ref{Chain}(Chain())
+    layers_info::RefValue{<:Vector{AbstractLayerInfo}} = Ref{Vector{AbstractLayerInfo}}([])
+    loss::RefValue{Function} = Ref{Function}(Flux.Losses.mse)
+    input_size::RefValue{NTuple{3,Int64}} = Ref((1,1,1))
+    output_size::RefValue{NTuple{3,Int64}} = Ref((1,1,1))
+    problem_type::RefValue{Symbol} = Ref(:Classification)
 end
 model_data = ModelData()
 
 #---Master data
 @with_kw mutable struct DesignData
     ModelData::ModelData = ModelData()
-    output_options_backup::Vector{AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
     warnings::Vector{String} = Vector{String}(undef,0)
 end
 design_data = DesignData()
@@ -299,12 +258,12 @@ all_data = AllData()
 #---Options
 
 # Global Options
-@with_kw mutable struct Graphics
-    scaling_factor::Float64 = 1
+@with_kw mutable struct Graphics<:AbstractEasyMLStruct
+    scaling_factor::RefValue{Float64} = Ref(1.0)
 end
 graphics = Graphics()
 
-@with_kw mutable struct GlobalOptions
+@with_kw struct GlobalOptions
     Graphics::Graphics = graphics
 end
 global_options = GlobalOptions()
@@ -319,17 +278,17 @@ end
 design_options = DesignOptions()
 
 # Options
-@with_kw mutable struct Options
+@with_kw struct Options
     GlobalOptions::GlobalOptions = global_options
     DesignOptions::DesignOptions = design_options
 end
 options = Options()
 
 # Needed for testing
-@with_kw mutable struct UnitTest
-    state::Bool = false
+@with_kw mutable struct UnitTest<:AbstractEasyMLStruct
+    state::RefValue{Bool} = Ref(false)
     url_pusher = []
-    urls::Vector{String} = String[]
+    urls::RefValue{Vector{String}} = Ref(String[])
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state

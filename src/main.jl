@@ -100,7 +100,7 @@ function update_layers_main(design_data::DesignData,fields,values)
         else
             value = convert(type,value_raw)
         end
-        setfield!(layer_info,field,value)
+        setproperty!(layer_info,field,value)
     end
     push!(layers_info,layer_info)
     return nothing
