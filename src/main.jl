@@ -82,3 +82,35 @@ function get_class_main(model_data::ModelData,index,fieldname)
     end
 end
 get_class_field(index,fieldname) = get_class_main(model_data,index,fieldname)
+
+function get_class_data(classes::Vector{ImageSegmentationClass})
+    num = length(classes)
+    class_names = Vector{String}(undef,num)
+    class_parents = Vector{Vector{String}}(undef,num)
+    labels_color = Vector{Vector{Float64}}(undef,num)
+    labels_incl = Vector{Vector{Int64}}(undef,num)
+    for i=1:num
+        class = classes[i]
+        class_names[i] = classes[i].name
+        class_parents[i] = classes[i].parents
+        labels_color[i] = class.color
+    end
+    for i=1:num
+        labels_incl[i] = findall(any.(map(x->x.==class_parents[i],class_names)))
+    end
+    class_inds = Vector{Int64}(undef,0)
+    for i = 1:num
+        if !classes[i].overlap
+            push!(class_inds,i)
+        end
+    end
+    num = length(class_inds)
+    border = Vector{Bool}(undef,num)
+    border_thickness = Vector{Int64}(undef,num)
+    for i in class_inds
+        class = classes[i]
+        border[i] = class.BorderClass.enabled
+        border_thickness[i] = class.BorderClass.thickness
+    end
+    return class_inds,labels_color,labels_incl,border,border_thickness
+end

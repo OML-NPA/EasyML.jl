@@ -40,6 +40,8 @@ load_model()
 
 #---Other---------------------------------------------
 
+EasyMLClasses.get_class_data(model_data.classes)
+
 EasyMLClasses.input_type()
 EasyMLClasses.get_input_type()
 
