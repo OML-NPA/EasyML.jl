@@ -141,9 +141,11 @@ ApplicationWindow {
         else if (problemComboBox.currentIndex==2) {
             if (indTree>0 && classModel.get(indTree).overlap) {
                 weightRow.visible = false
+                borderRow.visible = false
             }
             else {
                 weightRow.visible = true
+                borderRow.visible = true
             }
             if (classModel.count>1) {
                 parentRow.visible = true
@@ -160,7 +162,6 @@ ApplicationWindow {
             colorLabel.visible = true
             colorRow.visible = true
             overlapRow.visible = true
-            borderRow.visible = true
         }
         
         if (indTree<0) {
