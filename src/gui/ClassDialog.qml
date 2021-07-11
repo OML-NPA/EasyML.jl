@@ -88,6 +88,7 @@ ApplicationWindow {
                     "colorR": 0,
                     "colorG": 0,
                     "colorB": 0,
+                    "min_area": 0,
                     "overlap": false,
                     "border": false,
                     "border_thickness": 0
@@ -236,6 +237,9 @@ ApplicationWindow {
             // borderCheckBox
             borderCheckBox.checkState = classModel.get(indTree).border ?
                             Qt.Checked : Qt.Unchecked
+            
+            // minareaSpinBox
+            minareaSpinBox.value = classModel.get(indTree).min_area
 
             // borderthicknessSpinBox
             borderthicknessSpinBox.value = (classModel.get(indTree).border_thickness - 1)/2
@@ -446,6 +450,7 @@ ApplicationWindow {
                                                 "colorG": 0,
                                                 "colorB": 0,
                                                 "overlap": false,
+                                                "min_area": 0,
                                                 "border": false,
                                                 "border_thickness": 0
                                             }
@@ -459,14 +464,15 @@ ApplicationWindow {
                                             else if (problemComboBox.currentIndex==2) {
                                                     class_var.name = name
                                                     class_var.weight = 1
+                                                    class_var.parent = ""
+                                                    class_var.parent2 = ""
                                                     class_var.colorR = Math.floor(Math.random()*255)+1
                                                     class_var.colorG = Math.floor(Math.random()*255)+1
                                                     class_var.colorB = Math.floor(Math.random()*255)+1
-                                                    class_var.border = false
-                                                    class_var.border_thickness = 3
-                                                    class_var.parent = ""
-                                                    class_var.parent2 = ""
                                                     class_var.overlap = false
+                                                    class_var.min_area = 0
+                                                    class_var.border = false
+                                                    class_var.border_thickness = 3    
                                             }
                                             
                                             classModel.append(class_var)
