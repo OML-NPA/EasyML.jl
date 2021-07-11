@@ -101,7 +101,7 @@ function get_class_data(classes::Vector{ImageSegmentationClass})
     num = length(classes)
     border = Vector{Bool}(undef,num)
     border_thickness = Vector{Int64}(undef,num)
-    for i in class_inds
+    for i = 1:num
         class = classes[i]
         border[i] = class.BorderClass.enabled
         border_thickness[i] = class.BorderClass.thickness
