@@ -47,6 +47,7 @@ end
     color::Vector{Float64} = Vector{Float64}(undef,3)
     parents::Vector{String} = ["",""]
     overlap::Bool = false
+    min_area::Int64 = 0
     BorderClass::BorderClass = BorderClass()
 end
 

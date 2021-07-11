@@ -13,7 +13,7 @@ ApplicationWindow {
     visible: true
     title: qsTr("  EasyML")
     minimumHeight: Math.max(mainItem.height,800*pix)
-    minimumWidth: Math.max(mainItem.width,865*pix)
+    minimumWidth: Math.max(mainItem.width,885*pix)
     property double indTree: JindTree
     property double max_id: Math.max(...ids)
 
@@ -110,6 +110,7 @@ ApplicationWindow {
                 class_var.colorG = color[1]
                 class_var.colorB = color[2]
                 class_var.overlap = Julia.get_class_field(ind,"overlap")
+                class_var.min_area = Julia.get_class_field(ind,"min_area")
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
                 class_var.border_thickness = parseInt(Julia.get_class_field(ind,["BorderClass","thickness"])) // Returns a string otherwise for some reason
             }
@@ -125,7 +126,9 @@ ApplicationWindow {
         colorLabel.visible = false
         colorRow.visible = false
         parentRow.visible = false
+        parent2Row.visible = false
         overlapRow.visible = false
+        minareaRow.visible = false
         borderRow.visible = false
     }
 
@@ -141,9 +144,11 @@ ApplicationWindow {
         else if (problemComboBox.currentIndex==2) {
             if (indTree>0 && classModel.get(indTree).overlap) {
                 weightRow.visible = false
+                minareaRow.visible = false
                 borderRow.visible = false
             }
             else {
+                minareaRow.visible = true
                 weightRow.visible = true
                 borderRow.visible = true
             }
@@ -726,11 +731,34 @@ ApplicationWindow {
                                 classModel.get(indTree).border = false
                                 borderCheckBox.checkState = Qt.Unchecked
                                 borderRow.visible = false
+                                minareaRow.visible = false
                             }
                             if (checkState==Qt.Unchecked) {
                                 classModel.get(indTree).overlap = false
                                 borderRow.visible = true
+                                minareaRow.visible = true
                             }
+                        }
+                    }
+                }
+                Row {
+                    id: minareaRow
+                    visible: borderCheckBox.checkState==Qt.Checked
+                    spacing: 0.3*margin
+                    Label {
+                        id: minareaLabel
+                        width: borderthicknessLabel.width
+                        text: "Minimum area:"
+                    }
+                    SpinBox {
+                        id: minareaSpinBox
+                        anchors.verticalCenter: minareaLabel.verticalCenter
+                        editable: true
+                        from: 0
+                        to: 100000
+                        stepSize: 1
+                        onValueModified: {
+                            classModel.get(indTree).min_area = value
                         }
                     }
                 }
@@ -803,6 +831,7 @@ ApplicationWindow {
                         class_var.colorB,
                         [class_var.parent,class_var.parent2],
                         class_var.overlap,
+                        class_var.min_area,
                         class_var.border,
                         class_var.border_thickness])
                 }

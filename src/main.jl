@@ -54,8 +54,9 @@ function append_classes_main(model_data::ModelData,data)
         class.color = Int64.([data[2],data[3],data[4]])
         class.parents = data[5]
         class.overlap = Bool(data[6])
-        class.BorderClass.enabled = Bool(data[7])
-        class.BorderClass.thickness = Int64(data[8])
+        class.min_area = Int64(data[7])
+        class.BorderClass.enabled = Bool(data[8])
+        class.BorderClass.thickness = Int64(data[9])
     end
     push!(model_data.classes,class)
     return nothing
