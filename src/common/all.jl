@@ -102,33 +102,6 @@ function get_data_main(data,fields,inds)
 end
 get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
 
-# Allows to write to data from GUI
-function set_data_main(all_data::AllData,fields,args...)
-    data = all_data
-    fields::Vector{String} = fix_QML_types(fields)
-    args = fix_QML_types(args)
-    for i = 1:length(fields)-1
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    if length(args)==1
-        value = args[1]
-    elseif length(args)==2
-        value = getproperty(data,Symbol(fields[end]))
-        value[args[1]] = args[2]
-    elseif length(args)==3
-        value = getproperty(data,Symbol(fields[end]))
-        value[args[1]][args[2]] = args[3]
-    end
-    field = Symbol(fields[end])
-    if getproperty(data,field) isa Symbol
-        data = Symbol(data)
-    end
-    setproperty!(data, field, value)
-    return nothing
-end
-set_data(fields,value,args...) = set_data_main(all_data,fields,value,args...)
-
 # Allows to read options from GUI
 function get_options_main(data::Options,fields,inds...)
     fields::Vector{String} = fix_QML_types(fields)
@@ -276,7 +249,7 @@ input_type() = model_data.input_type
 function make_dir(target_dir::AbstractString)
     dirs = split(target_dir,('/','\\'))
     for i=1:length(dirs)
-        temp_path = join(dirs[1:i],'\\')
+        temp_path = join(dirs[1:i],'/')
         if !isdir(temp_path)
             mkdir(temp_path)
         end

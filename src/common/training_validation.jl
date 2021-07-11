@@ -99,12 +99,3 @@ function get_accuracy_func(weights::Vector{Float32},some_options)
         end
     end
 end
-
-
-#---Other
-
-add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
-
-function make_tuple(array::AbstractArray)
-    return (array...,)
-end

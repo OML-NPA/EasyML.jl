@@ -2,6 +2,7 @@
 module EasyMLValidation
 
 # Import packages
+using Base: String
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll, CxxWrap, CUDA,

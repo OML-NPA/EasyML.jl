@@ -74,16 +74,19 @@ function get_urls_validation_main2(validation_data::ValidationData)
     validation_urls = validation_data.Urls
     validation_urls.url_inputs = ""
     validation_urls.url_labels = ""
-    url_channel = Channel{String}(1)
-    observe(url) = put!(url_channel,fix_QML_types(url))
+    url_out = String[""]
+    observe(url) = url_out[1]
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(observe)
+    @qmlfunction(observe,unit_test)
     path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
     loadqml(path_qml,currentfolder = dir)
     exec()
-    if isready(url_channel)
-        validation_urls.url_inputs = take!(url_channel)
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    if !isempty(url_out[1])
+        validation_urls.url_inputs = url_out[1]
         @info string(validation_urls.url_inputs, " was selected.")
     else
         @error "Input data directory URL is empty. Aborted"
@@ -94,25 +97,31 @@ function get_urls_validation_main2(validation_data::ValidationData)
     elseif problem_type()==:Regression
         @info "Select a file with label data if labels are available."
         name_filters = ["*.csv","*.xlsx"]
-        @qmlfunction(observe)
+        @qmlfunction(observe,unit_test)
         path_qml = string(@__DIR__,"/common/gui/UniversalFileDialog.qml")
         loadqml(path_qml,
             name_filters = name_filters)
         exec()
-        if isready(url_channel)
-            validation_urls.url_labels = take!(url_channel)
+        if unit_test()
+            url_out[1] = unit_test.url_pusher()
+        end
+        if !isempty(url_out[1])
+            validation_urls.url_labels = url_out[1]
             @info string(validation_urls.url_labels, " was selected.")
         else
             @warn "Label data URL is empty. Continuing without labels."
         end
     elseif problem_type()==:Segmentation
         @info "Select a directory with label data if labels are available."
-        @qmlfunction(observe)
+        @qmlfunction(observe,unit_test)
         path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
         loadqml(path_qml,currentfolder = dir)
         exec()
-        if isready(url_channel)
-            validation_urls.url_labels = take!(url_channel)
+        if unit_test()
+            url_out[1] = unit_test.url_pusher()
+        end
+        if !isempty(url_out[1])
+            validation_urls.url_labels = url_out[1]
             @info string(validation_urls.url_labels, " was selected.")
         else
             @warn "Label data directory URL is empty. Continuing without labels."
@@ -120,9 +129,9 @@ function get_urls_validation_main2(validation_data::ValidationData)
     end
     
     if validation_urls.url_labels!="" && problem_type()!=:Classification
-        validation_data.use_labels = true
+        validation_data.PlotData.use_labels = true
     else
-        validation_data.use_labels = false
+        validation_data.PlotData.use_labels = false
     end
 
     get_urls_validation_main(model_data,validation_urls,validation_data)
@@ -210,20 +219,14 @@ end
 Removes all validation data except for result.
 """
 function remove_validation_data()
-    if input_type()==:Image
-        if problem_type()==:Classification
-            data = validation_data.ImageClassificationResults
-            fields = fieldnames(ValidationImageRegressionResults)
-        elseif problem_type()==:Regression
-            data = validation_data.ImageRegressionResults
-            fields = fieldnames(ValidationImageRegressionResults)
-        elseif problem_type()==:Segmentation
-            data = validation_data.ImageSegmentationResults
-            fields = fieldnames(ValidationImageSegmentationResults)
-        end
-    end
+    fields = fieldnames(ValidationUrls)
     for field in fields
-        empty!(getfield(data, field))
+        val = getproperty(validation_data.Urls, field)
+        if val isa Array
+            empty!(val)
+        elseif val isa String
+            setproperty!(validation_data.Urls, field, "")
+        end
     end
 end
 
