@@ -8,6 +8,7 @@ This package is a part of [EasyML.jl](https://github.com/OML-NPA/EasyML.jl).
 NB! This is a beta version. Bugs and bracking changes should be expected.
 
 ### Features
+<img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/validate2.png" height="290">
 
 ### Installation
 
