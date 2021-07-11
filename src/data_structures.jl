@@ -74,12 +74,12 @@ all_data = AllData()
 end
 graphics = Graphics()
 
-@with_kw mutable struct GlobalOptions
+@with_kw struct GlobalOptions
     Graphics::Graphics = graphics
 end
 global_options = GlobalOptions()
-# Options
-@with_kw mutable struct Options
+
+@with_kw struct Options
     GlobalOptions::GlobalOptions = global_options
 end
 options = Options()
