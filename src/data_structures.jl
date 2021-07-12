@@ -25,6 +25,14 @@ end
 
 #---Model data----------------------------------------------------------------------
 
+abstract type AbstractProblemType end
+struct Classification <: AbstractProblemType end
+struct Regression <: AbstractProblemType end
+struct Segmentation <: AbstractProblemType end
+
+abstract type AbstractInputType end
+struct Image <: AbstractInputType end
+
 abstract type AbstractClass end
 
 @with_kw mutable struct ImageClassificationClass<:AbstractClass
@@ -52,18 +60,23 @@ end
 end
 
 @with_kw mutable struct ModelData<:AbstractEasyML
-    problem_type::Ref{Symbol} = Ref(:Classification)
-    input_type::Ref{Symbol} = Ref(:Image)
-    classes::Ref{Vector{<:AbstractClass}} = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
+    problem_type::RefValue{Type{<:AbstractProblemType}} = Ref{Type{<:AbstractProblemType}}(Classification)
+    input_type::RefValue{Type{<:AbstractInputType}} = Ref{Type{<:AbstractInputType}}(Image)
+    classes::RefValue{Vector{<:AbstractClass}} = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
 end
 model_data = ModelData()
 
 
 #---All data------------------------------------------------------------------
 
-@with_kw mutable struct AllData<:AbstractEasyML
-    model_url::Ref{String} = Ref("")
-    model_name::Ref{String} = Ref("")
+@with_kw mutable struct AllDataUrls<:AbstractEasyML
+    model_url::RefValue{String} = Ref("")
+    model_name::RefValue{String} = Ref("")
+end
+all_data_urls = AllDataUrls()
+
+@with_kw struct AllData<:AbstractEasyML
+    Urls::AllDataUrls = all_data_urls
 end
 all_data = AllData()
 
@@ -71,7 +84,7 @@ all_data = AllData()
 #---Options-------------------------------------------------------------------
 
 @with_kw mutable struct Graphics<:AbstractEasyML
-    scaling_factor::Ref{Float64} = Ref(1.0)
+    scaling_factor::RefValue{Float64} = Ref(1.0)
 end
 graphics = Graphics()
 
@@ -89,8 +102,8 @@ options = Options()
 #---Testing-------------------------------------------------------------------
 
 @with_kw mutable struct UnitTest<:AbstractEasyML
-    state::Ref{Bool} = Ref(false)
-    urls::Ref{Vector{String}} = Ref(String[])
+    state::RefValue{Bool} = Ref(false)
+    urls::RefValue{Vector{String}} = Ref(String[])
     url_pusher = () -> popfirst!(unit_test.urls)
 end
 unit_test = UnitTest()

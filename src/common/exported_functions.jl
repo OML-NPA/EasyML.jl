@@ -6,10 +6,10 @@ Opens a file dialog where you can select where to save a model and how it should
 """
 function save_model()
     name_filters = ["*.model"]
-    if isempty(all_data.model_name)
-        all_data.model_name = "new_model"
+    if isempty(all_data.Urls.model_name)
+        all_data.Urls.model_name = "new_model"
     end
-    filename = string(all_data.model_name,".model")
+    filename = string(all_data.Urls.model_name,".model")
     url_out = String[""]
     observe(url) = url_out[1] = url
     # Launches GUI

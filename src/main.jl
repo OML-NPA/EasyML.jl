@@ -4,21 +4,21 @@
 function set_problem_type(ind)
     ind = fix_QML_types(ind)
     if ind==0 
-        model_data.problem_type = :Classification
+        model_data.problem_type = Classification
     elseif ind==1
-        model_data.problem_type = :Regression
+        model_data.problem_type = Regression
     else # ind==2
-        model_data.problem_type = :Segmentation
+        model_data.problem_type = Segmentation
     end
     return nothing
 end
 
 function get_problem_type()
-    if problem_type()==:Classification
+    if problem_type()==Classification
         return 0
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         return 1
-    else # problem_type()==:Segmentation
+    else # problem_type()==Segmentation
         return 2
     end
 end
@@ -28,11 +28,11 @@ function get_input_type()
 end
 
 function reset_classes_main(model_data)
-    if problem_type()==:Classification
+    if problem_type()==Classification
         model_data.classes = Vector{ImageClassificationClass}(undef,0)
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         model_data.classes = Vector{ImageRegressionClass}(undef,0)
-    elseif problem_type()==:Segmentation
+    elseif problem_type()==Segmentation
         model_data.classes = Vector{ImageSegmentationClass}(undef,0)
     end
     return nothing
@@ -42,13 +42,13 @@ reset_classes() = reset_classes_main(model_data::ModelData)
 function append_classes_main(model_data::ModelData,data)
     data = fix_QML_types(data)
     type = eltype(model_data.classes)
-    if problem_type()==:Classification
+    if problem_type()==Classification
         class = ImageClassificationClass()
         class.name = data[1]
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         class = ImageRegressionClass()
         class.name = data[1]
-    elseif problem_type()==:Segmentation
+    elseif problem_type()==Segmentation
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])

@@ -10,6 +10,8 @@ Parameters,
 # Data import/export
 BSON
 
+import Base.RefValue
+
 # Include functions
 include("data_structures.jl")
 include("common/all.jl")
@@ -19,7 +21,8 @@ include("exported_functions.jl")
 
 export QML
 
-export model_data, AbstractClass, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
+export model_data, Classification, Regression, Segmentation, Image, 
+    ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export make_classes, save_model, load_model
 export getproperty, setproperty
 

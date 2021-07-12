@@ -23,6 +23,8 @@ EasyMLClasses.get_problem_type()
 EasyMLClasses.set_problem_type(2)
 EasyMLClasses.get_problem_type()
 
+EasyMLClasses.get_input_type()
+
 function url_pusher()
     url  = popfirst!(EasyMLClasses.unit_test.urls)
     return url
@@ -43,5 +45,4 @@ load_model()
 EasyMLClasses.get_class_data(model_data.classes)
 
 EasyMLClasses.input_type()
-EasyMLClasses.get_input_type()
 
