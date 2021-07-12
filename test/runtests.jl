@@ -9,6 +9,7 @@ modify(validation_options)
 for i = 1:2
     if i==2
         validation_options.Accuracy.weight_accuracy = false
+        global_options.HardwareResources.allow_GPU = false
         global_options.HardwareResources.num_slices = 5
     end
 
