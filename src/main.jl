@@ -7,8 +7,8 @@ function set_model_data_main(model_data::ModelData,field,values)
     field_string::String = fix_QML_types(field)
     values_string::Vector{String} = fix_QML_types(values)
     field = Symbol(field_string)
-    values_sym = Symbol.(values_string)
-    setproperty!(model_data, field, values_sym)
+    values = eval.(Symbol.(values_string))
+    setproperty!(model_data, field, values)
     return nothing
 end
 set_model_data(field,values) = set_model_data_main(model_data,field,values)
@@ -16,72 +16,14 @@ set_model_data(field,values) = set_model_data_main(model_data,field,values)
 
 #---get_urls functions------------------------------------------------------
 
-function load_regression_data(url::String)
-    ext_raw = split(url,".")[end]
-    ext = Unicode.normalize(ext_raw, casefold=true)
-    if ext=="csv"
-        labels_info = DataFrame(CSVFiles.load(url))
-    else ext=="xlsx"
-        labels_info = DataFrame(XLSX.readtable(url,1)...)
-    end
-    filenames_labels::Vector{String} = labels_info[:,1]
-    labels_original_T = map(ind->Vector(labels_info[ind,2:end]),1:size(labels_info,1))
-    loaded_labels::Vector{Vector{Float32}} = convert(Vector{Vector{Float32}},labels_original_T)
-    return filenames_labels,loaded_labels
-end
-
-function intersect_regression_data!(input_urls::Vector{String},filenames_inputs::Vector{String},
-        loaded_labels::Vector{Vector{Float32}},filenames_labels::Vector{String})
-    num = length(filenames_inputs)
-    inds_adj = zeros(Int64,num)
-    inds_remove = Vector{Int64}(undef,0)
-    cnt = 1
-    l = length(filenames_inputs)
-    while cnt<=l
-        filename = filenames_inputs[cnt]
-        ind = findfirst(x -> x==filename, filenames_labels)
-        if isnothing(ind)
-            deleteat!(input_urls,cnt)
-            deleteat!(filenames_inputs,cnt)
-            l-=1
-        else
-            inds_adj[cnt] = ind
-            cnt += 1
-        end
-    end
-    num = cnt - 1
-    inds_adj = inds_adj[1:num]
-    filenames_labels_temp = filenames_labels[inds_adj]
-    loaded_labels_temp = loaded_labels[inds_adj]
-    r = length(filenames_labels_temp)+1:length(filenames_labels)
-    deleteat!(filenames_labels,r)
-    deleteat!(loaded_labels,r)
-    filenames_labels .= filenames_labels_temp
-    loaded_labels .= loaded_labels_temp
-    return nothing
-end
-
-function intersect_inds(ar1,ar2)
-    inds1 = Array{Int64,1}(undef, 0)
-    inds2 = Array{Int64,1}(undef, 0)
-    for i=1:length(ar1)
-        inds_log = ar2.==ar1[i]
-        if any(inds_log)
-            push!(inds1,i)
-            push!(inds2,findfirst(inds_log))
-        end
-    end
-    return (inds1, inds2)
-end
-
-function get_urls_main(model_data::ModelData,prepared_data::PreparedData)
-    url_inputs = prepared_data.url_inputs
-    url_labels = prepared_data.url_labels
-    if input_type()==:Image
+function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
+    url_inputs = preparation_data.Urls.url_inputs
+    url_labels = preparation_data.Urls.url_labels
+    if input_type()==Image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    if problem_type()==:Classification
-        classification_data = prepared_data.ClassificationData
+    if problem_type()==Classification
+        classification_data = preparation_data.ClassificationData
         input_urls,dirs,_ = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         dirs_raw = intersect(dirs,labels)
@@ -103,8 +45,8 @@ function get_urls_main(model_data::ModelData,prepared_data::PreparedData)
             classification_data.Urls.input_urls = input_urls
             classification_data.Urls.label_urls = dirs
         end
-    elseif problem_type()==:Regression
-        regression_data = prepared_data.RegressionData
+    elseif problem_type()==Regression
+        regression_data = preparation_data.RegressionData
         input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
         filenames_inputs = reduce(vcat,filenames_inputs_raw)
@@ -117,8 +59,8 @@ function get_urls_main(model_data::ModelData,prepared_data::PreparedData)
             regression_data.Urls.labels_url = url_labels
             regression_data.Urls.initial_data_labels = loaded_labels
         end
-    elseif problem_type()==:Segmentation
-        segmentation_data = prepared_data.SegmentationData
+    elseif problem_type()==Segmentation
+        segmentation_data = preparation_data.SegmentationData
         input_urls_raw,label_urls_raw,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
         label_urls = reduce(vcat,label_urls_raw)
@@ -461,80 +403,25 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
 end
 
 function prepare_data_main(model_data::ModelData,
-        prepared_data::PreparedData,channels::Channels)
+        preparation_data::PreparationData,channels::Channels)
     # Initialize
     data_preparation_options = options.DataPreparationOptions
     size12 = model_data.input_size[1:2]
-    if problem_type()==:Classification
-        data = prepared_data.ClassificationData
-    elseif problem_type()==:Regression
-        data = prepared_data.RegressionData
-    elseif problem_type()==:Segmentation
-        data = prepared_data.SegmentationData
+    if problem_type()==Classification
+        data = preparation_data.ClassificationData
+    elseif problem_type()==Regression
+        data = preparation_data.RegressionData
+    elseif problem_type()==Segmentation
+        data = preparation_data.SegmentationData
     end
     progress = channels.data_preparation_progress
     t = Threads.@spawn prepare_data(model_data,data,size12,data_preparation_options,progress)
-    push!(prepared_data.tasks,t)
+    push!(preparation_data.tasks,t)
     return t
 end
 
 
-# Convert images to grayscale Array{Float32,2}
-function image_to_gray_float(image::Array{RGB{Normed{UInt8,8}},2})
-    img_temp = channelview(float.(Gray.(image)))
-    return collect(reshape(img_temp,size(img_temp)...,1))
-end
-
-# Convert images to RGB Array{Float32,3}
-function image_to_color_float(image::Array{RGB{Normed{UInt8,8}},2})
-    img_temp = permutedims(channelview(float.(image)),[2,3,1])
-    return collect(img_temp)
-end
-
-# Convert images to BitArray{3}
-function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vector{Int64},
-        labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},
-        border::Vector{Bool},border_num::Vector{Int64})
-    colors = map(x->RGB((n0f8.(./(x,255)))...),labels_color)
-    num = length(class_inds)
-    num_borders = sum(border)
-    inds_borders = findall(border)
-    label = fill!(BitArray{3}(undef, size(labelimg)...,
-        num + num_borders),0)
-    # Find classes based on colors
-    for i in class_inds
-        colors_current = [colors[i]]
-        inds = findall(map(x->issubset(i,x),labels_incl))
-        if !isempty(class_inds)
-            push!(colors_current,colors[inds]...)
-        end
-        bitarrays = map(x -> .==(labelimg,x)[:,:,:],colors_current)
-        label[:,:,i] = any(reduce(cat3,bitarrays),dims=3)
-    end
-    # Make classes outlining object borders
-    for j=1:length(inds_borders)
-        ind = inds_borders[j]
-        border = outer_perim(label[:,:,ind])
-        dilate!(border,border_num[ind])
-        label[:,:,num+j] = border
-    end
-    return label
-end
-
-
 #---Other-----------------------------------------------------------
-
-function remove_ext(files::Vector{String})
-    filenames = copy(files)
-    for i=1:length(files)
-        chars = collect(files[i])
-        ind = findfirst(chars.=='.')
-        filenames[i] = String(chars[1:ind-1])
-    end
-    return filenames
-end
-
-cat3(A::AbstractArray, B::AbstractArray) = cat(A, B; dims=Val(3))
 
 function replace_nan!(x)
     type = eltype(x)

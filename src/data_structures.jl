@@ -1,38 +1,4 @@
 
-#---Bindings------------------------------------------------------------------
-
-abstract type AbstractEasyML end
-
-function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
-    value = getfield(obj, sym)
-    if value isa Ref
-        return value[]
-    else
-        return value
-    end
-end
-
-function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
-    value = getfield(obj,sym)
-    if value isa Ref
-        value[] = x
-    else
-        setfield!(obj,sym,x)
-    end
-    return nothing
-end
-
-function bind!(obj1,obj2)
-    fields1 = fieldnames(typeof(obj1))
-    fields2 = fieldnames(typeof(obj2))
-    for field in fields1
-        if field in fields2 && getfield(obj1,field) isa Ref
-            setfield!(obj1,field,getfield(obj2,field))
-        end
-    end
-end
-
-
 #---Channels------------------------------------------------------------------
 
 @with_kw struct Channels
@@ -44,12 +10,12 @@ channels = Channels()
 #---Model data-----------------------------------------------------------------
 
 @with_kw mutable struct ModelData<:AbstractEasyML
-    problem_type::Ref{Symbol} = Ref(:Classification)
-    input_type::Ref{Symbol} = Ref(:Image)
-    input_properties::Ref{Vector{Symbol}} = Ref(Vector{Symbol}(undef,0))
-    input_size::Ref{NTuple{3,Int64}} = Ref((0,0,0))
-    output_size::Ref{NTuple{3,Int64}} = Ref((0,0,0))
-    classes::Ref{Vector{<:EasyMLClasses.AbstractClass}} = Ref{Vector{<:EasyMLClasses.AbstractClass}}(Vector{EasyMLClasses.ImageClassificationClass}(undef,0))
+    problem_type = EasyMLCore.model_data.problem_type
+    input_type = EasyMLCore.model_data.input_type
+    input_properties = EasyMLCore.model_data.input_properties
+    input_size = EasyMLCore.model_data.input_size
+    output_size = EasyMLCore.model_data.output_size
+    classes = EasyMLCore.model_data.classes
 end
 model_data = ModelData()
 
@@ -67,7 +33,7 @@ end
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
 end
 
-@with_kw mutable struct ClassificationData
+@with_kw struct ClassificationData
     Urls::ClassificationUrlsData = ClassificationUrlsData()
     Results::ClassificationResultsData = ClassificationResultsData()
 end
@@ -83,7 +49,7 @@ end
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
 end
 
-@with_kw mutable struct RegressionData
+@with_kw struct RegressionData
     Urls::RegressionUrlsData = RegressionUrlsData()
     Results::RegressionResultsData = RegressionResultsData()
 end
@@ -99,45 +65,55 @@ end
     data_labels::Vector{BitArray{3}} = Vector{BitArray{3}}(undef,0)
 end
 
-@with_kw mutable struct SegmentationData
+@with_kw struct SegmentationData
     Urls::SegmentationUrlsData = SegmentationUrlsData()
     Results::SegmentationResultsData = SegmentationResultsData()
 end
 
-@with_kw mutable struct PreparedData
+@with_kw mutable struct PreparationUrls
+    url_inputs::String = ""
+    url_labels::String = ""
+end
+preparation_urls = PreparationUrls()
+
+@with_kw mutable struct PreparationData
     ClassificationData::ClassificationData = ClassificationData()
     RegressionData::RegressionData = RegressionData()
     SegmentationData::SegmentationData = SegmentationData()
-    url_inputs::String = ""
-    url_labels::String = ""
+    Urls::PreparationUrls = preparation_urls
     tasks::Vector{Task} = Vector{Task}(undef,0)
 end
-prepared_data = PreparedData()
+preparation_data = PreparationData()
 
-@with_kw mutable struct AllData
-    PreparedData::PreparedData = prepared_data
-    model_url::Ref{String} = Ref("")
-    model_name::Ref{String} = Ref("")
+@with_kw mutable struct AllDataUrls<:AbstractEasyML
+    model_url::RefValue{String} = Ref("")
+    model_name::RefValue{String} = Ref("")
+end
+all_data_urls = AllDataUrls()
+
+@with_kw struct AllData
+    PreparationData::PreparationData = preparation_data
+    Urls::AllDataUrls = all_data_urls
 end
 all_data = AllData()
 
 
 #---Options------------------------------------------------------------
 
-@with_kw mutable struct HardwareResources
-    allow_GPU::Bool = true
-    num_threads::Int64 = Threads.nthreads()
-    num_slices::Int64 = 1
-    offset::Int64 = 20
+@with_kw mutable struct HardwareResources<:AbstractEasyML
+    allow_GPU::RefValue{Bool} = Ref(true)
+    num_threads::RefValue{Int64} = Ref(Threads.nthreads())
+    num_slices::RefValue{Int64} = Ref(1)
+    offset::RefValue{Int64} = Ref(20)
 end
 hardware_resources = HardwareResources()
 
 @with_kw mutable struct Graphics<:AbstractEasyML
-    scaling_factor::Ref{Float64} = Ref(1.0)
+    scaling_factor::RefValue{Float64} = Ref(1.0)
 end
 graphics = Graphics()
 
-@with_kw mutable struct GlobalOptions
+@with_kw struct GlobalOptions
     Graphics::Graphics = graphics
     HardwareResources::HardwareResources = hardware_resources
 end
@@ -159,13 +135,12 @@ background_cropping_options = BackgroundCroppingOptions()
 end
 image_preparation_options = ImagePreparationOptions()
 
-@with_kw mutable struct DataPreparationOptions
+@with_kw struct DataPreparationOptions
     Images::ImagePreparationOptions = image_preparation_options
 end
 data_preparation_options = DataPreparationOptions()
 
-# Options
-@with_kw mutable struct Options
+@with_kw struct Options
     DataPreparationOptions::DataPreparationOptions = data_preparation_options
     GlobalOptions::GlobalOptions = global_options
 end
@@ -174,9 +149,9 @@ options = Options()
 
 #---Testing----------------------------------------------------------------
 @with_kw mutable struct UnitTest<:AbstractEasyML
-    state::Ref{Bool} = Ref(false)
-    urls::Ref{Vector{String}} = Ref(String[])
-    url_pusher = () -> popfirst!(unit_test.urls)
+    state::RefValue{Bool} = Ref(false)
+    urls::RefValue{Vector{String}} = Ref(String[])
+    url_pusher = () -> popfirst!(urls[])
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state

@@ -20,27 +20,27 @@ function modify(data::DataPreparationOptions)
     return nothing
 end
 
-function get_urls(url_inputs::String,url_labels::String,prepared_data::PreparedData)
+function get_urls(url_inputs::String,url_labels::String,preparation_data::PreparationData)
     url_inputs = replace(url_inputs, '\\'=>'/')
     url_labels = replace(url_labels, '\\'=>'/')
-    prepared_data.url_inputs = url_inputs
-    prepared_data.url_labels = url_labels
+    preparation_data.Urls.url_inputs = url_inputs
+    preparation_data.Urls.url_labels = url_labels
     if !isdir(url_inputs)
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    if problem_type()==:Classification || problem_type()==:Segmentation
+    if problem_type()==Classification || problem_type()==Segmentation
         if !isdir(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
         end
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         if !isfile(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
         end
     end
-    get_urls_main(model_data,prepared_data)
+    get_urls_main(model_data,preparation_data)
     return nothing
 end
 
@@ -48,34 +48,34 @@ end
     get_urls(url_inputs::String,url_labels::String)
 
 Gets URLs to all files present in both folders (or a folder and a file) 
-specified by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.prepared_data`.
+specified by `url_inputs` and `url_labels`. URLs are automatically saved to `EasyML.preparation_data`.
 """
-get_urls(url_inputs,url_labels) = get_urls(url_inputs,url_labels,prepared_data)
+get_urls(url_inputs,url_labels) = get_urls(url_inputs,url_labels,preparation_data)
 
 
-function get_urls(url_inputs::String,prepared_data::PreparedData)
-    if problem_type()!=:Classification
+function get_urls(url_inputs::String,preparation_data::PreparationData)
+    if problem_type()!=Classification
         @error "Label data directory URL was not given."
         return nothing
     end
     url_inputs = replace(url_inputs, '\\'=>'/')
-    prepared_data.url_inputs = url_inputs
+    preparation_data.Urls.url_inputs = url_inputs
     if !isdir(url_inputs)
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    get_urls_main(model_data,prepared_data)
+    get_urls_main(model_data,preparation_data)
     return nothing
 end
 """
     get_urls(url_inputs::String)
 
 Used for classification. Gets URLs to all files present in folders located at a folder specified by `url_inputs` 
-for training. Folders should have names identical to the name of classes. URLs are automatically saved to `EasyML.prepared_data`.
+for training. Folders should have names identical to the name of classes. URLs are automatically saved to `EasyML.preparation_data`.
 """
-get_urls(url_inputs) = get_urls(url_inputs,prepared_data)
+get_urls(url_inputs) = get_urls(url_inputs,preparation_data)
 
-function get_urls(prepared_data::PreparedData)
+function get_urls(preparation_data::PreparationData)
     url_out = String[""]
     observe() = url_out[1]
     dir = pwd()
@@ -88,15 +88,15 @@ function get_urls(prepared_data::PreparedData)
         url_out[1] = unit_test.url_pusher()
     end
     if !isempty(url_out[1])
-        prepared_data.url_inputs = url_out[1]
-        @info string(prepared_data.url_inputs, " was selected.")
+        preparation_data.Urls.url_inputs = url_out[1]
+        @info string(preparation_data.Urls.url_inputs, " was selected.")
     else
         @error "Input data directory URL is empty."
         return nothing
     end
-    if problem_type()==:Classification
+    if problem_type()==Classification
     
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         @info "Select a file with label data."
         name_filters = ["*.csv","*.xlsx"]
         @qmlfunction(observe,unit_test)
@@ -108,13 +108,13 @@ function get_urls(prepared_data::PreparedData)
             url_out[1] = unit_test.url_pusher()
         end
         if !isempty(url_out[1])
-            prepared_data.url_labels = url_out[1]
-            @info string(prepared_data.url_labels, " was selected.")
+            preparation_data.Urls.url_labels = url_out[1]
+            @info string(preparation_data.Urls.url_labels, " was selected.")
         else
             @error "Label data file URL is empty."
             return nothing
         end
-    elseif problem_type()==:Segmentation
+    elseif problem_type()==Segmentation
         @info "Select a directory with label data."
         @qmlfunction(observe,unit_test)
         path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
@@ -124,66 +124,66 @@ function get_urls(prepared_data::PreparedData)
             url_out[1] = unit_test.url_pusher()
         end
         if !isempty(url_out[1])
-            prepared_data.url_labels = url_out[1]
-            @info string(prepared_data.url_labels, " was selected.")
+            preparation_data.Urls.url_labels = url_out[1]
+            @info string(preparation_data.Urls.url_labels, " was selected.")
         else
             @error "Label data directory URL is empty."
             return nothing
         end
     end
-    get_urls_main(model_data,prepared_data)
+    get_urls_main(model_data,preparation_data)
     return nothing
 end
 """
     get_urls()
 
 Opens a folder/file dialog or dialogs to choose folders or folder and a file containing inputs 
-and labels. URLs are automatically saved to `EasyML.prepared_data`.
+and labels. URLs are automatically saved to `EasyML.preparation_data`.
 """
-get_urls() = get_urls(prepared_data)
+get_urls() = get_urls(preparation_data)
 
-function prepare_data(model_data::ModelData,prepared_data::PreparedData)
+function prepare_data(model_data::ModelData,preparation_data::PreparationData)
     if isempty(model_data.classes)
         @error "Empty classes."
         return nothing
     end
     fields = [:data_input,:data_labels]
     for i in fields
-        empty!(getfield(prepared_data.ClassificationData.Results,i))
-        empty!(getfield(prepared_data.RegressionData.Results,i))
-        empty!(getfield(prepared_data.SegmentationData.Results,i))
+        empty!(getfield(preparation_data.ClassificationData.Results,i))
+        empty!(getfield(preparation_data.RegressionData.Results,i))
+        empty!(getfield(preparation_data.SegmentationData.Results,i))
     end
     empty_channel(:data_preparation_progress)
-    if input_type()==:Image
-        if problem_type()==:Classification 
-            empty!(prepared_data.SegmentationData.Urls.input_urls)
-            empty!(prepared_data.SegmentationData.Urls.label_urls)
-            empty!(prepared_data.RegressionData.Urls.input_urls)
-            if isempty(prepared_data.ClassificationData.Urls.input_urls)
+    if input_type()==Image
+        if problem_type()==Classification 
+            empty!(preparation_data.SegmentationData.Urls.input_urls)
+            empty!(preparation_data.SegmentationData.Urls.label_urls)
+            empty!(preparation_data.RegressionData.Urls.input_urls)
+            if isempty(preparation_data.ClassificationData.Urls.input_urls)
                 @error "No input urls. Run 'get_url'."
                 return nothing
             end
-        elseif problem_type()==:Regression
-            empty!(prepared_data.ClassificationData.Urls.input_urls)
-            empty!(prepared_data.ClassificationData.Urls.label_urls)
-            empty!(prepared_data.SegmentationData.Urls.input_urls)
-            empty!(prepared_data.SegmentationData.Urls.label_urls)
-            if isempty(prepared_data.RegressionData.Urls.input_urls)
+        elseif problem_type()==Regression
+            empty!(preparation_data.ClassificationData.Urls.input_urls)
+            empty!(preparation_data.ClassificationData.Urls.label_urls)
+            empty!(preparation_data.SegmentationData.Urls.input_urls)
+            empty!(preparation_data.SegmentationData.Urls.label_urls)
+            if isempty(preparation_data.RegressionData.Urls.input_urls)
                 @error "No input urls. Run 'get_url'."
                 return nothing
             end
-        elseif problem_type()==:Segmentation
-            empty!(prepared_data.ClassificationData.Urls.input_urls)
-            empty!(prepared_data.ClassificationData.Urls.label_urls)
-            empty!(prepared_data.RegressionData.Urls.input_urls)
-            if isempty(prepared_data.SegmentationData.Urls.input_urls)
+        elseif problem_type()==Segmentation
+            empty!(preparation_data.ClassificationData.Urls.input_urls)
+            empty!(preparation_data.ClassificationData.Urls.label_urls)
+            empty!(preparation_data.RegressionData.Urls.input_urls)
+            if isempty(preparation_data.SegmentationData.Urls.input_urls)
                 @error "No input urls. Run 'get_url'."
                 return nothing
             end
         end
     end
 
-    t = prepare_data_main(model_data,prepared_data,channels)
+    t = prepare_data_main(model_data,preparation_data,channels)
     max_value = 0
     value = 0
     p = Progress(0)
@@ -224,18 +224,18 @@ function prepare_data(model_data::ModelData,prepared_data::PreparedData)
             end
         end
     end
-    if problem_type()==:Classification
-        return prepared_data.ClassificationData.Results
-    elseif problem_type()==:RegressionData
-        return prepared_data.RegressionData.Results
-    else # problem_type()==:Segmentation
-        return prepared_data.SegmentationData.Results
+    if problem_type()==Classification
+        return preparation_data.ClassificationData.Results
+    elseif problem_type()==RegressionData
+        return preparation_data.RegressionData.Results
+    else # problem_type()==Segmentation
+        return preparation_data.SegmentationData.Results
     end
 end
 """
     prepare_data() 
 
 Prepares images and corresponding labels for training using URLs loaded previously using 
-`get_urls`. Saves data to EasyML.prepared_data.
+`get_urls`. Saves data to EasyML.PreparedDarta.
 """
-prepare_data() = prepare_data(model_data,prepared_data)
+prepare_data() = prepare_data(model_data,preparation_data)
