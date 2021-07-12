@@ -39,7 +39,7 @@ function save_model(model_data,url)
     if '\\' in url || '/' in url
         url_split = split(url,('/','\\'))[1:end-1]
         url_dir = reduce((x,y) -> join([x,y],'\\'),url_split)
-        mkdeepdir(url_dir)
+        mkpath(url_dir)
     end
     # Serialize and save model
     dict_raw = Dict{Symbol,Any}()
@@ -272,20 +272,6 @@ function dict_to_struct!(obj,dict::Dict)
             else
                 setproperty!(obj,sym,value)
             end
-        end
-    end
-    return nothing
-end
-
-
-#---Other-------------------------------------------------------------
-
-function mkdeepdir(target_dir::AbstractString)
-    dirs = split(target_dir,('/','\\'))
-    for i=1:length(dirs)
-        temp_path = join(dirs[1:i],'\\')
-        if !isdir(temp_path)
-            mkdir(temp_path)
         end
     end
     return nothing
