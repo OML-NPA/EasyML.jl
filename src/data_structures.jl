@@ -1,36 +1,10 @@
 
 #---Model data----------------------------------------------------------------------
 
-abstract type AbstractClass end
-
-@with_kw mutable struct ImageClassificationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-end
-
-@with_kw mutable struct ImageRegressionClass<:AbstractClass
-    name::String = ""
-end
-
-@with_kw mutable struct BorderClass
-    enabled::Bool = false
-    thickness::Int64 = 3
-end
-
-@with_kw mutable struct ImageSegmentationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-    color::Vector{Float64} = Vector{Float64}(undef,3)
-    parents::Vector{String} = ["",""]
-    overlap::Bool = false
-    min_area::Int64 = 0
-    BorderClass::BorderClass = BorderClass()
-end
-
 @with_kw mutable struct ModelData<:AbstractEasyML
-    problem_type::RefValue{Type{<:AbstractProblemType}} = Ref{Type{<:AbstractProblemType}}(Classification)
-    input_type::RefValue{Type{<:AbstractInputType}} = Ref{Type{<:AbstractInputType}}(Image)
-    classes::RefValue{Vector{<:AbstractClass}} = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
+    problem_type = EasyMLCore.model_data.problem_type
+    input_type = EasyMLCore.model_data.input_type
+    classes = EasyMLCore.model_data.classes
 end
 model_data = ModelData()
 

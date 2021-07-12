@@ -2,7 +2,6 @@
 module EasyMLClasses
 
 # Import packages
-using BSON: __deserialized_types__
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll,
@@ -12,6 +11,9 @@ Parameters,
 BSON,
 # Machine learning
 EasyMLCore
+
+import EasyMLCore: AbstractClass, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
+import EasyMLCore: save_model, load_model, get_options
 
 # Include functions
 include("data_structures.jl")
@@ -25,6 +27,6 @@ export QML
 export model_data, Classification, Regression, Segmentation, Image, 
     ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export make_classes, save_model, load_model
-export getproperty, setproperty
+export getproperty, setproperty!
 
 end

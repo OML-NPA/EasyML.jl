@@ -4,7 +4,7 @@ save_model()
 
 Opens a file dialog where you can select where to save a model and how it should be called.
 """
-function save_model()
+function EasyMLCore.save_model()
     name_filters = ["*.model"]
     if isempty(all_data.Urls.model_name)
         all_data.Urls.model_name = "new_model"
@@ -31,14 +31,14 @@ end
 Saves a model to a specified URL. The URL can be absolute or relative. 
 Use '.model' extension.
 """
-save_model(url) = save_model_main(model_data,url)
+save_model(url) = save_model(model_data,url)
 
 """
 load_model()
 
 Opens a file dialog where you can select a model to be loaded and loads it.
 """
-function load_model()
+function EasyMLCore.load_model()
     name_filters = ["*.model"]
     url_out = String[""]
     observe(url) = url_out[1] = url
@@ -62,4 +62,4 @@ end
 
 Loads a model from a specified URL. The URL can be absolute or relative.
 """
-load_model(url) = load_model_main(model_data,url)
+load_model(url) = load_model(model_data,url,all_data.Urls)

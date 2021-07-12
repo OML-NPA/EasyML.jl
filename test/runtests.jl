@@ -5,6 +5,7 @@ EasyMLClasses.unit_test.state = true
 
 load_model("models/classification.model")
 make_classes()
+save_model("models/classification.model")
 
 load_model("models/regression.model")
 make_classes()
