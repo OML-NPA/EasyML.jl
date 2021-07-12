@@ -4,6 +4,7 @@ using EasyMLClasses
 EasyMLClasses.unit_test.state = true
 
 make_classes()
+EasyMLClasses.unit_test.urls = [""]
 save_model()
 
 load_model("models/classification.model")
