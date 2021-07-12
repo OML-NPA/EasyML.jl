@@ -262,11 +262,8 @@ function dict_to_struct!(obj,dict::Dict)
         value = dict[ks_cur]
         if hasproperty(obj,sym)
             obj_property = getproperty(obj,sym)
-            obj_type = typeof(obj_property)
             if value isa Dict
                 dict_to_struct!(obj_property,value)
-            elseif obj_property isa Vector && occursin("EasyML",string(parentmodule(eltype(obj_type))))
-                to_struct!(obj,sym,value)
             else
                 setproperty!(obj,sym,value)
             end
