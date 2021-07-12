@@ -31,7 +31,7 @@ end
 Saves a model to a specified URL. The URL can be absolute or relative. 
 Use '.model' extension.
 """
-save_model(url) = save_model(model_data,url)
+save_model(url) = EasyMLCore.save_model(model_data,url)
 
 """
 load_model()
@@ -62,4 +62,4 @@ end
 
 Loads a model from a specified URL. The URL can be absolute or relative.
 """
-load_model(url) = load_model(model_data,url,all_data.Urls)
+load_model(url) = EasyMLCore.load_model(model_data,url,all_data.Urls)
