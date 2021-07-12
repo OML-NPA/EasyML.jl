@@ -368,8 +368,8 @@ function validate_inner(classes,model,model_data::ModelData,accuracy::Function,l
         if check_abort_signal(channels.validation_modifiers)
             return nothing
         end
-        data_input,label,other = prepare_validation_data(classes,i,model_data,validation_data)
-        predicted = forward(model,data_input,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
+        input_data,label,other = prepare_validation_data(classes,i,model_data,validation_data)
+        predicted = forward(model,input_data,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
         if validation_data.PlotData.use_labels
             accuracy_val = accuracy(predicted,label)
             loss_val = loss(predicted,label)
