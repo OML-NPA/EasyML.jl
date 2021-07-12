@@ -9,26 +9,25 @@ import Base.getproperty, Base.setproperty!, Base.RefValue
 include("data_structures.jl")
 include("functions.jl")
 
-export 
 # Functions
-getproperty, setproperty!, bind!,
+export  getproperty, setproperty!, bind!
 # Abstract types
-AbstractEasyML, AbstractProblemType, AbstractInputType, AbstractInputProperty,
+export AbstractEasyML, AbstractProblemType, AbstractInputType, AbstractInputProperty
 # Problem types
-Classification, Regression, Segmentation,
+export Classification, Regression, Segmentation
 # Input types
-Image,
+export Image
 # Input properties
-Grayscale,
+export Grayscale
 # Struct to Dict interconversion
-struct_to_dict!, dict_to_struct!, to_struct!,
+export struct_to_dict!, dict_to_struct!, to_struct!
 # Model saving/loading
-save_model_main, load_model_main, 
+export save_model_main, load_model_main
 # Options saving/loading
-save_options_main, load_options_main,
+export save_options_main, load_options_main
 # GUI data handling
-fix_QML_types, get_data_main, get_options_main, set_options_main,
+export fix_QML_types, get_data_main, get_options_main, set_options_main
 # Other
-RefValue
+export RefValue
 
 end
