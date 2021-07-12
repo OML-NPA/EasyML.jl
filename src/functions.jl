@@ -67,7 +67,6 @@ function load_model(model_data,url,all_data_urls)
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
     ks = intersect(ks,fnames)    
-    k = :input_type
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try

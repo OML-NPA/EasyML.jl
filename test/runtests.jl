@@ -46,6 +46,7 @@ end
     end
     @test begin save_model(EasyMLCore.model_data,url); true end
     @test begin load_model(EasyMLCore.model_data,url,all_data_urls); true end
+    @test begin laoad_model(EasyMLCore.model_data,"model/old_test.model"); true end
     rm("models/test_dir/test.model")
 end
 
