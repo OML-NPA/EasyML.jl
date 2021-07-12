@@ -368,6 +368,7 @@ ApplicationWindow {
                             Julia.get_image_validation(["ImageSegmentationResults","error_data"],[1,1])
                             resultDisplay.update()
                         }
+                        delay(2000, validationWindow.close)
                     }
                     running = false
                 }
