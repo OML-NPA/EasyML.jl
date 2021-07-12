@@ -3,6 +3,9 @@ using EasyMLClasses
 
 EasyMLClasses.unit_test.state = true
 
+make_classes()
+save_model()
+
 load_model("models/classification.model")
 make_classes()
 save_model("models/classification.model")
