@@ -29,6 +29,6 @@ save_options, load_options,
 # GUI data handling
 fix_QML_types, get_data, get_options, set_options,
 # Other
-RefValue
+mkdeepdir, RefValue
 
 end
