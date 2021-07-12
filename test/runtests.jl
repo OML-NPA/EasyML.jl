@@ -19,8 +19,8 @@ dummy2 = Dummy2(Ref(2),2)
 end
 
 @testset "Mutating fields" begin
-    @test dummy1.a isa Int64
-    @test dummy1.b isa Int64
+    @test begin dummy1.a = 3; true end
+    @test begin dummy1.b = 4; true end
 end
 
 @testset "Binding" begin
