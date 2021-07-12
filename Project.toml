@@ -1,0 +1,4 @@
+name = "EasyMLCore"
+uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
+authors = ["Aleksandr Illarionov <illarionov1997@gmail.com>"]
+version = "0.1.0"
