@@ -92,7 +92,7 @@ end
         @test get_data(data,["Data2","b"],[1])=="b"
     end
     @testset "Get options" begin
-        @test get_options(data,["Data2","a"])=="a"
+        @test get_options(data,["Data2","a"],[])=="a"
         @test get_options(data,["Data2","b"],[1])=="b"
         @test get_options(data,["Data2","c"],[1,1])=="c"
     end

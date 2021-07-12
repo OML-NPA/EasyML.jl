@@ -159,7 +159,7 @@ function get_data(data,fields,inds)
 end
 
 # Allows to read options from GUI
-function get_options(data,fields,inds=[])
+function get_options(data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
