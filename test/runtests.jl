@@ -39,14 +39,14 @@ end
     url = "models/test_dir/test.model"
     @test begin 
         try 
-            load_model(EasyMLCore.model_data,url,all_data_urls) 
+            load_model_main(EasyMLCore.model_data,url,all_data_urls) 
         catch e
             e isa ErrorException
         end
     end
-    @test begin save_model(EasyMLCore.model_data,url); true end
-    @test begin load_model(EasyMLCore.model_data,url,all_data_urls); true end
-    @test begin load_model(EasyMLCore.model_data,"models/old_test.model",all_data_urls); true end
+    @test begin save_model_main(EasyMLCore.model_data,url); true end
+    @test begin load_model_main(EasyMLCore.model_data,url,all_data_urls); true end
+    @test begin load_model_main(EasyMLCore.model_data,"models/old_test.model",all_data_urls); true end
     rm("models/test_dir/test.model")
 end
 
@@ -61,9 +61,9 @@ end
         b::Int64
     end
     options = Options(true,1)
-    @test begin load_options(options); true end
-    @test begin save_options(options); true end
-    @test begin load_options(options_busted); true end
+    @test begin load_options_main(options); true end
+    @test begin save_options_main(options); true end
+    @test begin load_options_main(options_busted); true end
 end
 
 @testset verbose = true "QML interaction       "  begin
@@ -89,24 +89,24 @@ end
         @test fix_QML_types((1,2))==(1,2)
     end
     @testset "Get data" begin
-        @test get_data(data,["Data2","b"],[1])=="b"
+        @test get_data_main(data,["Data2","b"],[1])=="b"
     end
     @testset "Get options" begin
-        @test get_options(data,["Data2","a"],[])=="a"
-        @test get_options(data,["Data2","b"],[1])=="b"
-        @test get_options(data,["Data2","c"],[1,1])=="c"
+        @test get_options_main(data,["Data2","a"],[])=="a"
+        @test get_options_main(data,["Data2","b"],[1])=="b"
+        @test get_options_main(data,["Data2","c"],[1,1])=="c"
     end
     @testset "Set options" begin
         @test begin 
-            set_options(data,["Data2","a"],"c")
+            set_options_main(data,["Data2","a"],"c")
             data.Data2.a == :c
         end
         @test begin 
-            set_options(data,["Data2","b"],[1],"d")
+            set_options_main(data,["Data2","b"],[1],"d")
             data.Data2.b[1] == :d
         end
         @test begin 
-            set_options(data,["Data2","c"],[1,1],"e")
+            set_options_main(data,["Data2","c"],[1,1],"e")
             data.Data2.c[1][1] == :e
         end
     end

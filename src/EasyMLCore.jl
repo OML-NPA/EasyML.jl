@@ -23,12 +23,12 @@ Grayscale,
 # Struct to Dict interconversion
 struct_to_dict!, dict_to_struct!, to_struct!,
 # Model saving/loading
-save_model, load_model, 
+save_model_main, load_model_main, 
 # Options saving/loading
-save_options, load_options,
+save_options_main, load_options_main,
 # GUI data handling
-fix_QML_types, get_data, get_options, set_options,
+fix_QML_types, get_data_main, get_options_main, set_options_main,
 # Other
-mkdeepdir, RefValue
+RefValue
 
 end

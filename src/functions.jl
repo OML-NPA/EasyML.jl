@@ -33,7 +33,7 @@ end
 
 #---Model saving/loading--------------------------------------------
 
-function save_model(model_data,url)
+function save_model_main(model_data,url)
     url = fix_QML_types(url)
     # Make folders if needed
     if '\\' in url || '/' in url
@@ -57,7 +57,7 @@ function save_model(model_data,url)
     return nothing
 end
 
-function load_model(model_data,url,all_data_urls)
+function load_model_main(model_data,url,all_data_urls)
     url = fix_QML_types(url)
     if isfile(url)
         loaded_data = BSON.load(url)[:dict]
@@ -99,24 +99,24 @@ end
 
 #---Options saving/loading--------------------------------------------------
 
-function save_options(options)
+function save_options_main(options)
     dict = Dict{Symbol,Any}()
     struct_to_dict!(dict,options)
     BSON.@save("options.bson",dict)
     return nothing
 end
 
-function load_options(options)
+function load_options_main(options)
     if isfile("options.bson")
         try
             data = BSON.load("options.bson")
             dict_to_struct!(options,data[:dict])
         catch e
             @error string("Options were not loaded. Error: ",e)
-            save_options(options)
+            save_options_main(options)
         end 
     else
-        save_options(options)
+        save_options_main(options)
     end
     return nothing
 end
@@ -140,7 +140,7 @@ function fix_QML_types(var)
 end
 
 # Allows to read data from GUI
-function get_data(data,fields,inds)
+function get_data_main(data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = convert(Vector{Int64},fix_QML_types(inds))
     for i = 1:length(fields)
@@ -159,7 +159,7 @@ function get_data(data,fields,inds)
 end
 
 # Allows to read options from GUI
-function get_options(data,fields,inds)
+function get_options_main(data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
@@ -178,7 +178,7 @@ function get_options(data,fields,inds)
 end
 
 # Allows to write to options from GUI
-function set_options(options,fields,args...)
+function set_options_main(options,fields,args...)
     data = options
     fields = fix_QML_types(fields)
     field_end = Symbol(fields[end])
