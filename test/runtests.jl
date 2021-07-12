@@ -18,6 +18,11 @@ dummy2 = Dummy2(Ref(2),2)
     @test dummy1.b isa Int64
 end
 
+@testset "Mutating fields" begin
+    @test dummy1.a isa Int64
+    @test dummy1.b isa Int64
+end
+
 @testset "Binding" begin
     bind!(dummy1,dummy2)
     @test dummy1.a === dummy2.a
