@@ -53,8 +53,9 @@ end
     output_size::RefValue{NTuple{3,Int64}} = Ref((0,0,0))
     problem_type::RefValue{Type{<:AbstractProblemType}} = Ref{Type{<:AbstractProblemType}}(Classification)
     input_type::RefValue{Type{<:AbstractInputType}} = Ref{Type{<:AbstractInputType}}(Image)
-    input_properties::RefValue{Vector{Symbol}} = Ref(Vector{Symbol}(undef,0))
+    input_properties::RefValue{Vector{Type{<:AbstractInputProperty}}} = 
+        Ref{Vector{Type{<:AbstractInputProperty}}}(Type{AbstractInputProperty}[])
     classes::RefValue{Vector{<:AbstractClass}} = 
-        RefValue{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
+        Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
 end
 model_data = ModelData()
