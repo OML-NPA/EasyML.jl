@@ -30,6 +30,7 @@ end
 end
 
 @testset "Model loading/saving  " begin
+    EasyMLCore.model_data.classes = repeat([EasyMLCore.ImageSegmentationClass()],2)
     mutable struct AllDataUrls<:AbstractEasyML
         model_url::RefValue{String}
         model_name::RefValue{String}
@@ -42,6 +43,11 @@ end
 end
 
 @testset "Options loading/saving" begin
+    mutable struct OptionsBusted
+        a::Vector{Int64}
+        b::Int64
+    end
+    options_busted = OptionsBusted([1],1)
     mutable struct Options
         a::Bool
         b::Int64
@@ -49,8 +55,7 @@ end
     options = Options(true,1)
     @test begin load_options(options); true end
     @test begin save_options(options); true end
-    @test begin load_options(options); true end
-    rm("options.bson")
+    @test begin load_options(options_busted); true end
 end
 
 @testset verbose = true "QML interaction       "  begin
