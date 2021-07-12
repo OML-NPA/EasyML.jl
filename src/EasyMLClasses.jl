@@ -2,15 +2,16 @@
 module EasyMLClasses
 
 # Import packages
+using BSON: __deserialized_types__
 using
 # Interfacing
 QML, Qt5QuickControls2_jll, Qt5Charts_jll,
 # Data structuring
 Parameters,
 # Data import/export
-BSON
-
-import Base.RefValue
+BSON,
+# Machine learning
+EasyMLCore
 
 # Include functions
 include("data_structures.jl")

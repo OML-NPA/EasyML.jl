@@ -35,7 +35,8 @@ function load_model_main(model_data,url)
     end
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
-    ks = intersect(ks,fnames)
+    ks = intersect(ks,fnames)    
+    k = :input_type
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try
@@ -47,6 +48,8 @@ function load_model_main(model_data,url)
                     type = typeof(getproperty(model_data,k))
                     deserialized_typed = convert(type,deserialized)
                     setproperty!(model_data,k,deserialized_typed)
+                elseif deserialized isa Symbol
+                    setproperty!(model_data,k,eval(deserialized))
                 else
                     setproperty!(model_data,k,deserialized)
                 end
@@ -123,6 +126,8 @@ function struct_to_dict!(dict,obj)
             end
             data_tuple = (vector_type = string(type), types = string(types), values = dict_vec)
             dict[k] = data_tuple
+        elseif value isa DataType
+            dict[k] = Symbol(value)
         else
             dict[k] = value
         end
@@ -161,9 +166,7 @@ function dict_to_struct!(obj,dict::Dict)
             elseif obj_property isa Vector && occursin("EasyML",string(parentmodule(eltype(obj_type))))
                 to_struct!(obj,sym,value)
             else
-                if hasfield(typeof(obj),sym)
-                    setproperty!(obj,sym,value)
-                end
+                setproperty!(obj,sym,value)
             end
         end
     end
