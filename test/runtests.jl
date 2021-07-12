@@ -37,6 +37,13 @@ end
     end
     all_data_urls = AllDataUrls(Ref(""),Ref(""))
     url = "models/test_dir/test.model"
+    @test begin 
+        try 
+            load_model(EasyMLCore.model_data,url,all_data_urls) 
+        catch e
+            e isa ErrorException
+        end
+    end
     @test begin save_model(EasyMLCore.model_data,url); true end
     @test begin load_model(EasyMLCore.model_data,url,all_data_urls); true end
     rm("models/test_dir/test.model")
@@ -77,7 +84,7 @@ end
         @test fix_QML_types(propmap["string"])=="some string"
         @test fix_QML_types(propmap["integer"])==zero(Int64)
         @test fix_QML_types(propmap["float"])==zero(Float64)
-        @test fix_QML_types([1,2,3,4])==[1,2,3,4]
+        @test fix_QML_types(propmap["list"])==[1,2,3,4]
         @test fix_QML_types((1,2))==(1,2)
     end
     @testset "Get data" begin

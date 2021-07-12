@@ -63,7 +63,6 @@ function load_model(model_data,url,all_data_urls)
         loaded_data = BSON.load(url)[:dict]
     else
         error(string(url, " does not exist."))
-        return nothing
     end
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
