@@ -38,7 +38,7 @@ function save_model(model_data,url)
     # Make folders if needed
     if '\\' in url || '/' in url
         url_split = split(url,('/','\\'))[1:end-1]
-        url_dir = reduce((x,y) -> join([x,y],'\\'),url_split)
+        url_dir = reduce((x,y) -> join([x,y],'/'),url_split)
         mkpath(url_dir)
     end
     # Serialize and save model
