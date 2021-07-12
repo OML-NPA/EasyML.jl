@@ -103,6 +103,8 @@ ApplicationWindow {
             else if (problemComboBox.currentIndex==2) {
                 var color = Julia.get_class_field(ind,"color")
                 var parents = Julia.get_class_field(ind,"parents")
+                var min_area = Julia.get_class_field(ind,"min_area")
+                console.log(JSON.stringify(min_area))
                 class_var.name = Julia.get_class_field(ind,"name")
                 class_var.weight = Julia.get_class_field(ind,"weight")
                 class_var.parent = parents[0]
@@ -111,11 +113,13 @@ ApplicationWindow {
                 class_var.colorG = color[1]
                 class_var.colorB = color[2]
                 class_var.overlap = Julia.get_class_field(ind,"overlap")
-                class_var.min_area = Julia.get_class_field(ind,"min_area")
+                class_var.min_area = min_area
                 class_var.border = Julia.get_class_field(ind,["BorderClass","enabled"])
                 class_var.border_thickness = parseInt(Julia.get_class_field(ind,["BorderClass","thickness"])) // Returns a string otherwise for some reason
             }
             classModel.append(class_var)
+            console.log(JSON.stringify(class_var.min_area))
+            console.log(JSON.stringify(classModel.get(i).min_area))
         }
         if (classModel.count>0) {
             indTree = 0
@@ -239,6 +243,7 @@ ApplicationWindow {
                             Qt.Checked : Qt.Unchecked
             
             // minareaSpinBox
+            console.log(JSON.stringify(classModel.get(indTree).min_area))
             minareaSpinBox.value = classModel.get(indTree).min_area
 
             // borderthicknessSpinBox
