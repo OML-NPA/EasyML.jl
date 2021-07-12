@@ -46,7 +46,7 @@ options = Options()
 @with_kw mutable struct UnitTest<:AbstractEasyML
     state::RefValue{Bool} = Ref(false)
     urls::RefValue{Vector{String}} = Ref(String[])
-    url_pusher = () -> popfirst!(unit_test.urls)
+    url_pusher = () -> popfirst!(urls[])
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state
