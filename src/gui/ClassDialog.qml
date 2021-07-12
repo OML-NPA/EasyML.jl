@@ -116,8 +116,6 @@ ApplicationWindow {
                 class_var.border_thickness = parseInt(Julia.get_class_field(ind,["BorderClass","thickness"])) // Otherwise, returns a string in Linux for some reason
             }
             classModel.append(class_var)
-            console.log(class_var.min_area)
-            console.log(classModel.get(i).min_area)
         }
         if (classModel.count>0) {
             indTree = 0
@@ -241,7 +239,6 @@ ApplicationWindow {
                             Qt.Checked : Qt.Unchecked
             
             // minareaSpinBox
-            console.log(JSON.stringify(classModel.get(indTree).min_area))
             minareaSpinBox.value = classModel.get(indTree).min_area
 
             // borderthicknessSpinBox
