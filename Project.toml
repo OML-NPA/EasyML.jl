@@ -2,3 +2,6 @@ name = "EasyMLCore"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
 authors = ["Open Machine Learning Association <a_ill@outlook.com>"]
 version = "0.1.0"
+
+[compat]
+julia = "1.6"
