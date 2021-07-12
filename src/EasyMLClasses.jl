@@ -13,7 +13,7 @@ BSON,
 EasyMLCore
 
 import EasyMLCore: AbstractClass, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
-import EasyMLCore: save_model, load_model, get_options
+
 
 # Include functions
 include("data_structures.jl")

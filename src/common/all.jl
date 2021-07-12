@@ -1,7 +1,7 @@
 
 #---GUI data handling-----------------------------------------------------
 
-get_options(fields,inds=[]) = EasyMLCore.get_options(options,fields,inds)
+get_options(fields,inds=[]) = get_options_main(options,fields,inds)
 
 #---Other-------------------------------------------------------------
 
