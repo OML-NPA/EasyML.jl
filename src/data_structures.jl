@@ -42,3 +42,6 @@ struct Segmentation <: AbstractProblemType end
 
 abstract type AbstractInputType end
 struct Image <: AbstractInputType end
+
+abstract type AbstractInputProperty end
+struct Grayscale <: AbstractInputProperty end

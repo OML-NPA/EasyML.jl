@@ -10,11 +10,13 @@ export
 # Functions
 getproperty, setproperty!, bind!,
 # Abstract types
-AbstractEasyML, AbstractProblemType, AbstractInputType,
+AbstractEasyML, AbstractProblemType, AbstractInputType, AbstractInputProperty,
 # Problem types
 Classification, Regression, Segmentation ,
 # Input types
 Image,
+# Input properties
+Grayscale,
 # Other
 RefValue
 
