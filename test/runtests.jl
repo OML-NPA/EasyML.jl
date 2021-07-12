@@ -26,12 +26,6 @@ EasyMLClasses.get_problem_type()
 
 EasyMLClasses.get_input_type()
 
-function url_pusher()
-    url  = popfirst!(EasyMLClasses.unit_test.urls)
-    return url
-end
-EasyMLClasses.unit_test.url_pusher = url_pusher
-
 EasyMLClasses.unit_test.urls = ["models2/segmentation.model"]
 save_model()
 
