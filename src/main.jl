@@ -3,15 +3,47 @@
 #----------------------------------------------------------------
 
 # Allows to write to data from GUI
-function set_model_data_main(model_data::ModelData,field,values)
+function set_model_data_main(model_data::ModelData,field,value)
     field_string::String = fix_QML_types(field)
-    values_string::Vector{String} = fix_QML_types(values)
+    value_string::String = fix_QML_types(value)
     field = Symbol(field_string)
-    values = eval.(Symbol.(values_string))
-    setproperty!(model_data, field, values)
+    value = eval(Symbol(value_string))
+    values = getproperty(model_data, field)
+    if !(value in values)
+        push!(values,value)
+    end
     return nothing
 end
 set_model_data(field,values) = set_model_data_main(model_data,field,values)
+
+function get_model_data_main(model_data::ModelData,field,value)
+    field_string = fix_QML_types(field)
+    value_string = fix_QML_types(value)
+    field = Symbol(field_string)
+    values_string = string.(getproperty(model_data, field))
+    values_string = replace.(values_string, "EasyMLCore." => "" )
+    if value_string in values_string
+        return true
+    else
+        return false
+    end
+end
+get_model_data(field,value) = get_model_data_main(model_data,field,value)
+
+function rm_model_data_main(model_data::ModelData,field,value)
+    field_string = fix_QML_types(field)
+    value_string = fix_QML_types(value)
+    field = Symbol(field_string)
+    values = getproperty(model_data, field)
+    values_string = string.(values)
+    values_string = replace.(values_string, "EasyMLCore." => "" )
+    ind = findall(value_string.==values_string)
+    if !isempty(ind)
+        deleteat!(values,ind)
+    end
+    return nothing
+end
+rm_model_data(field,value) = rm_model_data_main(model_data,field,value)
 
 
 #---get_urls functions------------------------------------------------------

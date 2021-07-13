@@ -58,9 +58,6 @@ ApplicationWindow {
     }
 
     onClosing: {
-        if (Julia.get_options(["DataPreparationOptions","Images","grayscale"])) { 
-            Julia.set_model_data("input_properties",["Grayscale"])
-        }
         Julia.save_options()
     }
 
@@ -172,13 +169,18 @@ ApplicationWindow {
                             anchors.verticalCenter: grayscaleLabel.verticalCenter
                             padding: 0
                             width: height
-                            checkState : Julia.get_options(
-                                        ["DataPreparationOptions","Images","grayscale"]) ?
+                            checkState : Julia.get_model_data("input_properties","Grayscale") ?
                                         Qt.Checked : Qt.Unchecked
                             onClicked: {
                                 var value = checkState==Qt.Checked ? true : false
                                 Julia.set_options(
                                     ["DataPreparationOptions","Images","grayscale"],value)
+                                if (value) {
+                                    Julia.set_model_data("input_properties","Grayscale")
+                                }
+                                else {
+                                    Julia.rm_model_data("input_properties","Grayscale")
+                                }
                             }
                         }
                     }

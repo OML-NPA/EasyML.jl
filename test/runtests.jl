@@ -3,7 +3,6 @@ using EasyMLDataPreparation, Test
 
 EasyMLDataPreparation.unit_test.state = true
 
-
 @testset "Opening options" begin
     @test begin modify(data_preparation_options); true end
 end
@@ -73,7 +72,7 @@ end
         prepare_data()
         true 
     end
-    
+
     @test begin
         set_problem_type(Classification)
         EasyMLDataPreparation.preparation_data.ClassificationData = EasyMLDataPreparation.ClassificationData()
@@ -145,16 +144,26 @@ end
 @testset "Other QML" begin
     @test begin
         EasyMLDataPreparation.set_options(["DataPreparationOptions","Images","num_angles"],1)
-
+        true
+    end
+    @test begin
         EasyMLDataPreparation.set_input_type(Image)
-
-        EasyMLDataPreparation.set_model_data("input_properties",["Grayscale"])
+        empty!(model_data.input_properties)
+        EasyMLDataPreparation.set_model_data("input_properties","Grayscale")
+        EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
+        EasyMLDataPreparation.rm_model_data("input_properties","Grayscale")
+        EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
         true
     end
     @test begin
         EasyMLDataPreparation.unit_test.urls = ["models/segmentation.model"]
         load_model()
 
+        EasyMLDataPreparation.unit_test.urls = ["models/test.model"]
+        save_model()
+        rm("models/test.model")
+
+        EasyMLDataPreparation.all_data.Urls.model_name = ""
         EasyMLDataPreparation.unit_test.urls = ["models/test.model"]
         save_model()
         rm("models/test.model")

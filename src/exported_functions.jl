@@ -10,8 +10,11 @@ function modify(data::DataPreparationOptions)
         get_options,
         set_options,
         save_options,
-        # Other
+        # Model data
         set_model_data,
+        get_model_data,
+        rm_model_data,
+        # Other
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/DataPreparationOptions.qml")
