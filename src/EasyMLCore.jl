@@ -1,9 +1,15 @@
 
 module EasyMLCore
 
+# Include dependencies
 using Parameters, Flux, BSON, QML, Qt5QuickControls2_jll
 
 import Base.getproperty, Base.setproperty!, Base.RefValue
+
+# Include modules
+include("modules/Classes.jl")
+include("modules/Layers.jl")
+using .Classes, .Layers
 
 # Include functions
 include("data_structures.jl")

@@ -17,33 +17,6 @@ struct Image <: AbstractInputType end
 abstract type AbstractInputProperty end
 struct Grayscale <: AbstractInputProperty end
 
-
-#---Classes-----------------------------------------------------------
-
-abstract type AbstractClass end
-
-@with_kw mutable struct ImageClassificationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-end
-@with_kw mutable struct ImageRegressionClass<:AbstractClass
-    name::String = ""
-end
-@with_kw mutable struct BorderClass
-    enabled::Bool = false
-    thickness::Int64 = 3
-end
-@with_kw mutable struct ImageSegmentationClass<:AbstractClass
-    name::String = ""
-    weight::Float32 = 1
-    color::Vector{Float64} = Vector{Float64}(undef,3)
-    parents::Vector{String} = ["",""]
-    overlap::Bool = false
-    min_area::Int64 = 0
-    BorderClass::BorderClass = BorderClass()
-end
-
-
 #---Final----------------------------------------------------------------
 
 @with_kw mutable struct ModelData<:AbstractEasyML
@@ -55,6 +28,7 @@ end
     input_type = Ref{Type{<:AbstractInputType}}(Image)
     input_properties = Ref{Vector{Type{<:AbstractInputProperty}}}(Type{AbstractInputProperty}[])
     classes = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
+    layers_info::RefValue{<:Vector{AbstractLayerInfo}} = Ref{Vector{AbstractLayerInfo}}([])
 end
 model_data = ModelData()
 
