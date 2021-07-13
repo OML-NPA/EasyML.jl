@@ -91,22 +91,22 @@ end
     @testset "Get data" begin
         @test get_data_main(data,["Data2","b"],[1])=="b"
     end
-    @testset "Get options" begin
-        @test get_options_main(data,["Data2","a"],[])=="a"
-        @test get_options_main(data,["Data2","b"],[1])=="b"
-        @test get_options_main(data,["Data2","c"],[1,1])=="c"
+    @testset "Get data" begin
+        @test get_data_main(data,["Data2","a"],[])=="a"
+        @test get_data_main(data,["Data2","b"],[1])=="b"
+        @test get_data_main(data,["Data2","c"],[1,1])=="c"
     end
-    @testset "Set options" begin
+    @testset "Set data" begin
         @test begin 
-            set_options_main(data,["Data2","a"],"c")
+            set_data_main(data,["Data2","a"],"c")
             data.Data2.a == :c
         end
         @test begin 
-            set_options_main(data,["Data2","b"],[1],"d")
+            set_data_main(data,["Data2","b"],[1],"d")
             data.Data2.b[1] == :d
         end
         @test begin 
-            set_options_main(data,["Data2","c"],[1,1],"e")
+            set_data_main(data,["Data2","c"],[1,1],"e")
             data.Data2.c[1][1] == :e
         end
     end

@@ -26,7 +26,7 @@ export save_model_main, load_model_main
 # Options saving/loading
 export save_options_main, load_options_main
 # GUI data handling
-export fix_QML_types, get_data_main, get_options_main, set_options_main
+export fix_QML_types, get_data_main, set_data_main
 # Other
 export RefValue
 

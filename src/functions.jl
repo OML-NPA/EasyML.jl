@@ -142,25 +142,6 @@ end
 # Allows to read data from GUI
 function get_data_main(data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
-    inds = convert(Vector{Int64},fix_QML_types(inds))
-    for i = 1:length(fields)
-        field = Symbol(fields[i])
-        data = getproperty(data,field)
-    end
-    if !(isempty(inds))
-        for i = 1:length(inds)
-            data = data[inds[i]]
-        end
-    end
-    if data isa Symbol
-        data = string(data)
-    end
-    return data
-end
-
-# Allows to read options from GUI
-function get_options_main(data,fields,inds)
-    fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
         field = Symbol(fields[i])
@@ -177,9 +158,8 @@ function get_options_main(data,fields,inds)
     return data
 end
 
-# Allows to write to options from GUI
-function set_options_main(options,fields,args...)
-    data = options
+# Allows to write data from GUI
+function set_data_main(data,fields,args...)
     fields = fix_QML_types(fields)
     field_end = Symbol(fields[end])
     args = fix_QML_types(args)
