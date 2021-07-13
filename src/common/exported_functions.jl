@@ -45,7 +45,6 @@ Opens a file dialog where you can select where to save a model and how it should
 """
 save_model() = save_model_main(model_data,all_data.Urls)
 
-
 """
     save_model(url::String)
 
