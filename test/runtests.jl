@@ -89,9 +89,6 @@ end
         @test fix_QML_types((1,2))==(1,2)
     end
     @testset "Get data" begin
-        @test get_data_main(data,["Data2","b"],[1])=="b"
-    end
-    @testset "Get data" begin
         @test get_data_main(data,["Data2","a"],[])=="a"
         @test get_data_main(data,["Data2","b"],[1])=="b"
         @test get_data_main(data,["Data2","c"],[1,1])=="c"
@@ -108,6 +105,36 @@ end
         @test begin 
             set_data_main(data,["Data2","c"],([1,1],"e"))
             data.Data2.c[1][1] == :e
+        end
+    end
+    @testset "Channels" begin
+        struct Channels
+            a::Channel
+            b::Channel
+        end
+        channels = Channels(Channel{Int64}(1),Channel{Tuple{Int64,Float64}}(Inf))
+        @test begin 
+            check_progress_main(channels,"a")
+            put!(channels.a,1)
+            check_progress_main(channels,"a")
+            true
+        end
+        @test begin 
+            get_progress_main(channels,"a")
+            get_progress_main(channels,"a")
+            put!(channels.b,(1,1.0))
+            get_progress_main(channels,"b")
+            get_progress_main(channels,"b")
+            true
+        end
+        @test begin 
+            put!(channels.a,1)
+            empty_progress_channel_main(channels,"a")
+            true
+        end
+        @test begin 
+            put_channel_main(channels,"b",[0.0,1.0])
+            true
         end
     end
 end

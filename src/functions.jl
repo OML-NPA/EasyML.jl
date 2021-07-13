@@ -187,6 +187,64 @@ function set_data_main(data,fields,args)
 end
 
 
+#---Handling channels---------------------------------------------------------
+
+# Return a value from progress channels without taking the value
+function check_progress_main(channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    if isready(channel)
+        return fetch(channel)
+    else
+        return false
+    end
+end
+
+# Return a value from progress channels by taking the value
+function get_progress_main(channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    if isready(channel)
+        value_raw = take!(channel)
+        if value_raw isa Tuple
+            value = [value_raw...]
+        else
+            value = value_raw
+        end
+        return value
+    else
+        return false
+    end
+end
+
+function empty_progress_channel_main(channels,field)
+    field::String = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    while true
+        if isready(channel)
+            take!(channel)
+        else
+            return nothing
+        end
+    end
+end
+
+function put_channel_main(channels,field,value)
+    field = fix_QML_types(field)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    value_raw::Vector{Float64} = fix_QML_types(value)
+    value1 = convert(Int64,value_raw[1])
+    value2 = convert(Float64,value_raw[2])
+    value = (value1,value2)
+    put!(channel,value)
+    return nothing
+end
+
+
 #---Struct related functions--------------------------------------------------
 
 function struct_to_dict!(dict,obj)
