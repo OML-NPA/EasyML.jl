@@ -7,8 +7,9 @@ import QtQuick.Layouts 1.1
 import QtQml.Models 2.15
 import QtQuick.Shapes 1.15
 import Qt.labs.folderlistmodel 2.15
-import "Templates"
+import "../common/gui/templates"
 import org.julialang 1.0
+
 
 ApplicationWindow {
     id: designWindow
@@ -1081,8 +1082,8 @@ ApplicationWindow {
                     if (layers.children.length>3) {
                         getarchitecture()
                         customizationItem.forceActiveFocus()
-                        var name = Julia.get_data(["model_name"])
-                        var url = Julia.get_data(["model_url"])
+                        var name = Julia.get_data(["Urls","model_name"])
+                        var url = Julia.get_data(["Urls","model_url"])
                         var state = Julia.make_model()
                         if (state) {
                             state = Julia.check_model()
@@ -2856,8 +2857,8 @@ ApplicationWindow {
                     height: buttonHeight
                     width: rightFrame.width - 220*pix
                     onEditingFinished: {
-                        Julia.set_data(["model_name"],displayText)
-                        var model_url = Julia.get_data(["model_url"])
+                        Julia.set_data(["Urls","model_name"],displayText)
+                        var model_url = Julia.get_data(["Urls","model_url"])
                         var model_url_split = model_url.split(/[\/\\]/g)
                         model_url_split.pop()
                         var model_url_new = model_url_split.join("/")
@@ -2865,12 +2866,12 @@ ApplicationWindow {
                         Julia.set_data(["model_url"],model_url_new)
                     }
                     Component.onCompleted: {
-                        var name = Julia.get_data(["model_name"])
+                        var name = Julia.get_data(["Urls","model_name"])
                         if (name.length===0) {
                             text = "new_model"
                             var model_url = "models/new_model.model"
-                            Julia.set_data(["model_name"],text)
-                            Julia.set_data(["model_url"],model_url)
+                            Julia.set_data(["Urls","model_name"],text)
+                            Julia.set_data(["Urls","model_url"],model_url)
                         }
                         else {
                             text = name

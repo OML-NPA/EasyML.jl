@@ -1,69 +1,104 @@
 
-using EasyMLDesign
+using EasyMLDesign, Test
 
+EasyMLDesign.bind!(EasyMLDesign.EasyMLCore.unit_test, EasyMLDesign.unit_test)
 EasyMLDesign.unit_test.state = true
 
-set_savepath("models/test.model")
-set_problem_type(:Classification)
+#---Main functionality----------------------------------------------------
 
-# Empty model
-design_model()
+@testset "Main functionality" begin
 
-# Flatten error model
-load_model("models/flatten_error_test.model")
-design_model()
+    set_savepath("models/test.model")
+    set_problem_type(Classification)
 
-# No output error model
-load_model("models/no_output_error_test.model")
-design_model()
+    # Empty model
+    @test begin design_model(); true end
 
-# All layers test model
-load_model("models/all_test.model")
-design_model()
+    # All layers test model
+    @test begin 
+        load_model("models/all_test.model")
+        design_model()
+        true
+    end
 
-# Losses
-load_model("models/minimal_test.model")
-losses = ["MAE","MSE","MSLE","Huber","Crossentropy","Logit crossentropy","Binary crossentropy",
-    "Logit binary crossentropy","Kullback-Leiber divergence","Poisson","Hinge","Squared hinge",
-    "Dice coefficient","Tversky"]
-for i = 1:length(losses)
-    model_data.layers_info[end].loss = (losses[i],i+1)
-    design_model()
+    # Flatten error model
+    @test begin 
+        load_model("models/flatten_error_test.model")
+        design_model()
+        true
+    end
+
+    # No output error model
+    @test begin 
+        load_model("models/no_output_error_test.model")
+        design_model()
+        true
+    end
+
+    # Losses
+    @test begin 
+        load_model("models/minimal_test.model")
+        losses = ["MAE","MSE","MSLE","Huber","Crossentropy","Logit crossentropy","Binary crossentropy",
+            "Logit binary crossentropy","Kullback-Leiber divergence","Poisson","Hinge","Squared hinge",
+            "Dice coefficient","Tversky"]
+        for i = 1:length(losses)
+            model_data.layers_info[end].loss = (losses[i],i+1)
+            design_model()
+        end
+        true
+    end
 end
 
-# QML other
-set_problem_type(0)
-set_problem_type(1)
-set_problem_type(2)
 
-fields = ["DesignOptions","width"]
-value = 340
-EasyMLDesign.set_options(fields,value)
+#---Other QML----------------------------------------------------------
 
-function url_pusher()
-    url  = popfirst!(EasyMLDesign.unit_test.urls)
-    return url
+@testset "Other QML" begin
+    @test begin
+        set_problem_type(0)
+        set_problem_type(1)
+        set_problem_type(2)
+        true
+    end
+
+    @test begin
+        fields = ["DesignOptions","width"]
+        value = 340
+        EasyMLDesign.set_options(fields,value)
+        true
+    end
+
+    @test begin
+        EasyMLDesign.unit_test.urls = ["models/test.model"]
+        save_model()
+        true
+    end
+
+    @test begin
+        EasyMLDesign.unit_test.urls = ["models/test.model"]
+        load_model()
+        rm("models/test.model")
+        true
+    end
 end
-EasyMLDesign.unit_test.url_pusher = url_pusher
 
-EasyMLDesign.unit_test.urls = ["models/test.model"]
-save_model()
+#---Other---------------------------------------------------------------
 
-EasyMLDesign.unit_test.urls = ["models/test.model"]
-load_model()
+@testset "Other" begin
+    @test begin
+        save_model("models/test.model")
+        load_options()
+        save_options()
+        true
+    end
 
-# Other
-save_model("models/test.model")
-load_options()
-save_options()
-
-
-
-
-try
-    load_model("my_model")
-catch e
-    if !(e isa ErrorException)
-        error("Wrong error returned.")
+    @test begin
+        try
+            load_model("my_model")
+        catch e
+            if !(e isa ErrorException)
+                error("Wrong error returned.")
+            end
+        end
+        true
     end
 end
