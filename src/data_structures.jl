@@ -7,6 +7,7 @@
     input_size = EasyMLCore.model_data.input_size
     output_size = EasyMLCore.model_data.output_size
     problem_type = EasyMLCore.model_data.problem_type
+    input_type = EasyMLCore.model_data.input_type
     layers_info = EasyMLCore.model_data.layers_info
 end
 model_data = ModelData()
