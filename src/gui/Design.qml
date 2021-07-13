@@ -1345,7 +1345,7 @@ ApplicationWindow {
                 var prop = Julia.model_get_layer_property(indJ,prop_name)
                 if (typeof(prop)==='object' && prop.length===2) {
                     if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
-                        unit[prop_name] = {"text": prop[0],"ind": prop[1]}
+                        unit[prop_name] = {"text": prop[0],"ind": parseInt(prop[1])}
                     }
                     else {
                         unit[prop_name] = prop
