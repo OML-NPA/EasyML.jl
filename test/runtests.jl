@@ -1,6 +1,7 @@
 
 using EasyMLClasses
 
+EasyMLClasses.bind!(EasyMLClasses.EasyMLCore.unit_test, EasyMLClasses.unit_test)
 EasyMLClasses.unit_test.state = true
 
 make_classes()

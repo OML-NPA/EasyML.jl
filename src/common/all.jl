@@ -1,7 +1,7 @@
 
 #---GUI data handling-----------------------------------------------------
 
-get_options(fields,inds=[]) = get_options_main(options,fields,inds)
+get_options(fields,inds=[]) = get_data_main(options,fields,inds)
 
 #---Other-------------------------------------------------------------
 

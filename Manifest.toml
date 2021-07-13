@@ -56,9 +56,9 @@ version = "3.3.3"
 
 [[ChainRules]]
 deps = ["ChainRulesCore", "Compat", "LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "85c579fa131b5545eef874a5b413bb3b783e21c6"
+git-tree-sha1 = "dabb81719f820cddd6df4916194d44f1fe282bd1"
 uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
-version = "0.8.21"
+version = "0.8.22"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -152,8 +152,8 @@ deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
-deps = ["BSON", "Flux", "Parameters", "QML"]
-git-tree-sha1 = "35e37ae38f0c4640407a47ec90337aff17fd5791"
+deps = ["BSON", "Flux", "Parameters", "QML", "Qt5QuickControls2_jll"]
+git-tree-sha1 = "85ee63425e96045635e48ab06ef00d135756cc64"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"

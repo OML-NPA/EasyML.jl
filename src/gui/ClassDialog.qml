@@ -391,7 +391,7 @@ ApplicationWindow {
                                                 anchors.rightMargin: 5*pix
                                                 Image {
                                                     opacity: trashcanButton.hovered ? 1 : 0.2
-                                                    source: "../common/gui/templates/icons/trash_can.png"
+                                                    source: "../common/gui/icons/trash_can.png"
                                                     height: 55*pix
                                                     width: 55*pix
                                                     fillMode: Image.PreserveAspectFit
