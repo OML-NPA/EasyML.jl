@@ -70,11 +70,43 @@ get_urls()
 
 save_model("models/segmentation.model")
 
+set_problem_type(Classification)
+url_input = "examples/"
+get_urls(url_input)
+url_input = "examples2/"
+get_urls(url_input)
+
+set_problem_type(Segmentation)
+url_input = "examples/"
+url_label = "examples/"
+get_urls(url_input,url_label)
+
+url_input = "examples2/"
+url_label = "examples2/"
+get_urls(url_input,url_label)
+
+get_urls(url_input)
+
+
 EasyMLDataPreparation.unit_test.urls = [""]
 load_model()
 EasyMLDataPreparation.unit_test.urls = ["models/segmentation.model"]
 load_model()
 load_options()
+
+
+#---Other QML----------------------------------------
+
+EasyMLDataPreparation.set_options(["DataPreparationOptions","Images","num_angles"],1)
+
+put!(EasyMLDataPreparation.channels.data_preparation_progress,1)
+EasyMLDataPreparation.empty_channel(:data_preparation_progress)
+
+EasyMLDataPreparation.set_input_type(Image)
+
+EasyMLDataPreparation.unit_test.urls = ["models/test.model"]
+save_model()
+rm("models/test.model")
 
 
 #---Other----------------------------------------

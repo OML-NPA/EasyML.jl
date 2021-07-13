@@ -42,6 +42,9 @@ function save_model()
         name_filters = name_filters,
         filename = filename)
     exec()
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
     if !isempty(url_out[1])
         save_model(url_out[1])
     end
