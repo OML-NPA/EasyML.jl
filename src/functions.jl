@@ -33,7 +33,7 @@ end
 
 #---Model saving/loading--------------------------------------------
 
-function save_model_main(model_data,url::String)
+function save_model_main(model_data,url::AbstractString)
     url = fix_QML_types(url)
     # Make folders if needed
     if '\\' in url || '/' in url
@@ -81,7 +81,7 @@ function save_model_main(model_data,all_data_urls)
     return nothing
 end
 
-function load_model_main(model_data,url::String,all_data_urls)
+function load_model_main(model_data,url::AbstractString,all_data_urls)
     url = fix_QML_types(url)
     if isfile(url)
         loaded_data = BSON.load(url)[:dict]
