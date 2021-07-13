@@ -159,7 +159,7 @@ function get_data_main(data,fields,inds)
 end
 
 # Allows to write data from GUI
-function set_data_main(data,fields,args...)
+function set_data_main(data,fields,args)
     fields = fix_QML_types(fields)
     field_end = Symbol(fields[end])
     args = fix_QML_types(args)

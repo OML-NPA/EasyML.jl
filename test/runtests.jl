@@ -98,15 +98,15 @@ end
     end
     @testset "Set data" begin
         @test begin 
-            set_data_main(data,["Data2","a"],"c")
+            set_data_main(data,["Data2","a"],("c"))
             data.Data2.a == :c
         end
         @test begin 
-            set_data_main(data,["Data2","b"],[1],"d")
+            set_data_main(data,["Data2","b"],([1],"d"))
             data.Data2.b[1] == :d
         end
         @test begin 
-            set_data_main(data,["Data2","c"],[1,1],"e")
+            set_data_main(data,["Data2","c"],([1,1],"e"))
             data.Data2.c[1][1] == :e
         end
     end
