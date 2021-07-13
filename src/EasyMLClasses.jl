@@ -10,14 +10,12 @@ Parameters,
 # Data import/export
 BSON,
 # Machine learning
-EasyMLCore
-
-import EasyMLCore: AbstractClass, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
-
+EasyMLCore, EasyMLCore.Classes
 
 # Include functions
 include("data_structures.jl")
 include("common/all.jl")
+include("common/design_classes.jl")
 include("common/exported_functions.jl")
 include("main.jl")
 include("exported_functions.jl")
