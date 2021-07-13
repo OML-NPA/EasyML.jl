@@ -57,6 +57,7 @@ end
         set_problem_type(0)
         set_problem_type(1)
         set_problem_type(2)
+        EasyMLDesign.get_input_type()
         true
     end
 
@@ -79,11 +80,23 @@ end
         rm("models/test.model")
         true
     end
+
+    @test begin
+        EasyMLDesign.set_data(["DesignData","warnings"],[])
+        true
+    end
 end
 
 #---Other---------------------------------------------------------------
 
 @testset "Other" begin
+
+    @test begin 
+        EasyMLDesign.input_type()
+        set_input_type(Image)
+        true
+    end
+
     @test begin
         save_model("models/test.model")
         load_options()
@@ -99,6 +112,7 @@ end
                 error("Wrong error returned.")
             end
         end
+        set_savepath("model")
         true
     end
 end
