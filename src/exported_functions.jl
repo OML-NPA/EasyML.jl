@@ -172,7 +172,7 @@ function train()
         time,
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/TrainingPlot.qml")
+    path_qml = string(@__DIR__,"/gui/TrainingPlot.qml")
     loadqml(path_qml)
     exec()
     
