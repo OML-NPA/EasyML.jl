@@ -468,6 +468,12 @@ git-tree-sha1 = "e6e7cf7681519ec85df6b34f470fc4aa958c245c"
 uuid = "c6373c32-5b88-5913-90f5-31d7686b42da"
 version = "5.15.2+0"
 
+[[Qt5QuickControls2_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Qt5Declarative_jll"]
+git-tree-sha1 = "aa1aa4899e56e26ce96bcd502a929a6c04355d8d"
+uuid = "bf3ac11c-603e-589e-b4b7-e696ac65aa4a"
+version = "5.15.2+0"
+
 [[Qt5Svg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Qt5Base_jll"]
 git-tree-sha1 = "336c76967c4102efe9b9497e08633f3e622df5f2"

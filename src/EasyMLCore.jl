@@ -1,7 +1,7 @@
 
 module EasyMLCore
 
-using Parameters, Flux, BSON, QML
+using Parameters, Flux, BSON, QML, Qt5QuickControls2_jll
 
 import Base.getproperty, Base.setproperty!, Base.RefValue
 

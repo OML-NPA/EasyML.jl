@@ -1,5 +1,7 @@
 
-using EasyMLCore, Flux, QML, Test
+using EasyMLCore, Parameters, Flux, QML, Test
+
+EasyMLCore.unit_test.state = true
 
 mutable struct Dummy1<:AbstractEasyML
     a::RefValue{Int64}
@@ -36,18 +38,33 @@ end
         model_name::RefValue{String}
     end
     all_data_urls = AllDataUrls(Ref(""),Ref(""))
-    url = "models/test_dir/test.model"
+    url = "models/test.model"
+    @test begin save_model_main(EasyMLCore.model_data,url); true end
+    @test begin load_model_main(EasyMLCore.model_data,url,all_data_urls); true end
+    @test begin load_model_main(EasyMLCore.model_data,"models/old_test.model",all_data_urls); true end
+    rm("models/test.model")
     @test begin 
         try 
+            url = "models/test2.model"
             load_model_main(EasyMLCore.model_data,url,all_data_urls) 
         catch e
             e isa ErrorException
         end
     end
-    @test begin save_model_main(EasyMLCore.model_data,url); true end
-    @test begin load_model_main(EasyMLCore.model_data,url,all_data_urls); true end
-    @test begin load_model_main(EasyMLCore.model_data,"models/old_test.model",all_data_urls); true end
-    rm("models/test_dir/test.model")
+    all_data_urls.model_name = ""
+    EasyMLCore.unit_test.urls = ["models/test.model"]
+    @test begin save_model_main(EasyMLCore.model_data,all_data_urls); true end
+    EasyMLCore.unit_test.urls = ["models/test.model"]
+    @test begin load_model_main(EasyMLCore.model_data,all_data_urls); true end
+    rm("models/test.model")
+    @test begin 
+        try 
+            EasyMLCore.unit_test.urls = ["models/test2.model"]
+            load_model_main(EasyMLCore.model_data,all_data_urls)
+        catch e
+            e isa ErrorException
+        end
+    end
 end
 
 @testset "Options loading/saving" begin

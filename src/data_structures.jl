@@ -57,3 +57,14 @@ end
     classes = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
 end
 model_data = ModelData()
+
+
+#---Testing--------------------------------------------------------------
+
+@with_kw mutable struct UnitTest<:AbstractEasyML
+    state::RefValue{Bool} = Ref(false)
+    urls::RefValue{Vector{String}} = Ref(String[])
+    url_pusher = () -> popfirst!(urls[])
+end
+unit_test = UnitTest()
+(m::UnitTest)() = m.state

@@ -33,7 +33,7 @@ end
 
 #---Model saving/loading--------------------------------------------
 
-function save_model_main(model_data,url)
+function save_model_main(model_data,url::String)
     url = fix_QML_types(url)
     # Make folders if needed
     if '\\' in url || '/' in url
@@ -57,7 +57,31 @@ function save_model_main(model_data,url)
     return nothing
 end
 
-function load_model_main(model_data,url,all_data_urls)
+function save_model_main(model_data,all_data_urls)
+    name_filters = ["*.model"]
+    if isempty(all_data_urls.model_name)
+        all_data_urls.model_name = "new_model"
+    end
+    filename = string(all_data_urls.model_name,".model")
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launch GUI
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalSaveFileDialog.qml")
+    loadqml(path_qml,
+        name_filters = name_filters,
+        filename = filename)
+    exec()
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    if !isempty(url_out[1])
+        save_model_main(model_data, url_out[1])
+    end
+    return nothing
+end
+
+function load_model_main(model_data,url::String,all_data_urls)
     url = fix_QML_types(url)
     if isfile(url)
         loaded_data = BSON.load(url)[:dict]
@@ -88,11 +112,31 @@ function load_model_main(model_data,url,all_data_urls)
             end
         end
     else
+        # v0.1 compatibility
         dict_to_struct!(model_data,loaded_data)
     end
     all_data_urls.model_url = url
     url_split = split(url,('/','.'))
     all_data_urls.model_name = url_split[end-1]
+    return nothing
+end
+
+function load_model_main(model_data,all_data_urls)
+    name_filters = ["*.model"]
+    url_out = String[""]
+    observe(url) = url_out[1] = url
+    # Launch GUI
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
+    loadqml(path_qml,name_filters = name_filters)
+    exec()
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    # Load model
+    if !isempty(url_out[1])
+        load_model_main(model_data,url_out[1],all_data_urls)
+    end
     return nothing
 end
 
