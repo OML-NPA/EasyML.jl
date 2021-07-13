@@ -29,9 +29,10 @@ set_savepath(url::String)
 
 Sets a path where a model will be saved.
 """
+
 function set_savepath(url::String)
     url_split = split(url,('\\','/','.'))
-    if url_split[end]!="model"
+    if isempty(url_split) || url_split[end]!="model"|| length(url_split)<2
         @error "The model name should end with a '.model' extension."
         return nothing
     end
