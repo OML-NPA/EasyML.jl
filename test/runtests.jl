@@ -155,3 +155,18 @@ end
         end
     end
 end
+
+@testset "Other" begin
+    @test begin
+        f1() = true
+        t1 = Task(f1)
+        check_task(t1)
+        schedule(t1)
+        check_task(t1)
+        f2() = 1/[]
+        t2 = Task(f2)
+        schedule(t2)
+        check_task(t2)
+        true
+    end
+end
