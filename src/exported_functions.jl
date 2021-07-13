@@ -34,7 +34,7 @@ function design_model()
         # Unit testing
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/Design.qml")
+    path_qml = string(@__DIR__,"/gui/Design.qml")
     loadqml(path_qml)
     exec()
 

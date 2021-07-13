@@ -1069,7 +1069,7 @@ ApplicationWindow {
                 width: iconSize
                 height: iconSize
                 background: Image {
-                    source: "Icons/saveIcon.png"
+                    source: "icons/saveIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 Component.onCompleted: {
@@ -1111,7 +1111,7 @@ ApplicationWindow {
                         text: "Options"})
                 }
                 background: Image {
-                    source: "Icons/optionsIcon.png"
+                    source: "icons/optionsIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 onPressed: {opacity = 0.5}
@@ -1134,7 +1134,7 @@ ApplicationWindow {
                         text: "Arrange"})
                 }
                 background: Image {
-                    source: "Icons/arrangeIcon.png"
+                    source: "icons/arrangeIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 onPressed: {opacity = 0.5}
