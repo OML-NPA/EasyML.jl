@@ -1,6 +1,8 @@
 
 using EasyMLTraining, Test
 
+EasyMLTraining.bind!(EasyMLTraining.EasyMLCore.unit_test, EasyMLTraining.unit_test)
+
 EasyMLTraining.unit_test.state = true
 
 training_options.Testing.test_data_fraction = 0.1
@@ -49,6 +51,8 @@ end
         set_savepath("models/new_model.model")
 
         modify(training_options)
+
+        EasyMLTraining.input_type()
         true
     end
 end

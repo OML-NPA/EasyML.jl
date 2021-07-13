@@ -174,11 +174,10 @@ end
 
 #---Testing----------------------------------------------------------------
 
-# Needed for testing
 @with_kw mutable struct UnitTest<:AbstractEasyML
-    state::RefValue{Bool} = Ref(false)
-    urls::RefValue{Vector{String}} = Ref(String[])
-    url_pusher = () -> popfirst!(urls[])
+    state = Ref(false)
+    urls = Ref(String[])
+    url_pusher = Ref{Function}(() -> popfirst!(urls[]))
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state
