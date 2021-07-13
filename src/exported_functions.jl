@@ -12,7 +12,7 @@ function modify(data::TrainingOptions)
         save_options,
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/TrainingOptions.qml")
+    path_qml = string(@__DIR__,"/gui/TrainingOptions.qml")
     loadqml(path_qml)
     exec()
     return nothing
