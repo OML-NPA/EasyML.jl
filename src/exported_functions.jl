@@ -226,7 +226,7 @@ function prepare_data(model_data::ModelData,preparation_data::PreparationData)
     end
     if problem_type()==Classification
         return preparation_data.ClassificationData.Results
-    elseif problem_type()==RegressionData
+    elseif problem_type()==Regression
         return preparation_data.RegressionData.Results
     else # problem_type()==Segmentation
         return preparation_data.SegmentationData.Results
