@@ -609,7 +609,7 @@ function check_model_main(design_data::DesignData)
         output = model_data_design.model(input)
         output_size = size(output)[1:end-1]
         model_data_design.output_size = output_size
-        if problem_type()==:Classification && length(output_size)!=1
+        if problem_type()==Classification && (output_size[2]!=1 && output_size[3]!=1)
             @error "Use flatten before an output. Otherwise, the model will not function correctly."
             push!(design_data.warnings,"Use flatten before an output. Otherwise, the model will not function correctly.")
             return false
