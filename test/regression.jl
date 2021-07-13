@@ -3,7 +3,7 @@
 
 #---Init test--------------------------------------------------------------
 
-set_problem_type(:Regression)
+set_problem_type(Regression)
 set_savepath("models/regression.model")
 
 

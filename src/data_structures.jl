@@ -12,12 +12,13 @@ channels = Channels()
 
 #--Required for compatibility
 
-@with_kw mutable struct ModelData
-    model::Chain = Chain()
-    input_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
-    output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,0,0)
-    loss::Function = Flux.Losses.mse
-    problem_type::Symbol = :Classification
+@with_kw mutable struct ModelData<:AbstractEasyML
+    model = EasyMLCore.model_data.model
+    loss = EasyMLCore.model_data.loss
+    problem_type = EasyMLCore.model_data.problem_type
+    input_type = EasyMLCore.model_data.input_type
+    input_size = EasyMLCore.model_data.input_size
+    output_size = EasyMLCore.model_data.output_size
 end
 model_data = ModelData()
 
@@ -95,23 +96,28 @@ training_data = TrainingData()
 end
 testing_data = TestingData()
 
-@with_kw mutable struct AllData
+@with_kw mutable struct AllDataUrls<:AbstractEasyML
+    model_url::RefValue{String} = Ref("")
+    model_name::RefValue{String} = Ref("")
+end
+all_data_urls = AllDataUrls()
+
+@with_kw struct AllData
     TrainingData::TrainingData = training_data
     TestingData::TestingData = testing_data
-    model_url::String = ""
-    model_name::String = ""
+    Urls::AllDataUrls = all_data_urls
 end
 all_data = AllData()
 
 #---Options
 
-@with_kw mutable struct HardwareResources
-    allow_GPU::Bool = true
+@with_kw mutable struct HardwareResources<:AbstractEasyML
+    allow_GPU::RefValue{Bool} = Ref(true)
 end
 hardware_resources = HardwareResources()
 
-@with_kw mutable struct Graphics
-    scaling_factor::Float64 = 1
+@with_kw mutable struct Graphics<:AbstractEasyML
+    scaling_factor::RefValue{Float64} = Ref(1.0)
 end
 graphics = Graphics()
 
@@ -158,7 +164,7 @@ end
 options = Options()
 
 
-#---Other
+#---Other------------------------------------------------------------------
 
 mutable struct Counter
     iteration::Int
@@ -166,11 +172,13 @@ mutable struct Counter
 end
 (c::Counter)() = (c.iteration += 1)
 
+#---Testing----------------------------------------------------------------
+
 # Needed for testing
-@with_kw mutable struct UnitTest
-    state::Bool = false
-    url_pusher = []
-    urls::Vector{String} = String[]
+@with_kw mutable struct UnitTest<:AbstractEasyML
+    state::RefValue{Bool} = Ref(false)
+    urls::RefValue{Vector{String}} = Ref(String[])
+    url_pusher = () -> popfirst!(urls[])
 end
 unit_test = UnitTest()
 (m::UnitTest)() = m.state

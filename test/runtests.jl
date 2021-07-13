@@ -31,12 +31,6 @@ include("segmentation.jl")
 
         EasyMLTraining.set_options(["TrainingOptions","Hyperparameters","optimiser_params"],1,0.9)
 
-        function url_pusher()
-            url  = popfirst!(EasyMLTraining.unit_test.urls)
-            return url
-        end
-        EasyMLTraining.unit_test.url_pusher = url_pusher
-
         EasyMLTraining.unit_test.urls = ["models/test.model"]
         load_model()
         EasyMLTraining.unit_test.urls = ["models/test.model"]
@@ -55,11 +49,6 @@ end
         set_savepath("models/new_model.model")
 
         modify(training_options)
-
-        try 
-            set_problem_type(:Segmentatio)
-        catch
-        end
         true
     end
 end

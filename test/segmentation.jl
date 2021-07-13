@@ -3,7 +3,7 @@
 
 #---Init test--------------------------------------------------------------
 
-set_problem_type(:Segmentation)
+set_problem_type(Segmentation)
 set_savepath("models/segmentation.model")
 
 

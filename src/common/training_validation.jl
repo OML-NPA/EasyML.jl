@@ -83,15 +83,15 @@ end
 # Returns an accuracy function
 function get_accuracy_func(weights::Vector{Float32},options::Options)
     weight = options.TrainingOptions.Accuracy.weight_accuracy
-    if problem_type()==:Classification
+    if problem_type()==Classification
         if weight
             return (x,y) -> accuracy_classification_weighted(x,y,weights)
         else
             return accuracy_classification
         end
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         return accuracy_regression
-    elseif problem_type()==:Segmentation
+    else # problem_type()==Segmentation
         if weight
             return  (x,y) -> accuracy_segmentation_weighted(x,y,weights)
         else
@@ -107,16 +107,4 @@ add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))
 
 function make_tuple(array::AbstractArray)
     return (array...,)
-end
-
-function check_task(t::Task)
-    if istaskdone(t)
-        if t.:_isexception
-            return :error, t.:result
-        else
-            return :done, nothing
-        end
-    else
-        return :running, nothing
-    end
 end

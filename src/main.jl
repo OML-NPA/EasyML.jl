@@ -484,7 +484,7 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     allow_lr_change = check_lr_change(opt,composite)
     abort = Threads.Atomic{Bool}(false)
     testing_mode = Threads.Atomic{Bool}(true)
-    model_name = string("models/",all_data.model_name,".model")
+    model_name = string("models/",all_data.Urls.model_name,".model")
     # Initialize data
     data_input = train_set[1]
     data_labels = train_set[2]
@@ -542,11 +542,11 @@ function cleanup!(x::CuArray)
 end
 
 function get_data_struct(some_data::Union{TrainingData,TestingData})
-    if problem_type()==:Classification
+    if problem_type()==Classification
         data = some_data.ClassificationData
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         data = some_data.RegressionData
-    elseif problem_type()==:Segmentation
+    else # problem_type()==Segmentation
         data = some_data.SegmentationData
     end
     return data
@@ -554,7 +554,7 @@ end
 
 function test_model(model_data,train_set,errors,use_GPU)
     input_data_raw = train_set[1][1]
-    if problem_type()==:Classification
+    if problem_type()==Classification
         max_labels = training_data.ClassificationData.max_labels
         label_data = zeros(Float32,max_labels)
         ind = train_set[2][1]
@@ -604,9 +604,9 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     end
     reset_training_data(training_data)
     # Check save directory
-    if isempty(all_data.model_url)
-        all_data.model_url = "models/new_model.model"
-        all_data.model_name = "new_model"
+    if isempty(all_data.Urls.model_url)
+        all_data.Urls.model_url = "models/new_model.model"
+        all_data.Urls.model_name = "new_model"
     end
     # Preparing train and test sets
     typed_training_data = get_data_struct(training_data)
@@ -658,7 +658,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     training_results_data.test_accuracy = data[3]
     training_results_data.test_loss = data[4]
     training_results_data.test_iteration = data[5]
-    save_model(all_data.model_url)
+    save_model(all_data.Urls.model_url)
     return nothing
 end
 function train_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
