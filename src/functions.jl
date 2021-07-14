@@ -1,6 +1,12 @@
 
 #---Model saving/loading--------------------------------------------
 
+"""
+    save_model(url::String)
+
+Saves a model to a specified URL. The URL can be absolute or relative. 
+Use '.model' extension.
+"""
 function save_model(url::AbstractString)
     url = fix_QML_types(url)
     # Make folders if needed
@@ -25,6 +31,11 @@ function save_model(url::AbstractString)
     return nothing
 end
 
+"""
+save_model()
+
+Opens a file dialog where you can select where to save a model and how it should be called.
+"""
 function save_model()
     name_filters = ["*.model"]
     if isempty(all_data_urls.model_name)
@@ -49,6 +60,11 @@ function save_model()
     return nothing
 end
 
+"""
+    load_model(url::String)
+
+Loads a model from a specified URL. The URL can be absolute or relative.
+"""
 function load_model(url::AbstractString)
     url = fix_QML_types(url)
     if isfile(url)
@@ -89,6 +105,11 @@ function load_model(url::AbstractString)
     return nothing
 end
 
+"""
+load_model()
+
+Opens a file dialog where you can select a model to be loaded and loads it.
+"""
 function load_model()
     name_filters = ["*.model"]
     url_out = String[""]
@@ -133,6 +154,12 @@ function load_options_main(options)
     end
     return nothing
 end
+"""
+    load_options()
+
+Loads options from your previous run which are located in `options.bson`. 
+Uses present working directory. It is run automatically after `using EasyML`.
+"""
 load_options() = load_options_main(options)
 
 

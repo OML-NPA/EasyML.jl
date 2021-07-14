@@ -30,6 +30,6 @@ export fix_QML_types, get_data, get_options, set_data, set_options, get_file, ge
 # Handling channels
 export check_progress, get_progress, empty_channel, put_channel
 # Other
-export problem_type, input_type, check_task
+export model_data, problem_type, input_type, check_task
 
 end
