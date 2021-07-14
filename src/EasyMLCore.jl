@@ -32,6 +32,6 @@ export check_progress, get_progress, empty_channel, put_channel
 # Options
 export modify, global_options
 # Other
-export set_problem_type, set_input_type, problem_type, input_type, model_data, check_task
+export set_problem_type, set_input_type, problem_type, input_type, model_data, check_task, unit_test
 
 end
