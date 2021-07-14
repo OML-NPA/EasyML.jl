@@ -274,10 +274,25 @@ function check_progress_main(channels,field)
 end
 
 # Return a value from progress channels by taking the value
-function get_progress_main(channels,field)
+function get_progress_main(channels,field::AbstractString)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
     channel = getfield(channels,field_sym)
+    if isready(channel)
+        value_raw = take!(channel)
+        if value_raw isa Tuple
+            value = [value_raw...]
+        else
+            value = value_raw
+        end
+        return value
+    else
+        return false
+    end
+end
+
+function get_progress_main(channels,field::Symbol)
+    channel = getfield(channels,field)
     if isready(channel)
         value_raw = take!(channel)
         if value_raw isa Tuple

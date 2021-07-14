@@ -141,7 +141,7 @@ end
             a::Channel
             b::Channel
         end
-        channels = Channels(Channel{Int64}(1),Channel{Tuple{Int64,Float64}}(Inf))
+        channels = Channels(Channel{Int64}(1),Channel{Tuple{Int64,Float64}}(1))
         @test begin 
             check_progress_main(channels,"a")
             put!(channels.a,1)
@@ -154,6 +154,12 @@ end
             put!(channels.b,(1,1.0))
             get_progress_main(channels,"b")
             get_progress_main(channels,"b")
+            put!(channels.a,1)
+            get_progress_main(channels,:a)
+            get_progress_main(channels,:a)
+            put!(channels.b,(1,1.0))
+            get_progress_main(channels,:b)
+            get_progress_main(channels,:b)
             true
         end
         @test begin 
