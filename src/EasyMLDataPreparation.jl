@@ -28,11 +28,9 @@ import EasyMLClasses: ImageClassificationClass, ImageRegressionClass, ImageSegme
 # Include functions
 include("data_structures.jl")
 include("common/all.jl")
-include("common/channels_functions.jl")
 include("common/exported_functions.jl")
 include("common/preparation_validation.jl")
 include("common/preparation_validation_application.jl")
-include("common/preparation_training_validation_application.jl")
 include("image_processing.jl")
 include("main.jl")
 include("exported_functions.jl")

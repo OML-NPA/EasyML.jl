@@ -1,6 +1,7 @@
 
 using EasyMLDataPreparation, Test
 
+EasyMLDataPreparation.bind!(EasyMLDataPreparation.EasyMLCore.unit_test, EasyMLDataPreparation.unit_test)
 EasyMLDataPreparation.unit_test.state = true
 
 @testset "Opening options" begin
@@ -9,7 +10,10 @@ end
 
 for i = 1:2
 
-    if i==2
+    if i==1
+        EasyMLDataPreparation.image_preparation_options.grayscale = true
+        EasyMLDataPreparation.image_preparation_options.mirroring = true
+    else
         EasyMLDataPreparation.image_preparation_options.grayscale = false
         EasyMLDataPreparation.image_preparation_options.mirroring = false
         EasyMLDataPreparation.image_preparation_options.num_angles = 1
@@ -181,7 +185,8 @@ end
 
         load_options()
 
-        save_model("models/segmentation.model")
+        save_model("models/test.model")
+        rm("models/test.model")
         true
     end
 end

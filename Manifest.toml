@@ -300,15 +300,15 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLClasses]]
 deps = ["BSON", "CxxWrap", "EasyMLCore", "Parameters", "QML", "Qt5Charts_jll", "Qt5QuickControls2_jll"]
-git-tree-sha1 = "ee1a74a5faaba5524b0f31709cd6f5f998414b24"
+git-tree-sha1 = "39f2febfe5d18e3a7b1020ca8ea1f8915c7a34a4"
 repo-rev = "dev"
 repo-url = "https://github.com/OML-NPA/EasyMLClasses.jl"
 uuid = "5a06b745-583a-4b87-a77e-c5c0cb1b0310"
 version = "0.1.0"
 
 [[EasyMLCore]]
-deps = ["BSON", "Flux", "Parameters", "QML"]
-git-tree-sha1 = "59b2b5492337fe28be377cde81fcbdacd94faab1"
+deps = ["BSON", "Flux", "Parameters", "QML", "Qt5QuickControls2_jll"]
+git-tree-sha1 = "604bdf438f87f0042b2be859d26b605b62bd2958"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
