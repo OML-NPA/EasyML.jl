@@ -39,23 +39,16 @@ end
 
 @testset "Options loading/saving" begin
     mutable struct OptionsBusted
-        a::Vector{Int64}
-        b::Int64
+        GlobalOptions::Bool
     end
-    options_busted = OptionsBusted([1],1)
-    mutable struct Options
-        a::Bool
-        b::Int64
-    end
-    options = Options(true,1)
+    options_busted = OptionsBusted(true)
     @test begin 
-        EasyMLCore.save_options_main(options)
         save_options()
+        EasyMLCore.save_options_main(options_busted)
         true 
     end
-    rm("options.bson")
     @test begin 
-        EasyMLCore.load_options_main(options_busted) 
+        load_options()
         load_options() 
         true 
     end

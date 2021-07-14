@@ -22,7 +22,7 @@ export AbstractInputProperty, Grayscale
 # Struct to Dict interconversion
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model saving/loading
-export set_savepath, save_model, load_model
+export ModeData, set_savepath, save_model, load_model
 # Options saving/loading
 export save_options, load_options
 # GUI data handling
