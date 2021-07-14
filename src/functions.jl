@@ -1,5 +1,50 @@
 
+#---Problem/input types---------------------------------------------
+
+"""
+set_problem_type(type::AbstractProblemType)
+
+Sets the problem type. Either `Classification`, `Regression` or `Segmentation`.
+"""
+function set_problem_type(type::Type{<:AbstractProblemType})
+    model_data.problem_type = type
+    return nothing
+end
+
+"""
+set_input_type(type::AbstractInputType)
+
+Sets the problem type. Currently only `Image`.
+"""
+function set_input_type(type::Type{<:AbstractInputType})
+    model_data.input_type = type
+    return nothing
+end
+
+problem_type() = model_data.problem_type
+
+input_type() = model_data.input_type
+
+
 #---Model saving/loading--------------------------------------------
+
+
+"""
+set_savepath(url::String)
+
+Sets a path where a model will be saved.
+"""
+
+function set_savepath(url::String)
+    url_split = split(url,('\\','/','.'))
+    if isempty(url_split) || url_split[end]!="model"|| length(url_split)<2
+        @error "The model name should end with a '.model' extension."
+        return nothing
+    end
+    all_data.Urls.model_url = url
+    all_data.Urls.model_name = url_split[end-1]
+    return nothing
+end
 
 """
     save_model(url::String)
@@ -132,12 +177,37 @@ end
 
 #---Options saving/loading--------------------------------------------------
 
+"""
+modify(global_options::GlobalOptions) 
+
+Allows to modify `global_options` in a GUI.
+"""
+function modify(data::GlobalOptions)
+    @qmlfunction(
+        max_num_threads,
+        get_options,
+        set_options,
+        save_options,
+        unit_test
+    )
+    path_qml = string(@__DIR__,"/gui/GlobalOptions.qml")
+    loadqml(path_qml)
+    exec()
+    return nothing
+end
+
 function save_options_main(options)
     dict = Dict{Symbol,Any}()
     struct_to_dict!(dict,options)
     BSON.@save("options.bson",dict)
     return nothing
 end
+"""
+    save_options()
+
+Saves options to `options.bson`. Uses present working directory. 
+It is run automatically after changing options in a GUI window.
+"""
 save_options() = save_options_main(options)
 
 function load_options_main(options)
@@ -158,7 +228,7 @@ end
     load_options()
 
 Loads options from your previous run which are located in `options.bson`. 
-Uses present working directory. It is run automatically after `using EasyML`.
+Uses present working directory. It is run automatically after loading the package.
 """
 load_options() = load_options_main(options)
 
@@ -181,7 +251,7 @@ function fix_QML_types(var)
 end
 
 # Allows to read data from GUI
-function get_data_main(data,fields::Vector{<:AbstractString},inds)
+function get_data_main(data,fields,inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
@@ -202,7 +272,7 @@ get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
 get_options(fields,inds=[]) = get_data_main(options,fields,inds)
 
 # Allows to write data from GUI
-function set_data_main(data,fields::Vector{<:AbstractString},args)
+function set_data_main(data,fields,args)
     fields::Vector{String} = fix_QML_types(fields)
     field_end = Symbol(fields[end])
     args = fix_QML_types(args)
@@ -421,9 +491,11 @@ end
 
 #---Other-------------------------------------------
 
-problem_type() = model_data.problem_type
+function max_num_threads()
+    return length(Sys.cpu_info())
+end
 
-input_type() = model_data.input_type
+num_threads() = hardware_resources.num_threads
 
 function check_task(t::Task)
     if istaskdone(t)

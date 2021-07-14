@@ -5,6 +5,8 @@ EasyMLCore.unit_test.state = true
 
 
 @testset "Model loading/saving  " begin
+    @test begin set_savepath("models/test.model"); true end
+    @test begin set_savepath("model"); true end
     EasyMLCore.model_data.classes = repeat([EasyMLCore.ImageSegmentationClass()],2)
     url = "models/test.model"
     @test begin save_model(url); true end
@@ -53,7 +55,7 @@ end
     end
     rm("options.bson")
     @test begin 
-        EasyMLCore.load_options_main(options) 
+        EasyMLCore.load_options_main(options_busted) 
         load_options() 
         true 
     end
@@ -190,4 +192,21 @@ end
     end
     @test begin problem_type(); true end
     @test begin input_type(); true end
+    @test begin
+        set_problem_type(Classification)
+        true
+    end
+    @test begin 
+        set_input_type(Image)
+        true 
+    end
+    @test begin
+        modify(global_options)
+        true
+    end
+    @test begin
+        EasyMLCore.max_num_threads()
+        EasyMLCore.num_threads()
+        true
+    end
 end
