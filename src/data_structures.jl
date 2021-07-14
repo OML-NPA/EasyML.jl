@@ -20,15 +20,20 @@ struct Grayscale <: AbstractInputProperty end
 #---Final----------------------------------------------------------------
 
 @with_kw mutable struct ModelData<:AbstractEasyML
-    model = Ref{Chain}(Flux.Chain())
-    loss = Ref{Function}(Flux.Losses.mse)
-    input_size = Ref((0,0,0))
-    output_size = Ref((0,0,0))
-    problem_type = Ref{Type{<:AbstractProblemType}}(Classification)
-    input_type = Ref{Type{<:AbstractInputType}}(Image)
-    input_properties = Ref{Vector{Type{<:AbstractInputProperty}}}(Type{AbstractInputProperty}[])
-    classes = Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
-    layers_info::RefValue{<:Vector{AbstractLayerInfo}} = Ref{Vector{AbstractLayerInfo}}([])
+    model::RefValue{Chain} = Ref{Chain}(Flux.Chain())
+    loss::RefValue{Function} = Ref{Function}(Flux.Losses.mse)
+    input_size::RefValue{NTuple{3,Int64}} = Ref((0,0,0))
+    output_size::RefValue{NTuple{3,Int64}} = Ref((0,0,0))
+    problem_type::RefValue{Type{<:AbstractProblemType}} = 
+        Ref{Type{<:AbstractProblemType}}(Classification)
+    input_type::RefValue{Type{<:AbstractInputType}} = 
+        Ref{Type{<:AbstractInputType}}(Image)
+    input_properties::RefValue{Vector{Type{<:AbstractInputProperty}}} = 
+        Ref{Vector{Type{<:AbstractInputProperty}}}(Type{AbstractInputProperty}[])
+    classes::RefValue{Vector{<:AbstractClass}} = 
+        Ref{Vector{<:AbstractClass}}(Vector{ImageClassificationClass}(undef,0))
+    layers_info::RefValue{<:Vector{AbstractLayerInfo}} = 
+        Ref{Vector{AbstractLayerInfo}}([])
 end
 model_data = ModelData()
 

@@ -112,7 +112,7 @@ function load_model_main(model_data,url::AbstractString,all_data_urls)
             end
         end
     else
-        # v0.1 compatibility
+        # v0.1 partial compatibility
         dict_to_struct!(model_data,loaded_data)
     end
     all_data_urls.model_url = url
