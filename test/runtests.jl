@@ -158,7 +158,9 @@ end
         end
         @test begin 
             put!(channels.a,1)
-            empty_progress_channel_main(channels,"a")
+            empty_channel_main(channels,"a")
+            put!(channels.a,1)
+            empty_channel_main(channels,:a)
             true
         end
         @test begin 

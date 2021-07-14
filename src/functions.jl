@@ -291,7 +291,7 @@ function get_progress_main(channels,field)
     end
 end
 
-function empty_progress_channel_main(channels,field)
+function empty_channel_main(channels,field)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
     channel = getfield(channels,field_sym)
@@ -314,6 +314,17 @@ function put_channel_main(channels,field,value)
     value = (value1,value2)
     put!(channel,value)
     return nothing
+end
+
+function empty_channel_main(channels,field::Symbol)
+    channel = getproperty(channels,field)
+    while true
+        if isready(channel)
+            take!(channel)
+        else
+            return
+        end
+    end
 end
 
 
