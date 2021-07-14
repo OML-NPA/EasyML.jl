@@ -90,7 +90,7 @@ function load_model_main(model_data,url::AbstractString,all_data_urls)
     end
     fnames = fieldnames(ModelData)
     ks = collect(keys(loaded_data))
-    ks = intersect(ks,fnames)    
+    ks = intersect(ks,fnames) 
     if loaded_data[ks[1]] isa IOBuffer
         for k in ks
             try
@@ -102,8 +102,8 @@ function load_model_main(model_data,url::AbstractString,all_data_urls)
                     type = typeof(getproperty(model_data,k))
                     deserialized_typed = convert(type,deserialized)
                     setproperty!(model_data,k,deserialized_typed)
-                elseif deserialized isa Symbol
-                    setproperty!(model_data,k,eval(deserialized))
+                elseif deserialized isa String
+                    setproperty!(model_data,k,eval(Meta.parse(deserialized)))
                 else
                     setproperty!(model_data,k,deserialized)
                 end
@@ -365,7 +365,7 @@ function struct_to_dict!(dict,obj)
             data_tuple = (vector_type = string(type), types = string(types), values = dict_vec)
             dict[k] = data_tuple
         elseif value isa DataType
-            dict[k] = Symbol(value)
+            dict[k] = String(Symbol(value))
         else
             dict[k] = value
         end
