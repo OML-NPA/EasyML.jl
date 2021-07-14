@@ -1,39 +1,7 @@
 
-#---Binding----------------------------------------------
-
-function Base.getproperty(obj::AbstractEasyML, sym::Symbol)
-    value = getfield(obj, sym)
-    if value isa Ref
-        return value[]
-    else
-        return value
-    end
-end
-
-function Base.setproperty!(obj::AbstractEasyML, sym::Symbol, x)
-    value = getfield(obj,sym)
-    if value isa Ref
-        value[] = x
-    else
-        setfield!(obj,sym,x)
-    end
-    return nothing
-end
-
-function bind!(obj1,obj2)
-    fields1 = fieldnames(typeof(obj1))
-    fields2 = fieldnames(typeof(obj2))
-    for field in fields1
-        if field in fields2 && getfield(obj1,field) isa Ref
-            setfield!(obj1,field,getfield(obj2,field))
-        end
-    end
-end
-
-
 #---Model saving/loading--------------------------------------------
 
-function save_model_main(model_data,url::AbstractString)
+function save_model(url::AbstractString)
     url = fix_QML_types(url)
     # Make folders if needed
     if '\\' in url || '/' in url
@@ -57,7 +25,7 @@ function save_model_main(model_data,url::AbstractString)
     return nothing
 end
 
-function save_model_main(model_data,all_data_urls)
+function save_model()
     name_filters = ["*.model"]
     if isempty(all_data_urls.model_name)
         all_data_urls.model_name = "new_model"
@@ -76,12 +44,12 @@ function save_model_main(model_data,all_data_urls)
         url_out[1] = unit_test.url_pusher()
     end
     if !isempty(url_out[1])
-        save_model_main(model_data, url_out[1])
+        save_model(url_out[1])
     end
     return nothing
 end
 
-function load_model_main(model_data,url::AbstractString,all_data_urls)
+function load_model(url::AbstractString)
     url = fix_QML_types(url)
     if isfile(url)
         loaded_data = BSON.load(url)[:dict]
@@ -121,7 +89,7 @@ function load_model_main(model_data,url::AbstractString,all_data_urls)
     return nothing
 end
 
-function load_model_main(model_data,all_data_urls)
+function load_model()
     name_filters = ["*.model"]
     url_out = String[""]
     observe(url) = url_out[1] = url
@@ -135,7 +103,7 @@ function load_model_main(model_data,all_data_urls)
     end
     # Load model
     if !isempty(url_out[1])
-        load_model_main(model_data,url_out[1],all_data_urls)
+        load_model(url_out[1])
     end
     return nothing
 end
@@ -149,6 +117,7 @@ function save_options_main(options)
     BSON.@save("options.bson",dict)
     return nothing
 end
+save_options() = save_options_main(options)
 
 function load_options_main(options)
     if isfile("options.bson")
@@ -157,13 +126,14 @@ function load_options_main(options)
             dict_to_struct!(options,data[:dict])
         catch e
             @error string("Options were not loaded. Error: ",e)
-            save_options_main(options)
+            save_options()
         end 
     else
-        save_options_main(options)
+        save_options()
     end
     return nothing
 end
+load_options() = load_options_main(options)
 
 
 #---GUI data handling-----------------------------------------------------
@@ -184,7 +154,7 @@ function fix_QML_types(var)
 end
 
 # Allows to read data from GUI
-function get_data_main(data,fields,inds)
+function get_data_main(data,fields::Vector{<:AbstractString},inds)
     fields::Vector{String} = fix_QML_types(fields)
     inds = fix_QML_types(inds)
     for i = 1:length(fields)
@@ -201,10 +171,12 @@ function get_data_main(data,fields,inds)
     end
     return data
 end
+get_data(fields,inds=[]) = get_data_main(all_data,fields,inds)
+get_options(fields,inds=[]) = get_data_main(options,fields,inds)
 
 # Allows to write data from GUI
-function set_data_main(data,fields,args)
-    fields = fix_QML_types(fields)
+function set_data_main(data,fields::Vector{<:AbstractString},args)
+    fields::Vector{String} = fix_QML_types(fields)
     field_end = Symbol(fields[end])
     args = fix_QML_types(args)
     for i = 1:length(fields)-1
@@ -229,6 +201,10 @@ function set_data_main(data,fields,args)
     setproperty!(data, field_end, value)
     return nothing
 end
+
+set_data(fields,args...) = set_data_main(all_data,fields,args)
+
+set_options(fields,args...) = set_data_main(options,fields,args)
 
 function get_folder(dir = "")
     url_out = String[""]
@@ -262,7 +238,7 @@ end
 #---Handling channels---------------------------------------------------------
 
 # Return a value from progress channels without taking the value
-function check_progress_main(channels,field)
+function check_progress_main(channels,field::AbstractString)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
     channel = getfield(channels,field_sym)
@@ -272,6 +248,7 @@ function check_progress_main(channels,field)
         return false
     end
 end
+check_progress(field) = check_progress_main(channels,field)
 
 # Return a value from progress channels by taking the value
 function get_progress_main(channels,field::AbstractString)
@@ -305,8 +282,9 @@ function get_progress_main(channels,field::Symbol)
         return false
     end
 end
+get_progress(field) = get_progress_main(channels,field)
 
-function empty_channel_main(channels,field)
+function empty_channel_main(channels,field::AbstractString)
     field::String = fix_QML_types(field)
     field_sym = Symbol(field)
     channel = getfield(channels,field_sym)
@@ -319,18 +297,6 @@ function empty_channel_main(channels,field)
     end
 end
 
-function put_channel_main(channels,field,value)
-    field = fix_QML_types(field)
-    field_sym = Symbol(field)
-    channel = getfield(channels,field_sym)
-    value_raw::Vector{Float64} = fix_QML_types(value)
-    value1 = convert(Int64,value_raw[1])
-    value2 = convert(Float64,value_raw[2])
-    value = (value1,value2)
-    put!(channel,value)
-    return nothing
-end
-
 function empty_channel_main(channels,field::Symbol)
     channel = getproperty(channels,field)
     while true
@@ -341,6 +307,23 @@ function empty_channel_main(channels,field::Symbol)
         end
     end
 end
+empty_channel(field) = empty_channel_main(channels,field)
+
+function put_channel_main(channels,field::AbstractString,value)
+    field = fix_QML_types(field)
+    value = fix_QML_types(value)
+    field_sym = Symbol(field)
+    channel = getfield(channels,field_sym)
+    if value isa Vector
+        value_raw::Vector{Float64} = fix_QML_types(value)
+        value1 = convert(Int64,value_raw[1])
+        value2 = convert(Float64,value_raw[2])
+        value = (value1,value2)
+    end
+    put!(channel,value)
+    return nothing
+end
+put_channel(field,value) = put_channel_main(channels,field,value)
 
 
 #---Struct related functions--------------------------------------------------
@@ -410,6 +393,10 @@ end
 
 
 #---Other-------------------------------------------
+
+problem_type() = model_data.problem_type
+
+input_type() = model_data.input_type
 
 function check_task(t::Task)
     if istaskdone(t)
