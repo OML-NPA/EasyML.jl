@@ -32,7 +32,7 @@ export save_model_main, load_model_main
 # Options saving/loading
 export save_options_main, load_options_main
 # GUI data handling
-export fix_QML_types, get_data_main, set_data_main
+export fix_QML_types, get_data_main, set_data_main, get_file, get_folder
 # Handling channels
 export check_progress_main, get_progress_main, empty_progress_channel_main, put_channel_main
 # Other

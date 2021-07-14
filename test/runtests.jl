@@ -124,6 +124,18 @@ end
             data.Data2.c[1][1] == :e
         end
     end
+    @testset "Get file/folder" begin
+        @test begin 
+            EasyMLCore.unit_test.urls = ["test"]
+            out = get_folder()
+            out == "test"
+        end
+        @test begin
+            EasyMLCore.unit_test.urls = ["test"]
+            out = get_file()
+            out == "test"
+        end
+    end
     @testset "Channels" begin
         struct Channels
             a::Channel

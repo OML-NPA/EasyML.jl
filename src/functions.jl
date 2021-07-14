@@ -230,6 +230,34 @@ function set_data_main(data,fields,args)
     return nothing
 end
 
+function get_folder(dir = "")
+    url_out = String[""]
+    observe() = url_out[1]
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalFolderDialog.qml")
+    loadqml(path_qml,currentfolder = dir)
+    exec()
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    return url_out[1]
+end
+
+function get_file(dir = "", name_filters = [])
+    url_out = String[""]
+    observe() = url_out[1]
+    @qmlfunction(observe,unit_test)
+    path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
+    loadqml(path_qml,
+        currentfolder = dir,
+        name_filters = name_filters)
+    exec()
+    if unit_test()
+        url_out[1] = unit_test.url_pusher()
+    end
+    return url_out[1]
+end
+
 
 #---Handling channels---------------------------------------------------------
 
