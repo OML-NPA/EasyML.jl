@@ -1,5 +1,5 @@
 
-using Parameters, Flux, Test, EasyMLCore
+using Parameters, Flux, Test, DelimitedFiles, EasyMLCore
 import QML
 EasyMLCore.unit_test.state = true
 
@@ -194,7 +194,16 @@ end
         true 
     end
     @test begin
+       writedlm("test.qml", ["","import", "import", "import","",""])
+       url = "test.qml" 
+       EasyMLCore.add_templates(url)
+       EasyMLCore.add_templates(url)
+       rm("test.qml")
+       true
+    end
+    @test begin
         modify(global_options)
+        rm("options.bson")
         true
     end
     @test begin

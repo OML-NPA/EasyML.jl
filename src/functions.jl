@@ -188,6 +188,7 @@ function modify(data::GlobalOptions)
         get_options,
         set_options,
         save_options,
+        # Other
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/GlobalOptions.qml")
@@ -491,6 +492,43 @@ end
 
 #---Other-------------------------------------------
 
+function findline(lines::Vector{String})
+    for i = 1:20
+        line = lines[i]
+        if i>2
+            if occursin("import",line)
+                if occursin("templates",line)
+                    return i
+                end
+            else
+                return i
+            end
+        end
+    end
+end
+
+templates_dir() = string(replace(@__DIR__, "\\" => "/"),"/gui/templates")
+
+function add_templates(url::String)
+    f = open(url, read=true, write=true)
+    seekstart(f)
+    lines = readlines(f)
+    ind = findline(lines)
+    if ind!=0
+        dir = string("file:///",templates_dir())
+        templates_line = string("import ",'"',dir,'"')
+        lines[ind] = templates_line
+    end
+    close(f)
+    rm(url)
+    f = open(url, write=true)
+    seekstart(f)
+    for line in lines
+        println(f, line)
+    end
+    close(f)
+end
+
 function max_num_threads()
     return length(Sys.cpu_info())
 end
@@ -508,3 +546,4 @@ function check_task(t::Task)
         return :running, nothing
     end
 end
+
