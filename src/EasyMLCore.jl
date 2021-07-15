@@ -4,10 +4,20 @@ module EasyMLCore
 # Include dependencies
 using Parameters, Flux, BSON, QML, Qt5QuickControls2_jll, Dates, ColorTypes, FixedPointNumbers
 
+
+
 # Include modules
+include("modules/CoreTypes.jl")
+using .CoreTypes
 include("modules/Classes.jl")
-include("modules/Layers.jl")
-using .Classes, .Layers
+include("modules/Design.jl")
+include("modules/DataPreparation.jl")
+include("modules/Training.jl")
+include("modules/Validation.jl")
+include("modules/Application.jl")
+
+using .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
+using .Design.Layers, .DataPreparation.InputProperties
 
 # Include functions
 include("data_structures.jl")
