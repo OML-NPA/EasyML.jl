@@ -7,8 +7,8 @@ import QtQuick.Layouts 1.1
 import QtQml.Models 2.15
 import QtQuick.Shapes 1.15
 import Qt.labs.folderlistmodel 2.15
-import "../common/gui/templates"
 import org.julialang 1.0
+import "file:///C:/Users/a_ill/.julia/packages/EasyMLCore/vnZCd/src/gui/templates"
 
 
 ApplicationWindow {

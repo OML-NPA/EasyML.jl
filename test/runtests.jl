@@ -1,8 +1,7 @@
 
 using EasyMLDesign, Test
 
-EasyMLDesign.bind!(EasyMLDesign.EasyMLCore.unit_test, EasyMLDesign.unit_test)
-EasyMLDesign.unit_test.state = true
+EasyMLDesign.EasyMLCore.unit_test.state = true
 
 #---Main functionality----------------------------------------------------
 
@@ -30,7 +29,7 @@ EasyMLDesign.unit_test.state = true
 
     # No output error model
     @test begin 
-        load_model("models/no_output_error_test.model")
+        save_model("models/no_output_error_test.model")
         design_model()
         true
     end
@@ -65,54 +64,6 @@ end
         fields = ["DesignOptions","width"]
         value = 340
         EasyMLDesign.set_options(fields,value)
-        true
-    end
-
-    @test begin
-        EasyMLDesign.unit_test.urls = ["models/test.model"]
-        save_model()
-        true
-    end
-
-    @test begin
-        EasyMLDesign.unit_test.urls = ["models/test.model"]
-        load_model()
-        rm("models/test.model")
-        true
-    end
-
-    @test begin
-        EasyMLDesign.set_data(["DesignData","warnings"],[])
-        true
-    end
-end
-
-#---Other---------------------------------------------------------------
-
-@testset "Other" begin
-
-    @test begin 
-        EasyMLDesign.input_type()
-        set_input_type(Image)
-        true
-    end
-
-    @test begin
-        save_model("models/test.model")
-        load_options()
-        save_options()
-        true
-    end
-
-    @test begin
-        try
-            load_model("my_model")
-        catch e
-            if !(e isa ErrorException)
-                error("Wrong error returned.")
-            end
-        end
-        set_savepath("model")
         true
     end
 end

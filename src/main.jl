@@ -257,7 +257,7 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
     return ind
 end
 
-function get_topology(model_data::ModelData)
+function get_topology(model_data::Union{ModelData,DesignModelData})
     layers = model_data.layers_info
     types = [layers[i].type for i = 1:length(layers)]
     ind_vec = findall(types .== "Input")
@@ -607,7 +607,12 @@ function check_model_main(design_data::DesignData)
     input = zeros(Float32,model_data.input_size...,1)
     try
         output = model_data_design.model(input)
-        output_size = size(output)[1:end-1]
+        output_size_temp = size(output)
+        if length(output_size_temp)==2
+            output_size = (output_size_temp...,1)
+        else
+            output_size = size(output)[1:end-1]
+        end
         model_data_design.output_size = output_size
         if problem_type()==Classification && (output_size[2]!=1 && output_size[3]!=1)
             @error "Use flatten before an output. Otherwise, the model will not function correctly."
@@ -615,6 +620,7 @@ function check_model_main(design_data::DesignData)
             return false
         end
     catch e
+        print(e)
         @error e
         push!(design_data.warnings,"Something is wrong with your model.")
         return false
@@ -629,7 +635,7 @@ function move_model_main(model_data::ModelData,design_data::DesignData)
     model_data.input_size = model_data2.input_size
     model_data.output_size = model_data2.output_size
     model_data.loss = model_data2.loss
-    design_data.ModelData = ModelData()
+    design_data.ModelData = DesignModelData()
 end
 move_model() = move_model_main(model_data,design_data)
 

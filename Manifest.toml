@@ -152,8 +152,8 @@ deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
-deps = ["BSON", "Flux", "Parameters", "QML", "Qt5QuickControls2_jll"]
-git-tree-sha1 = "6412fba9212fe4779a88a22d6651594cb7d2a47d"
+deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll"]
+git-tree-sha1 = "6e2cc4da849e55900629080407378a015f3d254d"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
