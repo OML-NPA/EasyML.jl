@@ -4,27 +4,27 @@ module EasyMLClasses
 # Import packages
 using
 # Interfacing
-QML, Qt5QuickControls2_jll, Qt5Charts_jll,
-# Data structuring
-Parameters,
-# Data import/export
-BSON,
+QML, Qt5QuickControls2_jll,
 # Machine learning
-EasyMLCore, EasyMLCore.Classes
+Flux, EasyMLCore, EasyMLCore.Classes
 
 # Include functions
-include("data_structures.jl")
-include("common/all.jl")
 include("common/design_classes.jl")
-include("common/exported_functions.jl")
 include("main.jl")
 include("exported_functions.jl")
 
-export QML
+export QML, Flux
 
 export model_data, Classification, Regression, Segmentation, Image, 
     ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
-export make_classes, save_model, load_model
-export getproperty, setproperty!
+export save_model, load_model
+export make_classes
+
+function __init__()
+    # Needed to avoid an endless loop for Julia canvas
+    ENV["QSG_RENDER_LOOP"] = "basic"
+
+    EasyMLCore.add_templates(string(@__DIR__,"/gui/ClassDialog.qml"))
+end
 
 end

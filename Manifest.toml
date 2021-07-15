@@ -152,8 +152,8 @@ deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
-deps = ["BSON", "Flux", "Parameters", "QML", "Qt5QuickControls2_jll"]
-git-tree-sha1 = "85ee63425e96045635e48ab06ef00d135756cc64"
+deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "Parameters", "QML", "Qt5QuickControls2_jll"]
+git-tree-sha1 = "2d22a282a8746d3414c12d37bc4e3f3c0dc10a43"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
@@ -172,9 +172,9 @@ version = "0.1.6"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "693210145367e7685d8604aee33d9bfb85db8b31"
+git-tree-sha1 = "25b9cc23ba3303de0ad2eac03f840de9104c9253"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.11.9"
+version = "0.12.0"
 
 [[FixedPointNumbers]]
 deps = ["Statistics"]
@@ -208,9 +208,9 @@ version = "2.10.4+0"
 
 [[Functors]]
 deps = ["MacroTools"]
-git-tree-sha1 = "a7bb2af991c43dcf5c3455d276dd83976799634f"
+git-tree-sha1 = "4cd9e70bf8fce05114598b663ad79dfe9ae432b3"
 uuid = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
-version = "0.2.1"
+version = "0.2.3"
 
 [[GPUArrays]]
 deps = ["AbstractFFTs", "Adapt", "LinearAlgebra", "Printf", "Random", "Serialization", "Statistics"]
@@ -737,9 +737,9 @@ uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
 [[Zygote]]
 deps = ["AbstractFFTs", "ChainRules", "ChainRulesCore", "DiffRules", "Distributed", "FillArrays", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics", "ZygoteRules"]
-git-tree-sha1 = "531474afbc343c3c7cb9b71c2771813c6defd550"
+git-tree-sha1 = "4f9a5ba559da1fc7474f2ece6c6c1e21c4ab989c"
 uuid = "e88e6eb3-aa80-5325-afca-941959d7151f"
-version = "0.6.14"
+version = "0.6.16"
 
 [[ZygoteRules]]
 deps = ["MacroTools"]

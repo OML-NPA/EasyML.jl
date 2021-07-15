@@ -4,8 +4,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.2
 import Qt.labs.platform 1.1
-import "../common/gui/templates"
 import org.julialang 1.0
+import "file:///C:/Users/a_ill/.julia/packages/EasyMLCore/MZi2g/src/gui/templates"
 
 
 ApplicationWindow {
@@ -391,7 +391,7 @@ ApplicationWindow {
                                                 anchors.rightMargin: 5*pix
                                                 Image {
                                                     opacity: trashcanButton.hovered ? 1 : 0.2
-                                                    source: "../common/gui/icons/trash_can.png"
+                                                    source: "icons/trash_can.png"
                                                     height: 55*pix
                                                     width: 55*pix
                                                     fillMode: Image.PreserveAspectFit
