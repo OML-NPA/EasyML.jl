@@ -2,9 +2,17 @@
 module EasyMLCore
 
 # Include dependencies
-using Parameters, Flux, BSON, QML, Qt5QuickControls2_jll, Dates, ColorTypes, FixedPointNumbers
-
-
+using
+# Interfacing
+QML, Qt5QuickControls2_jll,
+# Data structuring
+Parameters, Dates,
+# Data import/export
+BSON,
+# Image manipulation
+ColorTypes, FixedPointNumbers,
+# Machine learning
+Flux, FluxExtra
 
 # Include modules
 include("modules/CoreTypes.jl")
@@ -44,5 +52,13 @@ export modify, global_options
 # Other
 export set_problem_type, set_input_type, problem_type, input_type, model_data, check_task, 
     unit_test
+
+# QML functions
+export @qmlfunction, loadqml, exec
+
+function __init__()
+    # Needed to avoid an endless loop for Julia canvas
+    ENV["QSG_RENDER_LOOP"] = "basic"
+end 
 
 end

@@ -180,6 +180,12 @@ git-tree-sha1 = "0b3c6d0ce57d3b793eabd346ccc8f605035ef079"
 uuid = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 version = "0.12.4"
 
+[[FluxExtra]]
+deps = ["Flux"]
+git-tree-sha1 = "95d3b098b8e7263da808c709dd27466bdb5cb861"
+uuid = "81ebe36b-92a1-4b50-bd7a-fa963d2933c8"
+version = "0.4.0"
+
 [[Fontconfig_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Expat_jll", "FreeType2_jll", "JLLWrappers", "Libdl", "Libuuid_jll", "Pkg", "Zlib_jll"]
 git-tree-sha1 = "21efd19106a55620a188615da6d3d06cd7f6ee03"
