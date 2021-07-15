@@ -20,10 +20,4 @@ export model_data, Classification, Regression, Segmentation, Image,
 export save_model, load_model
 export make_classes
 
-function __init__()
-    if Base.moduleroot(EasyMLClasses)==EasyMLClasses
-        EasyMLCore.add_templates(string(@__DIR__,"/gui/ClassDialog.qml"))
-    end
-end
-
 end
