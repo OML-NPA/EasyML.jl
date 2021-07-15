@@ -6,7 +6,7 @@ using
 # Interfacing
 QML, Qt5QuickControls2_jll,
 # Machine learning
-Flux, EasyMLCore, EasyMLCore.Classes
+Flux, FluxExtra, EasyMLCore, EasyMLCore.Classes
 
 # Include functions
 include("common/design_classes.jl")
