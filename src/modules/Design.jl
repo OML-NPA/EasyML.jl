@@ -235,7 +235,7 @@ end
 
 using Flux, .Layers
 
-@with_kw mutable struct ModelData
+@with_kw mutable struct DesignModelData
     model::Flux.Chain = Flux.Chain()
     loss::Function = Flux.Losses.mse
     input_size::NTuple{3,Int64} = (0,0,0)
@@ -244,10 +244,9 @@ using Flux, .Layers
     input_type::Type{<:AbstractInputType} = Image
     layers_info::Vector{AbstractLayerInfo} =  Vector{AbstractLayerInfo}(undef,0)
 end
-model_data = ModelData()
 
 @with_kw mutable struct DesignData
-    ModelData::ModelData = ModelData()
+    ModelData::DesignModelData = DesignModelData()
     warnings::Vector{String} = Vector{String}(undef,0)
 end
 design_data = DesignData()
