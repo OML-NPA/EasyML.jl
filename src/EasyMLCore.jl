@@ -54,7 +54,7 @@ export set_problem_type, set_input_type, problem_type, input_type, model_data, c
     unit_test, add_templates
 
 # QML functions
-export QML, @qmlfunction, loadqml, exec
+export QML, @qmlfunction, QByteArray, loadqml, exec
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
