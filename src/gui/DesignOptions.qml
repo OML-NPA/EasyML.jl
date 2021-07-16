@@ -5,7 +5,6 @@ import QtQuick.Window 2.2
 import QtQuick.Layouts 1.2
 import Qt.labs.platform 1.1
 import org.julialang 1.0
-import "file:///C:/Users/a_ill/.julia/packages/EasyMLCore/vnZCd/src/gui/templates"
 
 
 ApplicationWindow {

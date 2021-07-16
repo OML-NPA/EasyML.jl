@@ -10,7 +10,7 @@ Statistics
 
 using EasyMLCore, EasyMLCore.Design, EasyMLCore.Layers
 
-import Flux.outputsize, QML
+import Flux.outputsize
 
 # Include functions
 include("common/design_classes.jl")
@@ -25,9 +25,6 @@ export design_model
 export Join, Split, Addition, Activation, Flatten, Identity
 
 function __init__()
-    EasyMLCore.add_templates(string(@__DIR__,"/gui/Design.qml"))
-    EasyMLCore.add_templates(string(@__DIR__,"/gui/DesignOptions.qml"))
-
     load_options()
 end
 

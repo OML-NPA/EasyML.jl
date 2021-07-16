@@ -8,7 +8,7 @@ import QtQml.Models 2.15
 import QtQuick.Shapes 1.15
 import Qt.labs.folderlistmodel 2.15
 import org.julialang 1.0
-import "file:///C:/Users/a_ill/.julia/packages/EasyMLCore/vnZCd/src/gui/templates"
+import "templates"
 
 
 ApplicationWindow {
@@ -1069,7 +1069,7 @@ ApplicationWindow {
                 width: iconSize
                 height: iconSize
                 background: Image {
-                    source: "icons/saveIcon.png"
+                    source: gui_dir+"icons/saveIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 Component.onCompleted: {
@@ -1111,14 +1111,14 @@ ApplicationWindow {
                         text: "Options"})
                 }
                 background: Image {
-                    source: "icons/optionsIcon.png"
+                    source: gui_dir+"icons/optionsIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 onPressed: {opacity = 0.5}
                 onClicked: {
                     opacity = 1
                     if (designoptionsLoader.sourceComponent === null) {
-                        designoptionsLoader.source = "DesignOptions.qml"
+                        designoptionsLoader.source = gui_dir+"DesignOptions.qml"
                     }
                 }
             }
@@ -1134,7 +1134,7 @@ ApplicationWindow {
                         text: "Arrange"})
                 }
                 background: Image {
-                    source: "icons/arrangeIcon.png"
+                    source: gui_dir+"icons/arrangeIcon.png"
                     fillMode: Image.PreserveAspectFit
                 }
                 onPressed: {opacity = 0.5}
