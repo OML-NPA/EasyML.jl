@@ -2951,7 +2951,7 @@ ApplicationWindow {
             property var group: null
             property var label_color: null
             property var datastore: {"id": id,"name": name, "type": type, "group": group,
-                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": parseInt(0)}}
+                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": 0}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3034,10 +3034,7 @@ ApplicationWindow {
                     ComboBox {
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
-                        currentIndex: datastore.normalisation.ind
-                        Component.onCompleted: {
-                            console.log(JSON.stringify(datastore.normalisation))
-                        }
+                        currentIndex: parseInt(datastore.normalisation.ind)
                         model: ListModel {
                            id: optionsModel
                            ListElement { text: "[0,1]" }
@@ -3122,7 +3119,7 @@ ApplicationWindow {
                     ComboBox {
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
-                        currentIndex: datastore.loss.ind
+                        currentIndex: parseInt(datastore.loss.ind)
                         model: ListModel {
                            id: optionsModel
                            ListElement { text: "MAE" }
