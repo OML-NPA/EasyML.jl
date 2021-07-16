@@ -503,7 +503,8 @@ function dict_to_struct!(obj,dict::Dict)
             else
                 try
                     setproperty!(obj,sym,value)
-                finally
+                catch e
+                    @warn string("Loading of ",string(sym)," in ",string(obj)," failed.")  exception=(e, catch_backtrace())
                 end
             end
         end

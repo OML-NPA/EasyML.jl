@@ -12,6 +12,7 @@ EasyMLCore.unit_test.state = true
     @test begin save_model(url); true end
     @test begin load_model(url); true end
     @test begin load_model("models/old_test.model"); true end
+    @test begin load_model("models/broken_property.model"); true end
     rm("models/test.model")
     @test begin 
         try 

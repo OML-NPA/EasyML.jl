@@ -2,7 +2,6 @@
 module EasyMLCore
 
 # Include dependencies
-using Base: Float32
 using
 # Interfacing
 QML, Qt5QuickControls2_jll,
@@ -61,6 +60,8 @@ export set_problem_type, set_input_type, problem_type, input_type, model_data, c
 
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec
+# Other
+export Flux, FluxExtra
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
