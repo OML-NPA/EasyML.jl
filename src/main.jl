@@ -238,6 +238,10 @@ function augment(float_img::Array{Float32,3},label::BitArray{3},size12::Tuple{In
     return data
 end
 
+function apply_normalization(model_data::ModelData,data::Vector{Array{Float32,N}}) where N
+    model_data.normalization.args = (model_data.normalization.f(data)...,)
+end
+
 function prepare_data(model_data::ModelData,classification_data::ClassificationData,
         size12::Tuple{Int64,Int64},data_preparation_options::DataPreparationOptions,
         progress::Channel)
@@ -297,6 +301,8 @@ function prepare_data(model_data::ModelData,classification_data::ClassificationD
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    # Normalize
+    apply_normalization(model_data,data_input_flat)
     # Return results
     classification_data.Results.data_input = data_input_flat
     classification_data.Results.data_labels = data_label_flat
@@ -356,6 +362,8 @@ function prepare_data(model_data::ModelData,regression_data::RegressionData,
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    # Normalize
+    apply_normalization(model_data,data_input_flat)
     # Return results
     regression_data.Results.data_input = data_input_flat
     regression_data.Results.data_labels = data_label_flat
@@ -426,6 +434,8 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     # Flatten input images and labels array
     data_input_flat = reduce(vcat,data_input)
     data_label_flat = reduce(vcat,data_label)
+    # Normalize
+    apply_normalization(model_data,data_input_flat)
     # Return results
     segmentation_data.Results.data_input = data_input_flat
     segmentation_data.Results.data_labels = data_label_flat
