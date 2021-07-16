@@ -1346,7 +1346,6 @@ ApplicationWindow {
                 if (typeof(prop)==='object' && prop.length===2) {
                     if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
                         unit[prop_name] = {"text": prop[0],"ind": parseInt(prop[1])}
-                        console.log(unit[prop_name])
                     }
                     else {
                         unit[prop_name] = prop
@@ -2952,7 +2951,7 @@ ApplicationWindow {
             property var group: null
             property var label_color: null
             property var datastore: {"id": id,"name": name, "type": type, "group": group,
-                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": 0}}
+                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": parseInt(0)}}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3036,6 +3035,9 @@ ApplicationWindow {
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
                         currentIndex: datastore.normalisation.ind
+                        Component.onCompleted: {
+                            console.log(JSON.stringify(datastore.normalisation))
+                        }
                         model: ListModel {
                            id: optionsModel
                            ListElement { text: "[0,1]" }
