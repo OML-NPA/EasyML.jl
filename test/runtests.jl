@@ -1,5 +1,5 @@
 
-using Parameters, Flux, Test, DelimitedFiles, EasyMLCore
+using Parameters, Flux, Test, DelimitedFiles, BSON, EasyMLCore
 import QML
 EasyMLCore.unit_test.state = true
 
@@ -45,15 +45,17 @@ end
     options_busted = OptionsBusted(true)
     @test begin 
         save_options()
-        EasyMLCore.save_options_main(options_busted)
+        dict_busted = Dict()
+        BSON.@save("options.bson",dict_busted)
         true 
     end
     @test begin 
         load_options()
         load_options() 
+        rm("options.bson")
+        load_options() 
         true 
     end
-    rm("options.bson")
 end
 
 @testset verbose = true "QML interaction       "  begin
