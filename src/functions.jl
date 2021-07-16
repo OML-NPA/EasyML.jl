@@ -501,7 +501,10 @@ function dict_to_struct!(obj,dict::Dict)
             if value isa Dict
                 dict_to_struct!(obj_property,value)
             else
-                setproperty!(obj,sym,value)
+                try
+                    setproperty!(obj,sym,value)
+                finally
+                end
             end
         end
     end
