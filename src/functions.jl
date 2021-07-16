@@ -127,7 +127,7 @@ function load_model(url::AbstractString)
                 deserialized = BSON.load(serialized)[:field]
                 if k==:problem_type || k==:input_type
                     setproperty!(model_data,k,eval(Meta.parse(deserialized)))
-                elseif k==:layers_info
+                elseif deserialized isa NamedTuple && k!=normalization
                     to_struct!(model_data,k,deserialized)
                 elseif deserialized isa Vector
                     type = typeof(getproperty(model_data,k))
@@ -141,7 +141,7 @@ function load_model(url::AbstractString)
             end
         end
     else
-        # v0.1 partial compatibility
+        # EasyML v0.1 partial compatibility
         dict_to_struct!(model_data,loaded_data)
     end
     all_data_urls.model_url = url
@@ -238,7 +238,7 @@ load_options() = load_options_main(options)
 
 #---GUI-------------------------------------------------------------------
 
-function loadqml(text::QByteArray; kwargs...)
+function QML.loadqml(text::QByteArray; kwargs...)
     qml_engine = init_qmlengine()
     ctx = root_context(QML.CxxRef(qml_engine))
     for (key,value) in kwargs
