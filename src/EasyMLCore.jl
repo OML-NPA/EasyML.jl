@@ -14,7 +14,7 @@ ColorTypes, FixedPointNumbers,
 # Maths
 Statistics,
 # Machine learning
-Flux, FluxExtra
+Flux, Flux.Losses, FluxExtra
 
 # Include modules
 include("modules/CoreTypes.jl")
@@ -58,7 +58,8 @@ export set_problem_type, set_input_type, problem_type, input_type, model_data, c
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec
 # Machine learning
-export Flux, FluxExtra, Normalizations, NNlib
+export Flux, Losses, FluxExtra, Normalizations, NNlib
+
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas
