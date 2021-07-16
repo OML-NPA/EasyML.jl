@@ -127,7 +127,7 @@ function load_model(url::AbstractString)
                 deserialized = BSON.load(serialized)[:field]
                 if k==:problem_type || k==:input_type
                     setproperty!(model_data,k,eval(Meta.parse(deserialized)))
-                elseif deserialized isa NamedTuple && k!=normalization
+                elseif deserialized isa NamedTuple && k!=:normalization
                     to_struct!(model_data,k,deserialized)
                 elseif deserialized isa Vector
                     type = typeof(getproperty(model_data,k))
