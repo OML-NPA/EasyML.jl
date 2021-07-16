@@ -1346,6 +1346,7 @@ ApplicationWindow {
                 if (typeof(prop)==='object' && prop.length===2) {
                     if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
                         unit[prop_name] = {"text": prop[0],"ind": parseInt(prop[1])}
+                        console.log(unit[prop_name])
                     }
                     else {
                         unit[prop_name] = prop
