@@ -7,5 +7,4 @@ version = "0.1.0"
 EasyMLCore = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
 
 [compat]
-EasyMLCore = "0.1"
 julia = "1.6"
