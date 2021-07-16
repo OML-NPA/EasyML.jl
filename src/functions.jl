@@ -92,8 +92,8 @@ function save_model()
     # Launch GUI
     @qmlfunction(observe,unit_test)
     path_qml = string(@__DIR__,"/gui/UniversalSaveFileDialog.qml")
-    loadqml(path_qml,
-        name_filters = name_filters,
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text),name_filters = name_filters,
         filename = filename)
     exec()
     if unit_test()
@@ -162,7 +162,8 @@ function load_model()
     # Launch GUI
     @qmlfunction(observe,unit_test)
     path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
-    loadqml(path_qml,name_filters = name_filters)
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text),name_filters = name_filters)
     exec()
     if unit_test()
         url_out[1] = unit_test.url_pusher()
@@ -192,7 +193,8 @@ function modify(data::GlobalOptions)
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/GlobalOptions.qml")
-    loadqml(path_qml)
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text))
     exec()
     return nothing
 end
@@ -232,6 +234,21 @@ Loads options from your previous run which are located in `options.bson`.
 Uses present working directory. It is run automatically after loading the package.
 """
 load_options() = load_options_main(options)
+
+
+#---GUI-------------------------------------------------------------------
+
+function loadqml(text::QByteArray; kwargs...)
+    qml_engine = init_qmlengine()
+    ctx = root_context(QML.CxxRef(qml_engine))
+    for (key,value) in kwargs
+        set_context_property(ctx, String(key), value)
+    end
+    component = QQmlComponent(qml_engine)
+    QML.set_data(component, text, QUrl())
+    create(component, qmlcontext())
+    return component
+end
 
 
 #---GUI data handling-----------------------------------------------------
@@ -309,7 +326,8 @@ function get_folder(dir = "")
     observe() = url_out[1]
     @qmlfunction(observe,unit_test)
     path_qml = string(@__DIR__,"/gui/UniversalFolderDialog.qml")
-    loadqml(path_qml,currentfolder = dir)
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text),currentfolder = dir)
     exec()
     if unit_test()
         url_out[1] = unit_test.url_pusher()
@@ -322,7 +340,8 @@ function get_file(dir = "", name_filters = [])
     observe() = url_out[1]
     @qmlfunction(observe,unit_test)
     path_qml = string(@__DIR__,"/gui/UniversalFileDialog.qml")
-    loadqml(path_qml,
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text),
         currentfolder = dir,
         name_filters = name_filters)
     exec()
@@ -510,23 +529,18 @@ end
 templates_dir() = string(replace(@__DIR__, "\\" => "/"),"/gui/templates")
 
 function add_templates(url::String)
-    f = open(url, read=true, write=true)
+    f = open(url, read=true)
     seekstart(f)
     lines = readlines(f)
+    close(f)
     ind = findline(lines)
     if ind!=0
         dir = string("file:///",templates_dir())
         templates_line = string("import ",'"',dir,'"')
         lines[ind] = templates_line
     end
-    close(f)
-    rm(url)
-    f = open(url, write=true)
-    seekstart(f)
-    for line in lines
-        println(f, line)
-    end
-    close(f)
+    text = join(lines,"\n")
+    return text
 end
 
 function max_num_threads()

@@ -194,14 +194,6 @@ end
         true 
     end
     @test begin
-       writedlm("test.qml", ["","import", "import", "import","",""])
-       url = "test.qml" 
-       EasyMLCore.add_templates(url)
-       EasyMLCore.add_templates(url)
-       rm("test.qml")
-       true
-    end
-    @test begin
         modify(global_options)
         rm("options.bson")
         true
