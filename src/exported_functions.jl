@@ -28,7 +28,9 @@ function make_classes()
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/ClassDialog.qml")
-    loadqml(path_qml,JindTree = JindTree, ids = ids)
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), gui_dir = gui_dir, JindTree = JindTree, ids = ids)
     exec()
     return nothing
 end

@@ -153,7 +153,7 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
 deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll"]
-git-tree-sha1 = "6e2cc4da849e55900629080407378a015f3d254d"
+git-tree-sha1 = "5a5d4ad43b1585279d2f5ff3e72bd0d1c48f4257"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
