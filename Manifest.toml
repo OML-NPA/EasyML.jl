@@ -300,7 +300,7 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLClasses]]
 deps = ["EasyMLCore"]
-git-tree-sha1 = "b50af0bb89cb6447d91a4e8df7ebc8bd5141d80e"
+git-tree-sha1 = "e174f259a7c141527794fd5cb31d6829306be272"
 repo-rev = "dev"
 repo-url = "https://github.com/OML-NPA/EasyMLClasses.jl"
 uuid = "5a06b745-583a-4b87-a77e-c5c0cb1b0310"
@@ -308,8 +308,8 @@ version = "0.1.0"
 
 [[EasyMLCore]]
 deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll", "Statistics"]
-git-tree-sha1 = "209764be7d05ce767601528a8f34072390cfef2d"
-repo-rev = "dev"
+git-tree-sha1 = "1fb185d556c427ff7d26cf70b981f9c4bfbf2f19"
+repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
 version = "0.1.0"
