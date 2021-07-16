@@ -1,6 +1,8 @@
 
 module CoreTypes
 
+using Flux
+
 #--Types--------------------------------------------------------------
 
 abstract type AbstractProblemType end
@@ -10,6 +12,8 @@ struct Segmentation <: AbstractProblemType end
 
 abstract type AbstractInputType end
 struct Image <: AbstractInputType end
+
+const AbstractModel = Union{Flux.Chain}
 
 
 #---Export all--------------------------------------------------------------

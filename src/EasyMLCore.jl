@@ -30,7 +30,6 @@ using .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
 using .Design.Layers, .DataPreparation.InputProperties
 
 # Include functions
-include("normalizations.jl")
 include("data_structures.jl")
 include("functions.jl")
 
@@ -40,12 +39,10 @@ export AbstractProblemType, Classification, Regression, Segmentation
 export AbstractInputType, Image
 # Input properties
 export AbstractInputProperty, Grayscale
-# Normalizations
-export norm_01!, norm_negpos1!, norm_zerocenter!, norm_zscore!
 # Struct to Dict interconversion
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model saving/loading
-export ModelData, set_savepath, save_model, load_model
+export ModelData, AbstractModel, set_savepath, save_model, load_model
 # Options saving/loading
 export save_options, load_options
 # GUI data handling
@@ -60,8 +57,8 @@ export set_problem_type, set_input_type, problem_type, input_type, model_data, c
 
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec
-# Other
-export Flux, FluxExtra, NNlib
+# Machine learning
+export Flux, FluxExtra, Normalizations, NNlib
 
 function __init__()
     # Needed to avoid an endless loop for Julia canvas

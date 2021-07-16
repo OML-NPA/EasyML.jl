@@ -171,14 +171,6 @@ end
 
 @testset "Other                 " begin
     @test begin
-        data = repeat([rand(Float32,5,5,3)],2)
-        norm_01!(data)
-        norm_negpos1!(data)
-        norm_zerocenter!(data)
-        norm_zscore!(data)
-        true
-    end
-    @test begin
         f1() = true
         t1 = Task(f1)
         check_task(t1)
