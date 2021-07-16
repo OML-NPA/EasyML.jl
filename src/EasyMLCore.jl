@@ -2,6 +2,7 @@
 module EasyMLCore
 
 # Include dependencies
+using Base: Float32
 using
 # Interfacing
 QML, Qt5QuickControls2_jll,
@@ -11,6 +12,8 @@ Parameters, Dates,
 BSON,
 # Image manipulation
 ColorTypes, FixedPointNumbers,
+# Maths
+Statistics,
 # Machine learning
 Flux, FluxExtra
 
@@ -28,6 +31,7 @@ using .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
 using .Design.Layers, .DataPreparation.InputProperties
 
 # Include functions
+include("normalizations.jl")
 include("data_structures.jl")
 include("functions.jl")
 
@@ -37,6 +41,8 @@ export AbstractProblemType, Classification, Regression, Segmentation
 export AbstractInputType, Image
 # Input properties
 export AbstractInputProperty, Grayscale
+# Normalizations
+export norm_01!, norm_negpos1!, norm_zerocenter!, norm_zscore!
 # Struct to Dict interconversion
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model saving/loading

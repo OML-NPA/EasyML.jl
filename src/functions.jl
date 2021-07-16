@@ -450,7 +450,7 @@ function struct_to_dict!(dict,obj)
     for k in ks
         value = getproperty(obj,k)
         type = typeof(value)
-        if occursin("EasyML",string(parentmodule(type)))
+        if occursin("EasyML",string(parentmodule(type))) && !(type<:Function)
             dict_current = Dict{Symbol,Any}()
             dict[k] = dict_current
             struct_to_dict!(dict_current,value)

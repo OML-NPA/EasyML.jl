@@ -170,6 +170,14 @@ end
 
 @testset "Other                 " begin
     @test begin
+        data = repeat([rand(Float32,5,5,3)],2)
+        norm_01!(data)
+        norm_negpos1!(data)
+        norm_zerocenter!(data)
+        norm_zscore!(data)
+        true
+    end
+    @test begin
         f1() = true
         t1 = Task(f1)
         check_task(t1)
@@ -181,6 +189,14 @@ end
         schedule(t2)
         sleep(2)
         check_task(t2)
+        true
+    end
+    @test begin
+        writedlm("test.qml", ["","import", "import", "import","",""])
+        url = "test.qml" 
+        EasyMLCore.add_templates(url)
+        EasyMLCore.add_templates(url)
+        rm("test.qml")
         true
     end
     @test begin problem_type(); true end

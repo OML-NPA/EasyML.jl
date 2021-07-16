@@ -37,7 +37,7 @@ module Layers
         y::Float64 = 0
         label_color::NTuple{3,Int64} = (0,0,0)
         size::NTuple{3,Int64} = (0,0,0)
-        normalisation::Int64 = 0
+        normalization::Int64 = 0
     end
 
     @with_kw mutable struct OutputInfo<:AbstractLayerInfo
