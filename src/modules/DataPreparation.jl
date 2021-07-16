@@ -21,6 +21,15 @@ module InputProperties
     
 end
 
+function none(data)
+    return Float32[]
+end
+
+@with_kw mutable struct Normalization
+    f::Function = none
+    args::Tuple = ()
+end
+
 
 #---Data----------------------------------------------------------------
 

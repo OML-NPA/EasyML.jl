@@ -18,7 +18,7 @@ channels = Channels()
 
 @with_kw mutable struct ModelData
     model::AbstractModel = Flux.Chain()
-    normalization::NamedTuple{(:f, :args), Tuple{Function, Tuple}} = (f = identity,args = ())
+    normalization::Normalization = Normalization()
     loss::Function = Flux.Losses.mse
     input_size::NTuple{3,Int64} = (0,0,0)
     output_size::NTuple{3,Int64} = (0,0,0)

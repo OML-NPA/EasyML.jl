@@ -214,5 +214,5 @@ end
         EasyMLCore.num_threads()
         true
     end
-    @test model_data.normalization.f(true)
+    @test begin model_data.normalization.f([]); true end
 end
