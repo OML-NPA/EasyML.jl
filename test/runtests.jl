@@ -1,7 +1,6 @@
 
 using EasyMLDataPreparation, Test
 
-EasyMLDataPreparation.bind!(EasyMLDataPreparation.EasyMLCore.unit_test, EasyMLDataPreparation.unit_test)
 EasyMLDataPreparation.unit_test.state = true
 
 @testset "Opening options" begin
@@ -46,9 +45,7 @@ for i = 1:2
             get_urls(url_input,url_label)
             true
         end
-        @test begin 
-            results = prepare_data(); true
-        end
+        @test begin results = prepare_data(); true end
     end
 
     @testset "Segmentatation" begin
@@ -84,7 +81,7 @@ end
         load_model("models/classification.model")
         url_input = "examples\\classification\\"
         get_urls(url_input)
-        EasyMLDataPreparation.unit_test.urls = ["examples/classification/test"]
+        push!(EasyMLDataPreparation.unit_test.urls,"examples/classification/test")
         get_urls()
         true
     end
@@ -97,7 +94,7 @@ end
         url_input = "examples/regression/"
         url_label = "examples/regression/test.csv"
         get_urls(url_input,url_label)
-        EasyMLDataPreparation.unit_test.urls = ["examples/regression/test","examples/regression/test.csv"]
+        push!(EasyMLDataPreparation.unit_test.urls, "examples/regression/test","examples/regression/test.csv")
         get_urls()
         true
     end
@@ -110,7 +107,7 @@ end
         url_input = "examples/segmentation/"
         url_label = "examples/segmentation/labels"
         get_urls(url_input,url_label)
-        EasyMLDataPreparation.unit_test.urls = ["examples/segmentation/images","examples/segmentation/labels"]
+        push!(EasyMLDataPreparation.unit_test.urls, "examples/segmentation/images","examples/segmentation/labels")
         get_urls()
         true
     end
@@ -138,7 +135,7 @@ end
     end
 
     @test begin
-        EasyMLDataPreparation.unit_test.urls = [""]
+        push!(EasyMLDataPreparation.unit_test.urls, "")
         load_model()
         true
     end
@@ -157,36 +154,6 @@ end
         EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
         EasyMLDataPreparation.rm_model_data("input_properties","Grayscale")
         EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
-        true
-    end
-    @test begin
-        EasyMLDataPreparation.unit_test.urls = ["models/segmentation.model"]
-        load_model()
-
-        EasyMLDataPreparation.unit_test.urls = ["models/test.model"]
-        save_model()
-        rm("models/test.model")
-
-        EasyMLDataPreparation.all_data.Urls.model_name = ""
-        EasyMLDataPreparation.unit_test.urls = ["models/test.model"]
-        save_model()
-        rm("models/test.model")
-        true
-    end
-end
-
-
-#---Other----------------------------------------
-
-@testset "Other" begin
-    @test begin
-        put!(EasyMLDataPreparation.channels.data_preparation_progress,1)
-        EasyMLDataPreparation.empty_channel(:data_preparation_progress)
-
-        load_options()
-
-        save_model("models/test.model")
-        rm("models/test.model")
         true
     end
 end

@@ -18,7 +18,9 @@ function modify(data::DataPreparationOptions)
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/DataPreparationOptions.qml")
-    loadqml(path_qml)
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), gui_dir = gui_dir)
     exec()
     return nothing
 end
