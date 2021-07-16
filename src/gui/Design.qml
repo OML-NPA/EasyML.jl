@@ -76,7 +76,7 @@ ApplicationWindow {
                 timer.triggered.connect(cb);
                 timer.start();
             }
-            delay(1000, test_func)
+            delay(100, test_func)
         }
     }
 
@@ -384,7 +384,7 @@ ApplicationWindow {
                                 font.pixelSize: defaultPixelSize*1.1
                                 color: "#777777"
                                 topPadding: 0.10*activationLabel.height
-                                text: "Normalisation layers"
+                                text: "normalization layers"
                                 leftPadding: 0.25*margin
                                 background: Rectangle {
                                     anchors.fill: parent.fill
@@ -412,7 +412,7 @@ ApplicationWindow {
                                                         outputnum: 1}
                                                     ListElement{
                                                         name: "batchnorm"
-                                                        type: "Batch normalisation"
+                                                        type: "Batch normalization"
                                                         group: "norm"
                                                         colorR: 0
                                                         colorG: 250
@@ -1344,12 +1344,7 @@ ApplicationWindow {
                 var prop_name = properties[j]
                 var prop = Julia.model_get_layer_property(indJ,prop_name)
                 if (typeof(prop)==='object' && prop.length===2) {
-                    if (typeof(prop[0])==='string' && typeof(prop[1])==='number') {
-                        unit[prop_name] = {"text": prop[0],"ind": parseInt(prop[1])}
-                    }
-                    else {
-                        unit[prop_name] = prop
-                    }
+                    unit[prop_name] = prop
                 }
                 else {
                     if (skipStringing.includes(prop_name) || typeof(prop)==='object') {
@@ -1819,7 +1814,7 @@ ApplicationWindow {
                 return pushstack(densepropertiesComponent,...properties,unit)
             case "Drop-out":
                 return pushstack(dropoutpropertiesComponent,...properties,unit)
-            case "Batch normalisation":
+            case "Batch normalization":
                 return pushstack(batchnormpropertiesComponent,...properties,unit)
             case "Leaky ReLU":
                 return pushstack(leakyrelupropertiesComponent,...properties,unit)
@@ -2951,7 +2946,7 @@ ApplicationWindow {
             property var group: null
             property var label_color: null
             property var datastore: {"id": id,"name": name, "type": type, "group": group,
-                "size": [160,160],"normalisation": {"text": "[0,1]", "ind": 0}}
+                "size": [160,160],"normalization": 0}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -2987,7 +2982,7 @@ ApplicationWindow {
                     topPadding: 0.2*margin
                     spacing: 20*pix
                     Repeater {
-                        model: ["Name","Size","Normalisation"]
+                        model: ["Name","Size","normalization"]
                         Label {
                             height: buttonHeight
                             topPadding: 14*pix
@@ -3034,7 +3029,7 @@ ApplicationWindow {
                     ComboBox {
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
-                        currentIndex: parseInt(datastore.normalisation.ind)
+                        currentIndex: datastore.normalization
                         model: ListModel {
                            id: optionsModel
                            ListElement { text: "[0,1]" }
@@ -3042,8 +3037,7 @@ ApplicationWindow {
                            ListElement { text: "zero center" }
                         }
                         onActivated: {
-                            unit.datastore.normalisation.text = currentText
-                            unit.datastore.normalisation.ind = currentIndex
+                            unit.datastore.normalization = currentIndex
                         }
                     }
                 }
@@ -3060,7 +3054,7 @@ ApplicationWindow {
             property string type
             property var group: null
             property var label_color: null
-            property var datastore: { "id": id,"name": name, "type": type, "group": group,"loss": {"text": "Dice coefficient", "ind": 12}}
+            property var datastore: { "id": id,"name": name, "type": type, "group": group,"loss": 0}
             Component.onCompleted: {
                 if (unit.datastore===undefined) {
                     unit.datastore = datastore
@@ -3119,7 +3113,7 @@ ApplicationWindow {
                     ComboBox {
                         height: buttonHeight
                         width: rightFrame.width - labelColumn.width - 70*pix
-                        currentIndex: parseInt(datastore.loss.ind)
+                        currentIndex: datastore.loss
                         model: ListModel {
                            id: optionsModel
                            ListElement { text: "MAE" }
@@ -3138,8 +3132,7 @@ ApplicationWindow {
                            ListElement { text: "Tversky" }
                         }
                         onActivated: {
-                            unit.datastore.loss.text = currentText
-                            unit.datastore.loss.ind = currentIndex
+                            unit.datastore.loss = currentIndex
                         }
                     }
                 }

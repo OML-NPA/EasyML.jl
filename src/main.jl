@@ -582,8 +582,8 @@ function make_model_main(design_data::DesignData)
     in_size = (layers_arranged[1].size...,)
     model_data_design.input_size = in_size
     popfirst!(layers_arranged)
-    loss_name = layers_arranged[end].loss[1]
-    model_data_design.loss = get_loss(loss_name)
+    loss_ind = layers_arranged[end].loss
+    #model_data_design.loss = get_loss(loss_ind+1)
     pop!(layers_arranged)
     model_layers = []
     for i = 1:length(layers_arranged)
@@ -642,37 +642,13 @@ move_model() = move_model_main(model_data,design_data)
 
 #---Losses---------------------------------------------------------------------
 
-function get_loss(loss_name::String)
-    if loss_name == "MAE"
-        return Losses.mae
-    elseif loss_name == "MSE"
-        return Losses.mse
-    elseif loss_name == "MSLE"
-        return Losses.msle
-    elseif loss_name == "Huber"
-        return Losses.huber_loss
-    elseif loss_name == "Crossentropy"
-        return Losses.crossentropy
-    elseif loss_name == "Logit crossentropy"
-        return Losses.logitcrossentropy
-    elseif loss_name == "Binary crossentropy"
-        return Losses.binarycrossentropy
-    elseif loss_name == "Logit binary crossentropy"
-        return Losses.logitbinarycrossentropy
-    elseif loss_name == "Kullback-Leiber divergence"
-        return Losses.kldivergence
-    elseif loss_name == "Poisson"
-        return Losses.poisson_loss
-    elseif loss_name == "Hinge"
-        return Losses.hinge_loss
-    elseif loss_name == "Squared hinge"
-        return squared_hinge_loss
-    elseif loss_name == "Dice coefficient"
-        return Losses.dice_coeff_loss
-    elseif loss_name == "Tversky"
-        return Losses.tversky_loss
-    end
+function get_loss(ind::Int64)
+    losses = [mae,mse,msle,huber_loss,crossentropy,logitcrossentropy,binarycrossentropy,
+        logitbinarycrossentropy,kldivergence,poisson_loss,hinge_loss,squared_hinge_loss,
+        dice_coeff_loss,tversky_loss]
+    return losses[ind]
 end
+
 
 #---Other----------------------------------------------------------------------
 

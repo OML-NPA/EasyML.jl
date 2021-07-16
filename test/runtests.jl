@@ -29,7 +29,7 @@ EasyMLDesign.EasyMLCore.unit_test.state = true
 
     # No output error model
     @test begin 
-        save_model("models/no_output_error_test.model")
+        load_model("models/no_output_error_test.model")
         design_model()
         true
     end
@@ -37,11 +37,9 @@ EasyMLDesign.EasyMLCore.unit_test.state = true
     # Losses
     @test begin 
         load_model("models/minimal_test.model")
-        losses = ["MAE","MSE","MSLE","Huber","Crossentropy","Logit crossentropy","Binary crossentropy",
-            "Logit binary crossentropy","Kullback-Leiber divergence","Poisson","Hinge","Squared hinge",
-            "Dice coefficient","Tversky"]
+        losses = 0:13
         for i = 1:length(losses)
-            model_data.layers_info[end].loss = (losses[i],i+1)
+            model_data.layers_info[end].loss = losses[i]
             design_model()
         end
         true

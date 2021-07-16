@@ -3,12 +3,12 @@ module EasyMLDesign
 
 # Import packages
 using
-# Machine learning
-Flux, Flux.Losses, FluxExtra,
+# Machine Learning
+Flux, Flux.Losses, FluxExtra, FluxExtra.Normalizations,
 # Math functions
-Statistics
-
-using EasyMLCore, EasyMLCore.Design, EasyMLCore.Layers
+Statistics,
+# EasyML ecosystem
+EasyMLCore, EasyMLCore.Design, EasyMLCore.Layers
 
 import Flux.outputsize
 
@@ -17,12 +17,12 @@ include("common/design_classes.jl")
 include("main.jl")
 include("exported_functions.jl")
 
-export QML, Flux, FluxExtra, NNlib
+export QML, Flux, Losses, FluxExtra, Normalizations, NNlib
 
+export Join, Split, Addition, Activation, Flatten, Identity
 export model_data, Classification, Regression, Segmentation, Image
 export set_savepath, set_problem_type, set_input_type, save_options, load_options, save_model, load_model
 export design_model
-export Join, Split, Addition, Activation, Flatten, Identity
 
 function __init__()
     load_options()
