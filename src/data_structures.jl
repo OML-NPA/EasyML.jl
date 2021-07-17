@@ -79,6 +79,7 @@ global_options = GlobalOptions()
     DesignOptions::DesignOptions = design_options
     DataPreparationOptions::DataPreparationOptions = data_preparation_options
     TrainingOptions::TrainingOptions = training_options
+    ValidationOptions::ValidationOptions = validation_options
     ApplicationOptions::ApplicationOptions = application_options
 end
 options = Options()

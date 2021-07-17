@@ -68,6 +68,18 @@ validation_data = ValidationData()
 #---Options----------------------------------------------------------------
 
 
+@with_kw mutable struct AccuracyOptions
+    weight_accuracy::Bool = true
+    accuracy_mode::Symbol = :Auto
+end
+accuracy_options = AccuracyOptions()
+
+@with_kw mutable struct ValidationOptions
+    Accuracy::AccuracyOptions = accuracy_options
+end
+validation_options = ValidationOptions()
+
+
 #---Export all--------------------------------------------------------------
 for n in names(@__MODULE__; all=true)
     if Base.isidentifier(n) && n ∉ (Symbol(@__MODULE__), :eval, :include)
