@@ -8,7 +8,6 @@ EasyMLDesign.EasyMLCore.unit_test.state = true
 @testset "Main functionality" begin
 
     set_savepath("models/test.model")
-    set_problem_type(Classification)
 
     # Empty model
     @test begin design_model(); true end
@@ -51,9 +50,9 @@ end
 
 @testset "Other QML" begin
     @test begin
-        set_problem_type(0)
-        set_problem_type(1)
-        set_problem_type(2)
+        EasyMLDesign.set_problem_type(0)
+        EasyMLDesign.set_problem_type(1)
+        EasyMLDesign.set_problem_type(2)
         EasyMLDesign.get_input_type()
         true
     end
