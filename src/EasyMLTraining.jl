@@ -14,7 +14,7 @@ Random, StatsBase, LinearAlgebra, Combinatorics, Distances,
 # EasyML ecosystem
 EasyMLCore, EasyMLCore.Training
 
-import CUDA.CuArray, StatsBase.std, EasyMLCore.options
+import CUDA.CuArray, StatsBase.std
 
 # Include functions
 include("common/training_validation.jl")
@@ -24,8 +24,8 @@ include("exported_functions.jl")
 export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
-export Classification, Regression, Segmentation, Image, model_data, global_options, training_options, training_results_data
-export load_options, modify, set_savepath, save_model, load_model, set_problem_type
+export model_data, Classification, Regression, Segmentation, Image, Grayscale
+export global_options, load_options, modify, save_model, load_model
 export set_weights, set_training_data, set_testing_data, train, remove_training_data, remove_testing_data, remove_training_results
 
 

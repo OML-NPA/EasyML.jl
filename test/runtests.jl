@@ -20,3 +20,5 @@ global_options.HardwareResources.allow_GPU = true
 include("classification.jl")
 include("regression.jl")
 include("segmentation.jl")
+
+
