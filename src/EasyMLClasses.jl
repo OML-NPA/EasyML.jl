@@ -15,7 +15,7 @@ export QML, Flux, Losses, FluxExtra, Normalizations, NNlib
 
 export model_data, Classification, Regression, Segmentation, Image, 
     ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
-export set_savepath, set_problem_type, set_input_type, save_options, load_options, save_model, load_model
+export set_savepath, save_options, load_options, save_model, load_model
 export make_classes
 
 end
