@@ -6,8 +6,8 @@ import QtQuick.Layouts 1.2
 import Qt.labs.platform 1.1
 import QtQml.Models 2.15
 import QtCharts 2.15
-import "../common/gui/templates"
 import org.julialang 1.0
+import "templates"
 
 
 ApplicationWindow {

@@ -152,9 +152,9 @@ function train()
         return nothing
     end
     training_data.OptionsData.run_test = !isempty(data_test)
-    empty_progress_channel("training_start_progress")
-    empty_progress_channel("training_progress")
-    empty_progress_channel("training_modifiers")
+    empty_channel(:training_start_progress)
+    empty_channel(:training_progress)
+    empty_channel(:training_modifiers)
     t = train_main2(model_data,all_data,options,channels)
     # Launches GUI
     @qmlfunction(
@@ -173,7 +173,9 @@ function train()
         unit_test
     )
     path_qml = string(@__DIR__,"/gui/TrainingPlot.qml")
-    loadqml(path_qml)
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), gui_dir = gui_dir)
     exec()
     
     state,err = check_task(t)

@@ -317,7 +317,7 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
             else
                 model_data.model = model
             end
-            save_model_main(model_data,model_name)
+            save_model(model_name)
             break
         elseif modif1==1 # learning rate
             if allow_lr_change
@@ -417,7 +417,7 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
         epoch_idx += 1
         # Save model
         model_data.model = cpu(model)
-        save_model_main(model_data,model_name)
+        save_model(model_name)
     end
     return nothing
 end
@@ -462,6 +462,12 @@ function check_lr_change(opt,composite)
     end
     return convert(Bool,allow_lr_change)
 end
+
+mutable struct Counter
+    iteration::Int
+    Counter() = new(0)
+end
+(c::Counter)() = (c.iteration += 1)
 
 function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1,T2},
         opt,accuracy::Function,loss::Function,all_data::AllData,use_GPU::Bool,
