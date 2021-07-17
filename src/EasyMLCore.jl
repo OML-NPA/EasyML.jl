@@ -49,8 +49,8 @@ export ModelData, AbstractModel, set_savepath, save_model, load_model
 export modify, global_options, options, Options, save_options, load_options
 # GUI data handling
 export fix_QML_types, get_data, get_options, set_data, set_options, get_file, get_folder
-# Handling channels
-export check_progress, get_progress, empty_channel, put_channel
+# Channels
+export channels, Channels, check_progress, get_progress, empty_channel, put_channel
 # Other
 export all_data, AllData, set_problem_type, set_input_type, problem_type, input_type, 
     model_data, check_task, unit_test, add_templates
