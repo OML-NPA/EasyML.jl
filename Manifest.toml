@@ -308,7 +308,7 @@ version = "0.1.0"
 
 [[EasyMLCore]]
 deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll", "Statistics"]
-git-tree-sha1 = "1fb185d556c427ff7d26cf70b981f9c4bfbf2f19"
+git-tree-sha1 = "d121977c6d4847aefb54cbc183ccbd317edcd4d0"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"

@@ -19,7 +19,6 @@ ProgressMeter, FLoops,
 # EasyML ecosystem
 EasyMLCore, EasyMLCore.Classes, EasyMLCore.DataPreparation
 
-import EasyMLCore: Channels, channels, options
 import EasyMLClasses
 import EasyMLClasses: make_classes
 
@@ -34,7 +33,7 @@ export QML, Flux, Losses, FluxExtra, Normalizations, NNlib
 
 export Join, Split, Addition, Activation, Flatten, Identity
 export model_data, Classification, Regression, Segmentation, Image
-export set_savepath, set_problem_type, set_input_type, modify, save_options, load_options, save_model, load_model
+export set_savepath, modify, save_options, load_options, save_model, load_model
 export make_classes, get_urls, prepare_data, data_preparation_options
  
 function __init__()

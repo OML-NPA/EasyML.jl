@@ -19,7 +19,6 @@ for i = 1:2
     end
     @testset "Classification" begin
         @test begin 
-            set_problem_type(Classification)
             load_model("models/classification.model")
             make_classes()
             true
@@ -34,7 +33,6 @@ for i = 1:2
 
     @testset "Regression" begin
         @test begin 
-            set_problem_type(Regression)
             load_model("models/regression.model")
             make_classes()
             true
@@ -50,7 +48,6 @@ for i = 1:2
 
     @testset "Segmentatation" begin
         @test begin 
-            set_problem_type(Segmentation)
             load_model("models/segmentation.model")
             make_classes()
             true
@@ -75,7 +72,7 @@ end
     end
 
     @test begin
-        set_problem_type(Classification)
+        model_data.problem_type = Classification
         EasyMLDataPreparation.preparation_data.ClassificationData = EasyMLDataPreparation.ClassificationData()
         prepare_data()
         load_model("models/classification.model")
@@ -87,7 +84,7 @@ end
     end
 
     @test begin
-        set_problem_type(Regression)
+        model_data.problem_type = Regression
         EasyMLDataPreparation.preparation_data.RegressionData = EasyMLDataPreparation.RegressionData()
         prepare_data()
         load_model("models/regression.model")
@@ -100,7 +97,7 @@ end
     end
 
     @test begin
-        set_problem_type(Segmentation)
+        model_data.problem_type = Segmentation
         EasyMLDataPreparation.preparation_data.SegmentationData = EasyMLDataPreparation.SegmentationData()
         prepare_data()
         load_model("models/segmentation.model")
@@ -113,7 +110,7 @@ end
     end
 
     @test begin
-        set_problem_type(Classification)
+        model_data.problem_type = Classification
         url_input = "examples/"
         get_urls(url_input)
         url_input = "examples2/"
@@ -122,7 +119,7 @@ end
     end
 
     @test begin
-        set_problem_type(Segmentation)
+        model_data.problem_type = Segmentation
         url_input = "examples/"
         url_label = "examples/"
         get_urls(url_input,url_label)
