@@ -197,14 +197,6 @@ end
     @test begin problem_type(); true end
     @test begin input_type(); true end
     @test begin
-        set_problem_type(Classification)
-        true
-    end
-    @test begin 
-        set_input_type(Image)
-        true 
-    end
-    @test begin
         modify(global_options)
         rm("options.bson")
         true

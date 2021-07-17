@@ -1,25 +1,5 @@
 
-#---Problem/input types---------------------------------------------
-
-"""
-set_problem_type(type::AbstractProblemType)
-
-Sets the problem type. Either `Classification`, `Regression` or `Segmentation`.
-"""
-function set_problem_type(type::Type{<:AbstractProblemType})
-    model_data.problem_type = type
-    return nothing
-end
-
-"""
-set_input_type(type::AbstractInputType)
-
-Sets the problem type. Currently only `Image`.
-"""
-function set_input_type(type::Type{<:AbstractInputType})
-    model_data.input_type = type
-    return nothing
-end
+#---Model_data------------------------------------------------------
 
 problem_type() = model_data.problem_type
 
