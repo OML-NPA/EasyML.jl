@@ -3032,9 +3032,11 @@ ApplicationWindow {
                         currentIndex: datastore.normalization
                         model: ListModel {
                            id: optionsModel
+                           ListElement { text: "none" }
                            ListElement { text: "[0,1]" }
                            ListElement { text: "[-1,1]" }
                            ListElement { text: "zero center" }
+                           ListElement { text: "z-score" }
                         }
                         onActivated: {
                             unit.datastore.normalization = currentIndex

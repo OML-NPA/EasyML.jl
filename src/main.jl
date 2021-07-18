@@ -579,11 +579,15 @@ function make_model_main(design_data::DesignData)
         push!(design_data.warnings, msg)
         return false
     end
-    in_size = (layers_arranged[1].size...,)
+    input_layer_info = layers_arranged[1]
+    in_size = (input_layer_info.size...,)
     model_data_design.input_size = in_size
+    normalization_ind = input_layer_info.normalization + 1
+    model_data_design.normalization.f = get_normalization(normalization_ind)
+    model_data_design.normalization.args = Float32[]
     popfirst!(layers_arranged)
-    loss_ind = layers_arranged[end].loss
-    #model_data_design.loss = get_loss(loss_ind+1)
+    loss_ind = layers_arranged[end].loss + 1
+    model_data_design.loss = get_loss(loss_ind)
     pop!(layers_arranged)
     model_layers = []
     for i = 1:length(layers_arranged)
@@ -640,12 +644,20 @@ end
 move_model() = move_model_main(model_data,design_data)
 
 
+#---Input normalization--------------------------------------------------------
+
+function get_normalization(ind::Int64)
+    normalizations = (none,norm_01!,norm_negpos1!,norm_zerocenter!,norm_zscore!)
+    return  normalizations[ind]
+end
+
+
 #---Losses---------------------------------------------------------------------
 
 function get_loss(ind::Int64)
-    losses = [mae,mse,msle,huber_loss,crossentropy,logitcrossentropy,binarycrossentropy,
+    losses = (mae,mse,msle,huber_loss,crossentropy,logitcrossentropy,binarycrossentropy,
         logitbinarycrossentropy,kldivergence,poisson_loss,hinge_loss,squared_hinge_loss,
-        dice_coeff_loss,tversky_loss]
+        dice_coeff_loss,tversky_loss)
     return losses[ind]
 end
 

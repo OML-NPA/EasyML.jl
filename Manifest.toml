@@ -153,7 +153,7 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
 deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll", "Statistics"]
-git-tree-sha1 = "f498c43cb6e54b3917a7c671b6004437d2b68979"
+git-tree-sha1 = "fe2e498358f60a5e4ff545b1be963067370166ab"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
@@ -396,15 +396,15 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[NNlib]]
 deps = ["Adapt", "ChainRulesCore", "Compat", "LinearAlgebra", "Pkg", "Requires", "Statistics"]
-git-tree-sha1 = "abc8d768a2d2c14537d95b5f8b81762c33c7856d"
+git-tree-sha1 = "3de64e776a467311c907f5a767ee8a022a8a2f76"
 uuid = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
-version = "0.7.24"
+version = "0.7.25"
 
 [[NNlibCUDA]]
 deps = ["CUDA", "LinearAlgebra", "NNlib", "Random", "Statistics"]
-git-tree-sha1 = "5c970b9fd6098e5f04349b4d1a43fdd3e69c9e97"
+git-tree-sha1 = "a7de026dc0ff9f47551a16ad9a710da66881b953"
 uuid = "a00861dc-f156-4864-bf3c-e6376f28a68d"
-version = "0.1.6"
+version = "0.1.7"
 
 [[NaNMath]]
 git-tree-sha1 = "bfe47e760d60b82b66b61d2d44128b62e3a369fb"
@@ -558,9 +558,9 @@ version = "1.5.1"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "a43a7b58a6e7dc933b2fa2e0ca653ccf8bb8fd0e"
+git-tree-sha1 = "1b9a0f17ee0adde9e538227de093467348992397"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.2.6"
+version = "1.2.7"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
