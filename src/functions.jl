@@ -93,7 +93,7 @@ Loads a model from a specified URL. The URL can be absolute or relative.
 function load_model(url::AbstractString)
     url = fix_QML_types(url)
     if isfile(url)
-        loaded_data = BSON.load(url)[:dict]
+        loaded_data = BSON.load(url,@__MODULE__)[:dict]
     else
         error(string(url, " does not exist."))
     end
