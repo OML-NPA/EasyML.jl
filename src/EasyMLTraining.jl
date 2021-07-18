@@ -25,7 +25,7 @@ export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
 export model_data, Classification, Regression, Segmentation, Image, Grayscale
-export global_options, load_options, modify, save_model, load_model
+export global_options, training_options, load_options, modify, set_savepath, save_model, load_model
 export set_weights, set_training_data, set_testing_data, train, remove_training_data, remove_testing_data, remove_training_results
 
 

@@ -32,11 +32,13 @@ function training_elapsed_time_main(training_plot_data::TrainingPlotData)
     return string(hours,":",minutes,":",seconds)
 end
 training_elapsed_time() = training_elapsed_time_main(training_plot_data)
-
 #---
 
 # Creates data sets for training and testing
-function get_sets(typed_training_data::T,typed_testing_data::T) where T<:Union{ClassificationData,RegressionData,SegmentationData}
+function get_sets(norm_func::Function, typed_training_data::T,typed_testing_data::T) where 
+        T<:Union{ClassificationData,RegressionData,SegmentationData}
+    norm_func(typed_training_data.data_input)
+    norm_func(typed_testing_data.data_input)
     train_set = (typed_training_data.data_input,typed_training_data.data_labels)
     test_set = (typed_testing_data.data_input,typed_testing_data.data_labels)
     return train_set, test_set
@@ -617,7 +619,9 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     # Preparing train and test sets
     typed_training_data = get_data_struct(training_data)
     typed_testing_data = get_data_struct(testing_data)
-    train_set, test_set = get_sets(typed_training_data,typed_testing_data)
+    normalization = model_data.normalization
+    norm_func(x) = normalization.f(x,normalization.args...)
+    train_set, test_set = get_sets(norm_func,typed_training_data,typed_testing_data)
     # Data testing
     if args.batch_size>length(train_set[1])
         err = string("Input data size (",length(train_set[1]),") is smaller than the batch size (",args.batch_size,").")

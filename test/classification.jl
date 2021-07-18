@@ -3,7 +3,7 @@
 
 #---Init test--------------------------------------------------------------
 
-set_problem_type(Classification)
+model_data.problem_type = Classification
 
 
 #---Training test-----------------------------------------------------------
