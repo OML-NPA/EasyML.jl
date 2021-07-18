@@ -145,7 +145,6 @@ end
         true
     end
     @test begin
-        EasyMLDataPreparation.set_input_type(Image)
         empty!(model_data.input_properties)
         EasyMLDataPreparation.set_model_data("input_properties","Grayscale")
         EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
