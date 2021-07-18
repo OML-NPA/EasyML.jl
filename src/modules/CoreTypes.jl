@@ -1,7 +1,7 @@
 
 module CoreTypes
 
-using Flux
+using Flux, Parameters
 
 #--Types--------------------------------------------------------------
 
@@ -14,6 +14,11 @@ abstract type AbstractInputType end
 struct Image <: AbstractInputType end
 
 const AbstractModel = Union{Flux.Chain}
+
+@with_kw mutable struct Normalization
+    f::Function = none
+    args::Tuple = ()
+end
 
 
 #---Export all--------------------------------------------------------------

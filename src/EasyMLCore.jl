@@ -29,7 +29,7 @@ include("modules/Application.jl")
 using .Classes, .Design.Layers, .DataPreparation.InputProperties
 
 import .Design: DesignData, design_data, DesignOptions, design_options
-import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options, Normalization
+import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options
 import .Training: TrainingData, TestingData, training_data, testing_data, TrainingOptions, training_options
 import .Validation: ValidationData, validation_data, ValidationOptions, validation_options
 import .Application: ApplicationData, application_data, ApplicationOptions, application_options
