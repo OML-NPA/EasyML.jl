@@ -25,6 +25,19 @@ function conn(num::Int64)
     return kernel
 end
 
+function areaopen!(im::BitArray{2},area::Int64)
+    im_segm = label_components(im)
+    num = maximum(im_segm)
+    chunk_size = convert(Int64,round(num/num_threads()))
+    @floop ThreadedEx(basesize = chunk_size) for i=1:num
+        mask = im_segm.==i
+        if sum(mask)<area
+            im[mask] .= false
+        end
+    end
+    return
+end
+
 function component_intensity(components::Array{Int64},image::Array{Float32})
     num = maximum(components)
     intensities = Vector{Float32}(undef,num)

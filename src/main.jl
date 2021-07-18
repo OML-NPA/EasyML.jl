@@ -275,7 +275,7 @@ end
 function get_image_validation(fields,inds)
     fields = fix_QML_types(fields)
     inds = fix_QML_types(inds)
-    image_data = get_data_main(validation_data,fields,inds)
+    image_data = EasyMLCore.get_data_main(validation_data,fields,inds)
     if image_data isa Array{RGB{N0f8},2}
         image = image_data
     else
@@ -360,7 +360,7 @@ function check_abort_signal(channel::Channel)
     end
 end
 
-function validate_inner(model::AbstractModel,norm_func::Function,classes::Vector{AbstractClass},model_data::ModelData,
+function validate_inner(model::AbstractModel,norm_func::Function,classes::Vector{<:AbstractClass},model_data::ModelData,
         accuracy::Function,loss::Function,num::Int64,validation_data::ValidationData,num_slices_val::Int64,
         offset_val::Int64,use_GPU::Bool,channels::Channels)
     for i = 1:num
@@ -403,7 +403,7 @@ function validate_main(model_data::ModelData,validation_data::ValidationData,
         end
     end
     normalization = model_data.normalization
-    norm_func(x) = model_data.normalization.f(x,normalization.args)
+    norm_func(x) = model_data.normalization.f(x,normalization.args...)
     if problem_type()==Segmentation
         num_slices_val = options.GlobalOptions.HardwareResources.num_slices
         offset_val = options.GlobalOptions.HardwareResources.offset
@@ -412,7 +412,7 @@ function validate_main(model_data::ModelData,validation_data::ValidationData,
         offset_val = 0
     end
     # Validation starts
-    validate_inner(classes,model,norm_func,model_data,accuracy,loss,num,validation_data,
+    validate_inner(model,norm_func,classes,model_data,accuracy,loss,num,validation_data,
         num_slices_val,offset_val,use_GPU,channels)
     return nothing
 end

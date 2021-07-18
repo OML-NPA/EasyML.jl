@@ -60,7 +60,7 @@ for i = 1:2
     end
 
     @testset "Segmentation" begin
-        save_model("models/segmentation.model")
+        load_model("models/segmentation.model")
         @test begin 
             make_classes()
             true

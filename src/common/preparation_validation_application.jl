@@ -1,4 +1,6 @@
 
+num_threads() = options.GlobalOptions.HardwareResources.num_threads
+
 # Get urls of files in selected folders. Requires data and labels
 function get_urls2(url_inputs::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators
