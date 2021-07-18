@@ -1,10 +1,4 @@
 
-function max_num_threads()
-    return length(Sys.cpu_info())
-end
-
-num_threads() = hardware_resources.num_threads
-
 # Get urls of files in selected folders. Requires data and labels
 function get_urls2(url_inputs::String,label_url::String,allowed_ext::Vector{String})
     # Get a reference to url accumulators

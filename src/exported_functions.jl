@@ -4,18 +4,20 @@ modify(validation_options::ValidationOptions)
 
 Allows to modify `validation_options` in a GUI.
 """
-function modify(data::ValidationOptions)
-@qmlfunction(
-    get_data,
-    get_options,
-    set_options,
-    save_options,
-    unit_test
-)
-path_qml = string(@__DIR__,"/gui/ValidationOptions.qml")
-loadqml(path_qml)
-exec()
-return nothing
+function EasyMLCore.modify(data::ValidationOptions)
+    @qmlfunction(
+        get_data,
+        get_options,
+        set_options,
+        save_options,
+        unit_test
+    )
+    path_qml = string(@__DIR__,"/gui/ValidationOptions.qml")
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), gui_dir = gui_dir)
+    exec()
+    return nothing
 end
 
 function get_urls_validation_main2(url_inputs::String,url_labels::String,validation_data::ValidationData)
@@ -23,7 +25,7 @@ function get_urls_validation_main2(url_inputs::String,url_labels::String,validat
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    if problem_type()==:Classification || problem_type()==:Segmentation
+    if problem_type()==Classification || problem_type()==Segmentation
         if !isdir(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
@@ -74,61 +76,40 @@ function get_urls_validation_main2(validation_data::ValidationData)
     validation_urls = validation_data.Urls
     validation_urls.url_inputs = ""
     validation_urls.url_labels = ""
-    url_out = String[""]
-    observe(url) = url_out[1]
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(observe,unit_test)
-    path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
-    loadqml(path_qml,currentfolder = dir)
-    exec()
-    if unit_test()
-        url_out[1] = unit_test.url_pusher()
-    end
-    if !isempty(url_out[1])
-        validation_urls.url_inputs = url_out[1]
+    path = get_folder(dir)
+    if !isempty(path)
+        validation_urls.url_inputs = path
         @info string(validation_urls.url_inputs, " was selected.")
     else
         @error "Input data directory URL is empty. Aborted"
         return nothing
     end
-    if problem_type()==:Classification
+    if problem_type()==Classification
     
-    elseif problem_type()==:Regression
+    elseif problem_type()==Regression
         @info "Select a file with label data if labels are available."
         name_filters = ["*.csv","*.xlsx"]
-        @qmlfunction(observe,unit_test)
-        path_qml = string(@__DIR__,"/common/gui/UniversalFileDialog.qml")
-        loadqml(path_qml,
-            name_filters = name_filters)
-        exec()
-        if unit_test()
-            url_out[1] = unit_test.url_pusher()
-        end
-        if !isempty(url_out[1])
-            validation_urls.url_labels = url_out[1]
+        path = get_file(dir,name_filters)
+        if !isempty(path)
+            validation_urls.url_labels = path
             @info string(validation_urls.url_labels, " was selected.")
         else
             @warn "Label data URL is empty. Continuing without labels."
         end
-    elseif problem_type()==:Segmentation
+    elseif problem_type()==Segmentation
         @info "Select a directory with label data if labels are available."
-        @qmlfunction(observe,unit_test)
-        path_qml = string(@__DIR__,"/common/gui/UniversalFolderDialog.qml")
-        loadqml(path_qml,currentfolder = dir)
-        exec()
-        if unit_test()
-            url_out[1] = unit_test.url_pusher()
-        end
-        if !isempty(url_out[1])
-            validation_urls.url_labels = url_out[1]
+        path = get_folder(dir)
+        if !isempty(path)
+            validation_urls.url_labels = path
             @info string(validation_urls.url_labels, " was selected.")
         else
             @warn "Label data directory URL is empty. Continuing without labels."
         end
     end
     
-    if validation_urls.url_labels!="" && problem_type()!=:Classification
+    if validation_urls.url_labels!="" && problem_type()!=Classification
         validation_data.PlotData.use_labels = true
     else
         validation_data.PlotData.use_labels = false
@@ -189,7 +170,10 @@ function validate()
     f1 = CxxWrap.@safe_cfunction(display_original_image_validation, Cvoid,(Array{UInt32,1}, Int32, Int32))
     f2 = CxxWrap.@safe_cfunction(display_label_image_validation, Cvoid,(Array{UInt32,1}, Int32, Int32))
     path_qml = string(@__DIR__,"/gui/ValidationPlot.qml")
-    loadqml(path_qml,
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), 
+        gui_dir = gui_dir,
         display_original_image_validation = f1,
         display_label_image_validation = f2
     )
@@ -203,11 +187,11 @@ function validate()
     validation_data.PlotData.label_image = Array{RGB{N0f8},2}(undef,0,0)
     # Return results
     if input_type()==:Image
-        if problem_type()==:Classification
+        if problem_type()==Classification
             return validation_image_classification_results
-        elseif problem_type()==:Segmentation
+        elseif problem_type()==Segmentation
             return validation_image_segmentation_results
-        elseif problem_type()==:Regression
+        elseif problem_type()==Regression
             return validation_image_regression_results
         end
     end
