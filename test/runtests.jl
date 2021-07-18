@@ -51,8 +51,11 @@ end
 @testset "Other QML" begin
     @test begin
         EasyMLDesign.set_problem_type(0)
+        EasyMLDesign.get_problem_type()
         EasyMLDesign.set_problem_type(1)
+        EasyMLDesign.get_problem_type()
         EasyMLDesign.set_problem_type(2)
+        EasyMLDesign.get_problem_type()
         EasyMLDesign.get_input_type()
         true
     end
