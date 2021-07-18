@@ -164,7 +164,7 @@ uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
 [[EasyMLCore]]
 deps = ["BSON", "ColorTypes", "Dates", "FixedPointNumbers", "Flux", "FluxExtra", "Parameters", "QML", "Qt5QuickControls2_jll", "Statistics"]
-git-tree-sha1 = "bf0229c56602e0ab959a99b20ae15d0bbf76e57b"
+git-tree-sha1 = "f498c43cb6e54b3917a7c671b6004437d2b68979"
 repo-rev = "main"
 repo-url = "https://github.com/OML-NPA/EasyMLCore.jl"
 uuid = "36e2bb64-004e-43a5-86c1-8a670a7c5030"
@@ -201,9 +201,11 @@ version = "0.12.4"
 
 [[FluxExtra]]
 deps = ["Flux", "Statistics"]
-git-tree-sha1 = "accb4b9053fbda664508003587ee42dc826a2cf0"
+git-tree-sha1 = "9ab7dcf17992ef23da410d6f921e822da64569a4"
+repo-rev = "dev"
+repo-url = "https://github.com/OML-NPA/FluxExtra.jl"
 uuid = "81ebe36b-92a1-4b50-bd7a-fa963d2933c8"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Fontconfig_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Expat_jll", "FreeType2_jll", "JLLWrappers", "Libdl", "Libuuid_jll", "Pkg", "Zlib_jll"]
@@ -411,9 +413,9 @@ version = "0.7.25"
 
 [[NNlibCUDA]]
 deps = ["CUDA", "LinearAlgebra", "NNlib", "Random", "Statistics"]
-git-tree-sha1 = "5c970b9fd6098e5f04349b4d1a43fdd3e69c9e97"
+git-tree-sha1 = "a7de026dc0ff9f47551a16ad9a710da66881b953"
 uuid = "a00861dc-f156-4864-bf3c-e6376f28a68d"
-version = "0.1.6"
+version = "0.1.7"
 
 [[NaNMath]]
 git-tree-sha1 = "bfe47e760d60b82b66b61d2d44128b62e3a369fb"
