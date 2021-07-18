@@ -26,17 +26,15 @@ include("modules/Training.jl")
 include("modules/Validation.jl")
 include("modules/Application.jl")
 
-import .Design, .DataPreparation, .Training, .Validation, .Application
 using .Classes, .Design.Layers, .DataPreparation.InputProperties
 
-import .DataPreparation: PreparationData, preparation_data, none, Normalization
 import .Design: DesignData, design_data, DesignOptions, design_options
-import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options
+import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options, Normalization
 import .Training: TrainingData, TestingData, training_data, testing_data, TrainingOptions, training_options
 import .Validation: ValidationData, validation_data, ValidationOptions, validation_options
 import .Application: ApplicationData, application_data, ApplicationOptions, application_options
 
-# Include functions
+# Include data structtures and functions
 include("data_structures.jl")
 include("functions.jl")
 
