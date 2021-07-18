@@ -186,7 +186,7 @@ function validate()
     validation_data.PlotData.original_image = Array{RGB{N0f8},2}(undef,0,0)
     validation_data.PlotData.label_image = Array{RGB{N0f8},2}(undef,0,0)
     # Return results
-    if input_type()==:Image
+    if input_type()==Image
         if problem_type()==Classification
             return validation_image_classification_results
         elseif problem_type()==Segmentation
