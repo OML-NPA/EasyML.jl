@@ -21,10 +21,6 @@ module InputProperties
     
 end
 
-function none(data)
-    return Float32[]
-end
-
 
 #---Data----------------------------------------------------------------
 

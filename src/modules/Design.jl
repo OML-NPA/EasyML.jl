@@ -237,7 +237,7 @@ using Flux, .Layers
 
 @with_kw mutable struct DesignModelData
     model::Flux.Chain = Flux.Chain()
-    normalization::Normalization = Normalization()
+    normalization::Normalization = Normalization(none,())
     loss::Function = Flux.Losses.mse
     input_size::NTuple{3,Int64} = (0,0,0)
     output_size::NTuple{3,Int64} = (0,0,0)
