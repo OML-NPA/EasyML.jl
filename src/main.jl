@@ -584,7 +584,7 @@ function make_model_main(design_data::DesignData)
     model_data_design.input_size = in_size
     normalization_ind = input_layer_info.normalization + 1
     model_data_design.normalization.f = get_normalization(normalization_ind)
-    model_data_design.normalization.args = Float32[]
+    model_data_design.normalization.args = ()
     popfirst!(layers_arranged)
     loss_ind = layers_arranged[end].loss + 1
     model_data_design.loss = get_loss(loss_ind)

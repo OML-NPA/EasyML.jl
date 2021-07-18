@@ -10,7 +10,7 @@ Statistics,
 # EasyML ecosystem
 EasyMLCore, EasyMLCore.Design, EasyMLCore.Layers
 
-import Flux.outputsize
+import Flux.outputsize, EasyMLCore.none
 
 # Include functions
 include("common/design_classes.jl")
