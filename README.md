@@ -14,7 +14,7 @@ This package allows to use machine learning in Julia through a graphical user in
 
 NB! This is a beta version. Bugs and breaking changes should be expected.
 
-### Features
+## Features
 It is possible to:
   - Design a neural network
   - Train a neural network
@@ -27,32 +27,32 @@ Classification, regression and segmentation on images are currently supported.
 
 <img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/design_model.png" height="190"> <img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/train.png" height="190"> <img src="https://github.com/OML-NPA/EasyML.jl/blob/dev/docs/src/assets/images/validate2.png" height="190">
 
-### Installation
+## Installation
 
 Run `] add EasyML` in REPL.
 
-### Quick guide
+## Quick guide
 
 EasyML is easy enough to figure out by yourself! Just run the following lines.
 
-#### Add the package
+### Add the package
 ```julia
 using EasyML
 ```
 
-#### Set up
+### Set up
 ```julia
 modify(global_options)
 ```
 
-#### Design
+### Design
 ```julia
 modify_classes()
 modify_output()
 design_model()
 ```
 
-#### Train
+### Train
 ```julia
 modify(training_options)
 get_urls_training()
@@ -65,7 +65,7 @@ remove_testing_data()
 remove_training_results()
 ```
 
-#### Validate
+### Validate
 ```julia
 get_urls_validation()
 results = validate()
@@ -73,7 +73,7 @@ remove_validation_data()
 remove_validation_results()
 ```
 
-#### Apply
+### Apply
 ```julia
 modify(application_options)
 get_urls_application()
@@ -81,8 +81,26 @@ apply()
 remove_application_data()
 ```
 
-#### On reopening
+### On reopening
 ```julia
 load_model()
 load_options()
 ```
+
+## Development
+
+A plan for the project can be seen [here](https://github.com/OML-NPA/EasyML.jl/projects/2).
+
+### Current focus
+
+Separating EasyML into
+ - [EasyMLCore](https://github.com/OML-NPA/EasyMLCore.jl)
+ - [EasyMLClasses](https://github.com/OML-NPA/EasyMLClasses.jl)
+ - [EasyMLDesign](https://github.com/OML-NPA/EasyMLDesign.jl)
+ - [EasyMLDataPreparation](https://github.com/OML-NPA/EasyMLDataPreparation.jl)
+ - [EasyMLTraining](https://github.com/OML-NPA/EasyMLTraining.jl)
+ - [EasyMLValidation](https://github.com/OML-NPA/EasyMLValidation.jl)
+ - [EasyMLApplication](https://github.com/OML-NPA/EasyMLApplication.jl)
+
+EasyML will bring those packages together.
+
