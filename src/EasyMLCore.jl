@@ -7,14 +7,14 @@ using
 QML, Qt5QuickControls2_jll,
 # Data structuring
 Parameters, Dates,
-# Data import/export
-BSON,
 # Image manipulation
 ColorTypes, FixedPointNumbers,
 # Maths
 Statistics,
 # Machine learning
 Flux, Flux.Losses, FluxExtra
+
+import BSON as BN
 
 include("modules/Common.jl")
 using .Common

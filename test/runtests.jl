@@ -1,5 +1,6 @@
 
-using Parameters, Flux, Test, DelimitedFiles, BSON, EasyMLCore
+using Parameters, Flux, Test, DelimitedFiles, EasyMLCore
+import BSON as BN
 import QML
 EasyMLCore.unit_test.state = true
 
@@ -46,7 +47,7 @@ end
     @test begin 
         save_options()
         dict_busted = Dict()
-        BSON.@save("options.bson",dict_busted)
+        BN.@save("options.bson",dict_busted)
         true 
     end
     @test begin 
