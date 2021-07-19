@@ -16,9 +16,9 @@ Statistics,
 # Machine learning
 Flux, Flux.Losses, FluxExtra
 
+include("modules/Common.jl")
+using .Common
 # Include modules
-include("modules/CoreTypes.jl")
-using .CoreTypes
 include("modules/Classes.jl")
 include("modules/Design.jl")
 include("modules/DataPreparation.jl")
@@ -34,7 +34,7 @@ import .Training: TrainingData, TestingData, training_data, testing_data, Traini
 import .Validation: ValidationData, validation_data, ValidationOptions, validation_options
 import .Application: ApplicationData, application_data, ApplicationOptions, application_options
 
-# Include data structtures and functions
+# Include data structures and functions
 include("data_structures.jl")
 include("functions.jl")
 

@@ -1,9 +1,14 @@
 
-module CoreTypes
+module Common
 
 using Flux, Parameters
 
 #--Types--------------------------------------------------------------
+
+# Common struct types
+struct Auto end
+struct Manual end
+struct None end
 
 abstract type AbstractProblemType end
 struct Classification <: AbstractProblemType end
@@ -11,7 +16,7 @@ struct Regression <: AbstractProblemType end
 struct Segmentation <: AbstractProblemType end
 
 abstract type AbstractInputType end
-struct Image <: AbstractInputType end
+struct Image<:AbstractInputType end
 
 const AbstractModel = Union{Flux.Chain}
 
