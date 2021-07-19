@@ -484,7 +484,11 @@ function dict_to_struct!(obj,dict::Dict)
                 dict_to_struct!(obj_property,value)
             else
                 try
-                    setproperty!(obj,sym,value)
+                    if getproperty(obj,sym) isa DataType
+                        setproperty!(obj,sym,eval(Meta.parse(value)))
+                    else
+                        setproperty!(obj,sym,value)
+                    end
                 catch e
                     @warn string("Loading of ",string(sym)," in ",string(obj)," failed.")  exception=(e, catch_backtrace())
                 end
