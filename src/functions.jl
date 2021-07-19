@@ -265,6 +265,9 @@ function get_data_main(data,fields,inds)
     end
     if data isa Symbol
         data = string(data)
+    elseif data isa DataType
+        data = string(data)
+        data = split(data,".")[end]
     end
     return data
 end
@@ -282,7 +285,12 @@ function set_data_main(data,fields,args)
     end
     if length(args)==1
         type = typeof(getproperty(data,field_end))
-        value = type(args[1])
+        value = args[1]
+        if getproperty(data,field_end) isa DataType
+            value = eval(Meta.parse(value))
+        else
+            value = type(value)
+        end
     elseif length(args)==2
         inds = args[1]
         value = getproperty(data,field_end)

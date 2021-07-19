@@ -5,34 +5,48 @@ using Parameters, EasyMLCore.Common
 
 #---Model data----------------------------------------------------------
 
-abstract type AbstractApplicationMethod end
+module Types
 
-struct File<:AbstractApplicationMethod end
-struct Folder<:AbstractApplicationMethod end
+    using EasyMLCore.Common
 
-# File types
-struct CSV end
-struct XLSX end
-struct JSON end
-struct BSON end
-struct PNG end
-struct TIFF end
+    abstract type AbstractApplicationMethod end
 
-const AbstractDelimitedFileType = Union{CSV,XLSX,JSON,BSON}
-const AbstractImageFileType = Union{PNG,JSON,BSON}
+    struct File<:AbstractApplicationMethod end
+    struct Folder<:AbstractApplicationMethod end
 
-###### Auto
-struct NumberOfBins end
-struct BinWidth end
+    # File types
+    struct CSV end
+    struct XLSX end
+    struct JSON end
+    struct BSON end
+    struct PNG end
+    struct TIFF end
 
-const AbstractBinningMethod = Union{Auto,NumberOfBins,BinWidth}
+    const AbstractDelimitedFileType = Union{CSV,XLSX,JSON,BSON}
+    const AbstractImageFileType = Union{PNG,JSON,BSON}
 
-###### None
-struct Probability end
-struct Density end
-struct PDF end
+    ###### Auto
+    struct NumberOfBins end
+    struct BinWidth end
 
-const AbstractNormalizationMethod = Union{None,Probability,Density,PDF}
+    const AbstractBinningMethod = Union{Auto,NumberOfBins,BinWidth}
+
+    ###### None
+    struct Probability end
+    struct Density end
+    struct PDF end
+
+    const AbstractNormalizationMethod = Union{None,Probability,Density,PDF}
+
+    for n in names(@__MODULE__; all=true)
+        if Base.isidentifier(n) && n ∉ (Symbol(@__MODULE__), :eval, :include)
+            @eval export $n
+        end
+    end
+
+end
+
+using .Types
 
 abstract type AbstractOutputOptions end
 

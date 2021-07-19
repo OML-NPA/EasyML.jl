@@ -88,6 +88,7 @@ end
         @test get_data_main(data,["Data2","c"],[1,1])=="c"
         @test get_data(["TrainingData","warnings"])==String[]
         @test get_options(["GlobalOptions","Graphics","scaling_factor"])==1.0
+        @test get_options(["ApplicationOptions","image_type"])=="PNG"
     end
     @testset "Set data" begin
         import EasyMLCore.set_data_main
@@ -109,6 +110,10 @@ end
         end
         @test begin 
             set_options(["GlobalOptions","Graphics","scaling_factor"],1.0)
+            true
+        end
+        @test begin 
+            set_options(["ApplicationOptions","image_type"],"PNG")
             true
         end
     end
