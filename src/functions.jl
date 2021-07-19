@@ -49,10 +49,10 @@ function save_model(url::AbstractString)
     for (k,v) in zip(ks,vs)
         buffer = IOBuffer()
         d = Dict(:field => v)
-        BN.bson(buffer,d)
+        BSON_pkg.bson(buffer,d)
         dict[k] = buffer
     end
-    BN.@save(url,dict)
+    BSON_pkg.@save(url,dict)
     return nothing
 end
 
@@ -93,7 +93,7 @@ Loads a model from a specified URL. The URL can be absolute or relative.
 function load_model(url::AbstractString)
     url = fix_QML_types(url)
     if isfile(url)
-        loaded_data = BN.load(url)[:dict]
+        loaded_data = BSON_pkg.load(url)[:dict]
     else
         error(string(url, " does not exist."))
     end
@@ -104,7 +104,7 @@ function load_model(url::AbstractString)
         for k in ks
             try
                 serialized = seekstart(loaded_data[k])
-                deserialized = BN.load(serialized,@__MODULE__)[:field]
+                deserialized = BSON_pkg.load(serialized,@__MODULE__)[:field]
                 if k==:problem_type || k==:input_type
                     setproperty!(model_data,k,eval(Meta.parse(deserialized)))
                 elseif deserialized isa Dict
@@ -184,7 +184,7 @@ end
 function save_options_main(options)
     dict = Dict{Symbol,Any}()
     struct_to_dict!(dict,options)
-    BN.@save("options.bson",dict)
+    BSON_pkg.@save("options.bson",dict)
     return nothing
 end
 """
@@ -198,7 +198,7 @@ save_options() = save_options_main(options)
 function load_options_main(options)
     if isfile("options.bson")
         try
-            data = BN.load("options.bson")
+            data = BSON_pkg.load("options.bson")
             dict_to_struct!(options,data[:dict])
         catch e
             @error string("Options were not loaded. Error: ",e)

@@ -14,7 +14,7 @@ Statistics,
 # Machine learning
 Flux, Flux.Losses, FluxExtra
 
-import BSON as BN
+import BSON as BSON_pkg
 
 include("modules/Common.jl")
 using .Common
