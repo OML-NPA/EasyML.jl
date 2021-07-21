@@ -5,49 +5,6 @@ using Parameters, EasyMLCore.Common
 
 #---Model data----------------------------------------------------------
 
-module Types
-
-    using EasyMLCore.Common
-
-    abstract type AbstractApplicationMethod end
-
-    struct File<:AbstractApplicationMethod end
-    struct Folder<:AbstractApplicationMethod end
-
-    # File types
-    struct CSV end
-    struct XLSX end
-    struct JSON end
-    struct BSON end
-    struct PNG end
-    struct TIFF end
-
-    const AbstractDelimitedFileType = Union{CSV,XLSX,JSON,BSON}
-    const AbstractImageFileType = Union{PNG,JSON,BSON}
-
-    ###### Auto
-    struct NumberOfBins end
-    struct BinWidth end
-
-    const AbstractBinningMethod = Union{Auto,NumberOfBins,BinWidth}
-
-    ###### None
-    struct Probability end
-    struct Density end
-    struct PDF end
-
-    const AbstractNormalizationMethod = Union{None,Probability,Density,PDF}
-
-    for n in names(@__MODULE__; all=true)
-        if Base.isidentifier(n) && n ∉ (Symbol(@__MODULE__), :eval, :include)
-            @eval export $n
-        end
-    end
-
-end
-
-using .Types
-
 abstract type AbstractOutputOptions end
 
 mutable struct ImageClassificationOutputOptions<:AbstractOutputOptions
@@ -66,18 +23,18 @@ end
     area_distribution::Bool = false
     obj_area::Bool = false
     obj_area_sum::Bool = false
-    binning::Type{<:AbstractBinningMethod} = Auto
+    binning::Symbol = :auto
     value::Float64 = 10
-    normalisation::Type{<:AbstractNormalizationMethod} = None
+    normalization::Symbol = :none
 end
 
 @with_kw mutable struct OutputVolume
     volume_distribution::Bool = false
     obj_volume::Bool = false
     obj_volume_sum::Bool = false
-    binning::Type{<:AbstractBinningMethod} = Auto
+    binning::Symbol = :auto
     value::Float64 = 10
-    normalisation::Type{<:AbstractNormalizationMethod} = None
+    normalization::Symbol = :none
 end
 
 @with_kw mutable struct ImageSegmentationOutputOptions<:AbstractOutputOptions
@@ -86,6 +43,17 @@ end
     Volume::OutputVolume = OutputVolume()
 end
 
+function Base.setproperty!(obj::Union{OutputArea,OutputVolume},k::Symbol,value::Symbol)
+    if k in (:binning,:normalization)
+        syms = (:auto,:none)
+        if value in syms
+            setfield!(obj,k,value)
+        else
+            msg_generator(syms)
+        end
+    end
+    return nothing
+end
 
 #---Data----------------------------------------------------------------
 
@@ -102,12 +70,26 @@ application_data = ApplicationData()
 
 @with_kw mutable struct ApplicationOptions
     savepath::String = ""
-    apply_by::Type{<:AbstractApplicationMethod} = File
-    data_type::Type{<:AbstractDelimitedFileType} = CSV
-    image_type::Type{<:AbstractImageFileType} = PNG
+    apply_by::Symbol = :file
+    data_type::Symbol = :csv
+    image_type::Symbol = :png
     scaling::Float64 = 1
 end
 application_options = ApplicationOptions()
+
+function Base.setproperty!(obj::ApplicationOptions,k::Symbol,value::Symbol)
+    if k==:apply_by
+        syms = (:file,:folder)
+        check_setfield!(obj,k,value,syms)
+    elseif k==:data_type
+        syms = (:csv,:xlsx,:json,:bson)
+        check_setfield!(obj,k,value,syms)
+    elseif k==:image_type
+        syms = (:png,:tiff,:json,:bson)
+        check_setfield!(obj,k,value,syms)
+    end
+    return nothing
+end
 
 
 #---Export all--------------------------------------------------------------

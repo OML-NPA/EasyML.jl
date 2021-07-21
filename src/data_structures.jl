@@ -22,13 +22,29 @@ channels = Channels()
     loss::Function = Flux.Losses.mse
     input_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,)
     output_size::Union{Tuple{Int64},NTuple{3,Int64}} = (0,)
-    problem_type::Type{<:AbstractProblemType} = Classification
-    input_type::Type{<:AbstractInputType} = Image
-    input_properties::Vector{Type{<:AbstractInputProperty}} = Vector{Type{AbstractInputProperty}}(undef,0)
+    problem_type::Symbol = :classification
+    input_type::Symbol = :image
+    input_properties::Vector{Symbol} = Vector{Symbol}(undef,0)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
     layers_info::Vector{AbstractLayerInfo} =  Vector{AbstractLayerInfo}(undef,0)
 end
 model_data = ModelData()
+
+function Base.setproperty!(obj::ModelData,k::Symbol,value::Symbol)
+    if k==:problem_type
+        syms = (:classification,:regression,:segmentation)
+        check_setfield!(obj,k,value,syms)
+    elseif k==:input_type
+        syms = (:image,)
+        check_setfield!(obj,k,value,syms)
+    elseif k==:input_properties
+        syms = (:Grayscale)
+        for temp_value in value
+            check_setfield!(obj,k,temp_value,syms)
+        end
+    end
+    return nothing
+end
 
 
 #---Data-------------------------------------------------------------------

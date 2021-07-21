@@ -49,10 +49,10 @@ function save_model(url::AbstractString)
     for (k,v) in zip(ks,vs)
         buffer = IOBuffer()
         d = Dict(:field => v)
-        BSON_pkg.bson(buffer,d)
+        BSON.bson(buffer,d)
         dict[k] = buffer
     end
-    BSON_pkg.@save(url,dict)
+    BSON.@save(url,dict)
     return nothing
 end
 
@@ -93,7 +93,7 @@ Loads a model from a specified URL. The URL can be absolute or relative.
 function load_model(url::AbstractString)
     url = fix_QML_types(url)
     if isfile(url)
-        loaded_data = BSON_pkg.load(url)[:dict]
+        loaded_data = BSON.load(url)[:dict]
     else
         error(string(url, " does not exist."))
     end
@@ -104,10 +104,8 @@ function load_model(url::AbstractString)
         for k in ks
             try
                 serialized = seekstart(loaded_data[k])
-                deserialized = BSON_pkg.load(serialized,@__MODULE__)[:field]
-                if k==:problem_type || k==:input_type
-                    setproperty!(model_data,k,eval(Meta.parse(deserialized)))
-                elseif deserialized isa Dict
+                deserialized = BSON.load(serialized,@__MODULE__)[:field]
+                if deserialized isa Dict
                     dict_to_struct!(model_data.normalization,deserialized)
                 elseif deserialized isa NamedTuple
                     to_struct!(model_data,k,deserialized)
@@ -184,7 +182,7 @@ end
 function save_options_main(options)
     dict = Dict{Symbol,Any}()
     struct_to_dict!(dict,options)
-    BSON_pkg.@save("options.bson",dict)
+    BSON.@save("options.bson",dict)
     return nothing
 end
 """
@@ -198,7 +196,7 @@ save_options() = save_options_main(options)
 function load_options_main(options)
     if isfile("options.bson")
         try
-            data = BSON_pkg.load("options.bson")
+            data = BSON.load("options.bson")
             dict_to_struct!(options,data[:dict])
         catch e
             @error string("Options were not loaded. Error: ",e)
@@ -265,9 +263,6 @@ function get_data_main(data,fields,inds)
     end
     if data isa Symbol
         data = string(data)
-    elseif data isa DataType
-        data = string(data)
-        data = split(data,".")[end]
     end
     return data
 end
@@ -286,8 +281,8 @@ function set_data_main(data,fields,args)
     if length(args)==1
         type = typeof(getproperty(data,field_end))
         value = args[1]
-        if getproperty(data,field_end) isa DataType
-            value = eval(Meta.parse(value))
+        if getproperty(data,field_end) isa Symbol
+            value = type(lowercase(value))
         else
             value = type(value)
         end
@@ -454,8 +449,6 @@ function struct_to_dict!(dict,obj)
             end
             data_tuple = (vector_type = string(type), types = string(types), values = dict_vec)
             dict[k] = data_tuple
-        elseif value isa DataType
-            dict[k] = String(Symbol(value))
         else
             dict[k] = value
         end
@@ -492,11 +485,7 @@ function dict_to_struct!(obj,dict::Dict)
                 dict_to_struct!(obj_property,value)
             else
                 try
-                    if getproperty(obj,sym) isa DataType
-                        setproperty!(obj,sym,eval(Meta.parse(value)))
-                    else
-                        setproperty!(obj,sym,value)
-                    end
+                    setproperty!(obj,sym,value)
                 catch e
                     @warn string("Loading of ",string(sym)," in ",string(obj)," failed.")  exception=(e, catch_backtrace())
                 end

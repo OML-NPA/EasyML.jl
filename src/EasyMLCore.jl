@@ -7,6 +7,8 @@ using
 QML, Qt5QuickControls2_jll,
 # Data structuring
 Parameters, Dates,
+# Data import/export
+BSON,
 # Image manipulation
 ColorTypes, FixedPointNumbers,
 # Maths
@@ -14,7 +16,6 @@ Statistics,
 # Machine learning
 Flux, Flux.Losses, FluxExtra
 
-import BSON as BSON_pkg
 
 include("modules/Common.jl")
 using .Common
@@ -26,7 +27,7 @@ include("modules/Training.jl")
 include("modules/Validation.jl")
 include("modules/Application.jl")
 
-using .Classes, .Design.Layers, .DataPreparation.InputProperties, .Application.Types
+using .Classes, .Design.Layers, .DataPreparation.InputProperties, .Application
 
 import .Design: DesignData, design_data, DesignOptions, design_options
 import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options
@@ -55,7 +56,7 @@ export fix_QML_types, get_data, get_options, set_data, set_options, get_file, ge
 # Channels
 export channels, Channels, check_progress, get_progress, empty_channel, put_channel
 # Other
-export all_data, AllData, problem_type, input_type, check_task, unit_test, add_templates
+export all_data, AllData, problem_type, input_type, check_task, unit_test, add_templates, setproperty!
 
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec

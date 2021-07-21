@@ -238,8 +238,8 @@ using Flux, .Layers
     loss::Function = Flux.Losses.mse
     input_size::NTuple{3,Int64} = (0,0,0)
     output_size::NTuple{3,Int64} = (0,0,0)
-    problem_type::Type{<:AbstractProblemType} = Classification
-    input_type::Type{<:AbstractInputType} = Image
+    problem_type::Symbol = :classification
+    input_type::Symbol = :image
     layers_info::Vector{AbstractLayerInfo} =  Vector{AbstractLayerInfo}(undef,0)
 end
 

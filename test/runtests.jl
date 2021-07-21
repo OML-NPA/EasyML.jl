@@ -1,6 +1,5 @@
 
-using Parameters, Flux, Test, DelimitedFiles, EasyMLCore
-import BSON as BN
+using Parameters, Flux, Test, DelimitedFiles, BSON, EasyMLCore
 import QML
 EasyMLCore.unit_test.state = true
 
@@ -47,7 +46,7 @@ end
     @test begin 
         save_options()
         dict_busted = Dict()
-        BN.@save("options.bson",dict_busted)
+        BSON.@save("options.bson",dict_busted)
         true 
     end
     @test begin 
@@ -55,6 +54,7 @@ end
         load_options() 
         rm("options.bson")
         load_options() 
+        rm("options.bson")
         true 
     end
 end
@@ -88,7 +88,7 @@ end
         @test get_data_main(data,["Data2","c"],[1,1])=="c"
         @test get_data(["TrainingData","warnings"])==String[]
         @test get_options(["GlobalOptions","Graphics","scaling_factor"])==1.0
-        @test get_options(["ApplicationOptions","image_type"])=="PNG"
+        @test get_options(["ApplicationOptions","image_type"])=="png"
     end
     @testset "Set data" begin
         import EasyMLCore.set_data_main
@@ -172,6 +172,30 @@ end
             import EasyMLCore.put_channel_main
             put_channel_main(channels,"b",[0.0,1.0])
             put_channel("data_preparation_progress",1)
+            true
+        end
+    end
+end
+
+@testset "Set property" begin
+    @test begin
+        obj = EasyMLCore.OutputVolume()
+        obj.binning = :auto
+        obj.normalization= :auto
+        true
+    end
+    @test begin
+        obj = EasyMLCore.application_options
+        obj.apply_by = :file
+        obj.data_type= :csv
+        obj.image_type = :png
+        true
+    end
+    @test begin
+        try
+            obj = EasyMLCore.application_options
+            obj.apply_by = :esgsg
+        catch
             true
         end
     end
