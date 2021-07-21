@@ -70,7 +70,7 @@ validation_data = ValidationData()
 
 @with_kw mutable struct AccuracyOptions
     weight_accuracy::Bool = true
-    accuracy_mode::Symbol = :Auto
+    accuracy_mode::Symbol = :auto
 end
 accuracy_options = AccuracyOptions()
 

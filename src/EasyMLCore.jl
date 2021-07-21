@@ -39,12 +39,6 @@ import .Application: ApplicationData, application_data, ApplicationOptions, appl
 include("data_structures.jl")
 include("functions.jl")
 
-# Problem types
-export AbstractProblemType, Classification, Regression, Segmentation
-# Input types
-export AbstractInputType, Image
-# Input properties
-export AbstractInputProperty, Grayscale
 # Struct to Dict interconversion
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model data

@@ -84,12 +84,12 @@ testing_data = TestingData()
 
 @with_kw mutable struct AccuracyOptions
     weight_accuracy::Bool = true
-    accuracy_mode::Symbol = :Auto
+    accuracy_mode::Symbol = :auto
 end
 accuracy_options = AccuracyOptions()
 
 @with_kw mutable struct TestingOptions
-    data_preparation_mode::Symbol = :Auto
+    data_preparation_mode::Symbol = :auto
     test_data_fraction::Float64 = 0.1
     num_tests::Float64 = 2
 end
