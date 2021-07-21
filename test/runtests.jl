@@ -20,7 +20,7 @@ EasyMLDesign.EasyMLCore.unit_test.state = true
     end
 
     # Flatten error model
-    @test begin 
+    @test begin
         load_model("models/flatten_error_test.model")
         design_model()
         true
