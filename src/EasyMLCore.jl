@@ -27,7 +27,7 @@ include("modules/Training.jl")
 include("modules/Validation.jl")
 include("modules/Application.jl")
 
-using .Classes, .Design.Layers, .DataPreparation.InputProperties, .Application
+using .Classes, .Design.Layers
 
 import .Design: DesignData, design_data, DesignOptions, design_options
 import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options
