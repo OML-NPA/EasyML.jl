@@ -13,8 +13,7 @@ include("exported_functions.jl")
 
 export QML, Flux, Losses, FluxExtra, Normalizations, NNlib
 
-export model_data, Classification, Regression, Segmentation, Image, 
-    ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
+export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export set_savepath, save_options, load_options, save_model, load_model
 export make_classes
 
