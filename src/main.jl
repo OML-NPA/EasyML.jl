@@ -550,11 +550,11 @@ function cleanup!(x::CuArray)
 end
 
 function get_data_struct(some_data::Union{TrainingData,TestingData})
-    if problem_type()==Classification
+    if problem_type()==:classification
         data = some_data.ClassificationData
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         data = some_data.RegressionData
-    else # problem_type()==Segmentation
+    else # problem_type()==:segmentation
         data = some_data.SegmentationData
     end
     return data
@@ -562,7 +562,7 @@ end
 
 function test_model(model_data,train_set,errors,use_GPU)
     input_data_raw = train_set[1][1]
-    if problem_type()==Classification
+    if problem_type()==:classification
         max_labels = training_data.ClassificationData.max_labels
         label_data = zeros(Float32,max_labels)
         ind = train_set[2][1]
@@ -637,7 +637,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     opt = get_optimiser(training_options)
     local ws::Vector{Float32}
     if options.TrainingOptions.Accuracy.weight_accuracy
-        if training_options.Accuracy.accuracy_mode==:Manual
+        if training_options.Accuracy.accuracy_mode==:manual
             ws = training_data.weights
             l_ws = length(ws)
             l_data = size(train_set[2][1])[end]

@@ -30,11 +30,11 @@ function set_training_data(data_input::Vector,data_labels::Vector)
         err = string("Input data length does not equal label data length. ",l_input," vs ",l_labels,".")
         error(err)
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
         training_data.ClassificationData.data_input = data_input
         training_data.ClassificationData.data_labels = data_labels
         training_data.ClassificationData.max_labels = maximum(data_labels)
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         training_data.RegressionData.data_input = data_input
         training_data.RegressionData.data_labels = data_labels
     else # Segmentation
@@ -55,10 +55,10 @@ function set_testing_data(data_input::Vector,data_labels::Vector)
         err = string("Input data length does not equal label data length. ",l_input," vs ",l_labels,".")
         error(err)
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
         testing_data.ClassificationData.data_input = data_input
         testing_data.ClassificationData.data_labels = data_labels
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         testing_data.RegressionData.data_input = data_input
         testing_data.RegressionData.data_labels = data_labels
     else # Segmentation
@@ -81,13 +81,13 @@ function get_train_test_inds(num::Int64,fraction::Float64)
 end
 
 function set_testing_data_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
-    if problem_type()==Classification
+    if problem_type()==:classification
         specific_training_data = training_data.ClassificationData
         specific_testing_data = testing_data.ClassificationData
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         specific_training_data = training_data.RegressionData
         specific_testing_data = testing_data.RegressionData
-    else # Segmentation
+    else # :segmentation
         specific_training_data = training_data.SegmentationData
         specific_testing_data = testing_data.SegmentationData
     end
@@ -137,13 +137,13 @@ such as a number of epochs, learning rate and a number of tests per epoch
 can be changed during training.
 """
 function train()
-    if problem_type()==Classification
+    if problem_type()==:classification
         data_train = training_data.ClassificationData.data_input
         data_test = testing_data.ClassificationData.data_input
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         data_train = training_data.RegressionData.data_input
         data_test = testing_data.RegressionData.data_input
-    else # :Segmentation
+    else # :segmentation
         data_train = training_data.SegmentationData.data_input
         data_test = testing_data.SegmentationData.data_input
     end

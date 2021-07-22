@@ -3,14 +3,14 @@
 
 #---Init test--------------------------------------------------------------
 
-model_data.problem_type = Classification
+model_data.problem_type = :classification
 
 
 #---Training test-----------------------------------------------------------
 @testset "Input: Vector | Testing: Auto | Weights: Auto | Accuracy: Weight" begin
     @test begin
-        EasyMLTraining.training_options.Testing.data_preparation_mode = :Auto
-        EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
+        EasyMLTraining.training_options.Testing.data_preparation_mode = :auto
+        EasyMLTraining.training_options.Accuracy.accuracy_mode = :auto
         EasyMLTraining.training_options.Accuracy.weight_accuracy = true
 
         data_input = map(_ -> rand(Float32,25),1:200)
@@ -27,8 +27,8 @@ end
 
 @testset "Input: Array | Testing: Manual | Weights: Manual | Accuracy: Regular" begin
     @test begin
-        EasyMLTraining.training_options.Testing.data_preparation_mode = :Manual
-        EasyMLTraining.training_options.Accuracy.accuracy_mode = :Manual
+        EasyMLTraining.training_options.Testing.data_preparation_mode = :manual
+        EasyMLTraining.training_options.Accuracy.accuracy_mode = :manual
         EasyMLTraining.training_options.Accuracy.weight_accuracy = false
 
         data_input = map(_ -> rand(Float32,5,5,1),1:200)

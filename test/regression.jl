@@ -3,7 +3,7 @@
 
 #---Init test--------------------------------------------------------------
 
-model_data.problem_type = Regression
+model_data.problem_type = :regression
 set_savepath("models/regression.model")
 
 
@@ -54,17 +54,17 @@ end
 
 
 EasyMLTraining.training_options.Accuracy.weight_accuracy = false
-EasyMLTraining.training_options.Accuracy.accuracy_mode = :Auto
+EasyMLTraining.training_options.Accuracy.accuracy_mode = :auto
 
 @testset "Input: Vector | Output: Vector" begin
     model_data.model = Flux.Chain(Flux.Dense(25, 5))
     @test begin 
-        vector_vector(:Auto)
+        vector_vector(:auto)
         train()
         true
     end
     @test begin 
-        vector_vector(:Manual)
+        vector_vector(:manual)
         train()
         true
     end
@@ -74,12 +74,12 @@ end
 @testset "Input: Array | Output: Vector" begin
     model_data.model = Flux.Chain(x->Flux.flatten(x),Flux.Dense(25, 5))
     @test begin 
-        array_vector(:Auto)
+        array_vector(:auto)
         train()
         true
     end
     @test begin
-        array_vector(:Manual)
+        array_vector(:manual)
         train()
         true
     end
@@ -89,12 +89,12 @@ end
 @testset "Input: Array | Output: Array" begin
     model_data.model = Flux.Chain(Flux.Conv((1,1), 1 => 1))
     @test begin 
-        array_array(:Auto)
+        array_array(:auto)
         train()
         true
     end
     @test begin
-        array_array(:Manual)
+        array_array(:manual)
         train()
         true
     end
