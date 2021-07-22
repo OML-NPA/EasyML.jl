@@ -93,14 +93,4 @@ A plan for the project can be seen [here](https://github.com/OML-NPA/EasyML.jl/p
 
 ### Current focus
 
-Separating EasyML into
- - [EasyMLCore](https://github.com/OML-NPA/EasyMLCore.jl)
- - [EasyMLClasses](https://github.com/OML-NPA/EasyMLClasses.jl)
- - [EasyMLDesign](https://github.com/OML-NPA/EasyMLDesign.jl)
- - [EasyMLDataPreparation](https://github.com/OML-NPA/EasyMLDataPreparation.jl)
- - [EasyMLTraining](https://github.com/OML-NPA/EasyMLTraining.jl)
- - [EasyMLValidation](https://github.com/OML-NPA/EasyMLValidation.jl)
- - [EasyMLApplication](https://github.com/OML-NPA/EasyMLApplication.jl)
-
-EasyML will bring those packages together.
-
+Breaking EasyML into modules.
