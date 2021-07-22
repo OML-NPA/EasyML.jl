@@ -5,10 +5,10 @@ function get_urls_validation_main(model_data::ModelData,
         validation_urls::ValidationUrls,validation_data::ValidationData)
     url_inputs = validation_urls.url_inputs
     url_labels = validation_urls.url_labels
-    if input_type() == Image
+    if input_type()==:image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    if problem_type() == Classification
+    if problem_type()==:classification
         input_urls,dirs = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
         if issubset(dirs,labels)
@@ -17,7 +17,7 @@ function get_urls_validation_main(model_data::ModelData,
                 repeat([findfirst(label.==labels)],l),dirs,length.(input_urls))
             validation_urls.labels_classification = reduce(vcat,labels_int)
         end
-    elseif problem_type() == Regression
+    elseif problem_type()==:regression
         input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = input_urls_raw[1]
         filenames_inputs = filenames_inputs_raw[1]
@@ -36,7 +36,7 @@ function get_urls_validation_main(model_data::ModelData,
                 input_urls = input_urls_copy
             end
         end
-    elseif problem_type() == Segmentation
+    else # problem_type()==:segmentation
         if validation_data.PlotData.use_labels==true
             input_urls,label_urls,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
             validation_urls.label_urls = reduce(vcat,label_urls)
@@ -55,7 +55,7 @@ end
 function prepare_validation_data(classes::Vector{ImageClassificationClass},
         ind::Int64,model_data::ModelData,validation_data::ValidationData)
     original_image = load_image(validation_data.Urls.input_urls[ind])
-    if Grayscale in model_data.input_properties
+    if :grayscale in model_data.input_properties
         data_input = image_to_gray_float(original_image)[:,:,:,:]
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
@@ -77,7 +77,7 @@ function prepare_validation_data(classes::Vector{ImageRegressionClass},
         ind::Int64, model_data::ModelData,validation_data::ValidationData)
     original_image = load_image(validation_data.Urls.input_urls[ind])
     original_image = imresize(original_image,model_data.input_size[1:2])
-    if Grayscale in model_data.input_properties
+    if :grayscale in model_data.input_properties
         data_input = image_to_gray_float(original_image)[:,:,:,:]
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
@@ -94,7 +94,7 @@ function prepare_validation_data(classes::Vector{ImageSegmentationClass},
         ind::Int64,model_data::ModelData,validation_data::ValidationData)
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original_image = load_image(validation_data.Urls.input_urls[ind])
-    if Grayscale in model_data.input_properties
+    if :grayscale in model_data.input_properties
         data_input = image_to_gray_float(original_image)[:,:,:,:]
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
@@ -329,11 +329,11 @@ end
 
 function get_weights(classes::Vector{<:AbstractClass},validation_options::ValidationOptions)
     if validation_options.Accuracy.weight_accuracy
-        if problem_type()==Classification
+        if problem_type()==:classification
             return map(class -> class.weight,classes)
-        elseif problem_type()==Regression
+        elseif problem_type()==:regression
             return Vector{Float32}(undef,0)
-        else # Segmentation
+        else # problem_type()==:segmentation
             true_classes_bool = (!).(map(class -> class.overlap, classes))
             classes = classes = classes[true_classes_bool]
             weights = map(class -> class.weight,classes)
@@ -404,7 +404,7 @@ function validate_main(model_data::ModelData,validation_data::ValidationData,
     end
     normalization = model_data.normalization
     norm_func(x) = model_data.normalization.f(x,normalization.args...)
-    if problem_type()==Segmentation
+    if problem_type()==:segmentation
         num_slices_val = options.GlobalOptions.HardwareResources.num_slices
         offset_val = options.GlobalOptions.HardwareResources.offset
     else

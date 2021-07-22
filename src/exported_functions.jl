@@ -25,7 +25,7 @@ function get_urls_validation_main2(url_inputs::String,url_labels::String,validat
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    if problem_type()==Classification || problem_type()==Segmentation
+    if problem_type()==:classification || problem_type()==:segmentation
         if !isdir(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
@@ -86,9 +86,9 @@ function get_urls_validation_main2(validation_data::ValidationData)
         @error "Input data directory URL is empty. Aborted"
         return nothing
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
     
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         @info "Select a file with label data if labels are available."
         name_filters = ["*.csv","*.xlsx"]
         path = get_file(dir,name_filters)
@@ -98,7 +98,7 @@ function get_urls_validation_main2(validation_data::ValidationData)
         else
             @warn "Label data URL is empty. Continuing without labels."
         end
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         @info "Select a directory with label data if labels are available."
         path = get_folder(dir)
         if !isempty(path)
@@ -109,7 +109,7 @@ function get_urls_validation_main2(validation_data::ValidationData)
         end
     end
     
-    if validation_urls.url_labels!="" && problem_type()!=Classification
+    if validation_urls.url_labels!="" && problem_type()!=:classification
         validation_data.PlotData.use_labels = true
     else
         validation_data.PlotData.use_labels = false
@@ -186,13 +186,13 @@ function validate()
     validation_data.PlotData.original_image = Array{RGB{N0f8},2}(undef,0,0)
     validation_data.PlotData.label_image = Array{RGB{N0f8},2}(undef,0,0)
     # Return results
-    if input_type()==Image
-        if problem_type()==Classification
+    if input_type()==:image
+        if problem_type()==:classification
             return validation_image_classification_results
-        elseif problem_type()==Segmentation
-            return validation_image_segmentation_results
-        elseif problem_type()==Regression
+        elseif problem_type()==:regression
             return validation_image_regression_results
+        else # problem_type()==:segmentation
+            return validation_image_segmentation_results
         end
     end
 end

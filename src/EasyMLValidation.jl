@@ -39,7 +39,7 @@ include("exported_functions.jl")
 export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
-export model_data, Classification, Regression, Segmentation, Image, Grayscale
+export model_data
 export global_options, load_options, modify, save_model, load_model
 export make_classes, validation_options, validation_results_data, get_urls_validation, 
     validate, remove_validation_data, remove_validation_results

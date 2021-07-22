@@ -80,6 +80,19 @@ function filter_ext(urls::Vector{String},allowed_ext::Vector{String})
 end
 
 
+# Convert images to grayscale Array{Float32,2}
+function image_to_gray_float(image::Array{RGB{Normed{UInt8,8}},2})
+    img_temp = channelview(float.(Gray.(image)))
+    return collect(reshape(img_temp,size(img_temp)...,1))
+end
+
+# Convert images to RGB Array{Float32,3}
+function image_to_color_float(image::Array{RGB{Normed{UInt8,8}},2})
+    img_temp = permutedims(channelview(float.(image)),[2,3,1])
+    return collect(img_temp)
+end
+
+
 function load_image(url::String)
     img::Array{RGB{N0f8},2} = load(url)
     return img

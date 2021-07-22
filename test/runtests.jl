@@ -85,13 +85,13 @@ end
 @testset "Other QML" begin
     @test begin EasyMLValidation.set_options(["GlobalOptions","Graphics","scaling_factor"],1); true end
     @test begin
-        model_data.problem_type = Classification
+        model_data.problem_type = :classification
         push!(EasyMLValidation.unit_test.urls, "examples/with labels/classification/test")
         get_urls_validation()
-        model_data.problem_type = Regression
+        model_data.problem_type = :regression
         push!(EasyMLValidation.unit_test.urls, "examples/with labels/regression/test","examples/with labels/regression/test.csv")
         get_urls_validation()
-        model_data.problem_type = Segmentation
+        model_data.problem_type = :segmentation
         push!(EasyMLValidation.unit_test.urls, "examples/with labels/segmentation/images","examples/with labels/segmentation/labels")
         get_urls_validation()
         true

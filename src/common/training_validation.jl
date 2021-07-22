@@ -83,15 +83,15 @@ end
 # Returns an accuracy function
 function get_accuracy_func(weights::Vector{Float32},some_options)
     weight = some_options.Accuracy.weight_accuracy
-    if problem_type()==Classification
+    if problem_type()==:classification
         if weight
             return (x,y) -> accuracy_classification_weighted(x,y,weights)
         else
             return accuracy_classification
         end
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         return accuracy_regression
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         if weight
             return  (x,y) -> accuracy_segmentation_weighted(x,y,weights)
         else
