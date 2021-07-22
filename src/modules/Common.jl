@@ -31,9 +31,9 @@ function msg_generator(value::Symbol,syms::NTuple{N,Symbol}) where N
     else
         msg_end = sym_to_string(syms[1])
         for i = 2:length(syms)-1
-            msg_end = string(msg_end,", ",sym_to_string(syms[i]),".")
+            msg_end = string(msg_end,", ",sym_to_string(syms[i]))
         end
-        msg_end = string(msg_end," or ",sym_to_string(syms[end]))
+        msg_end = string(msg_end," or ",sym_to_string(syms[end]),".")
     end
     msg = string(msg_start,msg_mid,msg_end)
     return msg
