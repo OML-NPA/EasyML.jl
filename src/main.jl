@@ -2,11 +2,11 @@
 #---make_classes functions---------------------------------------
 
 function reset_classes_main(model_data)
-    if problem_type()==Classification
+    if problem_type()==:classification
         model_data.classes = Vector{ImageClassificationClass}(undef,0)
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         model_data.classes = Vector{ImageRegressionClass}(undef,0)
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         model_data.classes = Vector{ImageSegmentationClass}(undef,0)
     end
     return nothing
@@ -16,13 +16,13 @@ reset_classes() = reset_classes_main(model_data::ModelData)
 function append_classes_main(model_data::ModelData,data)
     data = fix_QML_types(data)
     type = eltype(model_data.classes)
-    if problem_type()==Classification
+    if problem_type()==:classification
         class = ImageClassificationClass()
         class.name = data[1]
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         class = ImageRegressionClass()
         class.name = data[1]
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         class = ImageSegmentationClass()
         class.name = String(data[1])
         class.color = Int64.([data[2],data[3],data[4]])
