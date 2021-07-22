@@ -32,7 +32,7 @@ include("exported_functions.jl")
 export QML, Flux, Losses, FluxExtra, Normalizations, NNlib
 
 export Join, Split, Addition, Activation, Flatten, Identity
-export model_data, Classification, Regression, Segmentation, Image
+export model_data
 export set_savepath, modify, save_options, load_options, save_model, load_model
 export make_classes, get_urls, prepare_data, data_preparation_options
  

@@ -34,12 +34,12 @@ function get_urls(url_inputs::String,url_labels::String,preparation_data::Prepar
         @error string(url_inputs," does not exist.")
         return nothing
     end
-    if problem_type()==Classification || problem_type()==Segmentation
+    if problem_type()==:classification || problem_type()==:segmentation
         if !isdir(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
         end
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         if !isfile(url_labels)
             @error string(url_labels," does not exist.")
             return nothing
@@ -59,7 +59,7 @@ get_urls(url_inputs,url_labels) = get_urls(url_inputs,url_labels,preparation_dat
 
 
 function get_urls(url_inputs::String,preparation_data::PreparationData)
-    if problem_type()!=Classification
+    if problem_type()!=:classification
         @error "Label data directory URL was not given."
         return nothing
     end
@@ -91,9 +91,9 @@ function get_urls(preparation_data::PreparationData)
         @error "Input data directory URL is empty."
         return nothing
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
     
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         @info "Select a file with label data."
         name_filters = ["*.csv","*.xlsx"]
         path = get_file(dir,name_filters)
@@ -104,7 +104,7 @@ function get_urls(preparation_data::PreparationData)
             @error "Label data file URL is empty."
             return nothing
         end
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         @info "Select a directory with label data."
         path = get_folder(dir)
         if !isempty(path)
@@ -138,8 +138,8 @@ function prepare_data(model_data::ModelData,preparation_data::PreparationData)
         empty!(getfield(preparation_data.SegmentationData.Results,i))
     end
     empty_channel(:data_preparation_progress)
-    if input_type()==Image
-        if problem_type()==Classification 
+    if input_type()==:image
+        if problem_type()==:classification 
             empty!(preparation_data.SegmentationData.Urls.input_urls)
             empty!(preparation_data.SegmentationData.Urls.label_urls)
             empty!(preparation_data.RegressionData.Urls.input_urls)
@@ -147,7 +147,7 @@ function prepare_data(model_data::ModelData,preparation_data::PreparationData)
                 @error "No input urls. Run 'get_url'."
                 return nothing
             end
-        elseif problem_type()==Regression
+        elseif problem_type()==:regression
             empty!(preparation_data.ClassificationData.Urls.input_urls)
             empty!(preparation_data.ClassificationData.Urls.label_urls)
             empty!(preparation_data.SegmentationData.Urls.input_urls)
@@ -156,7 +156,7 @@ function prepare_data(model_data::ModelData,preparation_data::PreparationData)
                 @error "No input urls. Run 'get_url'."
                 return nothing
             end
-        elseif problem_type()==Segmentation
+        elseif problem_type()==:segmentation
             empty!(preparation_data.ClassificationData.Urls.input_urls)
             empty!(preparation_data.ClassificationData.Urls.label_urls)
             empty!(preparation_data.RegressionData.Urls.input_urls)
@@ -208,11 +208,11 @@ function prepare_data(model_data::ModelData,preparation_data::PreparationData)
             end
         end
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
         return preparation_data.ClassificationData.Results
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         return preparation_data.RegressionData.Results
-    else # problem_type()==Segmentation
+    else # problem_type()==:segmentation
         return preparation_data.SegmentationData.Results
     end
 end

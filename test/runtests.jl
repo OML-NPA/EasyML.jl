@@ -10,10 +10,11 @@ end
 for i = 1:2
 
     if i==1
-        EasyMLDataPreparation.image_preparation_options.grayscale = true
+        model_data.input_properties = [:grayscale]
         EasyMLDataPreparation.image_preparation_options.mirroring = true
+        EasyMLDataPreparation.image_preparation_options.num_angles = 2
     else
-        EasyMLDataPreparation.image_preparation_options.grayscale = false
+        model_data.input_properties = Symbol[]
         EasyMLDataPreparation.image_preparation_options.mirroring = false
         EasyMLDataPreparation.image_preparation_options.num_angles = 1
     end
@@ -72,7 +73,7 @@ end
     end
 
     @test begin
-        model_data.problem_type = Classification
+        model_data.problem_type = :classification
         EasyMLDataPreparation.preparation_data.ClassificationData = EasyMLDataPreparation.ClassificationData()
         prepare_data()
         load_model("models/classification.model")
@@ -84,7 +85,7 @@ end
     end
 
     @test begin
-        model_data.problem_type = Regression
+        model_data.problem_type = :regression
         EasyMLDataPreparation.preparation_data.RegressionData = EasyMLDataPreparation.RegressionData()
         prepare_data()
         load_model("models/regression.model")
@@ -97,7 +98,7 @@ end
     end
 
     @test begin
-        model_data.problem_type = Segmentation
+        model_data.problem_type = :segmentation
         EasyMLDataPreparation.preparation_data.SegmentationData = EasyMLDataPreparation.SegmentationData()
         prepare_data()
         load_model("models/segmentation.model")
@@ -110,7 +111,7 @@ end
     end
 
     @test begin
-        model_data.problem_type = Classification
+        model_data.problem_type = :classification
         url_input = "examples/"
         get_urls(url_input)
         url_input = "examples2/"
@@ -119,7 +120,7 @@ end
     end
 
     @test begin
-        model_data.problem_type = Segmentation
+        model_data.problem_type = :segmentation
         url_input = "examples/"
         url_label = "examples/"
         get_urls(url_input,url_label)
@@ -144,12 +145,13 @@ end
         EasyMLDataPreparation.set_options(["DataPreparationOptions","Images","num_angles"],1)
         true
     end
+    empty!(model_data.input_properties)
     @test begin
-        empty!(model_data.input_properties)
-        EasyMLDataPreparation.set_model_data("input_properties","Grayscale")
-        EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
-        EasyMLDataPreparation.rm_model_data("input_properties","Grayscale")
-        EasyMLDataPreparation.get_model_data("input_properties","Grayscale")
-        true
+        EasyMLDataPreparation.set_model_data("input_properties","grayscale")
+        EasyMLDataPreparation.get_model_data("input_properties","grayscale")==true
+    end
+    @test begin
+        EasyMLDataPreparation.rm_model_data("input_properties","grayscale")
+        EasyMLDataPreparation.get_model_data("input_properties","grayscale")==false
     end
 end

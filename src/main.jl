@@ -7,7 +7,7 @@ function set_model_data_main(model_data::ModelData,field,value)
     field_string::String = fix_QML_types(field)
     value_string::String = fix_QML_types(value)
     field = Symbol(field_string)
-    value = eval(Symbol(value_string))
+    value = Symbol(value_string)
     values = getproperty(model_data, field)
     if !(value in values)
         push!(values,value)
@@ -21,7 +21,6 @@ function get_model_data_main(model_data::ModelData,field,value)
     value_string = fix_QML_types(value)
     field = Symbol(field_string)
     values_string = string.(getproperty(model_data, field))
-    values_string = replace.(values_string, "EasyMLCore." => "" )
     if value_string in values_string
         return true
     else
@@ -36,7 +35,6 @@ function rm_model_data_main(model_data::ModelData,field,value)
     field = Symbol(field_string)
     values = getproperty(model_data, field)
     values_string = string.(values)
-    values_string = replace.(values_string, "EasyMLCore." => "" )
     ind = findall(value_string.==values_string)
     if !isempty(ind)
         deleteat!(values,ind)
@@ -51,10 +49,10 @@ rm_model_data(field,value) = rm_model_data_main(model_data,field,value)
 function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
     url_inputs = preparation_data.Urls.url_inputs
     url_labels = preparation_data.Urls.url_labels
-    if input_type()==Image
+    if input_type()==:image
         allowed_ext = ["png","jpg","jpeg"]
     end
-    if problem_type()==Classification
+    if problem_type()==:classification
         classification_data = preparation_data.ClassificationData
         input_urls,dirs,_ = get_urls1(url_inputs,allowed_ext)
         labels = map(class -> class.name,model_data.classes)
@@ -77,7 +75,7 @@ function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
             classification_data.Urls.input_urls = input_urls
             classification_data.Urls.label_urls = dirs
         end
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         regression_data = preparation_data.RegressionData
         input_urls_raw,_,filenames_inputs_raw = get_urls1(url_inputs,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
@@ -91,7 +89,7 @@ function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
             regression_data.Urls.labels_url = url_labels
             regression_data.Urls.initial_data_labels = loaded_labels
         end
-    elseif problem_type()==Segmentation
+    elseif problem_type()==:segmentation
         segmentation_data = preparation_data.SegmentationData
         input_urls_raw,label_urls_raw,_,_,_ = get_urls2(url_inputs,url_labels,allowed_ext)
         input_urls = reduce(vcat,input_urls_raw)
@@ -281,7 +279,7 @@ function prepare_data(model_data::ModelData,classification_data::ClassificationD
             # Get a current image
             img_raw = current_imgs[l]
             # Convert to float
-            if data_preparation_options.Images.grayscale
+            if :grayscale in model_data.input_properties
                 img = image_to_gray_float(img_raw)
             else
                 img = image_to_color_float(img_raw)
@@ -346,7 +344,7 @@ function prepare_data(model_data::ModelData,regression_data::RegressionData,
         # Get current label
         label = initial_label_data[k]
         # Convert to float
-        if data_preparation_options.Images.grayscale
+        if :grayscale in model_data.input_properties
             img = image_to_gray_float(img_raw)
         else
             img = image_to_color_float(img_raw)
@@ -411,7 +409,7 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
         img_raw = imgs[k]
         labelimg = labels[k]
         # Convert to float
-        if data_preparation_options.Images.grayscale
+        if :grayscale in model_data.input_properties
             img = image_to_gray_float(img_raw)
         else
             img = image_to_color_float(img_raw)
@@ -449,11 +447,11 @@ function prepare_data_main(model_data::ModelData,
     # Initialize
     data_preparation_options = options.DataPreparationOptions
     size12 = model_data.input_size[1:2]
-    if problem_type()==Classification
+    if problem_type()==:classification
         data = preparation_data.ClassificationData
-    elseif problem_type()==Regression
+    elseif problem_type()==:regression
         data = preparation_data.RegressionData
-    elseif problem_type()==Segmentation
+    else # problem_type()==:segmentation
         data = preparation_data.SegmentationData
     end
     progress = channels.data_preparation_progress
