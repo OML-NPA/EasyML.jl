@@ -2858,7 +2858,7 @@ ApplicationWindow {
                         model_url_split.pop()
                         var model_url_new = model_url_split.join("/")
                         model_url_new = model_url_new+"/"+displayText+".model"
-                        Julia.set_data(["model_url"],model_url_new)
+                        Julia.set_data(["Urls","model_url"],model_url_new)
                     }
                     Component.onCompleted: {
                         var name = Julia.get_data(["Urls","model_name"])
