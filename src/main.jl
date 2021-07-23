@@ -149,7 +149,7 @@ function topology_split(layers_arranged::Vector,inds_arranged::Vector,
         layers_temp = []
         inds_temp = []
         if joining_types_bool[i] && !allcmp(next_connections)
-            push!(inds_return,[ind[i]])
+            push!(inds_return,ind[i])
             push!(inds_temp,0)
         else
             if ind isa Vector{<:Vector}
@@ -257,8 +257,9 @@ function get_topology_branches(layers_arranged::Vector,inds_arranged::Vector,
     return ind
 end
 
-function get_topology(model_data::Union{ModelData,DesignModelData})
-    layers = model_data.layers_info
+function get_topology(model_data::DesignModelData)
+    #layers = model_data.layers_info
+    layers = design_data.ModelData.layers_info
     types = [layers[i].type for i = 1:length(layers)]
     ind_vec = findall(types .== "Input")
     if isempty(ind_vec)
@@ -453,41 +454,56 @@ end
 
 function getresizing(type::String, layer_info, in_size)
     if type == "Addition"
-        out = (in_size[1][1], in_size[1][2], in_size[1][3])
-        return (Addition(), out)
+        if in_size[1]==in_size[2]
+            out = (in_size[1][1], in_size[1][2], in_size[1][3])
+            return (Addition(), out)
+        else
+            msg = string("Cannot add arrays with sizes ",in_size[1]," and ",in_size[2],".")
+            er = DimensionMismatch(msg)
+            throw(er)
+        end
     elseif type == "Join"
-        new_size = Array{Int64}(undef, length(in_size))
         dim = layer_info.dimension
-        for i = 1:length(in_size)
-            new_size[i] = in_size[i][dim]
+        dims = collect(1:3)
+        deleteat!(dims,dim)
+        temp_size = map(x-> getindex(x,dims),in_size)
+        if temp_size[1]==temp_size[2]
+            new_size = Array{Int64}(undef, length(in_size))
+            for i = 1:length(in_size)
+                new_size[i] = in_size[i][dim]
+            end
+            new_size = sum(new_size)
+            if dim == 1
+                out = (new_size, in_size[1][2], in_size[1][3])
+            elseif dim == 2
+                out = (in_size[1][1], new_size, in_size[1][3])
+            elseif dim == 3
+                out = (in_size[1][1], in_size[1][2], new_size)
+            end
+            return (Join(dim), out)
+        else
+            msg = string("Cannot join arrays with sizes ",in_size[1]," and ",in_size[2],".")
+            er = DimensionMismatch(msg)
+            throw(er)
         end
-        new_size = sum(new_size)
-        if dim == 1
-            out = (new_size, in_size[1][2], in_size[1][3])
-        elseif dim == 2
-            out = (in_size[1][1], new_size, in_size[1][3])
-        elseif dim == 3
-            out = (in_size[1][1], in_size[1][2], new_size)
-        end
-        return (Join(dim), out)
-    elseif type == "Split"
+    elseif type == "Split"      
+        local out_size
         dim = layer_info.dimension
         nout = layer_info.outputs
-        out = Array{Tuple{Int64,Int64,Int64}}(undef, nout)
         if dim == 1
-            for i = 1:nout
-                out[i] = (in_size[1] / nout, in_size[2:3]...)
-            end
+            out = (in_size[1] / nout, in_size[2:3]...)
         elseif dim == 2
-            for i = 1:nout
-                out[i] = (in_size[1], in_size[2] / nout, in_size[3])
-            end
+            out = (in_size[1], in_size[2] / nout, in_size[3])
         elseif dim == 3
-            for i = 1:nout
-                out[i] = (in_size[1], in_size[2], in_size[3] / nout)
-            end
+            out = (in_size[1], in_size[2], in_size[3] / nout)
         end
-        return (Split(nout, dim), out)
+        if ceil.(out)==out
+            return (Split(nout, dim), Int64.(out))
+        else
+            msg = string("Size should be a tuple of integers.")
+            er = DomainError(out_size, msg)
+            throw(er)
+        end
     elseif type == "Upsample"
         multiplier = layer_info.multiplier
         dims = layer_info.dimensions
@@ -553,14 +569,7 @@ function getbranch(layer_params,in_size)
             push!(par_size,temp_size)
         end
         layer = Parallel(tuple,(par_layers...,))
-        if allcmp(par_size)
-            in_size = par_size
-        else
-            msg = "Inputs to a parallel layer have different sizes."
-            @error msg
-            push!(design_data.warnings,msg)
-            return nothing,nothing
-        end
+        in_size = par_size
     end
     return layer,in_size
 end
