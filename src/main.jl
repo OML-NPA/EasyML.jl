@@ -53,13 +53,15 @@ end
 
 
 function prepare_validation_data(classes::Vector{ImageClassificationClass},
-        ind::Int64,model_data::ModelData,validation_data::ValidationData)
+    norm_func::Function,model_data::ModelData,ind::Int64,validation_data::ValidationData)
+    local data_input
     original_image = load_image(validation_data.Urls.input_urls[ind])
     if :grayscale in model_data.input_properties
         data_input = image_to_gray_float(original_image)[:,:,:,:]
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
     end
+    norm_func(data_input)
     if validation_data.PlotData.use_labels
         num = length(classes)
         labels_temp = Vector{Float32}(undef,num)
@@ -74,7 +76,8 @@ function prepare_validation_data(classes::Vector{ImageClassificationClass},
 end
 
 function prepare_validation_data(classes::Vector{ImageRegressionClass},
-        ind::Int64, model_data::ModelData,validation_data::ValidationData)
+        norm_func::Function,model_data::ModelData,ind::Int64,validation_data::ValidationData)
+    local data_input
     original_image = load_image(validation_data.Urls.input_urls[ind])
     original_image = imresize(original_image,model_data.input_size[1:2])
     if :grayscale in model_data.input_properties
@@ -82,6 +85,7 @@ function prepare_validation_data(classes::Vector{ImageRegressionClass},
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
     end
+    norm_func(data_input)
     if validation_data.PlotData.use_labels
         labels = reshape(validation_data.Urls.labels_regression[ind],:,1)
     else
@@ -91,7 +95,8 @@ function prepare_validation_data(classes::Vector{ImageRegressionClass},
 end
 
 function prepare_validation_data(classes::Vector{ImageSegmentationClass},
-        ind::Int64,model_data::ModelData,validation_data::ValidationData)
+        norm_func::Function,model_data::ModelData,ind::Int64,validation_data::ValidationData)
+    local data_input
     inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original_image = load_image(validation_data.Urls.input_urls[ind])
     if :grayscale in model_data.input_properties
@@ -99,6 +104,7 @@ function prepare_validation_data(classes::Vector{ImageSegmentationClass},
     else
         data_input = image_to_color_float(original_image)[:,:,:,:]
     end
+    norm_func(data_input)
     if validation_data.PlotData.use_labels
         label = load_image(validation_data.Urls.label_urls[ind])
         label_bool = label_to_bool(label,inds,labels_color,
@@ -367,8 +373,7 @@ function validate_inner(model::AbstractModel,norm_func::Function,classes::Vector
         if check_abort_signal(channels.validation_modifiers)
             return nothing
         end
-        input_data,label,other = prepare_validation_data(classes,i,model_data,validation_data)
-        norm_func(input_data)
+        input_data,label,other = prepare_validation_data(classes,norm_func,model_data,i,validation_data)
         predicted = forward(model,input_data,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
         if validation_data.PlotData.use_labels
             accuracy_val = accuracy(predicted,label)
