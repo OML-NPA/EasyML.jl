@@ -49,7 +49,7 @@ function get_layer_info(layer_name::String)
         return DenseInfo()
     elseif layer_name=="Drop-out"
         return DropoutInfo()  
-    elseif layer_name=="Batch normalisation"
+    elseif layer_name=="Batch normalization"
         return BatchNormInfo()
     elseif layer_name=="Leaky ReLU"
         return LeakyReLUInfo()
@@ -418,7 +418,7 @@ end
 function getnorm(type::String, layer_info, in_size::Tuple{Int64,Int64,Int64})
     if type == "Drop-out"
         return Dropout(layer_info.probability)
-    elseif type == "Batch normalisation"
+    elseif type == "Batch normalization"
         return BatchNorm(in_size[end], ϵ = Float32(layer_info.epsilon))
     end
 end
