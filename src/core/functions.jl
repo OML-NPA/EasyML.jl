@@ -513,7 +513,7 @@ function findline(lines::Vector{String})
     end
 end
 
-templates_dir() = string(replace(@__DIR__, "\\" => "/"),"/gui/templates")
+core_dir() = string(replace(@__DIR__, "\\" => "/"))
 
 function add_templates(url::String)
     f = open(url, read=true)
@@ -522,7 +522,7 @@ function add_templates(url::String)
     close(f)
     ind = findline(lines)
     if ind!=0
-        dir = string("file:///",templates_dir())
+        dir = string("file:///",string(core_dir(),"/gui/templates"))
         templates_line = string("import ",'"',dir,'"')
         lines[ind] = templates_line
     end

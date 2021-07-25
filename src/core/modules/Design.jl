@@ -2,7 +2,7 @@
 
 module Design
 
-using Parameters, EasyMLCore.Common
+using Parameters, ..Core.Common
 
 #---Model data----------------------------------------------------------------
 module Layers

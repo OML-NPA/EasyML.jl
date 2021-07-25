@@ -1,5 +1,5 @@
 
-module EasyMLCore
+module Core
 
 # Include dependencies
 using
@@ -50,17 +50,11 @@ export fix_QML_types, get_data, get_options, set_data, set_options, get_file, ge
 # Channels
 export channels, Channels, check_progress, get_progress, empty_channel, put_channel
 # Other
-export all_data, AllData, problem_type, input_type, check_task, unit_test, add_templates, setproperty!
+export all_data, AllData, problem_type, input_type, check_task, unit_test, core_dir, add_templates, setproperty!
 
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec
 # Machine learning
 export Flux, Losses, FluxExtra, Normalizations, NNlib
-
-
-function __init__()
-    # Needed to avoid an endless loop for Julia canvas
-    ENV["QSG_RENDER_LOOP"] = "basic"
-end 
 
 end

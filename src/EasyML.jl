@@ -17,40 +17,36 @@ ImageMorphology, DSP, ImageMorphology.FeatureTransform, ImageSegmentation,
 # Machine learning
 Flux, Flux.Losses, FluxExtra,
 # Math functions
-Random, StatsBase, LinearAlgebra, Combinatorics, Distances,
+Random, StatsBase, LinearAlgebra, Combinatorics,
 # Other
 ProgressMeter, FLoops
 
 import CUDA.CuArray, Flux.outdims, StatsBase.std
 
 # Include functions
-include("data_structures.jl")
-include("handling_channels.jl")
-include("handling_data.jl")
-include("helper_functions.jl")
-include("image_processing.jl")
-include("design.jl")
-include("training.jl")
-include("common.jl")
-include("validation.jl")
-include("application.jl")
-include("exported_functions.jl")
+include("core/Core.jl")
+include("classes/Classes.jl")
+include("design/Design.jl")
+include("datapreparation/DataPreparation.jl")
+include("training/Training.jl")
+include("validation/Validation.jl")
+include("application/Application.jl")
 
-export QML, Flux, FluxExtra, CUDA, NNlib, ColorTypes
+using .Core, .Classes, .Design, .Training, .Validation, .Application
 
-export model_data, ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, options, training_data, 
-    training_plot_data, training_results_data, training_options, validation_data, validation_results_data,
-    application_data, application_options, global_options
-export load_options, design_model, modify_classes, modify_output, modify, save_model, load_model, 
-    get_urls_training, get_urls_testing, prepare_training_data, prepare_testing_data, remove_training_data, remove_testing_data, 
-    remove_training_results, train, get_urls_validation, validate, remove_validation_data, remove_validation_results, 
-    get_urls_application, apply, remove_application_data, forward, apply_border_data
-export Join, Split, Addition, Activation, Identity
+export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
+
+export Join, Split, Addition, Activation, Flatten, Identity
+export model_data, global_options, data_preparation_options, training_options, validation_options, application_options
+export set_savepath, save_options, load_options, modify, save_model, load_model
+export make_classes, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 
+    remove_training_data, remove_testing_data, remove_training_results, validation_results_data, get_urls_validation, 
+    validate, remove_validation_data, remove_validation_results, get_urls_application, apply, remove_application_data
 
 function __init__()
+    load_options()
     # Needed to avoid an endless loop for Julia canvas
     ENV["QSG_RENDER_LOOP"] = "basic"
-    load_options()
 end
 
 end
