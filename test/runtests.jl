@@ -21,4 +21,5 @@ include("classification.jl")
 include("regression.jl")
 include("segmentation.jl")
 
-
+rm("models/new_model.model")
+rm("models/")
