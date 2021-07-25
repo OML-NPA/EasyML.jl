@@ -104,7 +104,7 @@ function load_model(url::AbstractString)
         for k in ks
             try
                 serialized = seekstart(loaded_data[k])
-                deserialized = BSON.load(serialized,@__MODULE__)[:field]
+                deserialized = BSON.load(serialized)[:field]
                 if deserialized isa Dict
                     dict_to_struct!(model_data.normalization,deserialized)
                 elseif deserialized isa NamedTuple
@@ -513,7 +513,7 @@ function findline(lines::Vector{String})
     end
 end
 
-core_dir() = string(replace(@__DIR__, "\\" => "/"))
+common_dir() = string(replace(@__DIR__, "\\" => "/"))
 
 function add_templates(url::String)
     f = open(url, read=true)
@@ -522,7 +522,7 @@ function add_templates(url::String)
     close(f)
     ind = findline(lines)
     if ind!=0
-        dir = string("file:///",string(core_dir(),"/gui/templates"))
+        dir = string("file:///",string(common_dir(),"/gui/templates"))
         templates_line = string("import ",'"',dir,'"')
         lines[ind] = templates_line
     end

@@ -1,7 +1,8 @@
 
 module Application
 
-using Parameters, ..Core.Common
+using Parameters
+import ..check_setfield!
 
 #---Model data----------------------------------------------------------
 

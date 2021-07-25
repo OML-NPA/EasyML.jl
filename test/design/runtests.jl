@@ -1,7 +1,9 @@
 
-using EasyMLDesign, Test
+using EasyML.Design
+import EasyML.Design
 
-EasyMLDesign.EasyMLCore.unit_test.state = true
+cd(string(dir,"/design"))
+
 
 #---Main functionality----------------------------------------------------
 
@@ -50,20 +52,20 @@ end
 
 @testset "Other QML" begin
     @test begin
-        EasyMLDesign.set_problem_type(0)
-        EasyMLDesign.get_problem_type()
-        EasyMLDesign.set_problem_type(1)
-        EasyMLDesign.get_problem_type()
-        EasyMLDesign.set_problem_type(2)
-        EasyMLDesign.get_problem_type()
-        EasyMLDesign.get_input_type()
+        Design.set_problem_type(0)
+        Design.get_problem_type()
+        Design.set_problem_type(1)
+        Design.get_problem_type()
+        Design.set_problem_type(2)
+        Design.get_problem_type()
+        Design.get_input_type()
         true
     end
 
     @test begin
         fields = ["DesignOptions","width"]
         value = 340
-        EasyMLDesign.set_options(fields,value)
+        Design.set_options(fields,value)
         true
     end
 end

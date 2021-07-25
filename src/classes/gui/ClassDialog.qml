@@ -124,6 +124,7 @@ ApplicationWindow {
 
     function reset_visibility() {
         nameTextField.visible = false
+        weightRow.visible = false
         colorLabel.visible = false
         colorRow.visible = false
         parentRow.visible = false

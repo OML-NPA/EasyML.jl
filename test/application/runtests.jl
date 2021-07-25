@@ -1,7 +1,8 @@
 
-using EasyMLApplication
+using EasyML.Application
 
-EasyMLApplication.unit_test.state = true
+cd(@__DIR__)
+
 
 #---Main functionality-----------------------------------------------
 

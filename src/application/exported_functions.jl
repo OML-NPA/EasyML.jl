@@ -4,7 +4,7 @@
 
 Allows to modify `application_options` in a GUI.
 """
-function modify(application_options::ApplicationOptions)
+function Common.modify(application_options::ApplicationOptions)
     @qmlfunction(
         get_options,
         set_options,

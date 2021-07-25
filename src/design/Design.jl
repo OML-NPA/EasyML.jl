@@ -8,12 +8,12 @@ Flux, Flux.Losses, FluxExtra, FluxExtra.Normalizations,
 # Math functions
 Statistics,
 # EasyML ecosystem
-..Core, ..Core.Design, ..Core.Layers
+..Common, ..Common.Design, ..Common.Layers
 
-import Flux.outputsize, ..Core.none
+import Flux.outputsize, ..Common.none
 
 # Include functions
-include(string(core_dir(),"/common/classes_design.jl"))
+include(string(common_dir(),"/common/classes_design.jl"))
 include("main.jl")
 include("exported_functions.jl")
 

@@ -4,7 +4,7 @@ modify(validation_options::ValidationOptions)
 
 Allows to modify `validation_options` in a GUI.
 """
-function modify(data::ValidationOptions)
+function Common.modify(data::ValidationOptions)
     @qmlfunction(
         get_data,
         get_options,

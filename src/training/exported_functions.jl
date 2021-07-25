@@ -4,7 +4,7 @@
 
 Allows to modify `training_options` in a GUI.
 """
-function modify(data::TrainingOptions)
+function Common.modify(data::TrainingOptions)
     @qmlfunction(
         get_data,
         get_options,

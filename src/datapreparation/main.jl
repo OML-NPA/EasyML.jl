@@ -107,6 +107,16 @@ end
 
 #---prepare_data functions-------------------------------------------------------------------
 
+function load_images(urls::Vector{String},channel::Channel)
+    num = length(urls)
+    imgs = Vector{Array{RGB{N0f8},2}}(undef,num)
+    for i = 1:num
+        imgs[i] = load_image(urls[i])
+        put!(channel,1)
+    end
+    return imgs
+end
+
 # Returns color for labels, whether should be combined with other
 # labels and whether border data should be obtained
 function get_class_data(classes::Vector{ImageSegmentationClass})

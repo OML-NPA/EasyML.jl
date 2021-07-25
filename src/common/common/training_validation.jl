@@ -99,3 +99,5 @@ function get_accuracy_func(weights::Vector{Float32},some_options)
         end
     end
 end
+
+add_dim(x::Array{T, N}) where {T,N} = reshape(x, Val(N+1))

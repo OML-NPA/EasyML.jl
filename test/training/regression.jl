@@ -9,7 +9,7 @@ model_data.problem_type = :regression
 #---Training test-----------------------------------------------------------
 
 function vector_vector(mode::Symbol)
-    EasyMLTraining.training_options.Testing.data_preparation_mode = mode
+    Training.training_options.Testing.data_preparation_mode = mode
     data_input = map(_ -> rand(Float32,25),1:200)
     data_labels = map(_ -> rand(Float32,5),1:200)
     set_training_data(data_input,data_labels)
@@ -52,8 +52,8 @@ function array_array(mode::Symbol)
 end
 
 
-EasyMLTraining.training_options.Accuracy.weight_accuracy = false
-EasyMLTraining.training_options.Accuracy.accuracy_mode = :auto
+Training.training_options.Accuracy.weight_accuracy = false
+Training.training_options.Accuracy.accuracy_mode = :auto
 
 @testset "Input: Vector | Output: Vector" begin
     model_data.model = Flux.Chain(Flux.Dense(25, 5))

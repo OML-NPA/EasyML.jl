@@ -4,7 +4,7 @@
 
 Allows to modify `data_preparation_options` in a GUI.
 """
-function modify(data::DataPreparationOptions)
+function Common.modify(data::DataPreparationOptions)
     @qmlfunction(
         # Options
         get_options,

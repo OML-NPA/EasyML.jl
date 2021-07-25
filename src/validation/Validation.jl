@@ -19,7 +19,7 @@ Random, StatsBase, LinearAlgebra,
 # Other
 FLoops,
 # EasyML ecosystem
-..Core, ..Core.Classes, ..Core.Validation
+..Common, ..Common.Classes, ..Common.Validation
 
 import CUDA.CuArray, StatsBase.std
 import ..Classes
@@ -27,15 +27,15 @@ import ..Classes: make_classes, num_classes, get_class_field, get_class_data,
     get_problem_type, get_input_type
 
 # Include functions
-include(string(core_dir(),"/common/training_validation.jl"))
-include(string(core_dir(),"/common/validation_application.jl"))
-include(string(core_dir(),"/common/preparation_validation.jl"))
-include(string(core_dir(),"/common/preparation_validation_application.jl"))
-include(string(core_dir(),"/common/image_processing.jl"))
+include(string(common_dir(),"/common/training_validation.jl"))
+include(string(common_dir(),"/common/validation_application.jl"))
+include(string(common_dir(),"/common/preparation_validation.jl"))
+include(string(common_dir(),"/common/preparation_validation_application.jl"))
+include(string(common_dir(),"/common/image_processing.jl"))
 include("main.jl")
 include("exported_functions.jl")
 
-export validation_options, validation_results_data, get_urls_validation, 
-    validate, remove_validation_data, remove_validation_results
+export validation_options, validation_results_data
+export get_urls_validation, validate, remove_validation_data, remove_validation_results
 
 end

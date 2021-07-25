@@ -659,7 +659,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     else
         ws = Vector{Float32}(undef,0)
     end
-    accuracy = get_accuracy_func(ws,options)
+    accuracy = get_accuracy_func(ws,training_options)
     loss = model_data.loss
     num_tests = training_options.Testing.num_tests
     # Run training

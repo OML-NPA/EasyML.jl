@@ -24,7 +24,7 @@ ProgressMeter, FLoops
 import CUDA.CuArray, Flux.outdims, StatsBase.std
 
 # Include functions
-include("core/Core.jl")
+include("common/Common.jl")
 include("classes/Classes.jl")
 include("design/Design.jl")
 include("datapreparation/DataPreparation.jl")
@@ -32,11 +32,12 @@ include("training/Training.jl")
 include("validation/Validation.jl")
 include("application/Application.jl")
 
-using .Core, .Classes, .Design, .Training, .Validation, .Application
+using .Common, .Classes, .Design, .Training, .Validation, .Application
 
 export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
+export ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export model_data, global_options, data_preparation_options, training_options, validation_options, application_options
 export set_savepath, save_options, load_options, modify, save_model, load_model
 export make_classes, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 

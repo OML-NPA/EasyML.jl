@@ -1,13 +1,16 @@
 
-using Parameters, Flux, Test, DelimitedFiles, BSON, EasyMLCore
-import QML
-EasyMLCore.unit_test.state = true
+import EasyML.Common, QML
+using EasyML.Common, Parameters, Flux, Test, DelimitedFiles, BSON
 
+cd(@__DIR__)
+
+
+#---Main functionality-----------------------------------------------------
 
 @testset "Model loading/saving  " begin
     @test begin set_savepath("models/test.model"); true end
     @test begin set_savepath("model"); true end
-    EasyMLCore.model_data.classes = repeat([EasyMLCore.ImageSegmentationClass()],2)
+    model_data.classes = repeat([ImageSegmentationClass()],2)
     url = "models/test.model"
     @test begin save_model(url); true end
     @test begin load_model(url); true end
@@ -22,15 +25,15 @@ EasyMLCore.unit_test.state = true
             e isa ErrorException
         end
     end
-    EasyMLCore.all_data_urls.model_name = ""
-    push!(EasyMLCore.unit_test.urls,"models/test.model")
+    Common.all_data_urls.model_name = ""
+    push!(Common.unit_test.urls,"models/test.model")
     @test begin save_model(); true end
-    push!(EasyMLCore.unit_test.urls,"models/test.model")
+    push!(Common.unit_test.urls,"models/test.model")
     @test begin load_model(); true end
     rm("models/test.model")
     @test begin 
         try 
-            push!(EasyMLCore.unit_test.urls,"models/test2.model")
+            push!(Common.unit_test.urls,"models/test2.model")
             load_model()
         catch e
             e isa ErrorException
@@ -82,7 +85,7 @@ end
         @test fix_QML_types((1,2))==(1,2)
     end
     @testset "Get data" begin
-        import EasyMLCore.get_data_main
+        import EasyML.Common.get_data_main
         @test get_data_main(data,["Data2","a"],[])=="a"
         @test get_data_main(data,["Data2","b"],[1])=="b"
         @test get_data_main(data,["Data2","c"],[1,1])=="c"
@@ -91,7 +94,7 @@ end
         @test get_options(["ApplicationOptions","image_type"])=="png"
     end
     @testset "Set data" begin
-        import EasyMLCore.set_data_main
+        import EasyML.Common.set_data_main
         @test begin 
             set_data_main(data,["Data2","a"],("c"))
             data.Data2.a == :c
@@ -119,12 +122,12 @@ end
     end
     @testset "Get file/folder" begin
         @test begin 
-            push!(EasyMLCore.unit_test.urls,"test")
+            push!(Common.unit_test.urls,"test")
             out = get_folder()
             out == "test"
         end
         @test begin
-            push!(EasyMLCore.unit_test.urls,"test")
+            push!(Common.unit_test.urls,"test")
             out = get_file()
             out == "test"
         end
@@ -136,7 +139,7 @@ end
         end
         channels = Channels(Channel{Int64}(1),Channel{Tuple{Int64,Float64}}(1))
         @test begin 
-            import EasyMLCore.check_progress_main
+            import EasyML.Common.check_progress_main
             check_progress_main(channels,"a")
             put!(channels.a,1)
             check_progress_main(channels,"a")
@@ -144,7 +147,7 @@ end
             true
         end
         @test begin 
-            import EasyMLCore.get_progress_main
+            import EasyML.Common.get_progress_main
             get_progress_main(channels,"a")
             get_progress_main(channels,"a")
             put!(channels.b,(1,1.0))
@@ -160,7 +163,7 @@ end
             true
         end
         @test begin 
-            import EasyMLCore.empty_channel_main
+            import EasyML.Common.empty_channel_main
             put!(channels.a,1)
             empty_channel_main(channels,"a")
             put!(channels.a,1)
@@ -169,7 +172,7 @@ end
             true
         end
         @test begin 
-            import EasyMLCore.put_channel_main
+            import EasyML.Common.put_channel_main
             put_channel_main(channels,"b",[0.0,1.0])
             put_channel("data_preparation_progress",1)
             true
@@ -179,13 +182,13 @@ end
 
 @testset "Set property" begin
     @test begin
-        obj = EasyMLCore.OutputVolume()
+        obj = Common.Application.OutputVolume()
         obj.binning = :auto
         obj.normalization= :auto
         true
     end
     @test begin
-        obj = EasyMLCore.application_options
+        obj = Common.application_options
         obj.apply_by = :file
         obj.data_type= :csv
         obj.image_type = :png
@@ -193,7 +196,7 @@ end
     end
     @test begin
         try
-            obj = EasyMLCore.application_options
+            obj = Common.application_options
             obj.apply_by = :esgsg
         catch
             true
@@ -219,8 +222,8 @@ end
     @test begin
         writedlm("test.qml", ["","import", "import", "import","",""])
         url = "test.qml" 
-        EasyMLCore.add_templates(url)
-        EasyMLCore.add_templates(url)
+        Common.add_templates(url)
+        Common.add_templates(url)
         rm("test.qml")
         true
     end
@@ -232,8 +235,8 @@ end
         true
     end
     @test begin
-        EasyMLCore.max_num_threads()
-        EasyMLCore.num_threads()
+        Common.max_num_threads()
+        Common.num_threads()
         true
     end
     @test begin model_data.normalization.f([]); true end

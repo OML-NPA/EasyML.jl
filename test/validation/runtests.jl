@@ -1,14 +1,17 @@
 
-using EasyMLValidation, Test
+using EasyML.Validation
+import EasyML.Validation
 
-EasyMLValidation.unit_test.state = true
+cd(@__DIR__)
 
-#---Main Functionality---------------------------------------------------------
+
+#---Main functionality---------------------------------------------------------
 
 @testset "Options" begin
     @test begin modify(global_options); true end
     @test begin modify(validation_options); true end
 end
+rm("options.bson")
 
 for i = 1:2
     if i==1
@@ -83,16 +86,16 @@ end
 
 #---Other QML---------------------------------------------------------
 @testset "Other QML" begin
-    @test begin EasyMLValidation.set_options(["GlobalOptions","Graphics","scaling_factor"],1); true end
+    @test begin Validation.set_options(["GlobalOptions","Graphics","scaling_factor"],1); true end
     @test begin
         model_data.problem_type = :classification
-        push!(EasyMLValidation.unit_test.urls, "examples/with labels/classification/test")
+        push!(Validation.unit_test.urls, "examples/with labels/classification/test")
         get_urls_validation()
         model_data.problem_type = :regression
-        push!(EasyMLValidation.unit_test.urls, "examples/with labels/regression/test","examples/with labels/regression/test.csv")
+        push!(Validation.unit_test.urls, "examples/with labels/regression/test","examples/with labels/regression/test.csv")
         get_urls_validation()
         model_data.problem_type = :segmentation
-        push!(EasyMLValidation.unit_test.urls, "examples/with labels/segmentation/images","examples/with labels/segmentation/labels")
+        push!(Validation.unit_test.urls, "examples/with labels/segmentation/images","examples/with labels/segmentation/labels")
         get_urls_validation()
         true
     end
@@ -101,7 +104,7 @@ end
 
 #---Other------------------------------------------------------------
 @testset "Other" begin
-    @test begin EasyMLValidation.conn(8); true end
+    @test begin Validation.conn(8); true end
     @test begin 
         remove_validation_data()
         validate()

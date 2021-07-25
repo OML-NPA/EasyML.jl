@@ -1,10 +1,4 @@
 
-module Common
-
-using Flux, Parameters
-
-#--Types--------------------------------------------------------------
-
 const AbstractModel = Union{Flux.Chain}
 
 function none(data)
@@ -47,14 +41,4 @@ function check_setfield!(obj,k::Symbol,value::Symbol,syms::NTuple{N,Symbol}) whe
         throw(ArgumentError(msg))
     end
     return nothing
-end
-
-#---Export all--------------------------------------------------------------
-
-for n in names(@__MODULE__; all=true)
-    if Base.isidentifier(n) && n ∉ (Symbol(@__MODULE__), :eval, :include)
-        @eval export $n
-    end
-end
-
 end

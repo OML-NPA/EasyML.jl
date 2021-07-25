@@ -2,7 +2,8 @@
 
 module Design
 
-using Parameters, ..Core.Common
+using Parameters
+import ..Normalization, ..none
 
 #---Model data----------------------------------------------------------------
 module Layers

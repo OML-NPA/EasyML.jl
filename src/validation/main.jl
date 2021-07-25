@@ -281,7 +281,7 @@ end
 function get_image_validation(fields,inds)
     fields = fix_QML_types(fields)
     inds = fix_QML_types(inds)
-    image_data = EasyMLCore.get_data_main(validation_data,fields,inds)
+    image_data = Common.get_data_main(validation_data,fields,inds)
     if image_data isa Array{RGB{N0f8},2}
         image = image_data
     else

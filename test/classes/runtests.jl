@@ -1,31 +1,56 @@
 
-using EasyMLClasses
+using EasyML.Classes
+import EasyML.Classes
 
-EasyMLClasses.unit_test.state = true
+cd(@__DIR__)
 
-make_classes()
+#---Main functionality------------------------------------------
 
-load_model("models/classification.model")
-make_classes()
+@testset "Make classes" begin
+    @test begin make_classes(); true end
 
-load_model("models/regression.model")
-make_classes()
+    @test begin
+        load_model("models/classification.model")
+        make_classes()
+        true
+    end
 
-load_model("models/segmentation.model")
-make_classes()
+    @test begin
+        load_model("models/regression.model")
+        make_classes()
+        true
+    end
+
+    @test begin
+        load_model("models/segmentation.model")
+        make_classes()
+        true
+    end
+end
 
 
-#---Other QML------------------------------------------
+#---Other QML-----------------------------------------------------
 
-EasyMLClasses.set_problem_type(0)
-EasyMLClasses.get_problem_type()
-EasyMLClasses.set_problem_type(1)
-EasyMLClasses.get_problem_type()
-EasyMLClasses.set_problem_type(2)
-EasyMLClasses.get_problem_type()
+@testset "Other QML" begin
+    @test begin 
+        Classes.set_problem_type(0)
+        Classes.get_problem_type()
+        Classes.set_problem_type(1)
+        Classes.get_problem_type()
+        Classes.set_problem_type(2)
+        Classes.get_problem_type()
 
-EasyMLClasses.get_input_type()
+        Classes.get_input_type()
+        true
+    end
+end
 
-#---Other---------------------------------------------
 
-EasyMLClasses.get_class_data(model_data.classes)
+#---Other--------------------------------------------------------
+
+@testset "Other" begin
+    @test begin 
+        Classes.get_class_data(model_data.classes)
+        true
+    end
+end
