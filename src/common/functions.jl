@@ -456,9 +456,21 @@ function struct_to_dict!(dict,obj)
     return nothing
 end
 
+function fix_type(vector_type_string::String)
+    vector_type_string_split = split(vector_type_string,".")
+    if length(vector_type_string_split)==1
+        return vector_type_string
+    else
+        vector_type_string = join(vector_type_string_split[[1,end]],".")
+        vector_type_string = replace(vector_type_string, "EasyML."=>"")
+        return vector_type_string
+    end
+end
+
 function to_struct!(obj,sym::Symbol,value::NamedTuple)
     if !isempty(value)
-        vector_type = eval(Meta.parse(getindex(value,:vector_type)))
+        vector_type_string = fix_type(getindex(value,:vector_type))
+        vector_type = eval(Meta.parse(vector_type_string))
         types = eval.(Meta.parse.(getindex(value,:types)))
         vals = getindex(value,:values) 
         struct_vec = vector_type(undef,0)
