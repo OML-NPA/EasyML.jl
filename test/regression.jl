@@ -4,7 +4,6 @@
 #---Init test--------------------------------------------------------------
 
 model_data.problem_type = :regression
-set_savepath("models/regression.model")
 
 
 #---Training test-----------------------------------------------------------

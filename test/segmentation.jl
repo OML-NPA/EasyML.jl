@@ -4,7 +4,6 @@
 #---Init test--------------------------------------------------------------
 
 model_data.problem_type = :segmentation
-set_savepath("models/segmentation.model")
 
 
 #---Training test-----------------------------------------------------------
@@ -53,9 +52,8 @@ function array_array(mode::Symbol)
 end
 
 @testset "Input: Vector | Output: Vector" begin
+    model_data.model = Flux.Chain(Flux.Dense(25, 5))
     @test begin
-        model_data.model = Flux.Chain(Flux.Dense(25, 5))
-
         vector_vector(:auto)
         train()
         true
