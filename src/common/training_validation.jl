@@ -76,7 +76,9 @@ function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) wh
     sum_correct = convert(Vector{Float32},sum_correct_int)
     sum_dif = convert(Vector{Float32},sum_dif_int)
     classes_accuracy = sum_correct./(sum_correct.+sum_dif)
-    acc = sum(ws.*classes_accuracy)
+    classes_accuracy_weighted = ws.*classes_accuracy
+    classes_accuracy_weighted_no_nan = classes_accuracy_weighted[(!).(isnan.(classes_accuracy_weighted))]
+    acc = sum(classes_accuracy_weighted_no_nan)
     return acc
 end
 
