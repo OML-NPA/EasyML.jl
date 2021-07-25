@@ -40,7 +40,7 @@ export Join, Split, Addition, Activation, Flatten, Identity
 export ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
 export model_data, global_options, data_preparation_options, training_options, validation_options, application_options
 export set_savepath, save_options, load_options, modify, save_model, load_model
-export make_classes, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 
+export make_classes, design_model, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 
     remove_training_data, remove_testing_data, remove_training_results, validation_results_data, get_urls_validation, 
     validate, remove_validation_data, remove_validation_results, get_urls_application, apply, remove_application_data
 
