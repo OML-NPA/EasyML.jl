@@ -2,7 +2,7 @@
 using EasyML.Design
 import EasyML.Design
 
-cd(string(dir,"/design"))
+cd(@__DIR__)
 
 
 #---Main functionality----------------------------------------------------
