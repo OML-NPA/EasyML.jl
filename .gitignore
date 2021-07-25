@@ -1,9 +1,0 @@
-
-Examples/
-models2/
-docs/build
-.vscode/settings.json
-src/test.jl
-*.docx
-*.csv
-*.bson
