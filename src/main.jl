@@ -345,6 +345,20 @@ function check_modifiers(model_data,model,model_name,accuracy_vector,
     return num_tests,global_iteration_test
 end
 
+function teach!(model::Chain,loss::Function,opt,input_data::AbstractArray{Float32},actual::AbstractArray{Float32})
+    local predicted
+    local loss_val
+    ps = Flux.Params(Flux.params(model))
+    # Calculate gradient
+    gs = gradient(ps) do
+        predicted = model(input_data)
+        loss_val = loss(predicted,actual)
+    end
+    # Update weights
+    Flux.Optimise.update!(opt,ps,gs)
+    return predicted,loss_val
+end
+
 function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_f,
         accuracy_vector,loss_vector,counter,accuracy_test_vector,loss_test_vector,
         iteration_test_vector,counter_test,num_test,epochs,num,max_iterations,
@@ -378,16 +392,8 @@ function training_part(model_data,model,model_name,opt,accuracy,loss,T_out,move_
             end
             input_data = move_f(minibatch_data[1])
             actual = move_f(minibatch_data[2])
-            # Calculate gradient
-            local predicted::T_out
-            local loss_val::Float32
-            ps = Flux.Params(Flux.params(model))
-            gs = gradient(ps) do
-                predicted = model(input_data)
-                loss_val = loss(predicted,actual)
-            end
-            # Update weights
-            Flux.Optimise.update!(opt,ps,gs)
+            # Teach the model
+            predicted,loss_val = teach!(model,loss,opt,input_data,actual)
             # Calculate accuracy
             accuracy_val = accuracy(predicted,actual)
             # Return training information
