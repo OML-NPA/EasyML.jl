@@ -202,7 +202,7 @@ ApplicationWindow {
                             model: ListModel {
                                 id: modeModel
                             }
-                            property var modes: ["Auto","Manual"]
+                            property var modes: ["auto","manual"]
                             onActivated: {
                                 Julia.set_options(["TrainingOptions","Accuracy","accuracy_mode"],currentText)
                             }
@@ -242,7 +242,7 @@ ApplicationWindow {
                             model: ListModel {
                                 id: datapreparationmodeModel
                             }
-                            property var modes: ["Auto","Manual"]
+                            property var modes: ["auto","manual"]
                             onActivated: {
                                 Julia.set_options(
                                     ["TrainingOptions","Testing","data_preparation_mode"],currentText)
