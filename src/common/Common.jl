@@ -19,12 +19,13 @@ Flux, Flux.Losses, FluxExtra
 
 include("misc.jl")
 # Include modules
-include("modules/Classes.jl")
-include("modules/Design.jl")
-include("modules/DataPreparation.jl")
-include("modules/Training.jl")
-include("modules/Validation.jl")
-include("modules/Application.jl")
+include("data structures/Classes.jl")
+include("data structures/Design.jl")
+include("data structures/DataPreparation.jl")
+include("data structures/Application.jl")
+include("data structures/Training.jl")
+include("data structures/Validation.jl")
+
 
 using .Classes, .Design.Layers
 
