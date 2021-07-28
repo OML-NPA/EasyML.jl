@@ -208,8 +208,8 @@ ApplicationWindow {
                                     width: 0.5*buttonWidth
                                     model: ListModel {
                                         id: analysebyModel
-                                        ListElement { text: "File" }
-                                        ListElement { text: "Folder" }
+                                        ListElement { text: "file" }
+                                        ListElement { text: "folder" }
                                     }
                                     Component.onCompleted: {
                                         var type = Julia.get_options(["ApplicationOptions","apply_by"])
@@ -229,11 +229,11 @@ ApplicationWindow {
                                     model: ListModel {
                                         id: dataModel
                                     }
-                                    property var types: ["CSV","XLSX","JSON","BSON"]
+                                    property var types: ["csv","xlsx","json","bson"]
                                     Component.onCompleted: {
                                         var current_type = Julia.get_options(["ApplicationOptions","data_type"])
                                         for (var i=0;i<types.length;i++) {
-                                            var type = types[i].toLowerCase()
+                                            var type = types[i]
                                             dataModel.append({"name": type})
                                             if (current_type==type) {
                                                 currentIndex = i
@@ -249,11 +249,11 @@ ApplicationWindow {
                                     model: ListModel {
                                         id: imagesModel
                                     }
-                                    property var types: ["PNG","TIFF","BSON"]
+                                    property var types: ["png","tiff","bson"]
                                     Component.onCompleted: {
                                         var current_type = Julia.get_options(["ApplicationOptions","image_type"])
                                         for (var i=0;i<types.length;i++) {
-                                            var type = types[i].toLowerCase()
+                                            var type = types[i]
                                             imagesModel.append({"name": type})
                                             if (current_type==type) {
                                                 currentIndex = i
