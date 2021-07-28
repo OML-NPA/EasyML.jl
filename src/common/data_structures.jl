@@ -26,6 +26,7 @@ channels = Channels()
     input_type::Symbol = :image
     input_properties::Vector{Symbol} = Vector{Symbol}(undef,0)
     classes::Vector{<:AbstractClass} = Vector{ImageClassificationClass}(undef,0)
+    output_options::Vector{<:AbstractOutputOptions} = Vector{ImageClassificationOutputOptions}(undef,0)
     layers_info::Vector{AbstractLayerInfo} =  Vector{AbstractLayerInfo}(undef,0)
 end
 model_data = ModelData()

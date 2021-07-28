@@ -46,7 +46,7 @@ export model_data, global_options, data_preparation_options, training_options, v
 export set_savepath, save_options, load_options, modify, save_model, load_model
 export make_classes, design_model, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 
     remove_training_data, remove_testing_data, remove_training_results, validation_results_data, get_urls_validation, 
-    validate, remove_validation_data, remove_validation_results, get_urls_application, apply, remove_application_data
+    validate, remove_validation_data, remove_validation_results, get_urls_application, modify_output, apply, remove_application_data
 
 function __init__()
     load_options()

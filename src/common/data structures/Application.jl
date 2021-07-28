@@ -45,16 +45,18 @@ end
 end
 
 function Base.setproperty!(obj::Union{OutputArea,OutputVolume},k::Symbol,value::Symbol)
-    if k in (:binning,:normalization)
-        syms = (:auto,:none)
-        if value in syms
-            setfield!(obj,k,value)
-        else
-            msg_generator(syms)
-        end
+    if k==:binning
+        syms = (:auto,:number_of_bins,:bin_width)
+        check_setfield!(obj,k,value,syms)
+    elseif k==:normalization
+        syms = (:none,:probability,:density,:pdf)
+        check_setfield!(obj,k,value,syms)
+    else
+        setfield!(obj,k,value)
     end
     return nothing
 end
+
 
 #---Data----------------------------------------------------------------
 

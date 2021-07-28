@@ -5,9 +5,47 @@ function fix_slashes(url)
     url = string(uppercase(url[1]),url[2:end])
 end
 
+
+# Allows to read class output options from GUI
+function get_output_main(model_data::ModelData,fields,ind)
+    fields::Vector{String} = fix_QML_types(fields)
+    ind::Int64 = fix_QML_types(ind)
+    data = model_data.output_options[ind]
+    for i = 1:length(fields)
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if data isa Symbol
+        return string(data)
+    else
+        return data
+    end 
+end
+get_output(fields,ind) = get_output_main(model_data,fields,ind)
+
+# Allows to write to class output options from GUI
+function set_output_main(model_data::ModelData,fields,ind,value)
+    fields::Vector{String} = fix_QML_types(fields)
+    ind::Int64 = fix_QML_types(ind)
+    value = fix_QML_types(value)
+    data = model_data.output_options[ind]
+    for i = 1:length(fields)-1
+        field = Symbol(fields[i])
+        data = getproperty(data,field)
+    end
+    if getproperty(data, Symbol(fields[end])) isa Symbol
+        setproperty!(data, Symbol(fields[end]), Symbol(value))
+    else
+        setproperty!(data, Symbol(fields[end]), value)
+    end
+    return nothing
+end
+set_output(fields,ind,value) = set_output_main(model_data,fields,ind,value)
+
+
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application_data::ApplicationData)
-    if all_data.input_type==:image
+    if input_type()==:image
         allowed_ext = ["png","jpg","jpeg"]
     end
     input_urls,dirs = get_urls1(application_data.url_inputs,allowed_ext)

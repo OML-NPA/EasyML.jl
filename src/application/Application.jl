@@ -17,7 +17,7 @@ Flux, Flux.Losses, FluxExtra,
 # Math functions
 Random, StatsBase, LinearAlgebra,
 # Other
-FLoops,
+FLoops, ProgressMeter,
 # EasyML ecosystem
 ..Common, ..Common.Classes, ..Common.Application
 
@@ -34,6 +34,6 @@ include("main.jl")
 include("exported_functions.jl")
 
 export application_options
-export get_urls_application, apply, remove_application_data
+export modify_output, get_urls_application, apply, remove_application_data
 
 end

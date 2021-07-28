@@ -23,6 +23,51 @@ function Common.modify(application_options::ApplicationOptions)
 end
 
 """
+    modify_output()
+Opens a GUI for addition or modification of output options for classes.
+"""
+function modify_output()
+    local output_type
+    if isempty(model_data.classes)
+        @error "There are no classes. Add classes using 'modify_classes()'."
+        return nothing
+    end
+    if problem_type()==:classification
+        @info "Classification has no output options to modify."
+        return nothing
+    elseif problem_type()==:regression
+        @info "Regression has no output options to modify."
+        return nothing
+    elseif problem_type()==:segmentation
+        output_type = ImageSegmentationOutputOptions
+    end
+    if typeof(model_data.output_options)!=output_type || 
+        length(model_data.output_options)!=length(model_data.classes)
+        model_data.output_options = output_type[]
+        for _=1:length(model_data.classes)
+            push!(model_data.output_options,output_type())
+        end
+    end
+    @qmlfunction(
+        save_model,
+        get_class_field,
+        get_data,
+        get_options,
+        get_output,
+        set_output,
+        get_problem_type,
+        num_classes
+    )
+    path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), 
+        gui_dir = gui_dir)
+    exec()
+    return nothing
+end
+
+"""
     get_urls_application(url_inputs::String)
 
 Gets URLs to all files present in a folders specified by `url_inputs` 

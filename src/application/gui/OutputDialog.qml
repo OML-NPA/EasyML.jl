@@ -94,12 +94,6 @@ ApplicationWindow {
                             {"name": "Area", "stackview": areaView},
                             {"name": "Volume", "stackview": volumeView}]
 
-    onClosing: {
-        var url = Julia.get_data(["model_url"])
-        Julia.save_model(url)
-        // applicationclassdialogLoader.sourceComponent = null
-    }
-
     RowLayout {
         id: rowLayout
         spacing: 0
@@ -194,12 +188,12 @@ ApplicationWindow {
                             else if (problemType==2) {
                                 outputmaskCheckBox.checkState = Julia.get_output(["Mask",
                                     "mask"],indTree+1) ? Qt.Checked : Qt.Unchecked
-                                if (Julia.get_class_field(indTree+1,"border")) {
+                                if (Julia.get_class_field(indTree+1,["BorderClass","enabled"])) {
                                     bordermaskCheckBox.visible = true
                                     bordermaskCheckBox.checkState = Julia.get_output(["Mask",
                                         "mask_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
                                 }
-                                if (Julia.get_class_field(indTree+1,"border")) {
+                                if (Julia.get_class_field(indTree+1,["BorderClass","enabled"])) {
                                     appliedbordermaskCheckbox.visible = true
                                     appliedbordermaskCheckbox.checkState = Julia.get_output(["Mask",
                                         "mask_applied_border"],indTree+1) ? Qt.Checked : Qt.Unchecked
@@ -259,12 +253,23 @@ ApplicationWindow {
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
                                 objareasumCheckBox.checkState = Julia.get_output(["Area","obj_area_sum"],
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
-                                binningareaComboBox.currentIndex = Julia.get_output(["Area","binning"],indTree+1)
+                                var binningMethods = binningareaComboBox.binningMethods
+                                for (var i=0;i<classModel.count;i++) {
+                                    var value = Julia.get_output(["Area","binning"],indTree+1)
+                                    if (binningMethods[i]==value) {
+                                        binningareaComboBox.currentIndex = i
+                                    }
+                                }
                                 binningareaComboBox.changeLabel()
                                 numvalueareaTextField.text = Julia.get_output(["Area","value"],indTree+1)
                                 widthvalueareaTextField.text = Julia.get_output(["Area","value"],indTree+1)
-                                normalisationareaComboBox.currentIndex = Julia.get_output(
-                                    ["Area","normalization"],indTree+1)
+                                var normalizationMethods = normalizationareaComboBox.normalizationMethods
+                                for (i=0;i<classModel.count;i++) {
+                                    value = Julia.get_output(["Area","normalization"],indTree+1)
+                                    if (normalizationMethods[i]==value) {
+                                        normalizationareaComboBox.currentIndex = i
+                                    }
+                                }
                             }
                         }
                         Component.onCompleted: {
@@ -318,7 +323,7 @@ ApplicationWindow {
                                     text: "Value:"
                                 }
                                 Label {
-                                    text: "Normalisation:"
+                                    text: "Normalization:"
                                 }
                             }
                             ColumnLayout {
@@ -329,7 +334,6 @@ ApplicationWindow {
                                             valueareaLabel.visible = false
                                             widthvalueareaTextField.visible = false
                                             numvalueareaTextField.visible = false
-
                                         }
                                         else if (currentIndex===1) {
                                             valueareaLabel.visible = true
@@ -347,12 +351,13 @@ ApplicationWindow {
                                     currentIndex: 0
                                     model: ListModel {
                                         id: binningModel
-                                        ListElement {text: "Auto"}
-                                        ListElement {text: "Number of bins"}
-                                        ListElement {text: "Bin width"}
+                                        ListElement {text: "auto"}
+                                        ListElement {text: "number of bins"}
+                                        ListElement {text: "bin width"}
                                     }
+                                    property var binningMethods: ["auto","number_of_bins","bin_width"]
                                     onActivated: {
-                                        Julia.set_output(["Area","binning"],indTree+1,currentIndex)
+                                        Julia.set_output(["Area","binning"],indTree+1,binningMethods[currentIndex])
                                         changeLabel()
                                     }
                                 }
@@ -381,19 +386,20 @@ ApplicationWindow {
                                     }
                                 }
                                 ComboBox {
-                                    id: normalisationareaComboBox
+                                    id: normalizationareaComboBox
                                     editable: false
                                     width: 0.69*buttonWidth-1*pix
                                     currentIndex: 0
                                     model: ListModel {
-                                        id: normalisationModel
-                                        ListElement {text: "None"}
-                                        ListElement {text: "Probability"}
-                                        ListElement {text: "Density"}
-                                        ListElement {text: "PDF"}
+                                        id: normalizationModel
+                                        ListElement {text: "none"}
+                                        ListElement {text: "probability"}
+                                        ListElement {text: "density"}
+                                        ListElement {text: "pdf"}
                                     }
+                                    property var normalizationMethods: ["none","probability","density","pdf"]
                                     onActivated: {
-                                        Julia.set_output(["Area","normalization"],indTree+1,currentIndex)
+                                        Julia.set_output(["Area","normalization"],indTree+1,normalizationMethods[currentIndex])
                                     }
                                 }
                             }
@@ -419,12 +425,23 @@ ApplicationWindow {
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
                                 objvolumesumCheckBox.checkState = Julia.get_output(["Volume","obj_volume_sum"],
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
-                                binningvolumeComboBox.currentIndex = Julia.get_output(["Volume","binning"],indTree+1)
+                                var binningMethods = binningvolumeComboBox.binningMethods
+                                for (var i=0;i<classModel.count;i++) {
+                                    var value = Julia.get_output(["Volume","binning"],indTree+1)
+                                    if (binningMethods[i]==value) {
+                                        binningvolumeComboBox.currentIndex = i
+                                    }
+                                }
                                 binningvolumeComboBox.changeLabel()
                                 numvaluevolumeTextField.text = Julia.get_output(["Volume","value"],indTree+1)
                                 widthvaluevolumeTextField.text = Julia.get_output(["Volume","value"],indTree+1)
-                                normalisationvolumeComboBox.currentIndex = Julia.get_output(["Volume",
-                                    "normalization"],indTree+1)
+                                var normalizationMethods = normalizationvolumeComboBox.normalizationMethods
+                                for (i=0;i<classModel.count;i++) {
+                                    value = Julia.get_output(["Volume","normalization"],indTree+1)
+                                    if (normalizationMethods[i]==value) {
+                                        normalizationvolumeComboBox.currentIndex = i
+                                    }
+                                }
                             }
                         }
                         Component.onCompleted: {
@@ -478,7 +495,7 @@ ApplicationWindow {
                                     text: "Value:"
                                 }
                                 Label {
-                                    text: "Normalisation:"
+                                    text: "Normalization:"
                                 }
                             }
                             ColumnLayout {
@@ -506,12 +523,13 @@ ApplicationWindow {
                                     currentIndex: 0
                                     model: ListModel {
                                         id: binningModel
-                                        ListElement {text: "Auto"}
-                                        ListElement {text: "Number of bins"}
-                                        ListElement {text: "Bin width"}
+                                        ListElement {text: "auto"}
+                                        ListElement {text: "number of bins"}
+                                        ListElement {text: "bin width"}
                                     }
+                                    property var binningMethods: ["auto","number_of_bins","bin_width"]
                                     onActivated: {
-                                        Julia.set_output(["Volume","binning"],indTree+1,currentIndex)
+                                        Julia.set_output(["Volume","binning"],indTree+1,binningMethods[currentIndex])
                                         changeLabel()
                                     }
                                 }
@@ -540,19 +558,20 @@ ApplicationWindow {
                                     }
                                 }
                                 ComboBox {
-                                    id: normalisationvolumeComboBox
+                                    id: normalizationvolumeComboBox
                                     editable: false
                                     width: 0.69*buttonWidth-1*pix
                                     currentIndex: 0
                                     model: ListModel {
-                                        id: normalisationModel
-                                        ListElement {text: "None"}
-                                        ListElement {text: "Probability"}
-                                        ListElement {text: "Density"}
-                                        ListElement {text: "PDF"}
+                                        id: normalizationModel
+                                        ListElement {text: "none"}
+                                        ListElement {text: "probability"}
+                                        ListElement {text: "density"}
+                                        ListElement {text: "pdf"}
                                     }
+                                    property var normalizationMethods: ["none","probability","density","pdf"]
                                     onActivated: {
-                                        Julia.set_output(["Volume","normalization"],indTree+1,currentIndex)
+                                        Julia.set_output(["Volume","normalization"],indTree+1,normalizationMethods[currentIndex])
                                     }
                                 }
                             }

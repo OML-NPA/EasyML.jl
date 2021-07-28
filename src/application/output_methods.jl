@@ -220,16 +220,16 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
 end
 
 function make_histogram(values::Vector{<:Real}, options::Union{OutputArea,OutputVolume})
-    if options.binning==0
+    if options.binning==:auto
         h = fit(Histogram, values)
-    elseif options.binning==1
+    elseif options.binning==:number_of_bins
         maxval = maximum(values)
         minval = minimum(values)
         dif = maxval-minval
         step = dif/(options.value-1)
         bins = minval:step:maxval
         h = fit(Histogram, values,bins)
-    else
+    else # options.binning==:bin_width
         num = round(maximum(values)/options.value)
         h = fit(Histogram, values, nbins=num)
     end
