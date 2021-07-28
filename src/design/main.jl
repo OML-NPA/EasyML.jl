@@ -459,8 +459,8 @@ function getresizing(type::String, layer_info, in_size)
             return (Addition(), out)
         else
             msg = string("Cannot add arrays with sizes ",in_size[1]," and ",in_size[2],".")
-            er = DimensionMismatch(msg)
-            throw(er)
+            @error msg
+            return nothing,nothing
         end
     elseif type == "Join"
         dim = layer_info.dimension
@@ -483,8 +483,8 @@ function getresizing(type::String, layer_info, in_size)
             return (Join(dim), out)
         else
             msg = string("Cannot join arrays with sizes ",in_size[1]," and ",in_size[2],".")
-            er = DimensionMismatch(msg)
-            throw(er)
+            @error msg
+            return nothing,nothing
         end
     elseif type == "Split"      
         local out_size
@@ -501,8 +501,8 @@ function getresizing(type::String, layer_info, in_size)
             return (Split(nout, dim), Int64.(out))
         else
             msg = string("Size should be a tuple of integers.")
-            er = DomainError(out_size, msg)
-            throw(er)
+            @error msg
+            return nothing,nothing
         end
     elseif type == "Upsample"
         multiplier = layer_info.multiplier
@@ -540,6 +540,9 @@ function getbranch(layer_params,in_size)
     num = layer_params isa AbstractLayerInfo ? 1 : length(layer_params)
     if num==1
         layer, in_size = getlayer(layer_params, in_size)
+        if isnothing(layer)
+            return nothing,nothing
+        end
     else
         par_layers = []
         par_size = []
