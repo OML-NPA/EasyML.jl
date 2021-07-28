@@ -10,6 +10,7 @@ function Common.modify(application_options::ApplicationOptions)
         set_options,
         save_options,
         pwd,
+        fix_slashes,
         unit_test
     )
     path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")

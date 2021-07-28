@@ -1,4 +1,10 @@
 
+function fix_slashes(url)
+    url::String = fix_QML_types(url)
+    url = replace(url, "\\" => "/")
+    url = string(uppercase(url[1]),url[2:end])
+end
+
 # Get urls of files in a selected folder. Files are used for application.
 function get_urls_application_main(application_data::ApplicationData)
     if all_data.input_type==:image
