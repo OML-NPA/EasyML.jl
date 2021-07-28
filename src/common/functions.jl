@@ -467,11 +467,17 @@ function fix_type(vector_type_string::String)
     end
 end
 
+function fix_type_layers_info(vector_type_string::String)
+    vector_type_string = replace(vector_type_string, "EasyML.Common.Design.Layers."=>"")
+    return vector_type_string
+end
+
 function to_struct!(obj,sym::Symbol,value::NamedTuple)
     if !isempty(value)
         vector_type_string = fix_type(getindex(value,:vector_type))
         vector_type = eval(Meta.parse(vector_type_string))
-        types = eval.(Meta.parse.(getindex(value,:types)))
+        types_string = fix_type_layers_info(getindex(value,:types))
+        types = eval.(Meta.parse.(types_string))
         vals = getindex(value,:values) 
         struct_vec = vector_type(undef,0)
         for j = 1:length(types)
