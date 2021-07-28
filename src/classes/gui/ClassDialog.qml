@@ -132,6 +132,7 @@ ApplicationWindow {
         overlapRow.visible = false
         minareaRow.visible = false
         borderRow.visible = false
+        borderthicknessRow.visible = false
     }
 
     function update_fields() {
