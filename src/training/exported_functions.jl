@@ -12,8 +12,11 @@ function Common.modify(data::TrainingOptions)
         save_options,
         unit_test
     )
+    
     path_qml = string(@__DIR__,"/gui/TrainingOptions.qml")
-    loadqml(path_qml)
+    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
+    text = add_templates(path_qml)
+    loadqml(QByteArray(text), gui_dir = gui_dir)
     exec()
     return nothing
 end
@@ -138,14 +141,14 @@ can be changed during training.
 """
 function train()
     if problem_type()==:classification
-        data_train = training_data.ClassificationData.data_input
-        data_test = testing_data.ClassificationData.data_input
+        data_train = training_data.ClassificationData.Results.data_input
+        data_test = testing_data.ClassificationData.Results.data_input
     elseif problem_type()==:regression
-        data_train = training_data.RegressionData.data_input
-        data_test = testing_data.RegressionData.data_input
+        data_train = training_data.RegressionData.Results.data_input
+        data_test = testing_data.RegressionData.Results.data_input
     else # :segmentation
-        data_train = training_data.SegmentationData.data_input
-        data_test = testing_data.SegmentationData.data_input
+        data_train = training_data.SegmentationData.Results.data_input
+        data_test = testing_data.SegmentationData.Results.data_input
     end
     if isempty(data_train)
         @error "No training data."

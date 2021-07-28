@@ -32,7 +32,11 @@ include("training/Training.jl")
 include("validation/Validation.jl")
 include("application/Application.jl")
 
-using .Common, .Classes, .Design, .Training, .Validation, .Application
+using .Common, .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
+
+import .Training: TrainingOptions, TrainingData, TestingData, training_data, testing_data
+
+include("exported_functions.jl")
 
 export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 

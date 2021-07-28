@@ -15,6 +15,7 @@ Random, StatsBase, LinearAlgebra, Combinatorics, Distances,
 ..Common, ..Common.Training
 
 import CUDA.CuArray, StatsBase.std
+import ..Common.DataPreparation: ClassificationData, RegressionData, SegmentationData
 
 # Include functions
 include(string(common_dir(),"/common/training_validation.jl"))

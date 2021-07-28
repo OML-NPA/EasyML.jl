@@ -37,10 +37,10 @@ training_elapsed_time() = training_elapsed_time_main(training_plot_data)
 # Creates data sets for training and testing
 function get_sets(norm_func::Function, typed_training_data::T,typed_testing_data::T) where 
         T<:Union{ClassificationData,RegressionData,SegmentationData}
-    norm_func(typed_training_data.data_input)
-    norm_func(typed_testing_data.data_input)
-    train_set = (typed_training_data.data_input,typed_training_data.data_labels)
-    test_set = (typed_testing_data.data_input,typed_testing_data.data_labels)
+    norm_func(typed_training_data.Results.data_input)
+    norm_func(typed_testing_data.Results.data_input)
+    train_set = (typed_training_data.Results.data_input,typed_training_data.Results.data_labels)
+    test_set = (typed_testing_data.Results.data_input,typed_testing_data.Results.data_labels)
     return train_set, test_set
 end
 
@@ -61,7 +61,7 @@ end
 #----------------
 
 function make_minibatch(data_input::Vector{Array{Float32,N}},data_labels::Vector{Int32},
-        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int64,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64) where N
     ind = inds_start[i]
     # First and last minibatch indices
@@ -89,7 +89,7 @@ function make_minibatch(data_input::Vector{Array{Float32,N}},data_labels::Vector
 end
 
 function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels::Vector{Array{Float32,N2}},
-        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int64,batch_size::Int64,inds_start::Vector{Int64},
     inds_all::Vector{Int64},i::Int64) where {N1,N2}
     ind = inds_start[i]
     # First and last minibatch indices
@@ -114,7 +114,7 @@ function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels::Vecto
 end
 
 function make_minibatch(data_input::Vector{Array{Float32,N1}},data_labels_bool::Vector{BitArray{N2}},
-        max_labels::Int32,batch_size::Int64,inds_start::Vector{Int64},
+        max_labels::Int64,batch_size::Int64,inds_start::Vector{Int64},
         inds_all::Vector{Int64},i::Int64) where {N1,N2}
     ind = inds_start[i]
     # First and last minibatch indices
@@ -212,9 +212,9 @@ function calculate_weights(counts::Vector{Int64})
     return weights
 end
 
-function get_weights(classification_data::ClassificationData)
-    data_labels = classification_data.data_labels
-    num = classification_data.max_labels
+function get_weights(model_data::ModelData,classification_data::ClassificationData)
+    data_labels = classification_data.Results.data_labels
+    num = length(model_data.classes)
     counts = zeros(Int64,num)
     for data in data_labels
         counts[data] += 1
@@ -223,13 +223,13 @@ function get_weights(classification_data::ClassificationData)
     return weights
 end
 
-function get_weights(regression_data::RegressionData)
+function get_weights(model_data::ModelData,regression_data::RegressionData)
     weights = Vector{Float32}(undef,0)
     return weights
 end
 
-function get_weights(segmentation_data::SegmentationData)
-    data_labels = segmentation_data.data_labels
+function get_weights(model_data::ModelData,segmentation_data::SegmentationData)
+    data_labels = segmentation_data.Results.data_labels
     num = size(data_labels[1],3)
     counts = zeros(Int64,num)
     for data in data_labels
@@ -513,7 +513,7 @@ function train!(model_data::ModelData,train_set::Tuple{T1,T2},test_set::Tuple{T1
     resize!(accuracy_vector,max_iterations[])
     resize!(loss_vector,max_iterations[])
     put!(channels.training_start_progress,(epochs[],num,max_iterations[]))
-    max_labels = all_data.TrainingData.ClassificationData.max_labels
+    max_labels = length(model_data.classes)
     # Make channels
     output_N = N2+1
     minibatch_channel = Channel{Tuple{Array{Float32,N1+1},Array{Float32,output_N}}}(Inf)
@@ -569,7 +569,7 @@ end
 function test_model(model_data,train_set,errors,use_GPU)
     input_data_raw = train_set[1][1]
     if problem_type()==:classification
-        max_labels = training_data.ClassificationData.max_labels
+        max_labels = length(model_data.classes)
         label_data = zeros(Float32,max_labels)
         ind = train_set[2][1]
         label_data[ind] = 1
@@ -654,7 +654,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
                 return nothing
             end
         else
-            ws = get_weights(typed_training_data)
+            ws = get_weights(model_data,typed_training_data)
         end
     else
         ws = Vector{Float32}(undef,0)

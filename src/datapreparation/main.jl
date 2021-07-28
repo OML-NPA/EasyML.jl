@@ -47,6 +47,11 @@ rm_model_data(field,value) = rm_model_data_main(model_data,field,value)
 #---get_urls functions------------------------------------------------------
 
 function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
+    if isempty(model_data.classes)
+        error("Classes are empty.")
+        return nothing
+    end
+    remove_urls()
     url_inputs = preparation_data.Urls.url_inputs
     url_labels = preparation_data.Urls.url_labels
     if input_type()==:image
@@ -70,10 +75,11 @@ function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
             input_urls = input_urls
         end
         if isempty(input_urls)
-            @warn "The folder did not have any suitable data."           
+            @warn "The folder did not have any suitable data."         
         else
             classification_data.Urls.input_urls = input_urls
             classification_data.Urls.label_urls = dirs
+            return classification_data.Urls
         end
     elseif problem_type()==:regression
         regression_data = preparation_data.RegressionData
@@ -88,6 +94,7 @@ function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
             regression_data.Urls.input_urls = input_urls
             regression_data.Urls.labels_url = url_labels
             regression_data.Urls.initial_data_labels = loaded_labels
+            return regression_data.Urls
         end
     elseif problem_type()==:segmentation
         segmentation_data = preparation_data.SegmentationData
@@ -99,6 +106,7 @@ function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
         else
             segmentation_data.Urls.input_urls = input_urls
             segmentation_data.Urls.label_urls = label_urls
+            return segmentation_data.Urls
         end
     end
     return nothing
