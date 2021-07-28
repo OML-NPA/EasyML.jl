@@ -3,6 +3,8 @@ module Training
 
 using Parameters, Dates
 
+import ..DataPreparation: ClassificationData, RegressionData, SegmentationData
+
 
 #---Data----------------------------------------------------------------
 
@@ -24,29 +26,6 @@ training_plot_data = TrainingPlotData()
     test_iteration::Vector{Int64} = Vector{Int64}(undef,0)
 end
 training_results_data = TrainingResultsData()
-
-@with_kw mutable struct ClassificationData
-    data_input::Union{Vector{T1},Vector{T2}} where {T1<:Vector{Float32},T2<:Array{Float32,3}} = 
-        Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{Int32} = Vector{Int32}(undef,0)
-    max_labels::Int32 = 0
-end
-classification_data = ClassificationData()
-
-@with_kw mutable struct RegressionData{T1<:Vector{Float32},T2<:Array{Float32,3}}
-    data_input::Union{Vector{T1},Vector{T2}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Union{Vector{T1},Vector{T2}} = Vector{Vector{Float32}}(undef,0)
-end
-regression_data = RegressionData()
-
-@with_kw mutable struct SegmentationData
-    data_input::Union{Vector{T1a},Vector{T2a}} where {T1a<:Vector{Float32},T2a<:Array{Float32,3}} = 
-        Vector{Array{Float32,3}}(undef,0)
-    data_labels::Union{Vector{T1b},Vector{T2b}} where {T1b<:BitArray{1},T2b<:BitArray{3}} = 
-        Vector{BitArray{3}}(undef,0)
-end
-segmentaion_data = SegmentationData()
-
 
 @with_kw mutable struct TrainingOptionsData
     optimiser_params::Vector{Vector{Float64}} = [[],[0.9],[0.9],[0.9],[0.9,0.999],

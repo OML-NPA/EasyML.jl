@@ -17,7 +17,7 @@ end
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
 end
 
-@with_kw struct ClassificationData
+@with_kw mutable struct ClassificationData
     Urls::ClassificationUrlsData = ClassificationUrlsData()
     Results::ClassificationResultsData = ClassificationResultsData()
 end
@@ -33,7 +33,7 @@ end
     data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
 end
 
-@with_kw struct RegressionData
+@with_kw mutable struct RegressionData
     Urls::RegressionUrlsData = RegressionUrlsData()
     Results::RegressionResultsData = RegressionResultsData()
 end
@@ -49,7 +49,7 @@ end
     data_labels::Vector{BitArray{3}} = Vector{BitArray{3}}(undef,0)
 end
 
-@with_kw struct SegmentationData
+@with_kw mutable struct SegmentationData
     Urls::SegmentationUrlsData = SegmentationUrlsData()
     Results::SegmentationResultsData = SegmentationResultsData()
 end
