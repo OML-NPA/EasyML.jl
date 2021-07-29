@@ -554,7 +554,7 @@ function fix_output_options(model_data)
 end
 
 # Main function that performs application
-function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
+function apply_main(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
     # Initialize constants
     application_data = all_data.ApplicationData
     application_options = options.ApplicationOptions
@@ -618,7 +618,7 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     return nothing
 end
 function apply_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
-    t = Threads.@spawn apply_main(T,model_data,all_data,options,channels)
+    t = Threads.@spawn apply_main(model_data,all_data,options,channels)
     push!(application_data.tasks,t)
     return t
 end
