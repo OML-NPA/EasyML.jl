@@ -48,6 +48,23 @@ ApplicationWindow {
 
     //--------------------------------------------------------------------------
 
+    Component.onCompleted: {
+        if (Julia.unit_test()) {
+            function Timer() {
+                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", window);
+            }
+            function delay(delayTime, cb) {
+                var timer = new Timer();
+                timer.interval = delayTime;
+                timer.repeat = false;
+                timer.triggered.connect(cb);
+                timer.start();
+            }
+            function exit() {window.close()}
+            delay(500, exit)
+        }
+    }
+
     function load_model_classes(classModel) {
         var problemType = Julia.get_problem_type()
         var num_classes = Julia.num_classes()

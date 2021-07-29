@@ -56,7 +56,8 @@ function modify_output()
         get_output,
         set_output,
         get_problem_type,
-        num_classes
+        num_classes,
+        unit_test
     )
     path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
     gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
