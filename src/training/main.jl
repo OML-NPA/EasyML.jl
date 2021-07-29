@@ -642,7 +642,7 @@ function train_main(model_data::ModelData,all_data::AllData,options::Options,cha
     # Setting functions and parameters
     opt = get_optimiser(training_options)
     local ws::Vector{Float32}
-    if options.TrainingOptions.Accuracy.weight_accuracy
+    if training_options.Accuracy.weight_accuracy
         if training_options.Accuracy.accuracy_mode==:manual
             ws = training_data.weights
             l_ws = length(ws)
