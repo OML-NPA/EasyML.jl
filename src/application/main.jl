@@ -67,7 +67,7 @@ function prepare_application_data(norm_func::Function,classes::Vector{ImageClass
     for i = 1:num
         url = urls[i]
         image = load_image(url)
-        if Grayscale in model_data.input_properties
+        if :grayscale in model_data.input_properties
             data[i] = image_to_gray_float(image)[:,:,:,:]
         else
             data[i] = image_to_color_float(image)[:,:,:,:]
@@ -86,7 +86,7 @@ function prepare_application_data(norm_func::Function,classes::Vector{ImageRegre
         url = urls[i]
         image = load_image(url)
         image = imresize(image,model_data.input_size[1:2])
-        if Grayscale in model_data.input_properties
+        if :grayscale in model_data.input_properties
             data[i] = image_to_gray_float(image)[:,:,:,:]
         else
             data[i] = image_to_color_float(image)[:,:,:,:]
@@ -544,6 +544,15 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
         num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume)
 end
 
+function fix_output_options(model_data)
+    if problem_type()==:classification
+        model_data.output_options = ImageClassificationOutputOptions[]
+    elseif problem_type()==:regression
+        model_data.output_options = ImageRegressionOutputOptions[]
+    end
+    return nothing
+end
+
 # Main function that performs application
 function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
     # Initialize constants
@@ -562,6 +571,13 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     scaling = application_options.scaling
     batch_size = 1
     apply_by_file = application_options.apply_by==:file
+    if problem_type()==:classification
+        T = Vector{Int64}
+    elseif problem_type()==:regression
+        T = Vector{Float32}
+    elseif problem_type()==:segmentation
+        T = BitArray{4}
+    end
     data_channel = Channel{Tuple{Int64,T}}(Inf)
     # Get file extensions
     img_ext,img_ext_string = get_image_ext(application_options.image_type)
@@ -579,8 +595,9 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     # Make savepath directory if does not exist
     mkpath(savepath_main)
     # Send number of iterations
-    put!(channels.application_progress,sum(length.(urls_batched)))
+    put!(channels.application_progress,num+sum(length.(urls_batched)))
     # Output information
+    fix_output_options(model_data)
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
     if problem_type()==:segmentation
@@ -601,13 +618,6 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     return nothing
 end
 function apply_main2(model_data::ModelData,all_data::AllData,options::Options,channels::Channels)
-    if problem_type()==:classification
-        T = Vector{Int64}
-    elseif problem_type()==:regression
-        T = Vector{Float32}
-    elseif problem_type()==:segmentation
-        T = BitArray{4}
-    end
     t = Threads.@spawn apply_main(T,model_data,all_data,options,channels)
     push!(application_data.tasks,t)
     return t
