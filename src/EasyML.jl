@@ -24,13 +24,13 @@ ProgressMeter, FLoops
 import CUDA.CuArray, Flux.outdims, StatsBase.std
 
 # Include functions
-include("common/Common.jl")
-include("classes/Classes.jl")
-include("design/Design.jl")
-include("datapreparation/DataPreparation.jl")
-include("training/Training.jl")
-include("validation/Validation.jl")
-include("application/Application.jl")
+include("modules/common/Common.jl")
+include("modules/classes/Classes.jl")
+include("modules/design/Design.jl")
+include("modules/datapreparation/DataPreparation.jl")
+include("modules/training/Training.jl")
+include("modules/validation/Validation.jl")
+include("modules/application/Application.jl")
 
 using .Common, .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
 
