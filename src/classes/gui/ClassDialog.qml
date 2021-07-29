@@ -784,6 +784,7 @@ ApplicationWindow {
                         onClicked: {
                             if (checkState==Qt.Checked) {
                                 classModel.get(indTree).border = true
+                                borderthicknessRow.visible = true
                             }
                             if (checkState==Qt.Unchecked) {
                                 classModel.get(indTree).border = false
