@@ -42,7 +42,7 @@ include("exported_functions.jl")
 export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
-export ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
+export ImageClassificationClass, ImageRegressionClass, BorderClass, ImageSegmentationClass
 export model_data, global_options, data_preparation_options, training_options, validation_options, application_options,
     preparation_data, training_data, validation_data, application_data
 export set_savepath, save_options, load_options, modify, save_model, load_model

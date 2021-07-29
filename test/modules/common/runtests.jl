@@ -204,6 +204,15 @@ end
     end
 end
 
+@testset "Constructors" begin
+    @test begin
+        ImageClassificationClass("test",weight=1)
+        ImageRegressionClass("test")
+        ImageSegmentationClass("test",color=[0,0,0],weight=1,parents=["",""],overlap=false,min_area=0,border_class=BorderClass())
+        true
+    end
+end
+
 @testset "Other                 " begin
     @test begin
         f1() = true
