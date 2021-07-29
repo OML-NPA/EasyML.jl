@@ -11,7 +11,7 @@ import "templates"
 ApplicationWindow {
     id: window
     visible: true
-    title: qsTr("  EasyML")
+    title: qsTr("EasyML")
     minimumHeight: 600*pix
     minimumWidth: mainRow.width
     width: mainRow.width

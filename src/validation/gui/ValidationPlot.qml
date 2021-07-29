@@ -11,7 +11,7 @@ import "templates"
 ApplicationWindow {
     id: validationWindow
     visible: true
-    title: qsTr("  EasyML")
+    title: qsTr("EasyML")
     
     //---Universal property block-----------------------------------------------
     property double pix: 0.75*Math.sqrt(Screen.pixelDensity)/Math.sqrt(6.430366116295766)*Julia.get_options(["GlobalOptions","Graphics","scaling_factor"])

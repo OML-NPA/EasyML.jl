@@ -13,7 +13,7 @@ import "templates"
 ApplicationWindow {
     id: trainingWindow
     visible: true
-    title: qsTr("  EasyML")
+    title: qsTr("EasyML")
     minimumWidth: gridLayout.width
     minimumHeight: gridLayout.height
     maximumWidth: gridLayout.width

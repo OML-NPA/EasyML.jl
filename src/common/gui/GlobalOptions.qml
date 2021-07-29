@@ -11,7 +11,7 @@ import org.julialang 1.0
 ApplicationWindow {
     id: window
     visible: true
-    title: qsTr("  EasyML")
+    title: qsTr("EasyML")
     width: mainRow.width
     height: mainRow.height
 

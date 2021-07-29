@@ -11,7 +11,7 @@ import "templates"
 ApplicationWindow {
     id: classdialogWindow
     visible: true
-    title: qsTr("  EasyML")
+    title: qsTr("EasyML")
     minimumHeight: Math.max(mainItem.height,800*pix)
     minimumWidth: Math.max(mainItem.width,885*pix)
     property double indTree: JindTree
