@@ -5,6 +5,12 @@ function fix_slashes(url)
     url = string(uppercase(url[1]),url[2:end])
 end
 
+# Works as fill!, but does not use a reference
+function fill_no_ref!(target::AbstractArray,el)
+    for i = 1:length(target)
+        target[i] = copy(el)
+    end
+end
 
 # Allows to read class output options from GUI
 function get_output_main(model_data::ModelData,fields,ind)
@@ -98,7 +104,7 @@ function prepare_application_data(norm_func::Function,classes::Vector{ImageSegme
     for i = 1:num
         url = urls[i]
         image = load_image(url)
-        if Grayscale in model_data.input_properties
+        if :grayscale in model_data.input_properties
             data[i] = image_to_gray_float(image)[:,:,:,:]
         else
             data[i] = image_to_color_float(image)[:,:,:,:]
@@ -169,9 +175,9 @@ function get_output(norm_func::Function,classes::Vector{ImageClassificationClass
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if check_abort_signal(channels.application_modifiers)
+            #=if check_abort_signal(channels.application_modifiers)
                 return nothing
-            end
+            end=#
             # Get input
             input_data = prepare_application_data(norm_func,classes,model_data,urls_batch[l])
             # Get output
@@ -195,9 +201,9 @@ function get_output(norm_func::Function,classes::Vector{ImageRegressionClass},nu
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if check_abort_signal(channels.application_modifiers)
+            #=if check_abort_signal(channels.application_modifiers)
                 return nothing
-            end
+            end=#
             # Get input
             input_data = prepare_application_data(norm_func,classes,model_data,urls_batch[l])
             # Get output
@@ -220,17 +226,14 @@ function get_output(norm_func::Function,classes::Vector{ImageSegmentationClass},
         num_batch = length(urls_batch)
         for l = 1:num_batch
             # Stop if asked
-            if check_abort_signal(channels.application_modifiers)
+            #=if check_abort_signal(channels.application_modifiers)
                 return
-            end
+            end=#
             # Get input
             input_data = prepare_application_data(norm_func,classes,model_data,urls_batch[l])
             # Get output
             predicted = forward(model_data.model,input_data,
                 num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)
-            if change_size
-                predicted = predicted[1:s[1],1:s[2],:,:]
-            end
             predicted_bool = predicted.>0.5
             # Return result
             put!(data_channel,(l,predicted_bool))
@@ -240,7 +243,7 @@ function get_output(norm_func::Function,classes::Vector{ImageSegmentationClass},
 end
 
 function run_iteration(classes::Vector{ImageSegmentationClass},output_options::Vector{ImageSegmentationOutputOptions},
-        savepath::String,filenames_batch::Vector{Vector{String}},num_classes::Int64,num_border::Int64,
+        savepath::String,filenames_batch::Vector{Vector{String}},num_c::Int64,num_border::Int64,
         labels_color::Vector{Vector{Float64}},labels_incl::Vector{Vector{Int64}},apply_border::Bool,border::Vector{Bool},
         objs_area::Vector{Vector{Vector{Float64}}},objs_volume::Vector{Vector{Vector{Float64}}},img_ext_string::String,
         img_ext::Symbol,scaling::Float64,apply_by_file::Bool,data_taken::Threads.Atomic{Bool},
@@ -257,11 +260,11 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
             border_mask = apply_border_data(temp_mask,classes)
             temp_mask = cat(temp_mask,border_mask,dims=Val(3))
         end
-        for i=1:num_classes
+        for i=1:num_c
             min_area = classes[i].min_area
             if min_area>1
                 if border[i]
-                    ind = i + num_classes + num_border
+                    ind = i + num_c + num_border
                 else
                     ind = i
                 end
@@ -276,9 +279,9 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
         masks[j] = temp_mask
     end
     # Stop if asked
-    if check_abort_signal(channels.application_modifiers)
+    #=if check_abort_signal(channels.application_modifiers)
         return nothing
-    end
+    end=#
     filenames = filenames_batch[l]
     cnt = sum(length.(filenames_batch[1:l-1]))
     for j = 1:length(masks)
@@ -293,7 +296,7 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
         mask_to_img(mask,classes,output_options,labels_color,border,savepath,filename,img_ext_string,img_ext)
         # Make data out of masks
         mask_to_data(objs_area,objs_volume,cnt,mask,output_options,labels_incl,border,
-            num_classes,num_border,scaling)
+            num_c,num_border,scaling)
     end
     put!(channels.application_progress,1)
 end
@@ -321,9 +324,9 @@ function process_output(classes::Vector{ImageClassificationClass},output_options
                     break
                 else
                     # Stop if asked
-                    if check_abort_signal(channels.application_modifiers)
+                    #=if check_abort_signal(channels.application_modifiers)
                         return nothing
-                    end
+                    end=#
                     sleep(0.1)
                 end
             end
@@ -371,9 +374,9 @@ function process_output(classes::Vector{ImageRegressionClass},output_options::Ve
                     break
                 else
                     # Stop if asked
-                    if check_abort_signal(channels.application_modifiers)
+                    #=if check_abort_signal(channels.application_modifiers)
                         return nothing
-                    end
+                    end=#
                     sleep(0.1)
                 end
             end
@@ -409,7 +412,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         num_obj_area_sum::Int64,num_dist_area::Int64,num_obj_volume::Int64,num_obj_volume_sum::Int64,num_dist_volume::Int64,
         img_ext_string::String,img_ext::Symbol,data_ext_string::String,data_ext::Symbol,
         scaling::Float64,apply_by_file::Bool,data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
-    num_classes = length(classes)
+    num_c = length(classes)
     for k=1:num
         folder = folders[k]
         filenames_batch = filenames_batched[k]
@@ -430,11 +433,11 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         objs_volume_sum = Vector{Vector{Float64}}(undef,num_init)
         histograms_area = Vector{Vector{Histogram}}(undef,num_init)
         histograms_volume = Vector{Vector{Histogram}}(undef,num_init)
-        fill_no_ref!(objs_area,Vector{Vector{Float64}}(undef,num_classes))
+        fill_no_ref!(objs_area,Vector{Vector{Float64}}(undef,num_c))
         for i = 1:num_init
             fill_no_ref!(objs_area[i],Float64[])
         end
-        fill_no_ref!(objs_volume,Vector{Vector{Float64}}(undef,num_classes))
+        fill_no_ref!(objs_volume,Vector{Vector{Float64}}(undef,num_c))
         for i = 1:num_init
             fill_no_ref!(objs_volume[i],Float64[])
         end
@@ -451,13 +454,13 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
                     break
                 else
                     # Stop if asked
-                    if check_abort_signal(channels.application_modifiers)
+                    #=if check_abort_signal(channels.application_modifiers)
                         return nothing
-                    end
+                    end=#
                     sleep(0.1)
                 end
             end
-            t = Threads.@spawn run_iteration(classes,output_options,savepath,filenames_batch,num_classes,
+            t = Threads.@spawn run_iteration(classes,output_options,savepath,filenames_batch,num_c,
                 num_border,labels_color,labels_incl,apply_border,border,objs_area,objs_volume,img_ext_string,
                 img_ext,scaling,apply_by_file,data_taken,data_channel,channels)
             push!(tasks,t)
@@ -470,7 +473,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         end
         if num_obj_area_sum>0 
             for i = 1:num_init
-                for j = 1:num_classes
+                for j = 1:num_c
                     if output_options[j].Area.obj_area_sum
                         objs_area_sum[i][j] = sum(objs_area[i][j])
                     end
@@ -479,7 +482,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         end
         if num_obj_volume_sum>0 
             for i = 1:num_init
-                for j = 1:num_classes
+                for j = 1:num_c
                     if output_options[j].Volume.obj_volume_sum
                         objs_volume_sum[i][j] = sum(objs_volume[i][j])
                     end
@@ -487,7 +490,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
             end
         end
         data_to_histograms(histograms_area,histograms_volume,objs_area,objs_volume,
-        output_options,num_init,num_classes,num_border,border)
+        output_options,num_init,num_c,num_border,border)
         # Export data
         if apply_by_file
             filenames = reduce(vcat,filenames_batch)
@@ -547,7 +550,7 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     application_data = all_data.ApplicationData
     application_options = options.ApplicationOptions
     classes = model_data.classes
-    output_options = model_data.OutputOptions
+    output_options = model_data.output_options
     use_GPU = false
     if options.GlobalOptions.HardwareResources.allow_GPU
         if has_cuda()
@@ -558,11 +561,11 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
     end
     scaling = application_options.scaling
     batch_size = 1
-    apply_by_file = application_options.apply_by==File
+    apply_by_file = application_options.apply_by==:file
     data_channel = Channel{Tuple{Int64,T}}(Inf)
     # Get file extensions
-    img_ext_string,img_ext = get_image_ext(application_options.image_type)
-    data_ext_string,data_ext = get_data_ext(application_options.data_type)
+    img_ext,img_ext_string = get_image_ext(application_options.image_type)
+    data_ext,data_ext_string = get_data_ext(application_options.data_type)
     # Get folders and names
     folders = application_data.folders
     num = length(folders)
@@ -574,7 +577,7 @@ function apply_main(T::DataType,model_data::ModelData,all_data::AllData,options:
         savepath_main = string(pwd(),"/Output data/")
     end
     # Make savepath directory if does not exist
-    make_dir(savepath_main)
+    mkpath(savepath_main)
     # Send number of iterations
     put!(channels.application_progress,sum(length.(urls_batched)))
     # Output information

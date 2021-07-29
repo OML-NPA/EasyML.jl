@@ -202,7 +202,6 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
             area_values = [0]
             area_values = objects_area(mask_current,
                 components_vector,labels_incl,scaling,l)
-            
             if area_obj_cond || area_sum_obj_cond
                 push!(temp_objs_area2,area_values...)
             end
@@ -337,7 +336,7 @@ function get_save_image_info(num_dims::Int64,classes::Vector{ImageSegmentationCl
             logical_inds[a] = true
             img_names[a] = class_name
         end
-        if class.border
+        if class.BorderClass.enabled
             if output_options[a].Mask.mask_border
                 ind = a + num_classes
                 logical_inds[ind] = true
@@ -376,9 +375,9 @@ function mask_to_img(mask::BitArray{3},classes::Vector{ImageSegmentationClass},
         mask_current = mask[:,:,ind]
         color = perm_labels_color[ind]
         mask_float = convert(Array{Float32,2},mask_current)
-        mask_dim3 = cat3(mask_float,mask_float,mask_float)
+        mask_dim3 = cat(mask_float,mask_float,mask_float,dims=Val(3))
         mask_dim3 = mask_dim3.*color
-        mask_dim3 = cat3(mask_dim3,mask_float)
+        mask_dim3 = cat(mask_dim3,mask_float,dims=Val(3))
         mask_dim3 = permutedims(mask_dim3,[3,1,2])
         mask_RGB = colorview(RGBA,mask_dim3)
         img_name = img_names[ind]
@@ -389,18 +388,18 @@ function mask_to_img(mask::BitArray{3},classes::Vector{ImageSegmentationClass},
 end
 
 #---Saving
-function get_data_ext(data_type)
-    ext = [:csv,:xlsx,:json,:bson]
-    ind = findfirst(data_type.==ext)
+function get_data_ext(ext::Symbol)
+    exts = [:csv,:xlsx,:json,:bson]
+    ind = findfirst(exts.==ext)
     ext_string = [".csv",".xlsx",".json",".bson"]
-    return ext[ind]
+    return ext,ext_string[ind]
 end
 
-function get_image_ext(data_type)
-    ext = [:png,:tiff,:bson]
-    ind = findfirst(data_type.==ext_symbol_caps)
+function get_image_ext(ext::Symbol)
+    exts = [:png,:tiff,:bson]
+    ind = findfirst(exts.==ext)
     ext_string = [".png",".tiff",".bson"]
-    return ext[ind]
+    return ext,ext_string[ind]
 end
 
 function save(data,path::String,name::String,ext::Symbol)
