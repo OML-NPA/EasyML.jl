@@ -196,11 +196,11 @@ function EasyML.DataPreparation.prepare_data(some_data::Union{TrainingData,Testi
 
     results = prepare_data()
     if problem_type()==:classification
-        some_data.ClassificationData.Results = results
+        some_data.ClassificationData.Data = results
     elseif problem_type()==:regression
-        some_data.RegressionData.Results = results
+        some_data.RegressionData.Data = results
     else # problem_type()==:segmentation
-        some_data.SegmentationData.Results = results
+        some_data.SegmentationData.Data = results
     end
     return nothing
 end
