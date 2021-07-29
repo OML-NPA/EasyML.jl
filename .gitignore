@@ -1,12 +1,5 @@
 
-Examples/
 docs/build
 *.bson
-*.bson
-.vscode/settings.json
-config.bson
-src/test.jl
+.vscode/
 *.docx
-*.csv
-*.model
-src/GUI/DataPlot.qml
