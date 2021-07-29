@@ -1334,7 +1334,6 @@ ApplicationWindow {
     function importmodel(model) {
         idCounter = Julia.get_max_id()
         model.length = 0
-        var skipStringing = ["x","y"]
         var count = Julia.model_count()
         for (var i=0;i<count;i++) {
             var indJ = i+1
@@ -1343,19 +1342,11 @@ ApplicationWindow {
             for (var j=0;j<properties.length;j++) {
                 var prop_name = properties[j]
                 var prop = Julia.model_get_layer_property(indJ,prop_name)
-                if (typeof(prop)==='object' && prop.length===2) {
-                    unit[prop_name] = prop
+                if (prop_name==="x" || prop_name==="y") {
+                    unit[prop_name] = prop*pix
                 }
                 else {
-                    if (skipStringing.includes(prop_name) || typeof(prop)==='object') {
-                        if (prop_name==="x" || prop_name==="y") {
-                            prop = prop*pix
-                        }
-                        unit[prop_name] = prop
-                    }
-                    else {
-                        unit[prop_name] = prop.toString()
-                    }
+                    unit[prop_name] = fix_type(prop)
                 }
             }
             model.push(unit)
@@ -1367,6 +1358,14 @@ ApplicationWindow {
     }
 //----------------------------------------------------------------------------
 
+    function fix_type(value) {
+        if (typeof value==="string" || Array.isArray(value)) {
+            return value
+        }
+        else {
+            return Number(value)
+        }
+    }
 
     function show_warnings() {
         var warnings = Julia.get_data(["DesignData","warnings"])
@@ -2760,9 +2759,6 @@ ApplicationWindow {
                     leftPadding: 0.10*margin
                     text: type
                     Layout.alignment: Qt.AlignBottom
-                    Component.onCompleted: {
-                        
-                    }
                 }
             }
         }
