@@ -6,6 +6,7 @@ EasyML.Common.unit_test.state = true
 examples_dir = joinpath(@__DIR__,"examples")
 models_dir = joinpath(@__DIR__,"models")
 
+
 #---Testing modules------------------------------------------
 
 @info "Common"
@@ -19,7 +20,7 @@ include("modules/training/runtests.jl")
 @info "Validation"
 include("modules/validation/runtests.jl")
 @info "Application"
-include("application/runtests.jl")
+include("modules/application/runtests.jl")
 
 
 #---Testing module glue------------------------------------------
