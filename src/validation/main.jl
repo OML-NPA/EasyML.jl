@@ -173,7 +173,7 @@ function output_images(predicted_bool::BitArray{3},label_bool::BitArray{3},
     num_border = sum(border)
     if num_border>0
         border_bool = apply_border_data(predicted_bool,classes)
-        predicted_bool = cat3(predicted_bool,border_bool)
+        predicted_bool = cat(predicted_bool,border_bool,dims=Val(3))
     end
     for i=1:num_border 
         min_area = classes[inds_border[i]].min_area
