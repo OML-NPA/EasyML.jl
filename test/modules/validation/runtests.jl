@@ -4,6 +4,8 @@ import EasyML.Validation
 
 cd(@__DIR__)
 
+global_options.HardwareResources.num_slices = 20
+
 
 #---Main functionality---------------------------------------------------------
 
