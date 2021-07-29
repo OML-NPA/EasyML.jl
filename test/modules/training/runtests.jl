@@ -29,4 +29,4 @@ include("segmentation.jl")
 
 #-----------------------------------------------------------------
 
-rm("models/")
+rm("models/",recursive=true)
