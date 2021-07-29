@@ -10,11 +10,14 @@ Parameters, Dates,
 # Data import/export
 BSON,
 # Image manipulation
-ColorTypes, FixedPointNumbers,
+Images, ColorTypes, ImageFiltering, ImageTransformations, 
+ImageMorphology, DSP, ImageMorphology.FeatureTransform, ImageSegmentation,
 # Maths
 Statistics,
 # Machine learning
-Flux, Flux.Losses, FluxExtra
+Flux, Flux.Losses, FluxExtra,
+# Other
+FLoops
 
 
 include("misc.jl")
@@ -33,11 +36,13 @@ import .Design: DesignData, design_data, DesignOptions, design_options
 import .DataPreparation: PreparationData, preparation_data, DataPreparationOptions, data_preparation_options
 import .Training: TrainingData, TestingData, training_data, testing_data, TrainingOptions, training_options
 import .Validation: ValidationData, validation_data, ValidationOptions, validation_options
-import .Application: AbstractOutputOptions, ImageClassificationOutputOptions, ApplicationData, application_data, ApplicationOptions, application_options
+import .Application: AbstractOutputOptions, ImageClassificationOutputOptions, ImageRegressionOutputOptions, 
+    ImageSegmentationOutputOptions, ApplicationData, application_data, ApplicationOptions, application_options
 
 # Include data structures and functions
 include("data_structures.jl")
 include("functions.jl")
+include("image_processing.jl")
 
 # Struct to Dict interconversion
 export struct_to_dict!, dict_to_struct!, to_struct!
@@ -52,6 +57,10 @@ export fix_QML_types, get_data, get_options, set_data, set_options, get_file, ge
 export channels, Channels, check_progress, get_progress, empty_channel, put_channel
 # Other
 export all_data, AllData, problem_type, input_type, check_task, unit_test, common_dir, add_templates, setproperty!
+# Image processing
+export dilate!, erode!, closing!, areaopen!, outer_perim, rotate_img, conn, conn,
+    component_intensity, segment_objects, allequal, alldim
+
 
 # QML functions
 export QML, @qmlfunction, QByteArray, loadqml, exec

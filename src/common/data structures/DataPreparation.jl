@@ -13,13 +13,13 @@ using Parameters
 end
 
 @with_kw mutable struct ClassificationResultsData
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
+    data_input::Union{Vector{T1},Vector{T2}} where {T1<:Array{Float32,1},T2<:Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
     data_labels::Vector{Int32} = Vector{Int32}(undef,0)
 end
 
 @with_kw mutable struct ClassificationData
     Urls::ClassificationUrlsData = ClassificationUrlsData()
-    Results::ClassificationResultsData = ClassificationResultsData()
+    Data::ClassificationResultsData = ClassificationResultsData()
 end
 
 @with_kw mutable struct RegressionUrlsData
@@ -28,14 +28,14 @@ end
     labels_url::String = ""
 end
 
-@with_kw mutable struct RegressionResultsData
-    data_input::Vector{Array{Float32,3}} = Vector{Array{Float32,3}}(undef,0)
-    data_labels::Vector{Vector{Float32}} = Vector{Vector{Float32}}(undef,0)
+@with_kw mutable struct RegressionResultsData{T1<:Array{Float32,1},T2<:Array{Float32,3}}
+    data_input::Union{Vector{T1},Vector{T2}} = Vector{Array{Float32,3}}(undef,0)
+    data_labels::Union{Vector{T1},Vector{T2}} = Vector{Vector{Float32}}(undef,0)
 end
 
 @with_kw mutable struct RegressionData
     Urls::RegressionUrlsData = RegressionUrlsData()
-    Results::RegressionResultsData = RegressionResultsData()
+    Data::RegressionResultsData = RegressionResultsData()
 end
 
 @with_kw mutable struct SegmentationUrlsData
@@ -51,7 +51,7 @@ end
 
 @with_kw mutable struct SegmentationData
     Urls::SegmentationUrlsData = SegmentationUrlsData()
-    Results::SegmentationResultsData = SegmentationResultsData()
+    Data::SegmentationResultsData = SegmentationResultsData()
 end
 
 @with_kw mutable struct PreparationUrls

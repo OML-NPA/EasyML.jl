@@ -174,7 +174,7 @@ function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Abstr
             output_array = vcat(fun(s1,vec1),temp_array,fun(s2,vec2))
             push!(accum,output_array)
         end
-        final_array = reduce(cat3,accum)
+        final_array = cat(accum...,dims=Val(3))
     else
         final_array = array
     end
@@ -190,7 +190,7 @@ function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Abstr
             output_array = hcat(fun(s1,vec1),temp_array,fun(s2,vec2))
             push!(accum,output_array)
         end
-        final_array = reduce(cat3,accum)
+        final_array = cat(accum...,dims=Val(3))
     end
     return final_array
 end
@@ -210,7 +210,7 @@ function pad(array::A,padding::NTuple{2,Int64},
             output_array = vcat(fun(T,s1),temp_array,fun(T,s2))
             push!(accum,output_array)
         end
-        final_array = reduce(cat3,accum)
+        final_array = cat(accum,dims=Val(3))
     else
         final_array = array
     end
@@ -224,7 +224,7 @@ function pad(array::A,padding::NTuple{2,Int64},
             output_array = hcat(fun(T,s1),temp_array,fun(T,s2))
             push!(accum,output_array)
         end
-        final_array = reduce(cat3,accum)
+        final_array = cat(accum,dims=Val(3))
     end
     return final_array
 end

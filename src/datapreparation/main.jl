@@ -48,7 +48,7 @@ rm_model_data(field,value) = rm_model_data_main(model_data,field,value)
 
 function get_urls_main(model_data::ModelData,preparation_data::PreparationData)
     if isempty(model_data.classes)
-        error("Classes are empty.")
+        @error "Classes are empty."
         return nothing
     end
     remove_urls()
@@ -114,6 +114,27 @@ end
 
 
 #---prepare_data functions-------------------------------------------------------------------
+
+# Removes rows and columns from image sides if they are uniformly black.
+function crop_background(img::Array{Float32,3},label::BitArray{3},
+        threshold::Float64,closing_value::Int64)
+    img_temp = mean(img,dims=3)[:,:]
+    field = imfilter(img_temp.<threshold, Kernel.gaussian(4)).>0.5
+    field = closing!(field,closing_value)
+    row_bool = (!).(alldim(field,1))
+    col_bool = (!).(alldim(field,2))
+    col1 = findfirst(col_bool)
+    col2 = findlast(col_bool)
+    row1 = findfirst(row_bool)
+    row2 = findlast(row_bool)
+    col1 = isnothing(col1) ? 1 : col1
+    col2 = isnothing(col2) ? size(img,1) : col2
+    row1 = isnothing(row1) ? 1 : row1
+    row2 = isnothing(row2) ? size(img,2) : row2
+    img = img[row1:row2,col1:col2,:]
+    label = label[row1:row2,col1:col2,:]
+    return img,label
+end
 
 function load_images(urls::Vector{String},channel::Channel)
     num = length(urls)
@@ -320,8 +341,8 @@ function prepare_data(model_data::ModelData,classification_data::ClassificationD
     # Normalize
     apply_normalization(model_data,data_input_flat)
     # Return results
-    classification_data.Results.data_input = data_input_flat
-    classification_data.Results.data_labels = data_label_flat
+    classification_data.Data.data_input = data_input_flat
+    classification_data.Data.data_labels = data_label_flat
     # Return progress
     put!(progress, 1)
     return nothing
@@ -381,8 +402,8 @@ function prepare_data(model_data::ModelData,regression_data::RegressionData,
     # Normalize
     apply_normalization(model_data,data_input_flat)
     # Return results
-    regression_data.Results.data_input = data_input_flat
-    regression_data.Results.data_labels = data_label_flat
+    regression_data.Data.data_input = data_input_flat
+    regression_data.Data.data_labels = data_label_flat
     # Return progress
     put!(progress, 1)
     return nothing
@@ -453,8 +474,8 @@ function prepare_data(model_data::ModelData,segmentation_data::SegmentationData,
     # Normalize
     apply_normalization(model_data,data_input_flat)
     # Return results
-    segmentation_data.Results.data_input = data_input_flat
-    segmentation_data.Results.data_labels = data_label_flat
+    segmentation_data.Data.data_input = data_input_flat
+    segmentation_data.Data.data_labels = data_label_flat
     # Return progress
     put!(progress, 1)
     return nothing
@@ -476,16 +497,4 @@ function prepare_data_main(model_data::ModelData,
     t = Threads.@spawn prepare_data(model_data,data,size12,data_preparation_options,progress)
     push!(preparation_data.tasks,t)
     return t
-end
-
-
-#---Other-----------------------------------------------------------
-
-function replace_nan!(x)
-    type = eltype(x)
-    for i = eachindex(x)
-        if isnan(x[i])
-            x[i] = zero(type)
-        end
-    end
 end

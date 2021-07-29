@@ -34,15 +34,14 @@ function set_training_data(data_input::Vector,data_labels::Vector)
         error(err)
     end
     if problem_type()==:classification
-        training_data.ClassificationData.data_input = data_input
-        training_data.ClassificationData.data_labels = data_labels
-        training_data.ClassificationData.max_labels = maximum(data_labels)
+        training_data.ClassificationData.Data.data_input = data_input
+        training_data.ClassificationData.Data.data_labels = data_labels
     elseif problem_type()==:regression
-        training_data.RegressionData.data_input = data_input
-        training_data.RegressionData.data_labels = data_labels
+        training_data.RegressionData.Data.data_input = data_input
+        training_data.RegressionData.Data.data_labels = data_labels
     else # Segmentation
-        training_data.SegmentationData.data_input = data_input
-        training_data.SegmentationData.data_labels = data_labels
+        training_data.SegmentationData.Data.data_input = data_input
+        training_data.SegmentationData.Data.data_labels = data_labels
     end
     return nothing
 end
@@ -59,14 +58,14 @@ function set_testing_data(data_input::Vector,data_labels::Vector)
         error(err)
     end
     if problem_type()==:classification
-        testing_data.ClassificationData.data_input = data_input
-        testing_data.ClassificationData.data_labels = data_labels
+        testing_data.ClassificationData.Data.data_input = data_input
+        testing_data.ClassificationData.Data.data_labels = data_labels
     elseif problem_type()==:regression
-        testing_data.RegressionData.data_input = data_input
-        testing_data.RegressionData.data_labels = data_labels
+        testing_data.RegressionData.Data.data_input = data_input
+        testing_data.RegressionData.Data.data_labels = data_labels
     else # Segmentation
-        testing_data.SegmentationData.data_input = data_input
-        testing_data.SegmentationData.data_labels = data_labels
+        testing_data.SegmentationData.Data.data_input = data_input
+        testing_data.SegmentationData.Data.data_labels = data_labels
     end
     return nothing
 end
@@ -85,14 +84,14 @@ end
 
 function set_testing_data_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
     if problem_type()==:classification
-        specific_training_data = training_data.ClassificationData
-        specific_testing_data = testing_data.ClassificationData
+        specific_training_data = training_data.ClassificationData.Data
+        specific_testing_data = testing_data.ClassificationData.Data
     elseif problem_type()==:regression
-        specific_training_data = training_data.RegressionData
-        specific_testing_data = testing_data.RegressionData
+        specific_training_data = training_data.RegressionData.Data
+        specific_testing_data = testing_data.RegressionData.Data
     else # :segmentation
-        specific_training_data = training_data.SegmentationData
-        specific_testing_data = testing_data.SegmentationData
+        specific_training_data = training_data.SegmentationData.Data
+        specific_testing_data = testing_data.SegmentationData.Data
     end
     num = length(specific_training_data.data_input)
     fraction = training_options.Testing.test_data_fraction
@@ -141,14 +140,14 @@ can be changed during training.
 """
 function train()
     if problem_type()==:classification
-        data_train = training_data.ClassificationData.Results.data_input
-        data_test = testing_data.ClassificationData.Results.data_input
+        data_train = training_data.ClassificationData.Data.data_input
+        data_test = testing_data.ClassificationData.Data.data_input
     elseif problem_type()==:regression
-        data_train = training_data.RegressionData.Results.data_input
-        data_test = testing_data.RegressionData.Results.data_input
+        data_train = training_data.RegressionData.Data.data_input
+        data_test = testing_data.RegressionData.Data.data_input
     else # :segmentation
-        data_train = training_data.SegmentationData.Results.data_input
-        data_test = testing_data.SegmentationData.Results.data_input
+        data_train = training_data.SegmentationData.Data.data_input
+        data_test = testing_data.SegmentationData.Data.data_input
     end
     if isempty(data_train)
         @error "No training data."
@@ -191,9 +190,9 @@ end
 function remove_data(some_data::T) where T<:Union{TrainingData,TestingData}
     fields = [:data_input,:data_labels]
     for field in fields
-        empty!(getfield(some_data.ClassificationData,field))
-        empty!(getfield(some_data.RegressionData,field))
-        empty!(getfield(some_data.SegmentationData,field))
+        empty!(getfield(some_data.ClassificationData.Data,field))
+        empty!(getfield(some_data.RegressionData.Data,field))
+        empty!(getfield(some_data.SegmentationData.Data,field))
     end
     fields = fieldnames(T)[4:end]
     for field in fields

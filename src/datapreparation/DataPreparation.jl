@@ -21,11 +21,11 @@ ProgressMeter, FLoops,
 
 import ..Classes
 import ..Classes: make_classes
+import ..Common.dilate!
 
 # Include functions
 include(string(common_dir(),"/common/preparation_validation.jl"))
 include(string(common_dir(),"/common/preparation_validation_application.jl"))
-include("image_processing.jl")
 include("main.jl")
 include("exported_functions.jl")
 

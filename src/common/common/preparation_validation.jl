@@ -143,7 +143,7 @@ function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vect
             push!(colors_current,colors[inds]...)
         end
         bitarrays = map(x -> .==(labelimg,x)[:,:,:],colors_current)
-        label[:,:,i] = any(reduce(cat3,bitarrays),dims=3)
+        label[:,:,i] = any(cat(bitarrays...,dims=Val(3)),dims=3)
     end
     # Make classes outlining object borders
     for j=1:length(inds_borders)
@@ -154,8 +154,3 @@ function label_to_bool(labelimg::Array{RGB{Normed{UInt8,8}},2}, class_inds::Vect
     end
     return label
 end
-
-
-#---Other----------------------------------------------------------
-
-cat3(A::AbstractArray, B::AbstractArray) = cat(A, B; dims=Val(3))

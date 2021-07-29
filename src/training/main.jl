@@ -37,10 +37,10 @@ training_elapsed_time() = training_elapsed_time_main(training_plot_data)
 # Creates data sets for training and testing
 function get_sets(norm_func::Function, typed_training_data::T,typed_testing_data::T) where 
         T<:Union{ClassificationData,RegressionData,SegmentationData}
-    norm_func(typed_training_data.Results.data_input)
-    norm_func(typed_testing_data.Results.data_input)
-    train_set = (typed_training_data.Results.data_input,typed_training_data.Results.data_labels)
-    test_set = (typed_testing_data.Results.data_input,typed_testing_data.Results.data_labels)
+    norm_func(typed_training_data.Data.data_input)
+    norm_func(typed_testing_data.Data.data_input)
+    train_set = (typed_training_data.Data.data_input,typed_training_data.Data.data_labels)
+    test_set = (typed_testing_data.Data.data_input,typed_testing_data.Data.data_labels)
     return train_set, test_set
 end
 
@@ -213,7 +213,7 @@ function calculate_weights(counts::Vector{Int64})
 end
 
 function get_weights(model_data::ModelData,classification_data::ClassificationData)
-    data_labels = classification_data.Results.data_labels
+    data_labels = classification_data.Data.data_labels
     num = length(model_data.classes)
     counts = zeros(Int64,num)
     for data in data_labels
@@ -229,7 +229,7 @@ function get_weights(model_data::ModelData,regression_data::RegressionData)
 end
 
 function get_weights(model_data::ModelData,segmentation_data::SegmentationData)
-    data_labels = segmentation_data.Results.data_labels
+    data_labels = segmentation_data.Data.data_labels
     num = size(data_labels[1],3)
     counts = zeros(Int64,num)
     for data in data_labels

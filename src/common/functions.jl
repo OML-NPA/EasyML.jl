@@ -469,6 +469,7 @@ end
 
 function fix_type_layers_info(vector_type_string::String)
     vector_type_string = replace(vector_type_string, "EasyML.Common.Design.Layers."=>"")
+    vector_type_string = replace(vector_type_string, "EasyML.Common.Application."=>"")
     return vector_type_string
 end
 

@@ -35,6 +35,7 @@ include("application/Application.jl")
 using .Common, .Classes, .Design, .DataPreparation, .Training, .Validation, .Application
 
 import .Training: TrainingOptions, TrainingData, TestingData, training_data, testing_data
+import .DataPreparation.preparation_data, .Validation.validation_data, .Application.application_data
 
 include("exported_functions.jl")
 
@@ -42,7 +43,8 @@ export QML, CUDA, Flux, FluxExtra, Normalizations, NNlib, ColorTypes
 
 export Join, Split, Addition, Activation, Flatten, Identity
 export ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass
-export model_data, global_options, data_preparation_options, training_options, validation_options, application_options
+export model_data, global_options, data_preparation_options, training_options, validation_options, application_options,
+    preparation_data, training_data, validation_data, application_data
 export set_savepath, save_options, load_options, modify, save_model, load_model
 export make_classes, design_model, prepare_training_data, get_urls_training, get_urls_testing, prepare_testing_data, train, 
     remove_training_data, remove_testing_data, remove_training_results, validation_results_data, get_urls_validation, 
