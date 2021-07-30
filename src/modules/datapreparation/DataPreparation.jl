@@ -20,7 +20,7 @@ ProgressMeter, FLoops,
 ..Common, ..Common.Classes, ..Common.DataPreparation
 
 import ..Classes
-import ..Classes: make_classes
+import ..Classes: change_classes
 import ..Common.dilate!
 
 # Include functions

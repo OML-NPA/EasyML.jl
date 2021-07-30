@@ -1,10 +1,10 @@
 
 """
-    modify(training_options::TrainingOptions) 
+    change(training_options::TrainingOptions) 
 
-Allows to modify `training_options` in a GUI.
+Allows to change `training_options` in a GUI.
 """
-function Common.modify(data::TrainingOptions)
+function Common.change(data::TrainingOptions)
     @qmlfunction(
         get_data,
         get_options,

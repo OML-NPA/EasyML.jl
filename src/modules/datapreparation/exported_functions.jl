@@ -1,10 +1,10 @@
 
 """
-    modify(data_preparation_options::DataPreparationOptions) 
+    change(data_preparation_options::DataPreparationOptions) 
 
-Allows to modify `data_preparation_options` in a GUI.
+Allows to change `data_preparation_options` in a GUI.
 """
-function Common.modify(data::DataPreparationOptions)
+function Common.change(data::DataPreparationOptions)
     @qmlfunction(
         # Options
         get_options,

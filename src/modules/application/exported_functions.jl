@@ -1,10 +1,10 @@
 
 """
-    modify(application_options::EasyML.ApplicationOptions) 
+    change(application_options::EasyML.ApplicationOptions) 
 
-Allows to modify `application_options` in a GUI.
+Allows to change `application_options` in a GUI.
 """
-function Common.modify(application_options::ApplicationOptions)
+function Common.change(application_options::ApplicationOptions)
     @qmlfunction(
         get_options,
         set_options,
@@ -23,20 +23,20 @@ function Common.modify(application_options::ApplicationOptions)
 end
 
 """
-    modify_output()
+    change_output()
 Opens a GUI for addition or modification of output options for classes.
 """
-function modify_output()
+function change_output_options()
     local output_type
     if isempty(model_data.classes)
-        @error "There are no classes. Add classes using 'modify_classes()'."
+        @error "There are no classes. Add classes using 'change_classes()'."
         return nothing
     end
     if problem_type()==:classification
-        @info "Classification has no output options to modify."
+        @info "Classification has no output options to change."
         return nothing
     elseif problem_type()==:regression
-        @info "Regression has no output options to modify."
+        @info "Regression has no output options to change."
         return nothing
     elseif problem_type()==:segmentation
         output_type = ImageSegmentationOutputOptions

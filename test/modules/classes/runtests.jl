@@ -6,24 +6,24 @@ cd(@__DIR__)
 
 #---Main functionality------------------------------------------
 
-@testset "Make classes" begin
-    @test begin make_classes(); true end
+@testset "Change classes" begin
+    @test begin change_classes(); true end
 
     @test begin
         load_model(joinpath(models_dir,"classification.model"))
-        make_classes()
+        change_classes()
         true
     end
 
     @test begin
         load_model(joinpath(models_dir,"regression.model"))
-        make_classes()
+        change_classes()
         true
     end
 
     @test begin
         load_model(joinpath(models_dir,"segmentation.model"))
-        make_classes()
+        change_classes()
         true
     end
 end

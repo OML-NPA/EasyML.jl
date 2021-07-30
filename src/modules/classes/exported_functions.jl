@@ -1,10 +1,10 @@
 
 """
-    make_classes()
+    change_classes()
 
-Opens a GUI for addition or modification of classes.
+Opens a GUI for addition or changing of classes.
 """
-function make_classes()
+function change_classes()
     classes = model_data.classes
     if length(classes)==0
         ids = [0]

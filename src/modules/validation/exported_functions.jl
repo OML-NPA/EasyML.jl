@@ -1,10 +1,10 @@
 
 """
-modify(validation_options::ValidationOptions) 
+change(validation_options::ValidationOptions) 
 
-Allows to modify `validation_options` in a GUI.
+Allows to change `validation_options` in a GUI.
 """
-function Common.modify(data::ValidationOptions)
+function Common.change(data::ValidationOptions)
     @qmlfunction(
         get_data,
         get_options,

@@ -48,9 +48,9 @@ include("image_processing.jl")
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model data
 export model_data, ModelData, AbstractModel, set_savepath, save_model, load_model,
-    ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, none
+    ImageClassificationClass, ImageRegressionClass, BorderClass, ImageSegmentationClass, none
 # Options
-export modify, global_options, options, Options, save_options, load_options
+export change, global_options, options, Options, save_options, load_options
 # GUI data handling
 export fix_QML_types, get_data, get_options, set_data, set_options, get_file, get_folder
 # Channels

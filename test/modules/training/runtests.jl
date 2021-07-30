@@ -8,6 +8,9 @@ training_options.Testing.test_data_fraction = 0.1
 
 set_savepath("models/test.model")
 
+change(training_options)
+
+
 #---CPU-----------------------------------------------------------
 
 @info "CPU tests started"

@@ -23,7 +23,7 @@ FLoops,
 
 import CUDA.CuArray, StatsBase.std
 import ..Classes
-import ..Classes: make_classes, num_classes, get_class_field, get_class_data, 
+import ..Classes: change_classes, num_classes, get_class_field, get_class_data, 
     get_problem_type, get_input_type
 
 # Include functions

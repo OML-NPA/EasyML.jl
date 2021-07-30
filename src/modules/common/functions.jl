@@ -159,11 +159,11 @@ end
 #---Options saving/loading--------------------------------------------------
 
 """
-modify(global_options::GlobalOptions) 
+change(global_options::GlobalOptions) 
 
-Allows to modify `global_options` in a GUI.
+Allows to change `global_options` in a GUI.
 """
-function modify(data::GlobalOptions)
+function change(data::GlobalOptions)
     @qmlfunction(
         max_num_threads,
         get_options,

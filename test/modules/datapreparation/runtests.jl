@@ -8,7 +8,7 @@ cd(@__DIR__)
 #---Main functionality----------------------------------------------------
 
 @testset "Opening options" begin
-    @test begin modify(data_preparation_options); true end
+    @test begin change(data_preparation_options); true end
     rm("options.bson")
 end
 

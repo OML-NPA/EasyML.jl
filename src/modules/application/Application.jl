@@ -23,7 +23,7 @@ FLoops, ProgressMeter,
 
 import CUDA.CuArray, StatsBase.std
 import ..Classes
-import ..Classes: make_classes, num_classes, get_class_field, get_class_data, 
+import ..Classes: change_classes, num_classes, get_class_field, get_class_data, 
     get_problem_type, get_input_type
 
 # Include functions
@@ -34,6 +34,6 @@ include("main.jl")
 include("exported_functions.jl")
 
 export application_options
-export modify_output, get_urls_application, apply, remove_application_data
+export change_output_options, get_urls_application, apply, remove_application_data
 
 end

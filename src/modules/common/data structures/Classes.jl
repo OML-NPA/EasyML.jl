@@ -12,13 +12,16 @@ abstract type AbstractClass end
     name::String = ""
     weight::Float32 = 1
 end
+
 @with_kw mutable struct ImageRegressionClass<:AbstractClass
     name::String = ""
 end
+
 @with_kw mutable struct BorderClass
     enabled::Bool = false
     thickness::Int64 = 3
 end
+
 @with_kw mutable struct ImageSegmentationClass<:AbstractClass
     name::String = ""
     weight::Float32 = 1
