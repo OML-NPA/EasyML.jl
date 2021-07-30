@@ -60,56 +60,21 @@ function get_urls_application_main(application_data::ApplicationData)
     return nothing
 end
 
-function prepare_application_data(norm_func::Function,classes::Vector{ImageClassificationClass},
-        model_data::ModelData,urls::Vector{String})
+function prepare_application_data(norm_func::Function,classes::Union{Vector{T1},Vector{T2},Vector{T3}},
+        model_data::ModelData,urls::Vector{String}) where {T1<:ImageClassificationClass,T2<:ImageRegressionClass,
+        T3<:ImageSegmentationClass}
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
         url = urls[i]
         image = load_image(url)
         if :grayscale in model_data.input_properties
-            data[i] = image_to_gray_float(image)[:,:,:,:]
+            data_raw = image_to_gray_float(image)
         else
-            data[i] = image_to_color_float(image)[:,:,:,:]
+            data_raw = image_to_color_float(image)
         end
-        norm_func(data[i])
-    end
-    data_out = cat(data...,dims=Val(4))
-    return data_out
-end
-
-function prepare_application_data(norm_func::Function,classes::Vector{ImageRegressionClass},
-        model_data::ModelData,urls::Vector{String})
-    num = length(urls)
-    data = Vector{Array{Float32,4}}(undef,length(urls))
-    for i = 1:num
-        url = urls[i]
-        image = load_image(url)
-        image = imresize(image,model_data.input_size[1:2])
-        if :grayscale in model_data.input_properties
-            data[i] = image_to_gray_float(image)[:,:,:,:]
-        else
-            data[i] = image_to_color_float(image)[:,:,:,:]
-        end
-        norm_func(data[i])
-    end
-    data_out = cat(data...,dims=Val(4))
-    return data_out
-end
-
-function prepare_application_data(norm_func::Function,classes::Vector{ImageSegmentationClass},
-        model_data::ModelData,urls::Vector{String})
-    num = length(urls)
-    data = Vector{Array{Float32,4}}(undef,length(urls))
-    for i = 1:num
-        url = urls[i]
-        image = load_image(url)
-        if :grayscale in model_data.input_properties
-            data[i] = image_to_gray_float(image)[:,:,:,:]
-        else
-            data[i] = image_to_color_float(image)[:,:,:,:]
-        end
-        norm_func(data[i])
+        norm_func(data_raw)
+        data[i] = data_raw[:,:,:,:]
     end
     data_out = cat(data...,dims=Val(4))
     return data_out
@@ -559,6 +524,7 @@ function apply_main(model_data::ModelData,all_data::AllData,options::Options,cha
     application_data = all_data.ApplicationData
     application_options = options.ApplicationOptions
     classes = model_data.classes
+    fix_output_options(model_data)
     output_options = model_data.output_options
     use_GPU = false
     if options.GlobalOptions.HardwareResources.allow_GPU
@@ -597,7 +563,6 @@ function apply_main(model_data::ModelData,all_data::AllData,options::Options,cha
     # Send number of iterations
     put!(channels.application_progress,num+sum(length.(urls_batched)))
     # Output information
-    fix_output_options(model_data)
     classes,output_info = get_output_info(classes,output_options)
     # Prepare output
     if problem_type()==:segmentation
