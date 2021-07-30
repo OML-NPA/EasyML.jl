@@ -620,7 +620,7 @@ make_model() = make_model_main(design_data)
 
 function check_model_main(design_data::DesignData)
     model_data_design = design_data.ModelData
-    input = zeros(Float32,model_data.input_size...,1)
+    input = zeros(Float32,model_data_design.input_size...,1)
     try
         output = model_data_design.model(input)
         output_size_temp = size(output)
