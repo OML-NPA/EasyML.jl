@@ -37,8 +37,8 @@ training_elapsed_time() = training_elapsed_time_main(training_plot_data)
 # Creates data sets for training and testing
 function get_sets(norm_func::Function, typed_training_data::T,typed_testing_data::T) where 
         T<:Union{ClassificationData,RegressionData,SegmentationData}
-    norm_func(typed_training_data.Data.data_input)
-    norm_func(typed_testing_data.Data.data_input)
+    map(x -> norm_func(x), typed_training_data.Data.data_input)
+    map(x -> norm_func(x), typed_testing_data.Data.data_input)
     train_set = (typed_training_data.Data.data_input,typed_training_data.Data.data_labels)
     test_set = (typed_testing_data.Data.data_input,typed_testing_data.Data.data_labels)
     return train_set, test_set
