@@ -83,6 +83,9 @@ ApplicationWindow {
                 classModel.append(class_var)
             }
             else if (problemType==2) {
+                if (Julia.get_class_field(ind,"overlap")) { 
+                    return 
+                }
                 var color = Julia.get_class_field(ind,"color")
                 class_var = {
                     "name": Julia.get_class_field(ind,"name"),
@@ -90,7 +93,7 @@ ApplicationWindow {
                     "colorG": color[1],
                     "colorB": color[2]
                 }
-            classModel.append(class_var)
+                classModel.append(class_var)
             }
         }
     }

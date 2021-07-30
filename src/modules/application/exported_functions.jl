@@ -27,7 +27,7 @@ end
 Opens a GUI for addition or modification of output options for classes.
 """
 function change_output_options()
-    local output_type
+    local output_type, num_c
     if isempty(model_data.classes)
         @error "There are no classes. Add classes using 'change_classes()'."
         return nothing
@@ -40,11 +40,12 @@ function change_output_options()
         return nothing
     elseif problem_type()==:segmentation
         output_type = ImageSegmentationOutputOptions
+        num_c = sum(map(x -> (!).(x.overlap),model_data.classes))
     end
     if eltype(model_data.output_options)!=output_type || 
-        length(model_data.output_options)!=length(model_data.classes)
+        length(model_data.output_options)!=num_c
         model_data.output_options = output_type[]
-        for _=1:length(model_data.classes)
+        for _=1:num_c
             push!(model_data.output_options,output_type())
         end
     end
