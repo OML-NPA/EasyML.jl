@@ -41,7 +41,7 @@ function change_output_options()
     elseif problem_type()==:segmentation
         output_type = ImageSegmentationOutputOptions
     end
-    if typeof(model_data.output_options)!=output_type || 
+    if eltype(model_data.output_options)!=output_type || 
         length(model_data.output_options)!=length(model_data.classes)
         model_data.output_options = output_type[]
         for _=1:length(model_data.classes)
