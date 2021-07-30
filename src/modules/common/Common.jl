@@ -48,7 +48,7 @@ include("image_processing.jl")
 export struct_to_dict!, dict_to_struct!, to_struct!
 # Model data
 export model_data, ModelData, AbstractModel, set_savepath, save_model, load_model,
-    ImageClassificationClass, ImageRegressionClass, BorderClass, ImageSegmentationClass, none
+    ImageClassificationClass, ImageRegressionClass, ImageSegmentationClass, none
 # Options
 export modify, global_options, options, Options, save_options, load_options
 # GUI data handling
