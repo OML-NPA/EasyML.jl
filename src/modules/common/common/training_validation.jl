@@ -40,13 +40,18 @@ function accuracy_regression(predicted::A,actual::A) where {T<:Float32,A<:Abstra
 end
 
 function accuracy_segmentation(predicted::A,actual::A) where {T<:Float32,A<:AbstractArray{T}}
-    # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
-    # Calculate accuracy
+    # Calculate correct and incorrect class pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
-    num_correct = convert(Float32,sum(correct_bool))
-    acc = num_correct/prod(size(predicted))
+    dif_bool = xor.(predicted_bool,actual_bool)
+    # Calculate class accuracies
+    sum_correct = convert(Float32,sum(correct_bool))
+    sum_dif = convert(Float32,sum(dif_bool))
+    acc = sum_correct./(sum_correct.+sum_dif)
+    if isnan(acc)
+        return 0f0
+    end
     return acc
 end
 
@@ -64,13 +69,21 @@ end
 
 # Weight accuracy using inverse frequency
 function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T}}
-    # Convert to BitArray
     actual_bool = actual.>0
     predicted_bool = predicted.>0.5
-    # Calculate accuracy
+    # Calculate correct and incorrect class pixels as a BitArray
     correct_bool = predicted_bool .& actual_bool
-    num_correct = convert(Vector{Float32},sum(correct_bool,dims=[1,2,4])[:])
-    acc = sum(ws.*num_correct./prod(size(predicted)[[1,2,4]]))
+    dif_bool = xor.(predicted_bool,actual_bool)
+    # Calculate class accuracies
+    sum_correct_int = calculate_sum(correct_bool)
+    sum_dif_int = calculate_sum(dif_bool)
+    sum_correct = convert(Vector{Float32},sum_correct_int)
+    sum_dif = convert(Vector{Float32},sum_dif_int)
+    classes_accuracy = sum_correct./(sum_correct.+sum_dif)
+    acc = sum(ws.*classes_accuracy)
+    if isnan(acc)
+        return 0f0
+    end
     return acc
 end
 
