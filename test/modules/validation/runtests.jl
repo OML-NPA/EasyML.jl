@@ -28,7 +28,7 @@ for i = 1:2
     @testset "Classfication" begin
         load_model(joinpath(models_dir,"classification.model"))
         @test begin 
-            make_classes()
+            change_classes()
             true
         end
         @test begin 
@@ -47,7 +47,7 @@ for i = 1:2
     @testset "Regression" begin
         load_model(joinpath(models_dir,"regression.model"))
         @test begin 
-            make_classes()
+            change_classes()
             true
         end
         @test begin 
@@ -67,7 +67,7 @@ for i = 1:2
     @testset "Segmentation" begin
         load_model(joinpath(models_dir,"segmentation.model"))
         @test begin 
-            make_classes()
+            change_classes()
             true
         end
         @test begin 
