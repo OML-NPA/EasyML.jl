@@ -131,17 +131,17 @@ function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
         objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Array{Vector{Vector{Float64}}},
         output_options::Vector{ImageSegmentationOutputOptions},num_batch::Int64,
-        num_classes::Int64,num_border::Int64,border::Vector{Bool})
+        num_c::Int64,num_border::Int64,border::Vector{Bool})
     for i = 1:num_batch
         temp_histograms_area = histograms_area[i]
         temp_histograms_volume = histograms_volume[i]
-        for l = 1:num_classes
+        for l = 1:num_c
             current_options = output_options[l]
             area_dist_cond = current_options.Area.area_distribution
             volume_dist_cond = current_options.Volume.volume_distribution
             ind = l
             if border[l]==true
-                ind = l + num_border + num_classes
+                ind = l + num_border + num_c
             end
             if area_dist_cond
                 area_options = current_options.Area
@@ -169,21 +169,21 @@ end
 function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
         output_options::Vector{ImageSegmentationOutputOptions},
-        labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_classes::Int64,
+        labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_c::Int64,
         num_border::Int64,scaling::Float64)
     temp_objs_area = objs_area[cnt]
     temp_objs_volume = objs_volume[cnt]
-    components_vector = Vector{Array{Int64,2}}(undef,num_classes)
-    for l = 1:num_classes
+    components_vector = Vector{Array{Int64,2}}(undef,num_c)
+    for l = 1:num_c
         ind = l
         if border[l]==true
-            ind = l + num_border + num_classes
+            ind = l + num_border + num_c
         end
         mask_current = mask[:,:,ind]
         components = label_components(mask_current,conn(4))
         components_vector[l] = components
     end
-    for l = 1:num_classes
+    for l = 1:num_c
         current_options = output_options[l]
         area_dist_cond = current_options.Area.area_distribution
         area_obj_cond = current_options.Area.obj_area
@@ -193,10 +193,10 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         volume_sum_obj_cond = current_options.Volume.obj_volume_sum
         ind = l
         if border[l]==true
-            ind = l + num_border + num_classes
+            ind = l + num_border + num_c
         end
         mask_current = mask[:,:,ind]
-        
+
         if area_dist_cond || area_obj_cond || area_sum_obj_cond
             temp_objs_area2 = temp_objs_area[l]
             area_values = [0]
@@ -325,25 +325,25 @@ end
 #---Image related functions
 function get_save_image_info(num_dims::Int64,classes::Vector{ImageSegmentationClass},
         output_options::Vector{ImageSegmentationOutputOptions},border::Vector{Bool})
-    num_classes = length(border)
+    num_c = length(border)
     num_border = sum(border)
     logical_inds = BitArray{1}(undef,num_dims)
-    img_names = Vector{String}(undef,num_classes+num_border*2)
-    for a = 1:num_classes
-        class = classes[a]
+    img_names = Vector{String}(undef,num_c+num_border*2)
+    for i = 1:num_c
+        class = classes[i]
         class_name = class.name
-        if output_options[a].Mask.mask
-            logical_inds[a] = true
-            img_names[a] = class_name
+        if output_options[i].Mask.mask
+            logical_inds[i] = true
+            img_names[i] = class_name
         end
         if class.BorderClass.enabled
-            if output_options[a].Mask.mask_border
-                ind = a + num_classes
+            if output_options[i].Mask.mask_border
+                ind = i + num_c
                 logical_inds[ind] = true
                 img_names[ind] = string(class_name," (border)")
             end
-            if output_options[a].Mask.mask_applied_border
-                ind = num_classes + num_border + a
+            if output_options[i].Mask.mask_applied_border
+                ind = num_c + num_border + i
                 logical_inds[ind] = true
                 img_names[ind] = string(class_name," (applied border)")
             end
