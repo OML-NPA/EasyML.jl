@@ -596,10 +596,6 @@ function apply_main(model_data::ModelData,all_data::AllData,options::Options,cha
     t = Threads.@spawn get_output(norm_func,classes,num,urls_batched,model_data,
         num_slices_val,offset_val,use_GPU,data_channel,channels)
     push!(application_data.tasks,t)
-    num_border,labels_color,labels_incl,apply_border,border,
-        log_area_obj,log_area_obj_sum,log_area_dist,log_volume_obj,
-        log_volume_obj_sum,log_volume_dist,num_obj_area,num_obj_area_sum,
-        num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume = output_info
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext_string,img_ext,data_ext_string,data_ext,scaling,apply_by_file,data_channel,channels)
