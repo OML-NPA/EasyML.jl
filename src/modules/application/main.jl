@@ -378,6 +378,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         img_ext_string::String,img_ext::Symbol,data_ext_string::String,data_ext::Symbol,
         scaling::Float64,apply_by_file::Bool,data_channel::Channel{Tuple{Int64,BitArray{4}}},channels::Channels)
     num_c = length(classes)
+    num_c_adj = num_c + sum(map(x -> sum((!).(isempty.(x.parents))),classes))
     for k=1:num
         folder = folders[k]
         filenames_batch = filenames_batched[k]
@@ -398,11 +399,11 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         objs_volume_sum = Vector{Vector{Float64}}(undef,num_init)
         histograms_area = Vector{Vector{Histogram}}(undef,num_init)
         histograms_volume = Vector{Vector{Histogram}}(undef,num_init)
-        fill_no_ref!(objs_area,Vector{Vector{Float64}}(undef,num_c))
+        fill_no_ref!(objs_area,Vector{Vector{Float64}}(undef,num_c_adj))
         for i = 1:num_init
             fill_no_ref!(objs_area[i],Float64[])
         end
-        fill_no_ref!(objs_volume,Vector{Vector{Float64}}(undef,num_c))
+        fill_no_ref!(objs_volume,Vector{Vector{Float64}}(undef,num_c_adj))
         for i = 1:num_init
             fill_no_ref!(objs_volume[i],Float64[])
         end
@@ -438,24 +439,30 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         end
         if num_obj_area_sum>0 
             for i = 1:num_init
+                offset = 0
                 for j = 1:num_c
                     if output_options[j].Area.obj_area_sum
-                        objs_area_sum[i][j] = sum(objs_area[i][j])
+                        objs_area_sum[i][j] = sum(objs_area[i][j+offset])
                     end
+                    l_parents = length(labels_incl[j])
+                    offset += l_parents
                 end
             end
         end
         if num_obj_volume_sum>0 
             for i = 1:num_init
+                offset = 0
                 for j = 1:num_c
                     if output_options[j].Volume.obj_volume_sum
                         objs_volume_sum[i][j] = sum(objs_volume[i][j])
                     end
+                    l_parents = length(labels_incl[j])
+                    offset += l_parents
                 end
             end
         end
         data_to_histograms(histograms_area,histograms_volume,objs_area,objs_volume,
-        output_options,num_init,num_c,num_border,border)
+        output_options,num_init,num_c,labels_incl)
         # Export data
         if apply_by_file
             filenames = reduce(vcat,filenames_batch)
@@ -463,14 +470,11 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
             filenames = [folder]
         end
         export_histograms(histograms_area,histograms_volume,classes,num_init,num_dist_area,
-            num_dist_volume,log_area_dist,log_volume_dist,
-            savepath,filenames,data_ext_string,data_ext)
-        export_objs("Objects",objs_area,objs_volume,classes,num_init,num_obj_area,
-            num_obj_volume,log_area_obj,log_volume_obj,
-            savepath,filenames,data_ext_string,data_ext)
-        export_objs("Objects sum",objs_area_sum,objs_volume_sum,classes,num_init,num_obj_area_sum,
-            num_obj_volume_sum,log_area_obj_sum,log_volume_obj_sum,
-            savepath,filenames,data_ext_string,data_ext)
+            num_dist_volume,log_area_dist,log_volume_dist,savepath,filenames,data_ext_string,data_ext)
+        export_objs("Objects",objs_area,objs_volume,classes,num_init,num_obj_area,num_obj_volume,
+            log_area_obj,log_volume_obj,labels_incl,savepath,filenames,data_ext_string,data_ext)
+        export_objs("Objects sum",objs_area_sum,objs_volume_sum,classes,num_init,num_obj_area_sum,num_obj_volume_sum,
+            log_area_obj_sum,log_volume_obj_sum,labels_incl,savepath,filenames,data_ext_string,data_ext)
         put!(channels.application_progress,1)
     end
     return nothing
@@ -489,6 +493,7 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
     classes = classes[class_inds]
     labels_color = labels_color[class_inds]
     labels_incl = labels_incl[class_inds]
+    num_parents = sum(length.(labels_incl))
     num_border = sum(border)
     apply_border = num_border>0
     log_area_obj = map(x->x.Area.obj_area,output_options)
@@ -497,10 +502,10 @@ function get_output_info(classes::Vector{ImageSegmentationClass},output_options:
     log_volume_obj = map(x->x.Volume.obj_volume,output_options)
     log_volume_obj_sum = map(x->x.Volume.obj_volume_sum,output_options)
     log_volume_dist = map(x->x.Volume.volume_distribution,output_options)
-    num_obj_area = count(log_area_obj)
+    num_obj_area = count(log_area_obj) + num_parents
     num_obj_area_sum = count(log_area_obj_sum)
     num_dist_area = count(log_area_dist)
-    num_obj_volume = count(log_volume_obj)
+    num_obj_volume = count(log_volume_obj) + num_parents
     num_obj_volume_sum = count(log_volume_obj_sum)
     num_dist_volume = count(log_volume_dist)
     return classes,(num_border,labels_color,labels_incl,apply_border,border,
@@ -516,6 +521,20 @@ function fix_output_options(model_data)
         model_data.output_options = ImageRegressionOutputOptions[]
     end
     return nothing
+end
+
+function get_data_ext(ext::Symbol)
+    exts = [:csv,:xlsx,:json,:bson]
+    ind = findfirst(exts.==ext)
+    ext_string = [".csv",".xlsx",".json",".bson"]
+    return ext,ext_string[ind]
+end
+
+function get_image_ext(ext::Symbol)
+    exts = [:png,:tiff,:bson]
+    ind = findfirst(exts.==ext)
+    ext_string = [".png",".tiff",".bson"]
+    return ext,ext_string[ind]
 end
 
 # Main function that performs application
@@ -577,6 +596,10 @@ function apply_main(model_data::ModelData,all_data::AllData,options::Options,cha
     t = Threads.@spawn get_output(norm_func,classes,num,urls_batched,model_data,
         num_slices_val,offset_val,use_GPU,data_channel,channels)
     push!(application_data.tasks,t)
+    num_border,labels_color,labels_incl,apply_border,border,
+        log_area_obj,log_area_obj_sum,log_area_dist,log_volume_obj,
+        log_volume_obj_sum,log_volume_dist,num_obj_area,num_obj_area_sum,
+        num_dist_area,num_obj_volume,num_obj_volume_sum,num_dist_volume = output_info
     # Process output and save data
     process_output(classes,output_options,savepath_main,folders,filenames_batched,num,output_info...,
         img_ext_string,img_ext,data_ext_string,data_ext,scaling,apply_by_file,data_channel,channels)

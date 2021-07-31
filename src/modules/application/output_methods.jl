@@ -8,21 +8,23 @@ function objects_area(mask_current::BitArray{2},components_vector::Vector{Array{
         labels_incl::Vector{Vector{Int64}},scaling::Float64,l::Int64)
     components = components_vector[l]
     scaling = scaling^2
-    incl_bool = map(x->any(x.==l),labels_incl)
-    ind = findfirst(incl_bool)
-    if isnothing(ind)
-        area = component_lengths(components)[2:end]
-        area_out = convert(Vector{Float64},area)./scaling
-    else
-        components_parent = components_vector[ind]
-        num = maximum(components_parent)
-        area_out = Vector{Float64}(undef,num)
-        for i = 1:num
-            ind_bool = components_parent.==i
-            area_out[i] = count(mask_current[ind_bool])./scaling
+    parent_inds = labels_incl[l]
+    area = component_lengths(components)[2:end]
+    areas_out = [convert(Vector{Float64},area)./scaling]
+    if !isempty(parent_inds)
+        num_parents = length(parent_inds)
+        for i=1:num_parents
+            num_components = length(area)
+            components_parent = components_vector[parent_inds[i]]
+            obj_parent_inds = Vector{Int64}(undef,num_components)
+            for j=1:num_components
+                ind_bool = components.==j
+                obj_parent_inds[j] = maximum(components_parent[ind_bool])
+            end
+            push!(areas_out,obj_parent_inds)
         end
     end
-    return area_out
+    return areas_out
 end
 
 # Makes a 3D representation of a 2D object based on optimising circularity
@@ -52,49 +54,144 @@ function objects_volume(objects_mask::BitArray{2},components_vector::Vector{Arra
     volume_model = func2D_to_3D(objects_mask)
     scaling = scaling^3
     num = maximum(components)
-    incl_bool = map(x->any(x.==l),labels_incl)
-    ind = findfirst(incl_bool)
-    
-    if isnothing(ind)
-        num = maximum(components)
-        volumes_out = Vector{Float64}(undef,num)
-        for i = 1:num
-            logical_inds = components.==i
-            pixels = volume_model[logical_inds]
-            volumes_out[i] = 2*sum(pixels)/scaling
-        end
-    else
-        components_parent = components_vector[ind]
-        num = maximum(components_parent)
-        volumes_out = Vector{Float64}(undef,num)
-        for i = 1:num
-            ind_bool = components_parent.==i
-            pixels = volume_model[ind_bool]
-            volumes_out[i] = 2*sum(pixels)/scaling
+    parent_inds = labels_incl[l]
+    num = maximum(components)
+    volumes_out_temp = Vector{Float64}(undef,num)
+    for i = 1:num
+        logical_inds = components.==i
+        pixels = volume_model[logical_inds]
+        volumes_out_temp[i] = 2*sum(pixels)/scaling
+    end
+    volumes_out = [volumes_out_temp]
+    if !isempty(parent_inds)
+        num_parents = length(parent_inds)
+        for i=1:num_parents
+            num_components = length(area)
+            components_parent = components_vector[parent_inds[i]]
+            obj_parent_inds = Vector{Int64}(undef,num_components)
+            for j=1:num_components
+                ind_bool = components.==j
+                obj_parent_inds[j] = maximum(components_parent[ind_bool])
+            end
+            push!(volumes_out,obj_parent_inds)
         end
     end
     return volumes_out
 end
 
-function get_dataframe_names(names::Vector{String},type::String,
-        Bools::Vector{Bool},datatype::Symbol)
-    names_x = String[]
-    inds = findall(Bools)
-    if datatype==:dists
-        for i in inds
-            name_current = names[i]
-            name_edges = string(name_current,"_",type,"_edges")
-            name_weights = string(name_current,"_",type,"_weights")
-            push!(names_x,name_edges,name_weights)
-        end
-    elseif datatype==:objs
-        for i in inds
-            name_current = names[i]
-            name = string(name_current,"_",type)
-            push!(names_x,name)
+function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
+        histograms_volume::Vector{Vector{Histogram}},
+        objs_area::Vector{Vector{Vector{Float64}}},
+        objs_volume::Array{Vector{Vector{Float64}}},
+        output_options::Vector{ImageSegmentationOutputOptions},num_batch::Int64,
+        num_c::Int64,labels_incl::Vector{Vector{Int64}})
+    for i = 1:num_batch
+        temp_histograms_area = histograms_area[i]
+        temp_histograms_volume = histograms_volume[i]
+        offset = 0
+        for l = 1:num_c
+            current_options = output_options[l]
+            area_dist_cond = current_options.Area.area_distribution
+            volume_dist_cond = current_options.Volume.volume_distribution
+            if area_dist_cond
+                area_options = current_options.Area
+                area_values = objs_area[i][l+offset]
+                if isempty(area_values)
+                    @warn "No objects to export for area."
+                else
+                    temp_histograms_area[l] = make_histogram(area_values,area_options)
+                end
+            end
+            if volume_dist_cond
+                volume_options = current_options.Volume
+                volume_values = objs_volume[i][l+offset]
+                if isempty(area_values)
+                    @warn "No objects to export for volume."
+                else
+                    temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
+                end
+            end
+            l_parents = length(labels_incl[j])
+            offset += l_parents
         end
     end
-    return names_x
+    return nothing
+end
+
+function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
+        objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
+        output_options::Vector{ImageSegmentationOutputOptions},
+        labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_c::Int64,
+        num_border::Int64,scaling::Float64)
+    temp_objs_area = objs_area[cnt]
+    temp_objs_volume = objs_volume[cnt]
+    components_vector = Vector{Array{Int64,2}}(undef,num_c)
+    for l = 1:num_c
+        ind = l
+        if border[l]==true
+            ind = l + num_border + num_c
+        end
+        mask_current = mask[:,:,ind]
+        components = label_components(mask_current,conn(4))
+        components_vector[l] = components
+    end
+    cnt = 1
+    for l = 1:num_c
+        current_options = output_options[l]
+        area_dist_cond = current_options.Area.area_distribution
+        area_obj_cond = current_options.Area.obj_area
+        area_sum_obj_cond = current_options.Area.obj_area_sum
+        volume_dist_cond = current_options.Volume.volume_distribution
+        volume_obj_cond = current_options.Volume.obj_volume
+        volume_sum_obj_cond = current_options.Volume.obj_volume_sum
+        ind = l
+        if border[l]==true
+            ind = l + num_border + num_c
+        end
+        mask_current = mask[:,:,ind]
+        cnt_add1 = -1
+        if area_dist_cond || area_obj_cond || area_sum_obj_cond
+            area_values = objects_area(mask_current,components_vector,
+                labels_incl,scaling,l)
+            if area_obj_cond || area_sum_obj_cond
+                for i = 1:length(area_values)
+                    push!(temp_objs_area[cnt-1+i],area_values[i]...)
+                    cnt_add1+=1
+                end
+            end
+        end
+        cnt_add2 = -1
+        if volume_dist_cond || volume_obj_cond || volume_sum_obj_cond
+            volume_values = objects_volume(mask_current,components_vector,
+                labels_incl,scaling,l)
+            if volume_obj_cond || volume_sum_obj_cond
+                for i = 1:length(volume_values)
+                    push!(temp_objs_volume[cnt-1+i],volume_values[i]...)
+                    cnt_add2+=1
+                end
+            end
+        end
+        cnt = cnt + 1 + max(cnt_add1,cnt_add2,0)
+    end
+    return nothing
+end
+
+function make_histogram(values::Vector{<:Real}, options::Union{OutputArea,OutputVolume})
+    if options.binning==:auto
+        h = fit(Histogram, values)
+    elseif options.binning==:number_of_bins
+        maxval = maximum(values)
+        minval = minimum(values)
+        dif = maxval-minval
+        step = dif/(options.value-1)
+        bins = minval:step:maxval
+        h = fit(Histogram, values,bins)
+    else # options.binning==:bin_width
+        num = round(maximum(values)/options.value)
+        h = fit(Histogram, values, nbins=num)
+    end
+    h = normalize(h, mode=options.normalization)
+    return h
 end
 
 function histograms_to_dataframe(df::DataFrame,histograms::Vector{Histogram},
@@ -126,121 +223,24 @@ function objs_to_dataframe(df::DataFrame,objs::Vector{Float64},
     df[1,start:finish] .= objs
 end
 
-function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
-        histograms_volume::Vector{Vector{Histogram}},
-        objs_area::Vector{Vector{Vector{Float64}}},
-        objs_volume::Array{Vector{Vector{Float64}}},
-        output_options::Vector{ImageSegmentationOutputOptions},num_batch::Int64,
-        num_c::Int64,num_border::Int64,border::Vector{Bool})
-    for i = 1:num_batch
-        temp_histograms_area = histograms_area[i]
-        temp_histograms_volume = histograms_volume[i]
-        for l = 1:num_c
-            current_options = output_options[l]
-            area_dist_cond = current_options.Area.area_distribution
-            volume_dist_cond = current_options.Volume.volume_distribution
-            ind = l
-            if border[l]==true
-                ind = l + num_border + num_c
-            end
-            if area_dist_cond
-                area_options = current_options.Area
-                area_values = objs_area[i][l]
-                if isempty(area_values)
-                    @warn "No objects to export for area."
-                else
-                    temp_histograms_area[l] = make_histogram(area_values,area_options)
-                end
-            end
-            if volume_dist_cond
-                volume_options = current_options.Volume
-                volume_values = objs_volume[i][l]
-                if isempty(area_values)
-                    @warn "No objects to export for volume."
-                else
-                    temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
-                end
-            end
-        end
+function get_dataframe_dists_names(names::Vector{String},type::String,
+        log_dist::Vector{Bool})
+    names_x = String[]
+    inds = findall(log_dist)
+    for i in inds
+        name_current = names[i]
+        name_edges = string(name_current,"_",type,"_edges")
+        name_weights = string(name_current,"_",type,"_weights")
+        push!(names_x,name_edges,name_weights)
     end
-    return nothing
-end
-
-function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
-        objs_volume::Vector{Vector{Vector{Float64}}},cnt::Int64,mask::BitArray{3},
-        output_options::Vector{ImageSegmentationOutputOptions},
-        labels_incl::Vector{Vector{Int64}},border::Vector{Bool},num_c::Int64,
-        num_border::Int64,scaling::Float64)
-    temp_objs_area = objs_area[cnt]
-    temp_objs_volume = objs_volume[cnt]
-    components_vector = Vector{Array{Int64,2}}(undef,num_c)
-    for l = 1:num_c
-        ind = l
-        if border[l]==true
-            ind = l + num_border + num_c
-        end
-        mask_current = mask[:,:,ind]
-        components = label_components(mask_current,conn(4))
-        components_vector[l] = components
-    end
-    for l = 1:num_c
-        current_options = output_options[l]
-        area_dist_cond = current_options.Area.area_distribution
-        area_obj_cond = current_options.Area.obj_area
-        area_sum_obj_cond = current_options.Area.obj_area_sum
-        volume_dist_cond = current_options.Volume.volume_distribution
-        volume_obj_cond = current_options.Volume.obj_volume
-        volume_sum_obj_cond = current_options.Volume.obj_volume_sum
-        ind = l
-        if border[l]==true
-            ind = l + num_border + num_c
-        end
-        mask_current = mask[:,:,ind]
-
-        if area_dist_cond || area_obj_cond || area_sum_obj_cond
-            temp_objs_area2 = temp_objs_area[l]
-            area_values = [0]
-            area_values = objects_area(mask_current,
-                components_vector,labels_incl,scaling,l)
-            if area_obj_cond || area_sum_obj_cond
-                push!(temp_objs_area2,area_values...)
-            end
-        end
-        if volume_dist_cond || volume_obj_cond || volume_sum_obj_cond
-            temp_objs_volume2 = temp_objs_volume[l]
-            volume_values = objects_volume(mask_current,
-                components_vector,labels_incl,scaling,l)
-            if volume_obj_cond || volume_sum_obj_cond
-                push!(temp_objs_volume2,volume_values...)
-            end
-        end
-    end
-    return nothing
-end
-
-function make_histogram(values::Vector{<:Real}, options::Union{OutputArea,OutputVolume})
-    if options.binning==:auto
-        h = fit(Histogram, values)
-    elseif options.binning==:number_of_bins
-        maxval = maximum(values)
-        minval = minimum(values)
-        dif = maxval-minval
-        step = dif/(options.value-1)
-        bins = minval:step:maxval
-        h = fit(Histogram, values,bins)
-    else # options.binning==:bin_width
-        num = round(maximum(values)/options.value)
-        h = fit(Histogram, values, nbins=num)
-    end
-    h = normalize(h, mode=options.normalization)
-    return h
+    return names_x
 end
 
 function export_histograms(histograms_area::Vector{Vector{Histogram}},
-        histograms_volume::Vector{Vector{Histogram}},classes::Vector{ImageSegmentationClass},num::Int64,
-        num_dist_area::Int64,num_dist_volume::Int64,
-        log_area_dist::Vector{Bool},log_volume_dist::Vector{Bool},savepath::String,
-        filenames::Vector{String},data_ext_string::String,data_ext::Symbol)
+        histograms_volume::Vector{Vector{Histogram}},classes::Vector{ImageSegmentationClass},
+        num::Int64,num_dist_area::Int64,num_dist_volume::Int64,log_area_dist::Vector{Bool},
+        log_volume_dist::Vector{Bool},savepath::String,filenames::Vector{String},
+        data_ext_string::String,data_ext::Symbol)
     num_cols_dist = num_dist_area + num_dist_volume
     if num_cols_dist==0
         return nothing
@@ -270,8 +270,8 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
         offset = 2*num_dist_area
         histograms_to_dataframe(df_dists,histogram_volume,num_dist_volume,offset)
         names = map(x->x.name,classes)
-        names_area = get_dataframe_names(names,"area",log_area_dist,:dists)
-        names_volume = get_dataframe_names(names,"volume",log_volume_dist,:dists)
+        names_area = get_dataframe_names(names,"area",[[]],log_area_dist)
+        names_volume = get_dataframe_names(names,"volume",[[]],log_volume_dist)
         names_all = vcat(names_area,names_volume)
         rename!(df_dists, Symbol.(names_all))
         fname = filenames[i]
@@ -281,10 +281,41 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
     return nothing
 end
 
+function get_dataframe_objs_names(names::Vector{String},type::String,
+        labels_incl::Vector{Vector{Int64}},log_obj::Vector{Bool})
+    names_x = String[]
+    inds = findall(log_obj)
+    for i in inds
+        name_current = names[i]
+        name = string(name_current,"_",type)
+        push!(names_x,name)
+        parents = labels_incl[i]
+        num_parents = length(parents)
+        for j=1:num_parents
+            parent = names[parents[j]]
+            name_parent_ind = string(name,"_",parent,"_index")
+            push!(names_x,name_parent_ind)
+        end
+    end
+    return names_x
+end
+
+function get_dataframe_objs_sum_names(names::Vector{String},type::String,
+        log_obj::Vector{Bool})
+    names_x = String[]
+    inds = findall(log_obj)
+    for i in inds
+        name_current = names[i]
+        name = string(name_current,"_",type)
+        push!(names_x,name)
+    end
+    return names_x
+end
+type_name = "Objects"
 function export_objs(type_name::String,objs_area::Vector,
         objs_volume::Vector,classes::Vector{ImageSegmentationClass},
-        num::Int64,num_obj_area::Int64,num_obj_volume::Int64,
-        log_area_obj::Vector{Bool},log_volume_obj::Vector{Bool},savepath::String,
+        num::Int64,num_obj_area::Int64,num_obj_volume::Int64,log_area_obj::Vector{Bool},
+        log_volume_obj::Vector{Bool},labels_incl::Vector{Vector{Int64}},savepath::String,
         filenames::Vector{String},data_ext_string::String,data_ext::Symbol)
     num_cols_obj = num_obj_area + num_obj_volume
     if num_cols_obj==0
@@ -311,8 +342,13 @@ function export_objs(type_name::String,objs_area::Vector,
         offset = num_obj_area
         objs_to_dataframe(df_objs,obj_volume,num_obj_volume,offset)
         names = map(x->x.name,classes)
-        names_area = get_dataframe_names(names,"area",log_area_obj,:objs)
-        names_volume = get_dataframe_names(names,"volume",log_volume_obj,:objs)
+        if type_name=="Objects"
+            names_area = get_dataframe_objs_names(names,"area",labels_incl,log_area_obj)
+            names_volume = get_dataframe_objs_names(names,"volume",labels_incl,log_volume_obj)
+        else
+            names_area = get_dataframe_objs_sum_names(names,"area",log_area_obj)
+            names_volume = get_dataframe_objs_sum_names(names,"volume",log_volume_obj)
+        end
         names_all = vcat(names_area,names_volume)
         rename!(df_objs, Symbol.(names_all))
         fname = filenames[i]
@@ -385,21 +421,6 @@ function mask_to_img(mask::BitArray{3},classes::Vector{ImageSegmentationClass},
         save(mask_RGB,path,name,sym_ext)
     end
     return nothing
-end
-
-#---Saving
-function get_data_ext(ext::Symbol)
-    exts = [:csv,:xlsx,:json,:bson]
-    ind = findfirst(exts.==ext)
-    ext_string = [".csv",".xlsx",".json",".bson"]
-    return ext,ext_string[ind]
-end
-
-function get_image_ext(ext::Symbol)
-    exts = [:png,:tiff,:bson]
-    ind = findfirst(exts.==ext)
-    ext_string = [".png",".tiff",".bson"]
-    return ext,ext_string[ind]
 end
 
 function save(data,path::String,name::String,ext::Symbol)
