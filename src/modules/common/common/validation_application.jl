@@ -1,7 +1,7 @@
 
 #--- Applying a neural network
 # Getting a slice and its information
-function prepare_data(input_data::Union{Array{Float32,4},CuArray{Float32,4}},ind_max::Int64,
+function prepare_input_data(input_data::Union{Array{Float32,4},CuArray{Float32,4}},ind_max::Int64,
         max_value::Int64,offset::Int64,num_slices::Int64,ind_split::Int64,j::Int64)
     start_ind = 1 + (j-1)*ind_split
     if j==num_slices
@@ -60,7 +60,7 @@ function accum_slices(model::Chain,input_data::T,
     predicted = Vector{T}(undef,0)
     for j = 1:num_slices
         temp_data,correct_size,offset_add =
-            prepare_data(input_data,ind_max,max_value,offset,num_slices,ind_split,j)
+            prepare_input_data(input_data,ind_max,max_value,offset,num_slices,ind_split,j)
         temp_predicted = model(temp_data)
         temp_predicted = fix_size(temp_predicted,num_slices,correct_size,ind_max,offset_add,j)
         push!(predicted,temp_predicted)
@@ -155,8 +155,17 @@ end
 
 
 #---Padding
-same(sizes::NTuple{N,Int64},vect::Array{T}) where {N,T} = ones(T,sizes).*vect
-same(sizes::NTuple{N,Int64},vect::CUDA.CuArray{T}) where {N,T} = CUDA.ones(T,sizes).*vect
+same(vect::Array{T},row::Int64,col::Int64) where T = repeat(vect,row,col)
+
+function repeatCUDA(vect::CuArray,row::Int64,col::Int64)
+    if row!=1
+        array = reduce(vcat,repeat([vect],row,col))
+    else
+        array = reduce(hcat,repeat([vect],row,col))
+    end
+    return array
+end
+same(vect::CuArray{T},row::Int64,col::Int64) where T = repeatCUDA(vect,row,col)
 
 function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:AbstractArray{<:AbstractFloat, 4}
     div_result = padding./2
@@ -166,33 +175,25 @@ function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Abstr
         accum = Vector{A}(undef,0)
         for i in 1:size(array,3)
             temp_array = array[:,:,i,:,:]
-            vec1 = collect(temp_array[1,:]')
-            vec2 = collect(temp_array[end,:]')
-            s_ar2 = size(temp_array,2)
-            s1 = (leftpad[1],s_ar2,1,1)
-            s2 = (rightpad[1],s_ar2,1,1)
-            output_array = vcat(fun(s1,vec1),temp_array,fun(s2,vec2))
-            push!(accum,output_array)
+            vec1 = collect(temp_array[1,:]')[:,:,:,:]
+            vec2 = collect(temp_array[end,:]')[:,:,:,:]
+            temp_array = vcat(fun(vec1,leftpad[1],1),array,fun(vec2,rightpad[1],1))
+            push!(accum,temp_array)
         end
-        final_array = cat(accum...,dims=Val(3))
-    else
-        final_array = array
+        array = cat(accum...,dims=Val(3))
     end
     if padding[2]!=0
         accum = Vector{A}(undef,0)
-        for i in 1:size(final_array,3)   
-            temp_array = final_array[:,:,i,:,:]
-            vec1 = temp_array[:,1]
-            vec2 = temp_array[:,end]
-            s_ar1 = size(temp_array,1)
-            s1 = (s_ar1,leftpad[2],1,1)
-            s2 = (s_ar1,rightpad[2],1,1)
-            output_array = hcat(fun(s1,vec1),temp_array,fun(s2,vec2))
-            push!(accum,output_array)
+        for i in 1:size(array,3)   
+            temp_array = array[:,:,i,:,:]
+            vec1 = temp_array[:,1,:,:,:]
+            vec2 = temp_array[:,end,:,:,:]
+            temp_array = hcat(fun(vec1,1,leftpad[2]),temp_array,fun(vec2,1,rightpad[2]))
+            push!(accum,temp_array)
         end
-        final_array = cat(accum...,dims=Val(3))
+        array = cat(accum...,dims=Val(3))
     end
-    return final_array
+    return array
 end
 
 function pad(array::A,padding::NTuple{2,Int64},
@@ -210,21 +211,69 @@ function pad(array::A,padding::NTuple{2,Int64},
             output_array = vcat(fun(T,s1),temp_array,fun(T,s2))
             push!(accum,output_array)
         end
-        final_array = cat(accum,dims=Val(3))
-    else
-        final_array = array
+        array = cat(accum,dims=Val(3))
     end
     if padding[2]!=0
         accum = Vector{A}(undef,0)
-        for i in 1:size(final_array,3)   
-            temp_array = final_array[:,:,i,:,:]
+        for i in 1:size(array,3)   
+            temp_array = array[:,:,i,:,:]
             s_ar1 = size(temp_array,1)
             s1 = (s_ar1,leftpad[2],1,1)
             s2 = (s_ar1,rightpad[2],1,1)
             output_array = hcat(fun(T,s1),temp_array,fun(T,s2))
             push!(accum,output_array)
         end
-        final_array = cat(accum,dims=Val(3))
+        array = cat(accum,dims=Val(3))
     end
-    return final_array
+    return array
+end
+
+function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Matrix
+    div_result = padding./2
+    leftpad = Int64.(floor.(div_result))
+    rightpad = Int64.(ceil.(div_result))
+    if padding[1]!=0
+        vec1 = collect(array[1,:]')
+        vec2 = collect(array[end,:]')
+        array = vcat(fun(vec1,leftpad[1],1),array,fun(vec2,rightpad[1],1))
+    end
+    if padding[2]!=0
+        vec1 = array[:,1]
+        vec2 = array[:,end]
+        array = hcat(fun(vec1,1,leftpad[2]),array,fun(vec2,1,rightpad[2]))
+    end
+    return array
+end
+
+function pad(array::A,padding::NTuple{2,Int64},
+        fun::Union{typeof(zeros),typeof(ones)}) where {T,A<:Matrix{T}}
+    div_result = padding./2
+    leftpad = Int64.(floor.(div_result))
+    rightpad = Int64.(ceil.(div_result))
+    if padding[1]!=0
+        s_ar2 = size(array,2)
+        s1 = (leftpad[1],s_ar2)
+        s2 = (rightpad[1],s_ar2)
+        array = vcat(fun(T,s1),array,fun(T,s2))
+    end
+    if padding[2]!=0
+        s_ar1 = size(array,1)
+        s1 = (s_ar1,leftpad[2])
+        s2 = (s_ar1,rightpad[2])
+        array = hcat(fun(T,s1),array,fun(T,s2))
+    end
+    return array
+end
+
+function fix_image_size(model_data::ModelData,img::Matrix)
+    im_size = size(img)
+    ratio_needed = model_data.input_size[1]/model_data.input_size[2]
+    pad_num = convert(Int64,round(im_size[1]/ratio_needed - im_size[2]))
+    if pad_num>0
+        img = pad(img,(0,pad_num),zeros)
+    else
+        img = pad(img,(-pad_num,0),zeros)
+    end
+    img = imresize(img,model_data.input_size[1:2])
+    return img
 end

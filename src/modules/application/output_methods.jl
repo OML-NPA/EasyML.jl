@@ -53,9 +53,8 @@ function objects_volume(objects_mask::BitArray{2},components_vector::Vector{Arra
     components = components_vector[l]
     volume_model = func2D_to_3D(objects_mask)
     scaling = scaling^3
-    num = maximum(components)
+    num_components = maximum(components)
     parent_inds = labels_incl[l]
-    num = maximum(components)
     volumes_out_temp = Vector{Float64}(undef,num)
     for i = 1:num
         logical_inds = components.==i
@@ -66,7 +65,6 @@ function objects_volume(objects_mask::BitArray{2},components_vector::Vector{Arra
     if !isempty(parent_inds)
         num_parents = length(parent_inds)
         for i=1:num_parents
-            num_components = length(area)
             components_parent = components_vector[parent_inds[i]]
             obj_parent_inds = Vector{Int64}(undef,num_components)
             for j=1:num_components
@@ -111,7 +109,7 @@ function data_to_histograms(histograms_area::Vector{Vector{Histogram}},
                     temp_histograms_volume[l] = make_histogram(volume_values,volume_options)
                 end
             end
-            l_parents = length(labels_incl[j])
+            l_parents = length(labels_incl[l])
             offset += l_parents
         end
     end

@@ -60,14 +60,36 @@ function get_urls_application_main(application_data::ApplicationData)
     return nothing
 end
 
-function prepare_application_data(norm_func::Function,classes::Union{Vector{T1},Vector{T2},Vector{T3}},
-        model_data::ModelData,urls::Vector{String}) where {T1<:ImageClassificationClass,T2<:ImageRegressionClass,
+function prepare_application_data(norm_func::Function,classes::Union{Vector{T1},Vector{T3}},
+        model_data::ModelData,urls::Vector{String}) where {T1<:ImageClassificationClass,
         T3<:ImageSegmentationClass}
     num = length(urls)
     data = Vector{Array{Float32,4}}(undef,length(urls))
     for i = 1:num
         url = urls[i]
         image = load_image(url)
+        if :grayscale in model_data.input_properties
+            data_raw = image_to_gray_float(image)
+        else
+            data_raw = image_to_color_float(image)
+        end
+        norm_func(data_raw)
+        data[i] = data_raw[:,:,:,:]
+    end
+    data_out = cat(data...,dims=Val(4))
+    return data_out
+end
+
+function prepare_application_data(norm_func::Function,classes::Vector{ImageRegressionClass},
+        model_data::ModelData,urls::Vector{String})
+    num = length(urls)
+    data = Vector{Array{Float32,4}}(undef,length(urls))
+    for i = 1:num
+        url = urls[i]
+        image = load_image(url)
+        if size(image)!=model_data.input_size[1:2]
+            image = fix_image_size(model_data,image)
+        end
         if :grayscale in model_data.input_properties
             data_raw = image_to_gray_float(image)
         else
@@ -260,10 +282,10 @@ function run_iteration(classes::Vector{ImageSegmentationClass},output_options::V
         # Make and export images
         mask_to_img(mask,classes,output_options,labels_color,border,savepath,filename,img_ext_string,img_ext)
         # Make data out of masks
-        mask_to_data(objs_area,objs_volume,cnt,mask,output_options,labels_incl,border,
-            num_c,num_border,scaling)
+        mask_to_data(objs_area,objs_volume,cnt,mask,output_options,labels_incl,border,num_c,num_border,scaling)
     end
     put!(channels.application_progress,1)
+    return nothing
 end
 
 function process_output(classes::Vector{ImageClassificationClass},output_options::Vector{ImageClassificationOutputOptions},
