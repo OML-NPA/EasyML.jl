@@ -5,6 +5,8 @@ import EasyML.Training
 cd(@__DIR__)
 
 training_options.Testing.test_data_fraction = 0.1
+model_data.normalization.f = EasyML.none
+model_data.normalization.args = ()
 
 set_savepath("models/test.model")
 

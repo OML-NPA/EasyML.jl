@@ -55,8 +55,10 @@ end
 function prepare_validation_data(classes::Vector{ImageClassificationClass},
         norm_func::Function,model_data::ModelData,ind::Int64,validation_data::ValidationData)
     local data_input_raw
-    inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original_image = load_image(validation_data.Urls.input_urls[ind])
+    if size(original_image)!=model_data.input_size[1:2]
+        original_image = fix_image_size(model_data,original_image)
+    end
     if :grayscale in model_data.input_properties
         data_input_raw = image_to_gray_float(original_image)
     else
@@ -80,8 +82,10 @@ end
 function prepare_validation_data(classes::Vector{ImageRegressionClass},
         norm_func::Function,model_data::ModelData,ind::Int64,validation_data::ValidationData)
     local data_input_raw
-    inds,labels_color,labels_incl,border,border_thickness = get_class_data(classes)
     original_image = load_image(validation_data.Urls.input_urls[ind])
+    if size(original_image)!=model_data.input_size[1:2]
+        original_image = fix_image_size(model_data,original_image)
+    end
     if :grayscale in model_data.input_properties
         data_input_raw = image_to_gray_float(original_image)
     else
@@ -375,7 +379,7 @@ function validate_inner(model::AbstractModel,norm_func::Function,classes::Vector
         offset_val::Int64,use_GPU::Bool,channels::Channels)
     for i = 1:num
         if check_abort_signal(channels.validation_modifiers)
-            return nothing
+            #return nothing
         end
         input_data,label,other = prepare_validation_data(classes,norm_func,model_data,i,validation_data)
         predicted = forward(model,input_data,num_slices=num_slices_val,offset=offset_val,use_GPU=use_GPU)

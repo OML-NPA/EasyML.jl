@@ -4,14 +4,14 @@ import EasyML.Validation
 
 cd(@__DIR__)
 
-global_options.HardwareResources.num_slices = 20
+global_options.HardwareResources.num_slices = 2
 
 
 #---Main functionality---------------------------------------------------------
 
 @testset "Options" begin
-    @test begin modify(global_options); true end
-    @test begin modify(validation_options); true end
+    @test begin change(global_options); true end
+    @test begin change(validation_options); true end
 end
 rm("options.bson")
 
@@ -22,7 +22,6 @@ for i = 1:2
     else
         validation_options.Accuracy.weight_accuracy = false
         global_options.HardwareResources.allow_GPU = false
-        global_options.HardwareResources.num_slices = 5
     end
 
     @testset "Classfication" begin

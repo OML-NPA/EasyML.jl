@@ -22,6 +22,7 @@ Random, StatsBase, LinearAlgebra, Combinatorics,
 ProgressMeter, FLoops
 
 import CUDA.CuArray, Flux.outdims, StatsBase.std
+CUDA.allowscalar(false)
 
 # Include functions
 include("modules/common/Common.jl")
