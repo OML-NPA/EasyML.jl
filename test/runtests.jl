@@ -36,7 +36,6 @@ include("modules/application/runtests.jl")
         get_urls_testing()
         prepare_training_data()
         prepare_testing_data()
-        train()
         true
     end
     @test begin
@@ -45,7 +44,6 @@ include("modules/application/runtests.jl")
         get_urls_testing()
         prepare_training_data()
         prepare_testing_data()
-        train()
         true
     end
     @test begin
@@ -56,7 +54,6 @@ include("modules/application/runtests.jl")
         get_urls_testing()
         prepare_training_data()
         prepare_testing_data()
-        train()
         true
     end
 end
