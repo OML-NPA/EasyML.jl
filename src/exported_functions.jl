@@ -26,7 +26,7 @@ function EasyML.DataPreparation.get_urls(url_inputs::String,url_labels::String,s
 end
 
 function EasyML.DataPreparation.get_urls(some_data::Union{TrainingData,TestingData})
-    get_urls()
+    urls = get_urls()
     assign_urls(some_data,urls)
     return nothing
 end
@@ -47,7 +47,13 @@ end
 function get_urls_testing_main(training_data::TrainingData,testing_data::TestingData,training_options::TrainingOptions)
     if training_options.Testing.data_preparation_mode==:manual
         urls = get_urls()
-        testing_data.Urls = urls
+        if problem_type()==:classification
+            testing_data.ClassificationData.Urls = urls
+        elseif problem_type()==:regression
+            testing_data.RegressionData.Urls = urls
+        elseif problem_type()==:segmentation
+            testing_data.SegmentationData.Urls = urls
+        end
     else
         if problem_type()==:classification
             typed_training_data = training_data.ClassificationData
