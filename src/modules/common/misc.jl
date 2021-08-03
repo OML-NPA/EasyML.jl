@@ -19,7 +19,7 @@ function msg_generator(value::Symbol,syms::NTuple{N,Symbol}) where N
     msg_start = string(sym_to_string(value)," is not allowed. ")
     msg_mid = "Value should be "
     if N==1
-        msg_end = string(sym_to_string.(syms),".")
+        msg_end = string(sym_to_string.(syms[1]),".")
     elseif N==2
         msg_end = string(join(sym_to_string.(syms), " or "),".")
     else
@@ -31,6 +31,18 @@ function msg_generator(value::Symbol,syms::NTuple{N,Symbol}) where N
     end
     msg = string(msg_start,msg_mid,msg_end)
     return msg
+end
+
+function check_setfield!(obj,k::Symbol,value::Vector{Symbol},syms::NTuple{N,Symbol}) where N
+    bools = map(x -> x in syms,value)
+    if all(bools)
+        setfield!(obj,k,value)
+    else
+        ind = findfirst((!).(bools))
+        msg = msg_generator(value[ind],syms)
+        throw(ArgumentError(msg))
+    end
+    return nothing
 end
 
 function check_setfield!(obj,k::Symbol,value::Symbol,syms::NTuple{N,Symbol}) where N

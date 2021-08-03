@@ -182,6 +182,11 @@ end
 
 @testset "Set property" begin
     @test begin
+        model_data.input_properties = [:grayscale]
+        model_data.input_properties = [:a]
+        true
+    end
+    @test begin
         obj = Common.Application.OutputVolume()
         obj.binning = :auto
         obj.normalization = :none

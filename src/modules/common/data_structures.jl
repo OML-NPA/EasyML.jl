@@ -31,7 +31,7 @@ channels = Channels()
 end
 model_data = ModelData()
 
-function Base.setproperty!(obj::ModelData,k::Symbol,value::Symbol)
+function Base.setproperty!(obj::ModelData,k::Symbol,value::Union{Symbol,Vector{Symbol}})
     if k==:problem_type
         syms = (:classification,:regression,:segmentation)
         check_setfield!(obj,k,value,syms)
@@ -39,14 +39,11 @@ function Base.setproperty!(obj::ModelData,k::Symbol,value::Symbol)
         syms = (:image,)
         check_setfield!(obj,k,value,syms)
     elseif k==:input_properties
-        syms = (:Grayscale)
-        for temp_value in value
-            check_setfield!(obj,k,temp_value,syms)
-        end
+        syms = (:grayscale,)
+        check_setfield!(obj,k,value,syms)
     end
     return nothing
 end
-
 
 #---Data-------------------------------------------------------------------
 
