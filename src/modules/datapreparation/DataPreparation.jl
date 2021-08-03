@@ -29,7 +29,7 @@ include(string(common_dir(),"/common/preparation_validation_application.jl"))
 include("main.jl")
 include("exported_functions.jl")
 
-export data_preparation_options
+export data_preparation_options, DataPreparation
 export get_urls, prepare_data
 
 end

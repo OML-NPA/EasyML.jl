@@ -22,7 +22,7 @@ include(string(common_dir(),"/common/training_validation.jl"))
 include("main.jl")
 include("exported_functions.jl")
 
-export training_options, training_results_data
+export training_options, TrainingOptions, training_results_data
 export set_weights, set_training_data, set_testing_data, train, remove_training_data, remove_testing_data, remove_training_results
 
 end

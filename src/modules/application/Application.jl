@@ -33,7 +33,7 @@ include("output_methods.jl")
 include("main.jl")
 include("exported_functions.jl")
 
-export application_options
-export change_output_options, get_urls_application, apply, remove_application_data
+export application_options, ApplicationOptions
+export change_output_options, get_urls_application, apply, remove_application_data, forward, apply_border_data
 
 end
