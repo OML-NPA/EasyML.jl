@@ -239,5 +239,5 @@ end
         Common.num_threads()
         true
     end
-    @test begin model_data.normalization.f([]); true end
+    @test begin EasyML.none([]); true end
 end

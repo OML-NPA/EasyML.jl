@@ -3,8 +3,7 @@ using EasyML.Application
 
 cd(@__DIR__)
 
-global_options.HardwareResources.num_slices = 50
-
+global_options.HardwareResources.num_slices = 1
 
 #---Main functionality-----------------------------------------------
 
