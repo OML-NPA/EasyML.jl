@@ -25,6 +25,8 @@ include("modules/application/runtests.jl")
 
 #---Testing module glue------------------------------------------
 
+cd(@__DIR__)
+
 training_options.Testing.data_preparation_mode = :auto
 training_options.Testing.test_data_fraction = 0.2
 load_model("models/classification.model")
