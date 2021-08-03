@@ -55,7 +55,7 @@ function accum_slices(model::Chain,input_data::T,
         num_slices::Int64,offset::Int64) where T<:AbstractArray{Float32,4}
     input_size = size(input_data)
     max_value = maximum(input_size)
-    ind_max = findfirst(max_value.==input_size)
+    ind_max = 2
     ind_split = convert(Int64,floor(max_value/num_slices))
     predicted = Vector{T}(undef,0)
     for j = 1:num_slices
@@ -65,11 +65,7 @@ function accum_slices(model::Chain,input_data::T,
         temp_predicted = fix_size(temp_predicted,num_slices,correct_size,ind_max,offset_add,j)
         push!(predicted,temp_predicted)
     end
-    if ind_max==1
-        predicted_out = reduce(vcat,predicted)
-    else
-        predicted_out = reduce(hcat,predicted)
-    end
+    predicted_out = reduce(hcat,predicted)
     return predicted_out
 end
 
