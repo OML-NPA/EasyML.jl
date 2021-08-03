@@ -13,7 +13,7 @@ function Common.change(application_options::ApplicationOptions)
         fix_slashes,
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/ApplicationOptions.qml")
+    path_qml = string(@__DIR__,"/gui/ApplicationOptions.qml")
     gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
     text = add_templates(path_qml)
     loadqml(QByteArray(text), 
@@ -60,7 +60,7 @@ function change_output_options()
         num_classes,
         unit_test
     )
-    path_qml = string(@__DIR__,"/GUI/OutputDialog.qml")
+    path_qml = string(@__DIR__,"/gui/OutputDialog.qml")
     gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
     text = add_templates(path_qml)
     loadqml(QByteArray(text), 
