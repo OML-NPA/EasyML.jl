@@ -183,8 +183,16 @@ end
 @testset "Set property" begin
     @test begin
         model_data.input_properties = [:grayscale]
-        model_data.input_properties = [:a]
-        true
+        try
+            model_data.input_properties = [:a]
+        catch
+            true
+        end
+        try
+            model_data.problem_type = :a
+        catch
+            true
+        end
     end
     @test begin
         obj = Common.Application.OutputVolume()
@@ -197,6 +205,7 @@ end
         obj.apply_by = :file
         obj.data_type= :csv
         obj.image_type = :png
+        obj.savepath = ""
         true
     end
     @test begin
@@ -245,4 +254,8 @@ end
         true
     end
     @test begin EasyML.none([]); true end
+    @test begin
+        conn(8)
+        true
+    end
 end

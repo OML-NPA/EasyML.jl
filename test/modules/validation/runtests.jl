@@ -4,8 +4,8 @@ import EasyML.Validation
 
 cd(@__DIR__)
 
-global_options.HardwareResources.num_slices = 1
-
+global_options.HardwareResources.num_slices = 3
+global_options.HardwareResources.offset = 80
 
 #---Main functionality---------------------------------------------------------
 
