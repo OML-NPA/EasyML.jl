@@ -25,28 +25,38 @@ include("modules/application/runtests.jl")
 
 #---Testing module glue------------------------------------------
 
-cd(@__DIR__)
+@testset "Module glue" begin
+    cd(@__DIR__)
 
-training_options.Testing.data_preparation_mode = :auto
-training_options.Testing.test_data_fraction = 0.2
-load_model("models/classification.model")
-get_urls_training("examples/classification/test")
-get_urls_testing()
-prepare_training_data()
-prepare_testing_data()
-train()
-
-load_model("models/regression.model")
-get_urls_training("examples/regression/test","examples/regression/test.csv")
-get_urls_testing()
-prepare_training_data()
-prepare_testing_data()
-train()
-
-training_options.Testing.test_data_fraction = 0.5
-load_model("models/segmentation.model")
-get_urls_training("examples/segmentation/images", "examples/segmentation/labels")
-get_urls_testing()
-prepare_training_data()
-prepare_testing_data()
-train()
+    @test begin
+        training_options.Testing.data_preparation_mode = :auto
+        training_options.Testing.test_data_fraction = 0.2
+        load_model("models/classification.model")
+        get_urls_training("examples/classification/test")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        train()
+        true
+    end
+    @test begin
+        load_model("models/regression.model")
+        get_urls_training("examples/regression/test","examples/regression/test.csv")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        train()
+        true
+    end
+    @test begin
+        training_options.Testing.test_data_fraction = 0.5
+        training_options.Hyperparameters.batch_size = 4
+        load_model("models/segmentation.model")
+        get_urls_training("examples/segmentation/images", "examples/segmentation/labels")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        train()
+        true
+    end
+end

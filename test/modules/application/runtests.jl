@@ -34,5 +34,5 @@ rm("options.bson")
 
 
 #---Other QML-------------------------------------------------------
-push!(unit_test.urls,joinpath(examples_dir,"classification/test"))
+push!(EasyML.unit_test.urls,joinpath(examples_dir,"classification/test"))
 get_urls_application()
