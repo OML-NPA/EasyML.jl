@@ -8,7 +8,7 @@ models_dir = joinpath(@__DIR__,"models")
 
 
 #---Testing modules------------------------------------------
-
+#=
 @info "Common"
 include("modules/common/runtests.jl")
 @info "Classes"
@@ -21,7 +21,7 @@ include("modules/training/runtests.jl")
 include("modules/validation/runtests.jl")
 @info "Application"
 include("modules/application/runtests.jl")
-
+=#
 
 #---Testing module glue------------------------------------------
 
