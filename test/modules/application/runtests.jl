@@ -30,6 +30,7 @@ get_urls_application(url_input)
 apply()
 
 rm("Output data",recursive=true)
+rm("options.bson")
 
 
 #---Other QML-------------------------------------------------------

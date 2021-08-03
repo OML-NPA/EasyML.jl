@@ -55,8 +55,8 @@ function objects_volume(objects_mask::BitArray{2},components_vector::Vector{Arra
     scaling = scaling^3
     num_components = maximum(components)
     parent_inds = labels_incl[l]
-    volumes_out_temp = Vector{Float64}(undef,num)
-    for i = 1:num
+    volumes_out_temp = Vector{Float64}(undef,num_components)
+    for i = 1:num_components
         logical_inds = components.==i
         pixels = volume_model[logical_inds]
         volumes_out_temp[i] = 2*sum(pixels)/scaling
