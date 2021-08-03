@@ -96,17 +96,7 @@ function get_urls_application()
     observe(url) = url_out[1] = url
     dir = pwd()
     @info "Select a directory with input data."
-    @qmlfunction(observe)
-    path_qml = string(@__DIR__,"/GUI/UniversalFolderDialog.qml")
-    gui_dir = string("file:///",replace(@__DIR__, "\\" => "/"),"/gui/")
-    text = add_templates(path_qml)
-    loadqml(QByteArray(text), 
-        gui_dir = gui_dir,
-        currentfolder = dir,
-        target = "Application",
-        type = "url_inputs")
-    exec()
-    application_data.url_inputs = url_out[1]
+    application_data.url_inputs = get_folder(dir)
     if application_data.url_inputs==""
         @error "Input data directory URL is empty."
         return nothing
