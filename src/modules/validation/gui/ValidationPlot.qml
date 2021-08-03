@@ -298,10 +298,12 @@ ApplicationWindow {
                         else if (problem_type==2) {
                             var ind2 = 1
                             Julia.get_image_validation(["ImageSegmentationResults","original_images"],[ind1])
-                            Julia.get_image_validation(["ImageSegmentationResults","predicted_data"],[ind1,ind2])
-                            resultDisplay.visible = true
-                            resultDisplay.update()
-                            classRow.visible = true
+                            if (use_labels) {
+                                Julia.get_image_validation(["ImageSegmentationResults","predicted_data"],[ind1,ind2])
+                                resultDisplay.visible = true
+                                resultDisplay.update()
+                                classRow.visible = true
+                            }
                             typeRow.visible = true
                             opacityRow.visible = true
                             zoomRow.visible = true
@@ -364,7 +366,7 @@ ApplicationWindow {
                             timer.triggered.connect(cb);
                             timer.start();
                         }
-                        if (problem_type===2) {
+                        if (problem_type===2 && use_labels) {
                             Julia.get_image_validation(["ImageSegmentationResults","error_data"],[1,1])
                             resultDisplay.update()
                         }
