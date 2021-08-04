@@ -7,6 +7,8 @@ cd(@__DIR__)
 
 #---Main functionality----------------------------------------------------
 
+data_preparation_options.Images.BackgroundCropping.enabled = true
+
 @testset "Opening options" begin
     @test begin change(data_preparation_options); true end
     rm("options.bson")
