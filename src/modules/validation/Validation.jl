@@ -31,7 +31,6 @@ include(string(common_dir(),"/common/training_validation.jl"))
 include(string(common_dir(),"/common/validation_application.jl"))
 include(string(common_dir(),"/common/preparation_validation.jl"))
 include(string(common_dir(),"/common/preparation_validation_application.jl"))
-include(string(common_dir(),"/common/image_processing.jl"))
 include("main.jl")
 include("exported_functions.jl")
 
