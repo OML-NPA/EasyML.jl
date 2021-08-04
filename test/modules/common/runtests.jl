@@ -198,6 +198,7 @@ end
         obj = Common.Application.OutputVolume()
         obj.binning = :auto
         obj.normalization = :none
+        obj.value = 10
         true
     end
     @test begin
@@ -220,7 +221,7 @@ end
 
 @testset "Padding               " begin
     @test begin
-        EasyML.Application.pad(ones(Float32,5,5,1,1),(2,2),EasyML.Application.same)==ones(Float32,7,7,1,1)
+        collect(EasyML.Application.pad(EasyML.CuArray(ones(Float32,5,5,1,1)),(2,2),EasyML.Application.same))==ones(Float32,7,7,1,1)
     end
     @test begin
         EasyML.Application.pad(ones(Float32,5,5,1,1),(2,2),ones)==ones(Float32,7,7,1,1)
