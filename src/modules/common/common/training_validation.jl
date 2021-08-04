@@ -61,12 +61,6 @@ function calculate_sum(something_bool::AbstractArray{Bool,4})
     return sum_int
 end
 
-function calculate_sum(something_bool::AbstractArray{Bool,2})
-    sum_int_dim2 = sum(something_bool, dims = 2)
-    sum_int = sum_int_dim2[:]
-    return sum_int
-end
-
 # Weight accuracy using inverse frequency
 function accuracy_segmentation_weighted(predicted::A,actual::A,ws::Vector{T}) where {T<:Float32,A<:AbstractArray{T}}
     actual_bool = actual.>0
