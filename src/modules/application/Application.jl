@@ -10,8 +10,7 @@ FileIO, ImageIO, CSVFiles, XLSX, JSON, BSON,
 # Data manipulation
 Unicode, DataFrames,
 # Image manipulation
-Images, ColorTypes, ImageFiltering, ImageTransformations, 
-ImageMorphology, DSP, ImageMorphology.FeatureTransform, ImageSegmentation, 
+Images, ColorTypes, ImageFiltering, ImageMorphology.FeatureTransform, ImageSegmentation, 
 # Machine learning
 Flux, Flux.Losses, FluxExtra, 
 # Math functions
