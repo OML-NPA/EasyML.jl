@@ -37,6 +37,7 @@ include("segmentation.jl")
 
 Training.get_weights(model_data,Training.training_data.RegressionData)
 load_model(joinpath(models_dir,"segmentation.model"))
+Training.training_data.SegmentationData.Data.data_labels = [BitArray(undef,10,10,3)]
 Training.get_weights(model_data,Training.training_data.SegmentationData)
 
 #-----------------------------------------------------------------
