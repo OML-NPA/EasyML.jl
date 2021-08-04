@@ -226,10 +226,10 @@ end
         EasyML.Application.pad(ones(Float32,5,5,1,1),(2,2),ones)==ones(Float32,7,7,1,1)
     end
     @test begin
-        EasyML.pad(ones(Float32,5,5),(2,2),EasyML.same)==ones(Float32,7,7)
+        EasyML.Application.pad(ones(Float32,5,5),(2,2),EasyML.Application.same)==ones(Float32,7,7)
     end
     @test begin
-        EasyML.pad(ones(Float32,5,5),(2,2),ones)==ones(Float32,7,7)
+        EasyML.Application.pad(ones(Float32,5,5),(2,2),ones)==ones(Float32,7,7)
     end
 end
 
