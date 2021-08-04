@@ -1,8 +1,8 @@
 
 #---Histogram and objects related functions
 
-function objects_area(mask_current::BitArray{2},components_vector::Vector{Array{Int64,2}},
-        labels_incl::Vector{Vector{Int64}},scaling::Float64,l::Int64)
+function objects_area(components_vector::Vector{Array{Int64,2}},labels_incl::Vector{Vector{Int64}},
+        scaling::Float64,l::Int64)
     components = components_vector[l]
     scaling = scaling^2
     parent_inds = labels_incl[l]
@@ -143,11 +143,9 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         if border[l]==true
             ind = l + num_border + num_c
         end
-        mask_current = mask[:,:,ind]
         cnt_add1 = -1
         if area_dist_cond || area_obj_cond || area_sum_obj_cond
-            area_values = objects_area(mask_current,components_vector,
-                labels_incl,scaling,l)
+            area_values = objects_area(components_vector,labels_incl,scaling,l)
             if area_obj_cond || area_sum_obj_cond
                 for i = 1:length(area_values)
                     push!(temp_objs_area[cnt-1+i],area_values[i]...)
@@ -157,8 +155,8 @@ function mask_to_data(objs_area::Vector{Vector{Vector{Float64}}},
         end
         cnt_add2 = -1
         if volume_dist_cond || volume_obj_cond || volume_sum_obj_cond
-            volume_values = objects_volume(mask_current,components_vector,
-                labels_incl,scaling,l)
+            mask_current = mask[:,:,ind]
+            volume_values = objects_volume(mask_current,components_vector,labels_incl,scaling,l)
             if volume_obj_cond || volume_sum_obj_cond
                 for i = 1:length(volume_values)
                     push!(temp_objs_volume[cnt-1+i],volume_values[i]...)
@@ -241,7 +239,7 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
         return nothing
     end
     for i = 1:num
-        if !isdefined(histograms_area,i)
+        if !isassigned(histograms_area,i)
             continue
         end
         num_cols_dist = num_dist_area + num_dist_volume
@@ -265,8 +263,8 @@ function export_histograms(histograms_area::Vector{Vector{Histogram}},
         offset = 2*num_dist_area
         histograms_to_dataframe(df_dists,histogram_volume,num_dist_volume,offset)
         names = map(x->x.name,classes)
-        names_area = get_dataframe_names(names,"area",[[]],log_area_dist)
-        names_volume = get_dataframe_names(names,"volume",[[]],log_volume_dist)
+        names_area = get_dataframe_dists_names(names,"area",log_area_dist)
+        names_volume = get_dataframe_dists_names(names,"volume",log_volume_dist)
         names_all = vcat(names_area,names_volume)
         rename!(df_dists, Symbol.(names_all))
         fname = filenames[i]

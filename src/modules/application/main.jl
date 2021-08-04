@@ -484,7 +484,7 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
             end
         end
         data_to_histograms(histograms_area,histograms_volume,objs_area,objs_volume,
-        output_options,num_init,num_c,labels_incl)
+            output_options,num_init,num_c,labels_incl)
         # Export data
         if apply_by_file
             filenames = reduce(vcat,filenames_batch)
