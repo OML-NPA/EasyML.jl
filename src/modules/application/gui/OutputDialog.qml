@@ -274,7 +274,7 @@ ApplicationWindow {
                                 objareasumCheckBox.checkState = Julia.get_output(["Area","obj_area_sum"],
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
                                 var binningMethods = binningareaComboBox.binningMethods
-                                for (var i=0;i<classModel.count;i++) {
+                                for (var i=0;i<binningMethods.length;i++) {
                                     var value = Julia.get_output(["Area","binning"],indTree+1)
                                     if (binningMethods[i]==value) {
                                         binningareaComboBox.currentIndex = i
@@ -284,7 +284,7 @@ ApplicationWindow {
                                 numvalueareaTextField.text = Julia.get_output(["Area","value"],indTree+1)
                                 widthvalueareaTextField.text = Julia.get_output(["Area","value"],indTree+1)
                                 var normalizationMethods = normalizationareaComboBox.normalizationMethods
-                                for (i=0;i<classModel.count;i++) {
+                                for (i=0;i<normalizationMethods.length;i++) {
                                     value = Julia.get_output(["Area","normalization"],indTree+1)
                                     if (normalizationMethods[i]==value) {
                                         normalizationareaComboBox.currentIndex = i
@@ -378,6 +378,7 @@ ApplicationWindow {
                                     property var binningMethods: ["auto","number_of_bins","bin_width"]
                                     onActivated: {
                                         Julia.set_output(["Area","binning"],indTree+1,binningMethods[currentIndex])
+                                        console.log(Julia.get_output(["Area","binning"],indTree+1))
                                         changeLabel()
                                     }
                                 }
@@ -446,7 +447,7 @@ ApplicationWindow {
                                 objvolumesumCheckBox.checkState = Julia.get_output(["Volume","obj_volume_sum"],
                                     indTree+1) ? Qt.Checked : Qt.Unchecked
                                 var binningMethods = binningvolumeComboBox.binningMethods
-                                for (var i=0;i<classModel.count;i++) {
+                                for (var i=0;i<binningMethods.length;i++) {
                                     var value = Julia.get_output(["Volume","binning"],indTree+1)
                                     if (binningMethods[i]==value) {
                                         binningvolumeComboBox.currentIndex = i
@@ -456,7 +457,7 @@ ApplicationWindow {
                                 numvaluevolumeTextField.text = Julia.get_output(["Volume","value"],indTree+1)
                                 widthvaluevolumeTextField.text = Julia.get_output(["Volume","value"],indTree+1)
                                 var normalizationMethods = normalizationvolumeComboBox.normalizationMethods
-                                for (i=0;i<classModel.count;i++) {
+                                for (i=0;i<normalizationMethods.length;i++) {
                                     value = Julia.get_output(["Volume","normalization"],indTree+1)
                                     if (normalizationMethods[i]==value) {
                                         normalizationvolumeComboBox.currentIndex = i
