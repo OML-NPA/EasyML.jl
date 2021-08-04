@@ -33,6 +33,12 @@ include("regression.jl")
 include("segmentation.jl")
 
 
+#---Other---------------------------------------------------------
+
+Training.get_weights(model_data,Training.training_data.RegressionData)
+load_model(joinpath(models_dir,"segmentation.model"))
+Training.get_weights(model_data,Training.training_data.SegmentationData)
+
 #-----------------------------------------------------------------
 
 rm("models/",recursive=true)
