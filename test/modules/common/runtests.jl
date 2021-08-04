@@ -221,7 +221,11 @@ end
 
 @testset "Padding               " begin
     @test begin
-        collect(EasyML.Application.pad(EasyML.CuArray(ones(Float32,5,5,1,1)),(2,2),EasyML.Application.same))==ones(Float32,7,7,1,1)
+        if EasyML.has_cuda()
+            collect(EasyML.Application.pad(EasyML.CuArray(ones(Float32,5,5,1,1)),(2,2),EasyML.Application.same))==ones(Float32,7,7,1,1)
+        else
+            EasyML.Application.pad(ones(Float32,5,5,1,1),(2,2),EasyML.Application.same)==ones(Float32,7,7,1,1)
+        end
     end
     @test begin
         EasyML.Application.pad(ones(Float32,5,5,1,1),(2,2),ones)==ones(Float32,7,7,1,1)
