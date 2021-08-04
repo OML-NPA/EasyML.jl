@@ -1,5 +1,5 @@
 
-function dilate!(array::BitArray{2},num::Int64)
+function Images.dilate!(array::BitArray{2},num::Int64)
     for _ = 1:num
         ImageMorphology.dilate!(array)
     end
