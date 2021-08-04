@@ -169,10 +169,10 @@ function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Abstr
     rightpad = Int64.(ceil.(div_result))
     if padding[1]!=0
         accum = Vector{A}(undef,0)
-        for i in 1:size(array,3)
+        for i=1:size(array,3)
             temp_array = array[:,:,i,:,:]
-            vec1 = collect(temp_array[1,:]')[:,:,:,:]
-            vec2 = collect(temp_array[end,:]')[:,:,:,:]
+            vec1 = permutedims(temp_array[1,:,:,:,:],(2,1,3,4))
+            vec2 = permutedims(temp_array[end,:,:,:,:],(2,1,3,4))
             temp_array = vcat(fun(vec1,leftpad[1],1),array,fun(vec2,rightpad[1],1))
             push!(accum,temp_array)
         end
@@ -180,7 +180,7 @@ function pad(array::A,padding::NTuple{2,Int64},fun::typeof(same)) where A<:Abstr
     end
     if padding[2]!=0
         accum = Vector{A}(undef,0)
-        for i in 1:size(array,3)   
+        for i=1:size(array,3)   
             temp_array = array[:,:,i,:,:]
             vec1 = temp_array[:,1,:,:,:]
             vec2 = temp_array[:,end,:,:,:]
@@ -194,11 +194,6 @@ end
 
 function pad(array::A,padding::NTuple{2,Int64},
         fun::Union{typeof(zeros),typeof(ones)}) where {T<:AbstractFloat,A<:AbstractArray{T, 4}}
-    #=
-    array = ones(Float32,5,5,1,1)
-    padding = (2,2)
-    fun = ones
-    A = typeof(array)=#
     div_result = padding./2
     leftpad = Int64.(floor.(div_result))
     rightpad = Int64.(ceil.(div_result))
