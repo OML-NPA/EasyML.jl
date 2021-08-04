@@ -1,8 +1,5 @@
 
 #---Histogram and objects related functions
-function objects_count(components::Array{Int64,2})
-    return maximum(components)
-end
 
 function objects_area(mask_current::BitArray{2},components_vector::Vector{Array{Int64,2}},
         labels_incl::Vector{Vector{Int64}},scaling::Float64,l::Int64)
