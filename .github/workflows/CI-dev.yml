@@ -13,6 +13,7 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
+          - self-hosted
         arch:
           - x64
     steps:
@@ -22,7 +23,7 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@v1
-      - if: ${{ matrix.os == 'macOS-latest' ||  matrix.os  == 'windows-latest' }}
+      - if: ${{ matrix.os == 'macOS-latest' ||  matrix.os  == 'windows-latest' ||  matrix.os  == 'self-hosted'}}
         uses: julia-actions/julia-runtest@v1
       - name: Run julia-actions/julia-runtest@v1 ubuntu
         if: ${{ matrix.os == 'ubuntu-latest' }}
