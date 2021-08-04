@@ -32,7 +32,7 @@ url_input = joinpath(examples_dir,"segmentation/images")
 get_urls_application(url_input)
 apply()
 
-model_data.output_options = EasyML.ImageClassificationOutputOptions[]
+model_data.output_options = Application.ImageClassificationOutputOptions[]
 change_output_options()
 
 remove_application_data()
