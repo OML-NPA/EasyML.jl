@@ -461,10 +461,12 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         end
         if num_obj_area_sum>0 
             for i = 1:num_init
+                cnt = 1
                 offset = 0
                 for j = 1:num_c
                     if output_options[j].Area.obj_area_sum
-                        objs_area_sum[i][j] = sum(objs_area[i][j+offset])
+                        objs_area_sum[i][cnt] = sum(objs_area[i][j+offset])
+                        cnt+=1
                     end
                     l_parents = length(labels_incl[j])
                     offset += l_parents
@@ -473,10 +475,12 @@ function process_output(classes::Vector{ImageSegmentationClass},output_options::
         end
         if num_obj_volume_sum>0 
             for i = 1:num_init
+                cnt = 1
                 offset = 0
                 for j = 1:num_c
                     if output_options[j].Volume.obj_volume_sum
-                        objs_volume_sum[i][j] = sum(objs_volume[i][j])
+                        objs_volume_sum[i][cnt] = sum(objs_volume[i][j])
+                        cnt+=1
                     end
                     l_parents = length(labels_incl[j])
                     offset += l_parents
