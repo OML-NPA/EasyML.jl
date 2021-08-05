@@ -33,7 +33,7 @@ include(string(common_dir(),"/common/preparation_validation_application.jl"))
 include("main.jl")
 include("exported_functions.jl")
 
-export validation_options, validation_results_data
+export validation_options, ValidationOptions, validation_results_data
 export get_urls_validation, validate, remove_validation_data, remove_validation_results
 
 end

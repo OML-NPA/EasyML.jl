@@ -39,6 +39,10 @@ design_model()
 ## Training
 
 ```@docs
+change(application_options::EasyML.DataPreparationOptions)
+```
+
+```@docs
 change(training_options::EasyML.TrainingOptions)
 ```
 
@@ -76,6 +80,9 @@ remove_training_results
 
 ## Validation
 
+```@docs
+change(application_options::EasyML.ValidationOptions)
+```
 
 ```@docs
 get_urls_validation
