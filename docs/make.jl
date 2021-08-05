@@ -8,7 +8,7 @@ makedocs(modules=[EasyML],
             "Functions" => "functions.md",
             "Advanced" => "advanced.md",
             "Handling issues" => "handling_issues.md"],
-    authors = "Aleksandr Illarionov",
+    authors = "Open Machine Learning Association",
     format = Documenter.HTML(prettyurls = false)
 )
 
