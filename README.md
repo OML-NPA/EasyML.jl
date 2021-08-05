@@ -8,7 +8,7 @@
 [![docs dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://oml-npa.github.io/EasyML.jl/dev/)
 [![CI main](https://github.com/OML-NPA/EasyML.jl/actions/workflows/CI-main.yml/badge.svg)](https://github.com/OML-NPA/EasyM.jl/actions/workflows/CI-main.yml)
 [![CI dev](https://github.com/OML-NPA/EasyML.jl/actions/workflows/CI-dev.yml/badge.svg)](https://github.com/OML-NPA/EasyM.jl/actions/workflows/CI-dev.yml)
-
+[![codecov](https://codecov.io/gh/OML-NPA/EasyML.jl/branch/main/graph/badge.svg?token=BTAK4ZYPGG)](https://codecov.io/gh/OML-NPA/EasyML.jl)
 
 This package allows to use machine learning in Julia through a graphical user interface.
 
@@ -31,6 +31,8 @@ Classification, regression and segmentation on images are currently supported.
 
 Run `] add EasyML` in REPL.
 
+If fonts do not look correct then install [this](https://github.com/OML-NPA/EasyML.jl/raw/main/src/fonts/font.otf) and [this](https://github.com/OML-NPA/EasyML.jl/raw/main/src/fonts/font_bold.otf) font.
+
 ## Quick guide
 
 EasyML is easy enough to figure out by yourself! Just run the following lines.
@@ -42,19 +44,19 @@ using EasyML
 
 ### Set up
 ```julia
-modify(global_options)
+change(global_options)
 ```
 
 ### Design
 ```julia
-modify_classes()
-modify_output()
+change_classes()
 design_model()
 ```
 
 ### Train
 ```julia
-modify(training_options)
+change(data_preparation_options)
+change(training_options)
 get_urls_training()
 get_urls_testing()
 prepare_training_data()
@@ -67,6 +69,7 @@ remove_training_results()
 
 ### Validate
 ```julia
+change(validation_options)
 get_urls_validation()
 results = validate()
 remove_validation_data()
@@ -75,7 +78,8 @@ remove_validation_results()
 
 ### Apply
 ```julia
-modify(application_options)
+change(application_options)
+change_output_options()
 get_urls_application()
 apply()
 remove_application_data()
@@ -90,7 +94,3 @@ load_options()
 ## Development
 
 A plan for the project can be seen [here](https://github.com/OML-NPA/EasyML.jl/projects/2).
-
-### Current focus
-
-Breaking EasyML into modules.
