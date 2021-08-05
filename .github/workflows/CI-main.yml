@@ -23,6 +23,7 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
+          - self-hosted
         arch:
           - x64
     steps:
