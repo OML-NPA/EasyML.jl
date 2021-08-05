@@ -5,20 +5,20 @@ A struct named `model_data` is exported and holds all information about your mod
 
 ```julia
 mutable struct ModelData
-    model::Chain                                       # Flux.jl model.
-    layers_info::Vector{AbstractLayerInfo}             # contains information for visualisation of layers.
-    loss::Function                                     # holds loss that is used during training and validation.
-    input_size::NTuple{3,Int64}                        # model input size.
-    output_size::Union{Tuple{Int64},NTuple{3,Int64}}   # model output size.
-    classes::Vector{<:AbstractClass}                   # hold information about classes that a neural network outputs and what should be done with them.
-    OutputOptions::Vector{<:AbstractOutputOptions}     # hold information about output options for each class for application of the model.
+    model::AbstractModel                                  # any of the supported models (currently only Flux.jl model).
+    normalization::Normalization                          # a Normalization struct, which describes how to normalize input data
+    loss::Function                                        # holds loss that is used during training and validation.
+    input_size::Union{NTuple{2,Int64},NTuple{3,Int64}}    # model input size.
+    output_size::Union{NTuple{2,Int64},NTuple{3,Int64}}   # model output size.
+    input_type::Symbol                                    # type of input data (:image).
+    problem_type::Symbol                                  # type of ML problem (:classification, :regression or :segmentation).
+    classes::Vector{<:AbstractClass}                      # hold information about classes that a neural network outputs and what should be done with them.
+    output_options::Vector{<:AbstractOutputOptions}      # hold information about output options for each class for application of the model.
+    layers_info::Vector{AbstractLayerInfo}                # contains information for visualisation of layers.
 end
 ```
-`loss`, `classes` and `OutputOptions` fields can be modified manually if needed.
 
-`loss` can be any function.
-
-`classes` can be of different types depending on a type of a problem.
+`classes` and `output_options` type depends on a type of a problem.
 
 ```julia
 mutable struct ImageClassificationClass<:AbstractClass
@@ -34,16 +34,18 @@ mutable struct ImageSegmentationClass<:AbstractClass
     name::String               # name of a class. It is just for your convenience.
     weight::Float32            # weight of a class used for weighted accuracy calculation.
     color::Vector{Float64}     # RGB color of a class, which should correspond to its color on your images. Uses 0-255 range.
-    border::Bool               # allows to train a neural network to recognize borders and, therefore, better separate objects during post-processing.
-    border_thickness::Int64    # border thickness in pixels.
-    border_remove_objs::Bool   # removes objects that do not have closed borders.
-    min_area::Int64            # minimum area of an object.
     parents::Vector{String}    # up to two parents can be specified by their name. Objects from a child are added to its parent.
-    not_class::Bool            # specifies that a class is an overlap of two classes and should be just added to specified parents.
+    overlap::Bool              # specifies that a class is an overlap of two classes and should be just added to specified parents.
+    min_area::Int64            # minimum area of an object.
+    BorderClass::BorderClass   # allows to train a neural network to recognize borders and, therefore, better separate objects during post-processing.
 end
-```
 
-`OutputOptions` should also be chosen accordingly to a type of a problem one has.
+mutable struct BorderClass
+    enabled::Bool
+    thickness::Int64           # border thickness in pixels.
+end
+
+```
 
 `ImageClassificationOutputOptions` and `ImageRegressionOutputOptions` are currently empty. New functionality can be added on request.
 
@@ -64,33 +66,30 @@ mutable struct OutputArea
     area_distribution::Bool     # exports area distribution of detected objects as a histogram.
     obj_area::Bool              # exports area of each detected object.
     obj_area_sum::Bool          # exports sum of all areas for each class.
-    binning::Int64              # specifies a binning method; 0 - automatic, 1 - number of bins, 2 - bin width.
+    binning::Symbol             # specifies a binning method (:auto, :number_of_bins, :bin_width).
     value::Float64              # number of bins or bin width depending on a previous settings.
-    normalisation::Int64        # normalisation type for a histogram, 0 - pdf, 1 - Density, 2 - Probability, 3 - None.
+    normalisation::Symbol       # normalisation type for a histogram (:none, :pdf, :density, :probability).
 end
 
 mutable struct OutputVolume
     volume_distribution::Bool   # exports volume distribution of detected objects as a histogram.
     obj_volume::Bool            # exports volume of each detected object.
     obj_volume_sum::Bool        # exports sum of all volumes for each class.
-    binning::Int64              # specifies a binning method; 0 - automatic, 1 - number of bins, 2 - bin width.
+    binning::Symbol             # specifies a binning method (:auto, :number_of_bins, :bin_width).
     value::Float64              # number of bins or bin width depending on a previous settings.
-    normalisation::Int64        # normalisation type for a histogram, 0 - pdf, 1 - Density, 2 - Probability, 3 - None.
-end
+    normalisation::Symbol       # normalisation type for a histogram (:none, :pdf, :density, :probability).
 ```
 
 Example code for a segmentation problem.
 
 ```julia
-class1 = ImageSegmentationClass(name = "Cell", weight = 1, color = [0,255,0], border = true, 
-    border_thickness = 5, border_remove_objs = true, min_area = 50)
-class2 = ImageSegmentationClass(name = "Vacuole", weight = 1, color = [255,0,0], border = false, 
-    border_thickness = 5, border_remove_objs = true, min_area = 5, parents = ["Cell",""])
+class1 = ImageSegmentationClass(name = "Cell", weight = 1, color = [0,255,0], min_area = 5, BorderClass=BorderClass(true,5))
+class2 = ImageSegmentationClass(name = "Vacuole", weight = 1, color = [255,0,0], parents = ["Cell",""], min_area = 5)
 
 class_output_options1 = ImageSegmentationOutputOptions()
 class_output_options2 = ImageSegmentationOutputOptions()
 
-settings.problem_type = :Segmentation
+settings.problem_type = :segmentation
 classes = [class1,class2]
 output_options = [class_output_options1,class_output_options2]
 model_data.classes = classes
@@ -105,10 +104,14 @@ All options are located in `EasyML.options`.
 mutable struct Options
     GlobalOptions::GlobalOptions
     DesignOptions::DesignOptions
+    DataPreparationOptions::DataPreparationOptions
     TrainingOptions::TrainingOptions
+    ValidationOptions::ValidationOptions = validation_options
     ApplicationOptions::ApplicationOptions
 end
 ```
+
+### Global options
 
 ```julia
 mutable struct GlobalOptions
@@ -126,14 +129,14 @@ mutable struct HardwareResources
     offset::Int64        # offsets each slice by a given number of pixels to allow for an absence of a seam. 
 end
 ```
-Can be accessed as `EasyML.hardware_resources`.
 
 ```julia
 mutable struct Graphics
     scaling_factor::Float64   # scales GUI by a given factor.
 end
 ```
-Can be accessed as `EasyML.graphics`.
+
+### Design options
 
 ```julia
 mutable struct DesignOptions
@@ -145,11 +148,13 @@ end
 ```
 Can be accessed as `EasyML.design_options`.
 
+
+### Training options
+
 ```julia
 mutable struct TrainingOptions
     Accuracy::AccuracyOptions
     Testing::TestingOptions
-    Processing::ProcessingOptions
     Hyperparameters::HyperparametersOptions
 end
 ```
@@ -158,10 +163,9 @@ Can be accessed as `EasyML.training_options`.
 ```julia
 mutable struct AccuracyOptions 
     weight_accuracy::Bool   # uses weight accuracy where applicable.
-    accuracy_mode::Symbol   # either :Auto or :Manual. :Manual allows to specify weights manually for each class.
+    accuracy_mode::Symbol   # either :auto or :manual. :manual allows to specify weights manually for each class.
 end
 ```
-Can be accessed as `EasyML.accuracy_options`.
 
 ```julia
 mutable struct TestingOptions
@@ -170,18 +174,6 @@ mutable struct TestingOptions
     data_preparation_mode::Symbol   # Either :Auto or :Manual. Auto takes a specified fraction of training data to be used for testing. Manual allows to use other data as testing data.
 end
 ```
-Can be accessed as `EasyML.testing_options`.
-
-```julia
-mutable struct ProcessingOptions
-    grayscale::Bool       # converts images to grayscale for training, validation and application.
-    mirroring::Bool       # augments data by producing horizontally mirrored images.
-    num_angles::Int64     # augments data by rotating images using a specified number of angles. 1 means no rotation, only an angle of 0.
-    min_fr_pix::Float64   # if supplied images are bigger than a model's input size, then an image is broken into chunks with a correct size. This option specifies the minimum number of labeled pixels for these chunks to be kept.
-end
-```
-Can be accessed as `EasyML.processing_options`.
-
 
 ```julia
 mutable struct HyperparametersOptions
@@ -192,7 +184,62 @@ mutable struct HyperparametersOptions
     batch_size::Int64                   # a number of data that should be batched together during training.
 end
 ```
-Can be accessed as `EasyML.hyperparameters_options`.
+
+### Data preparation options
+
+```julia
+struct DataPreparationOptions
+    Images::ImagePreparationOptions = image_preparation_options
+end
+```
+Can be accessed as `data_preparation_options`.
+
+```julia
+@with_kw mutable struct ImagePreparationOptions
+    grayscale::Bool = false      # converts images to grayscale for training, validation and application.
+    mirroring::Bool = false      # augments data by producing horizontally mirrored images.
+    num_angles::Int64 = 1        # augments data by rotating images using a specified number of angles. 1 means no rotation, only an angle of 0.
+    min_fr_pix::Float64 = 0.0    # if supplied images are bigger than a model's input size, then an image is broken into chunks with a correct size. This option specifies the minimum number of labeled pixels for these chunks to be kept.
+    BackgroundCropping::BackgroundCroppingOptions = background_cropping_options   # crops image to removed uniformly black backgorund.
+end
+```
+
+```julia
+@with_kw mutable struct BackgroundCroppingOptions
+    enabled::Bool = false
+    threshold::Float64 = 0.3   # creates a mask from values less than threshold.
+    closing_value::Int64 = 1   # value for morphological closing which is used to smooth the mask.
+end
+```
+
+### Validation options
+
+```julia
+mutable struct ValidationOptions
+    Accuracy::AccuracyOptions = accuracy_options
+end
+```
+Can be accessed as `validation_options`
+
+```julia
+mutable struct AccuracyOptions
+    weight_accuracy::Bool   # uses weight accuracy where applicable.
+    accuracy_mode::Symbol   # either :auto or :manual. :manual allows to specify weights manually for each class.
+end
+```
+
+### Application options
+
+```julia
+mutable struct ApplicationOptions
+    savepath::String     # specifies where results are saved.
+    apply_by::Symbol     # either :file or :folder. If :folder is chosen, then results of files in the same folder are combined.
+    data_type::Symbol    # output data type (:csv,:xlsx,:json,:bson).
+    image_type::Symbol   # output image type (:png,:tiff,:json,:bson).
+    scaling::Float64     # multiplies results by a specified factor
+end
+```
+Can be accessed as `application_options`.
 
 ## A custom loop
 
@@ -212,13 +259,35 @@ end
 ```
 
 ```@docs
-forward
+EasyML.forward
 ```
 
 ```@docs
-apply_border_data
+EasyML.apply_border_data
 ```
 
+## Custom training data
 
+Example code for a classification problem.
 
+```julia
+model_data.problem_type = :classification # :regression, or :segmentation
+model_data.model = your_model
+set_training_data(your_data_input,your_data_labels)
+set_testing_data()
+training_options.Accuracy.accuracy_mode==:manual
+set_weights(your_weights)
+train()
+```
 
+```@docs
+EasyML.set_training_data
+```
+
+```@docs
+EasyML.set_testing_data
+```
+
+```@docs
+EasyML.set_weights
+```

@@ -8,19 +8,20 @@ using EasyML
 
 ## Set up
 ```julia
-modify(global_options)
+change(global_options)
 ```
 
 ## Design
 ```julia
-modify_classes()
-modify_output()
+change_classes()
+change_output_options()
 design_model()
 ```
 
 ## Train
 ```julia
-modify(training_options)
+change(data_preparation_options)
+change(training_options)
 get_urls_training()
 get_urls_testing()
 prepare_training_data()
@@ -33,6 +34,7 @@ remove_training_results()
 
 ## Validate
 ```julia
+change(validation_options)
 get_urls_validation()
 results = validate()
 remove_validation_data()
@@ -41,7 +43,7 @@ remove_validation_results()
 
 ## Apply
 ```julia
-modify(application_options)
+change(application_options)
 get_urls_application()
 apply()
 remove_application_data()

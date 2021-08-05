@@ -1,0 +1,78 @@
+
+using EasyML, Test
+
+EasyML.Common.unit_test.state = true
+
+examples_dir = joinpath(@__DIR__,"examples")
+models_dir = joinpath(@__DIR__,"models")
+
+
+#---Testing modules------------------------------------------
+
+@info "Common"
+include("modules/common/runtests.jl")
+@info "Classes"
+include("modules/classes/runtests.jl")
+@info "Design"
+include("modules/design/runtests.jl")
+@info "Data preparation"
+include("modules/datapreparation/runtests.jl")
+@info "Training"
+include("modules/training/runtests.jl")
+@info "Validation"
+include("modules/validation/runtests.jl")
+@info "Application"
+include("modules/application/runtests.jl")
+
+
+#---Testing module glue------------------------------------------
+
+@testset "Module glue" begin
+    cd(@__DIR__)
+
+    @test begin
+        training_options.Testing.data_preparation_mode = :auto
+        training_options.Testing.test_data_fraction = 0.2
+        load_model("models/classification.model")
+        get_urls_training("examples/classification/test")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        true
+    end
+    @test begin
+        load_model("models/regression.model")
+        get_urls_training("examples/regression/test","examples/regression/test.csv")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        true
+    end
+    @test begin
+        training_options.Testing.test_data_fraction = 0.5
+        training_options.Hyperparameters.batch_size = 4
+        load_model("models/segmentation.model")
+        get_urls_training("examples/segmentation/images", "examples/segmentation/labels")
+        get_urls_testing()
+        prepare_training_data()
+        prepare_testing_data()
+        true
+    end
+    @test begin
+        remove_training_data()
+        get_urls_testing()
+        load_model("models/classification.model")
+        push!(EasyML.unit_test.urls,"examples/classification/test")
+        get_urls_training()
+        get_urls_testing("examples/classification/test")
+        load_model("models/regression.model")
+        get_urls_testing("examples/regression/test","examples/regression/test.csv")
+        training_options.Testing.data_preparation_mode = :manual
+        push!(EasyML.unit_test.urls,"examples/regression/test")
+        push!(EasyML.unit_test.urls,"examples/regression/test.csv")
+        get_urls_testing()
+        model_data.input_size = (0,0,0)
+        prepare_training_data()
+        true
+    end
+end
