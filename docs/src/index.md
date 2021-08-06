@@ -65,3 +65,5 @@ row::after{
 ## Installation
 
 Run `] add EasyML` in REPL.
+
+If fonts do not look correct then install [this](https://github.com/OML-NPA/EasyML.jl/raw/main/src/fonts/font.otf) and [this](https://github.com/OML-NPA/EasyML.jl/raw/main/src/fonts/font_bold.otf) font.

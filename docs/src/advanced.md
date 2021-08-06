@@ -273,8 +273,8 @@ Example code for a classification problem.
 ```julia
 model_data.problem_type = :classification # :regression, or :segmentation
 model_data.model = your_model
-set_training_data(your_data_input,your_data_labels)
-set_testing_data()
+set_training_data(your_input,your_labels)
+set_testing_data(your_test_input,your_test_labels)
 training_options.Accuracy.accuracy_mode==:manual
 set_weights(your_weights)
 train()

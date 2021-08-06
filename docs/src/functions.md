@@ -29,10 +29,6 @@ change_classes()
 ```
 
 ```@docs
-change_output?options()
-```
-
-```@docs
 design_model()
 ```
 
@@ -104,6 +100,10 @@ remove_validation_results
 
 ```@docs
 change(application_options::EasyML.ApplicationOptions)
+```
+
+```@docs
+change_output_options()
 ```
 
 ```@docs
