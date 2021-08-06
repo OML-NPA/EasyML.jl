@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>GUI guide · EasyML.jl</title><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="index.html"><img src="assets/logo.png" alt="EasyML.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="index.html">EasyML.jl</a></span></div><form class="docs-search" action="search.html"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="index.html">Home</a></li><li><a class="tocitem" href="quick_guide.html">Quick guide</a></li><li class="is-active"><a class="tocitem" href="gui_guide.html">GUI guide</a><ul class="internal"><li><a class="tocitem" href="#Global-options"><span>Global options</span></a></li><li><a class="tocitem" href="#Adding-classes"><span>Adding classes</span></a></li><li><a class="tocitem" href="#Output-options"><span>Output options</span></a></li><li><a class="tocitem" href="#Model-design"><span>Model design</span></a></li><li><a class="tocitem" href="#Data-preparation-options"><span>Data preparation options</span></a></li><li><a class="tocitem" href="#Training-options"><span>Training options</span></a></li><li><a class="tocitem" href="#Validation-options"><span>Validation options</span></a></li><li><a class="tocitem" href="#Application-options"><span>Application options</span></a></li></ul></li><li><a class="tocitem" href="functions.html">Functions</a></li><li><a class="tocitem" href="advanced.html">Advanced</a></li><li><a class="tocitem" href="handling_issues.html">Handling issues</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href="gui_guide.html">GUI guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="gui_guide.html">GUI guide</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/OML-NPA/EasyML.jl/blob/master/docs/src/gui_guide.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h2 id="Global-options"><a class="docs-heading-anchor" href="#Global-options">Global options</a><a id="Global-options-1"></a><a class="docs-heading-anchor-permalink" href="#Global-options" title="Permalink"></a></h2><img   src="./assets/images/global_options1.png" width = 520em>
+
+<p><par class="definition">GUI scaling</par> - scales GUI by a given factor.</p><img   src="./assets/images/global_options2.png" width = 520em>
+
+<p><par class="definition">Allow GPU</par> - allows to use a GPU if a compatible one is installed.</p>
+
+<p><par class="definition">Number of threads</par> - a number of CPU threads that will be used.</p>
+
+<p><par class="definition">Number of slices</par> - allows to process images during validation and application that otherwise cause an out of memory error by slicing them into multiple parts. Used only for segmentation.</p>
+
+<p><par class="definition">Offset</par> - offsets each slice by a given number of pixels to allow for an absence of a seam. </p><h2 id="Adding-classes"><a class="docs-heading-anchor" href="#Adding-classes">Adding classes</a><a id="Adding-classes-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-classes" title="Permalink"></a></h2><img   src="./assets/images/change_classes.png" width = 450em><style> 
+.definition{
+  color: rgb(231,76, 60);
+  font-weight: bold;
+}
+
+</style>
+<p><par class="definition">Name</par> - name of a class. It is just for your convenience.</p>
+
+<p><par class="definition">Weight</par> - used for weight accuracy during training and validation. 
+Calculated automatically during data preparation based on the frequency of classes. Can be also specified manually.</p>
+
+<p><par class="definition">Parent</par> - adds a class to the specified parent.</p>
+
+<p><par class="definition">Parent 2</par> - appears if the first parent is specified. Adds a class to the specified parent.</p>
+
+<p><par class="definition">Color (RGB)</par> - RGB color of a class, which should correspond to its color on your images. Uses 0-255 range.</p>
+
+<p><par class="definition">Overlap of classes</par> - specifies that a class is an overlap of two classes and should be just added to specified parents.</p>
+
+<p><par class="definition">Minimum area</par> - removes objects that have area smaller than specified.</p>
+
+<p><par class="definition">Generate border class</par> - prepares labels with object borders during data preparation and uses them for training.</p>
+
+<p><par class="definition">Border thickness</par> - specifies thickness of a border in pixels.</p>
+<h2 id="Output-options"><a class="docs-heading-anchor" href="#Output-options">Output options</a><a id="Output-options-1"></a><a class="docs-heading-anchor-permalink" href="#Output-options" title="Permalink"></a></h2><img   src="./assets/images/change_output_options1.png" width = 600em>
+
+<p><par class="definition">Output mask</par> - exports a mask after applying all processing except for border data.</p>
+
+<p><par class="definition">Border mask</par> - exports a mask with class borders if a class has border detection enabled.</p>
+
+<p><par class="definition">Applied border mask</par> - exports a mask also processed using border data.</p>
+<img   src="./assets/images/change_output_options2.png" width = 640em>
+
+<p><par class="definition">Area distribution</par> - exports area distribution of detected objects as a histogram.</p>
+
+<p><par class="definition">Area of objects</par> - exports area of each detected object.</p>
+
+<p><par class="definition">Sum of areas of objects</par> - exports sum of all areas for each class.</p>
+
+<p><par class="definition">Binning method</par> - specifies a binning method: automatic, number of bins or bin width.</p>
+
+<p><par class="definition">Value</par> - number of bins or bin width depending on previous settings.</p>
+
+<p><par class="definition">Normalisation</par> - normalisation type for a histogram: pdf, density, probability or none.</p><img   src="./assets/images/change_output_options3.png" width = 640em><p>All is the same as for area.</p><h2 id="Model-design"><a class="docs-heading-anchor" href="#Model-design">Model design</a><a id="Model-design-1"></a><a class="docs-heading-anchor-permalink" href="#Model-design" title="Permalink"></a></h2><p><img src="assets/images/design_model.png" alt/></p><style>
+.column1 {
+  float: left;
+}
+
+.column2 {
+    padding: 0.40em 0em 0em 2.8em;
+}
+
+.filler {
+  float: left;
+  width: 100%;
+  height: 100px
+  margin-bottom: 10em;
+}
+
+row::after{
+   content: "";
+  clear: both;
+  display: table;
+}
+
+</style>
+<div class="row">
+    <div class="column1">
+        <div>
+            <img   src="./assets/images/icons/saveIcon.png" width = 34em>
+        </div>
+        <div>
+            <img   src="./assets/images/icons/optionsIcon.png" width = 34em>
+        </div>
+        <div>
+            <img   src="./assets/images/icons/arrangeIcon.png" width = 34em>
+        </div>
+    </div class="column1">
+  <div class="column2">
+    <p>- saves your model</p>
+    <p>- opens options for changing visual aspects</p>
+    <p>- arranges layers according to made connections</p>
+  </div class="column2">
+</div class="row">
+<div class="filler"></div class="filler"><h2 id="Data-preparation-options"><a class="docs-heading-anchor" href="#Data-preparation-options">Data preparation options</a><a id="Data-preparation-options-1"></a><a class="docs-heading-anchor-permalink" href="#Data-preparation-options" title="Permalink"></a></h2><img   src="./assets/images/data_preparation_options.png" width = 520em>
+
+<p><par class="definition">Convert to grayscale</par> - converts images to grayscale for training, validation and application.</p>
+
+<p><par class="definition">Crop background</par> - crops uniformly dark areas. Finds the last column from left and right and row from bottom and top to be uniformly dark.</p>
+
+<p><par class="definition">Threshold</par> - creates a mask from values less than threshold.</p>
+
+<p><par class="definition">Morphological closing value</par> - value for morphological closing which is used to smooth the mask.</p>
+
+<p><par class="definition">Minimum fraction of labeled pixels</par> -  if supplied images are bigger than a model's input size, then an image is broken into chunks with a correct size. This option specifies the minimum number of labeled pixels for these chunks to be kept.</p>
+
+<p><par class="definition">Mirroring</par> - augments data by producing horizontally mirrored images.</p>
+
+<p><par class="definition">Rotation</par> -  augments data by rotating images using a specified number of angles. 1 means no rotation, only an angle of 0.</p>
+
+<h2 id="Training-options"><a class="docs-heading-anchor" href="#Training-options">Training options</a><a id="Training-options-1"></a><a class="docs-heading-anchor-permalink" href="#Training-options" title="Permalink"></a></h2><img   src="./assets/images/training_options1.png" width = 520em>
+
+<p><par class="definition">Weight accuracy</par> - uses weight accuracy where applicable.</p>
+
+<p><par class="definition">Mode</par> - either auto or manual. manual allows to specify weights manually for each class.</p><img   src="./assets/images/training_options2.png" width = 520em>
+
+<p><par class="definition">Data preparation mode</par> - either auto or manual. auto takes a specified fraction of training data to be used for testing. Manual allows to use other data as testing data.</p>
+
+<p><par class="definition">Test data fraction</par> - a fraction of data from training data to be used for testing if data preparation mode is Auto.</p>
+
+<p><par class="definition">Number of test</par> - a number of tests to be done each epoch at equal intervals.</p><img   src="./assets/images/training_options3.png" width = 520em>
+
+<p><par class="definition">Optimiser</par> - an optimiser that should be used during training. ADAM usually works well for all cases.</p>
+
+<p>Next are parameters specific for each optimiser.</p>
+
+<p><par class="definition">Learning rate</par> - specifies how fast a model should train. Lower values - more stable, but slower. Higher values - less stable, but faster. Should be decreased as training progresses.</p>
+
+<p><par class="definition">Batch size</par> - a number of images that should be batched together during training.</p>
+
+<p><par class="definition">Number of epochs</par> - a number of rounds for which a model should be trained.</p><h2 id="Validation-options"><a class="docs-heading-anchor" href="#Validation-options">Validation options</a><a id="Validation-options-1"></a><a class="docs-heading-anchor-permalink" href="#Validation-options" title="Permalink"></a></h2><img   src="./assets/images/validation_options.png" width = 520em>
+
+<p><par class="definition">Weight accuracy</par> - uses weight accuracy where applicable.</p><h2 id="Application-options"><a class="docs-heading-anchor" href="#Application-options">Application options</a><a id="Application-options-1"></a><a class="docs-heading-anchor-permalink" href="#Application-options" title="Permalink"></a></h2><img   src="./assets/images/application_options.png" width = 520em>
+
+<p><par class="definition">Save path</par> - a folder where output data should be saved.</p>
+
+<p><par class="definition">Analyse by</par> - either file or folder. Used for segmentation. Analysis by file treats every image independently. Analysis by folder combines data for images in the same folder.</p>
+
+<p><par class="definition">Output data type</par> - a format in which data should be saved.</p>
+
+<p><par class="definition">Output image type</par>Output image type - a format in which images should be saved.</p>
+
+<p><par class="definition">Scaling</par> - used for segmentation. Converts pixels to a unit of measurement of your choice.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="quick_guide.html">« Quick guide</a><a class="docs-footer-nextpage" href="functions.html">Functions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Friday 6 August 2021 11:05">Friday 6 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

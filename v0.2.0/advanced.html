@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Advanced · EasyML.jl</title><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="index.html"><img src="assets/logo.png" alt="EasyML.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="index.html">EasyML.jl</a></span></div><form class="docs-search" action="search.html"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="index.html">Home</a></li><li><a class="tocitem" href="quick_guide.html">Quick guide</a></li><li><a class="tocitem" href="gui_guide.html">GUI guide</a></li><li><a class="tocitem" href="functions.html">Functions</a></li><li class="is-active"><a class="tocitem" href="advanced.html">Advanced</a><ul class="internal"><li><a class="tocitem" href="#Model-data"><span>Model data</span></a></li><li><a class="tocitem" href="#Options"><span>Options</span></a></li><li><a class="tocitem" href="#A-custom-loop"><span>A custom loop</span></a></li><li><a class="tocitem" href="#Custom-training-data"><span>Custom training data</span></a></li></ul></li><li><a class="tocitem" href="handling_issues.html">Handling issues</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href="advanced.html">Advanced</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="advanced.html">Advanced</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/OML-NPA/EasyML.jl/blob/master/docs/src/advanced.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h2 id="Model-data"><a class="docs-heading-anchor" href="#Model-data">Model data</a><a id="Model-data-1"></a><a class="docs-heading-anchor-permalink" href="#Model-data" title="Permalink"></a></h2><p>A struct named <code>model_data</code> is exported and holds all information about your model.</p><pre><code class="language-julia">mutable struct ModelData
+    model::AbstractModel                                  # any of the supported models (currently only Flux.jl model).
+    normalization::Normalization                          # a Normalization struct, which describes how to normalize input data
+    loss::Function                                        # holds loss that is used during training and validation.
+    input_size::Union{NTuple{2,Int64},NTuple{3,Int64}}    # model input size.
+    output_size::Union{NTuple{2,Int64},NTuple{3,Int64}}   # model output size.
+    input_type::Symbol                                    # type of input data (:image).
+    problem_type::Symbol                                  # type of ML problem (:classification, :regression or :segmentation).
+    classes::Vector{&lt;:AbstractClass}                      # hold information about classes that a neural network outputs and what should be done with them.
+    output_options::Vector{&lt;:AbstractOutputOptions}      # hold information about output options for each class for application of the model.
+    layers_info::Vector{AbstractLayerInfo}                # contains information for visualisation of layers.
+end</code></pre><p><code>classes</code> and <code>output_options</code> type depends on a type of a problem.</p><pre><code class="language-julia">mutable struct ImageClassificationClass&lt;:AbstractClass
+    name::String                # name of a class.
+    weight::Float32             # weight of a class used for weighted accuracy calculation.
+end
+
+mutable struct ImageRegressionClass&lt;:AbstractClass
+    name::String                # name of a class.
+end
+
+mutable struct ImageSegmentationClass&lt;:AbstractClass
+    name::String               # name of a class. It is just for your convenience.
+    weight::Float32            # weight of a class used for weighted accuracy calculation.
+    color::Vector{Float64}     # RGB color of a class, which should correspond to its color on your images. Uses 0-255 range.
+    parents::Vector{String}    # up to two parents can be specified by their name. Objects from a child are added to its parent.
+    overlap::Bool              # specifies that a class is an overlap of two classes and should be just added to specified parents.
+    min_area::Int64            # minimum area of an object.
+    BorderClass::BorderClass   # allows to train a neural network to recognize borders and, therefore, better separate objects during post-processing.
+end
+
+mutable struct BorderClass
+    enabled::Bool
+    thickness::Int64           # border thickness in pixels.
+end
+</code></pre><p><code>ImageClassificationOutputOptions</code> and <code>ImageRegressionOutputOptions</code> are currently empty. New functionality can be added on request.</p><pre><code class="language-julia">mutable struct ImageSegmentationOutputOptions&lt;:AbstractOutputOptions
+    Mask::OutputMask            # holds output mask options.
+    Area::OutputArea            # holds area of objects options.
+    Volume::OutputVolume        # holds volume of objects options.
+end
+
+mutable struct OutputMask
+    mask::Bool                  # exports a mask after applying all processing except for border data.
+    mask_border::Bool           # exports a mask with class borders if a class has border detection enabled.
+    mask_applied_border::Bool   # exports a mask processed using border data.
+end
+
+mutable struct OutputArea
+    area_distribution::Bool     # exports area distribution of detected objects as a histogram.
+    obj_area::Bool              # exports area of each detected object.
+    obj_area_sum::Bool          # exports sum of all areas for each class.
+    binning::Symbol             # specifies a binning method (:auto, :number_of_bins, :bin_width).
+    value::Float64              # number of bins or bin width depending on a previous settings.
+    normalisation::Symbol       # normalisation type for a histogram (:none, :pdf, :density, :probability).
+end
+
+mutable struct OutputVolume
+    volume_distribution::Bool   # exports volume distribution of detected objects as a histogram.
+    obj_volume::Bool            # exports volume of each detected object.
+    obj_volume_sum::Bool        # exports sum of all volumes for each class.
+    binning::Symbol             # specifies a binning method (:auto, :number_of_bins, :bin_width).
+    value::Float64              # number of bins or bin width depending on a previous settings.
+    normalisation::Symbol       # normalisation type for a histogram (:none, :pdf, :density, :probability).</code></pre><p>Example code for a segmentation problem.</p><pre><code class="language-julia">class1 = ImageSegmentationClass(name = &quot;Cell&quot;, weight = 1, color = [0,255,0], min_area = 5, BorderClass=BorderClass(true,5))
+class2 = ImageSegmentationClass(name = &quot;Vacuole&quot;, weight = 1, color = [255,0,0], parents = [&quot;Cell&quot;,&quot;&quot;], min_area = 5)
+
+class_output_options1 = ImageSegmentationOutputOptions()
+class_output_options2 = ImageSegmentationOutputOptions()
+
+settings.problem_type = :segmentation
+classes = [class1,class2]
+output_options = [class_output_options1,class_output_options2]
+model_data.classes = classes
+model_data.OutputOptions = output_options</code></pre><h2 id="Options"><a class="docs-heading-anchor" href="#Options">Options</a><a id="Options-1"></a><a class="docs-heading-anchor-permalink" href="#Options" title="Permalink"></a></h2><p>All options are located in <code>EasyML.options</code>.</p><pre><code class="language-julia">mutable struct Options
+    GlobalOptions::GlobalOptions
+    DesignOptions::DesignOptions
+    DataPreparationOptions::DataPreparationOptions
+    TrainingOptions::TrainingOptions
+    ValidationOptions::ValidationOptions = validation_options
+    ApplicationOptions::ApplicationOptions
+end</code></pre><h3 id="Global-options"><a class="docs-heading-anchor" href="#Global-options">Global options</a><a id="Global-options-1"></a><a class="docs-heading-anchor-permalink" href="#Global-options" title="Permalink"></a></h3><pre><code class="language-julia">mutable struct GlobalOptions
+    Graphics::Graphics
+    HardwareResources::HardwareResources
+end</code></pre><p>Can be accessed as <code>EasyML.global_options</code>.</p><pre><code class="language-julia">mutable struct HardwareResources
+    allow_GPU::Bool      # allows to use a GPU if a compatible one is installed.
+    num_threads::Int64   # a number of CPU threads that will be used.
+    num_slices::Int64    # allows to process images during validation and application that otherwise cause an out of memory error by slicing them into multiple parts. Used only for segmentation.
+    offset::Int64        # offsets each slice by a given number of pixels to allow for an absence of a seam. 
+end</code></pre><pre><code class="language-julia">mutable struct Graphics
+    scaling_factor::Float64   # scales GUI by a given factor.
+end</code></pre><h3 id="Design-options"><a class="docs-heading-anchor" href="#Design-options">Design options</a><a id="Design-options-1"></a><a class="docs-heading-anchor-permalink" href="#Design-options" title="Permalink"></a></h3><pre><code class="language-julia">mutable struct DesignOptions
+    width::Float64        # width of layers
+    height::Float64       # height of layers
+    min_dist_x::Float64   # minimum horizontal distance between layers
+    min_dist_y::Float64   # minimum vertical distance between layers
+end</code></pre><p>Can be accessed as <code>EasyML.design_options</code>.</p><h3 id="Training-options"><a class="docs-heading-anchor" href="#Training-options">Training options</a><a id="Training-options-1"></a><a class="docs-heading-anchor-permalink" href="#Training-options" title="Permalink"></a></h3><pre><code class="language-julia">mutable struct TrainingOptions
+    Accuracy::AccuracyOptions
+    Testing::TestingOptions
+    Hyperparameters::HyperparametersOptions
+end</code></pre><p>Can be accessed as <code>EasyML.training_options</code>.</p><pre><code class="language-julia">mutable struct AccuracyOptions 
+    weight_accuracy::Bool   # uses weight accuracy where applicable.
+    accuracy_mode::Symbol   # either :auto or :manual. :manual allows to specify weights manually for each class.
+end</code></pre><pre><code class="language-julia">mutable struct TestingOptions
+    test_data_fraction::Float64     # a fraction of data from training data to be used for testing if data preparation mode is set to :Auto.
+    num_tests::Float64              # a number of tests to be done each epoch at equal intervals.
+    data_preparation_mode::Symbol   # Either :Auto or :Manual. Auto takes a specified fraction of training data to be used for testing. Manual allows to use other data as testing data.
+end</code></pre><pre><code class="language-julia">mutable struct HyperparametersOptions
+    optimiser::Symbol                   # an optimiser that should be used during training. ADAM usually works well for all cases.
+    optimiser_params::Vector{Float64}   # parameters specific for each optimiser. Default ones can be found in EasyML.training_options_data
+    learning_rate::Float64              # pecifies how fast a model should train. Lower values - more stable, but slower. Higher values - less stable, but faster. Should be decreased as training progresses.
+    epochs::Int64                       # a number of rounds for which a model should be trained.
+    batch_size::Int64                   # a number of data that should be batched together during training.
+end</code></pre><h3 id="Data-preparation-options"><a class="docs-heading-anchor" href="#Data-preparation-options">Data preparation options</a><a id="Data-preparation-options-1"></a><a class="docs-heading-anchor-permalink" href="#Data-preparation-options" title="Permalink"></a></h3><pre><code class="language-julia">struct DataPreparationOptions
+    Images::ImagePreparationOptions = image_preparation_options
+end</code></pre><p>Can be accessed as <code>data_preparation_options</code>.</p><pre><code class="language-julia">@with_kw mutable struct ImagePreparationOptions
+    grayscale::Bool = false      # converts images to grayscale for training, validation and application.
+    mirroring::Bool = false      # augments data by producing horizontally mirrored images.
+    num_angles::Int64 = 1        # augments data by rotating images using a specified number of angles. 1 means no rotation, only an angle of 0.
+    min_fr_pix::Float64 = 0.0    # if supplied images are bigger than a model&#39;s input size, then an image is broken into chunks with a correct size. This option specifies the minimum number of labeled pixels for these chunks to be kept.
+    BackgroundCropping::BackgroundCroppingOptions = background_cropping_options   # crops image to removed uniformly black backgorund.
+end</code></pre><pre><code class="language-julia">@with_kw mutable struct BackgroundCroppingOptions
+    enabled::Bool = false
+    threshold::Float64 = 0.3   # creates a mask from values less than threshold.
+    closing_value::Int64 = 1   # value for morphological closing which is used to smooth the mask.
+end</code></pre><h3 id="Validation-options"><a class="docs-heading-anchor" href="#Validation-options">Validation options</a><a id="Validation-options-1"></a><a class="docs-heading-anchor-permalink" href="#Validation-options" title="Permalink"></a></h3><pre><code class="language-julia">mutable struct ValidationOptions
+    Accuracy::AccuracyOptions = accuracy_options
+end</code></pre><p>Can be accessed as <code>validation_options</code></p><pre><code class="language-julia">mutable struct AccuracyOptions
+    weight_accuracy::Bool   # uses weight accuracy where applicable.
+    accuracy_mode::Symbol   # either :auto or :manual. :manual allows to specify weights manually for each class.
+end</code></pre><h3 id="Application-options"><a class="docs-heading-anchor" href="#Application-options">Application options</a><a id="Application-options-1"></a><a class="docs-heading-anchor-permalink" href="#Application-options" title="Permalink"></a></h3><pre><code class="language-julia">mutable struct ApplicationOptions
+    savepath::String     # specifies where results are saved.
+    apply_by::Symbol     # either :file or :folder. If :folder is chosen, then results of files in the same folder are combined.
+    data_type::Symbol    # output data type (:csv,:xlsx,:json,:bson).
+    image_type::Symbol   # output image type (:png,:tiff,:json,:bson).
+    scaling::Float64     # multiplies results by a specified factor
+end</code></pre><p>Can be accessed as <code>application_options</code>.</p><h2 id="A-custom-loop"><a class="docs-heading-anchor" href="#A-custom-loop">A custom loop</a><a id="A-custom-loop-1"></a><a class="docs-heading-anchor-permalink" href="#A-custom-loop" title="Permalink"></a></h2><p>A custom loop can be written using <code>forward</code>.</p><p>Example code for a segmentation problem.</p><pre><code class="language-julia">model = model_data.model
+data = [ones(Float32,160,160,3,1)]   # vector with your data goes here
+results = Vector{BitArray{3}}(undef,0)
+for i = 1:length(data)
+    output_raw = forward(model,data[i])
+    output_bool = output_raw[:,:,:].&gt;0.5
+    output = apply_border_data(output_bool,model_data.classes)   # can be removed if your model does not detect borders
+    push!(results,output)
+end</code></pre><article class="docstring"><header><a class="docstring-binding" id="EasyML.Application.forward" href="#EasyML.Application.forward"><code>EasyML.Application.forward</code></a> — <span class="docstring-category">Function</span></header><section><div><p>forward(model::Chain, input<em>data::Array{Float32}; num</em>slices::Int64=1, offset::Int64=20, use_GPU::Bool=false)</p><p>The function takes in a model and input data and returns output from that model. <code>num_slices</code> specifies in how many  slices should an array be run thorugh a neural network. Allows to process images that otherwise cause an out of memory error. <code>offset</code> specifies the size of an overlap that should be taken from the left and right side of each slice to allow for  an absense of a seam. <code>use_GPU</code> enables or disables GPU usage.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/common/common/validation_application.jl#L72-L79">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="EasyML.Application.apply_border_data" href="#EasyML.Application.apply_border_data"><code>EasyML.Application.apply_border_data</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">apply_border_data(input_data::BitArray{3},classes::Vector{ImageSegmentationClass})</code></pre><p>Used for segmentation. Uses borders of objects that a neural network detected in order  to separate objects from each other. Output from a neural network should be fed after  converting to BitArray.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/common/common/validation_application.jl#L100-L106">source</a></section></article><h2 id="Custom-training-data"><a class="docs-heading-anchor" href="#Custom-training-data">Custom training data</a><a id="Custom-training-data-1"></a><a class="docs-heading-anchor-permalink" href="#Custom-training-data" title="Permalink"></a></h2><p>Example code for a classification problem.</p><pre><code class="language-julia">model_data.problem_type = :classification # :regression, or :segmentation
+model_data.model = your_model
+set_training_data(your_input,your_labels)
+set_testing_data(your_test_input,your_test_labels)
+training_options.Accuracy.accuracy_mode==:manual
+set_weights(your_weights)
+train()</code></pre><article class="docstring"><header><a class="docstring-binding" id="EasyML.Training.set_training_data" href="#EasyML.Training.set_training_data"><code>EasyML.Training.set_training_data</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">set_training_data(data_input::Vector,data_labels::Vector)</code></pre><p>Sets data for training.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/training/exported_functions.jl#L24-L28">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="EasyML.Training.set_testing_data" href="#EasyML.Training.set_testing_data"><code>EasyML.Training.set_testing_data</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">set_testing_data(data_input::Vector,data_labels::Vector)</code></pre><p>Sets data for testing.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/training/exported_functions.jl#L48-L52">source</a></section><section><div><pre><code class="nohighlight">set_testing_data()</code></pre><p>A fraction of training data also specified in training options is set aside for testing.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/training/exported_functions.jl#L105-L109">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="EasyML.Training.set_weights" href="#EasyML.Training.set_weights"><code>EasyML.Training.set_weights</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">set_weights(ws::Vector{&lt;:Real})</code></pre><p>Set weights for weight accuracy to <code>ws</code>. If <code>sum(ws) ≠ 1</code> then it is adjusted to be so.  If weights are not specified then inverse frequency of labesl is used.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/OML-NPA/EasyML.jl/blob/f8af6087ce1f0e28ea62b7b7d4172fb73cf85548/src/modules/training/exported_functions.jl#L126-L131">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="functions.html">« Functions</a><a class="docs-footer-nextpage" href="handling_issues.html">Handling issues »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Friday 6 August 2021 11:05">Friday 6 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
