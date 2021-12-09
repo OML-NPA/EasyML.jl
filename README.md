@@ -14,6 +14,10 @@ This package allows to use machine learning in Julia through a graphical user in
 
 NB! This is a beta version. Bugs and breaking changes should be expected.
 
+The package will be updated to Julia 1.7.0 as soon as [QML.jl](https://github.com/barche/QML.jl) is updated.
+
+If you are interested in the package and would like to contribute then write here: a_ill@outlook.com.
+
 ## Features
 It is possible to:
   - Design a neural network
